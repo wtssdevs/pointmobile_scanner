@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 class PointmobileScanner {
-  static const MethodChannel channel = const MethodChannel("pointmobile_scanner");
+  static const MethodChannel channel =
+      const MethodChannel("pointmobile_scanner");
 
   static const String ON_DECODE = "onDecode";
   static const String ON_ERROR = "onError";
@@ -78,8 +79,8 @@ class PointmobileScanner {
   static const int SYM_SWEDENPOST = 68;
   static const int SYM_LAST = 69;
 
-  static void initScanner() {
-    channel.invokeMethod("initScanner");
+  static Future<bool> initScanner() async {
+    return await channel.invokeMethod<bool>("initScanner") ?? false;
   }
 
   static void enableScanner() {

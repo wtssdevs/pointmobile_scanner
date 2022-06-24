@@ -97,8 +97,8 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     if (call.method.equals("initScanner")) {
-      _initScanner();
-      result.success(true);
+      Boolean initOk = _initScanner();
+      result.success(initOk);
     } else if (call.method.equals("enableScanner")) {
       _enableScanner();
       result.success(true);
@@ -129,23 +129,30 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
     }
   }
 
-  private void _initScanner() {
+  private Boolean _initScanner() {
     Log.d(TAG, "[_initScanner]");
-    if (mScanner == null) {
-      mScanner = new ScanManager();
-      Log.d(TAG, "[_initScanner] new ScanManager()");
+    try {
+      if (mScanner == null) {
+        mScanner = new ScanManager();
+        Log.d(TAG, "[_initScanner] new ScanManager()");
 
-      mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
-      Log.d(TAG, "[_initScanner] SetResultType(USERMSG)");
+        mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
+        Log.d(TAG, "[_initScanner] SetResultType(USERMSG)");
 
-      mScanResultReceiver = new ScanResultReceiver();
-      IntentFilter filter = new IntentFilter();
-      filter.addAction(ScanConst.INTENT_USERMSG);
-      filter.addAction(ScanConst.INTENT_EVENT);
-      mContext.registerReceiver(mScanResultReceiver, filter);
-      Log.d(TAG, "[_initScanner] ScanResultReceiver is registered.");
+        mScanResultReceiver = new ScanResultReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ScanConst.INTENT_USERMSG);
+        filter.addAction(ScanConst.INTENT_EVENT);
+        mContext.registerReceiver(mScanResultReceiver, filter);
+        Log.d(TAG, "[_initScanner] ScanResultReceiver is registered.");
 
-      mDecodeResult = new DecodeResult();
+        mDecodeResult = new DecodeResult();
+      }
+      return true;
+    }
+    catch (Throwable e) {
+      Log.d(TAG, "[_initScanner] Failed to initialise Scanner");
+      return false;
     }
   }
 

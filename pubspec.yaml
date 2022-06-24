@@ -1,6 +1,6 @@
 name: pointmobile_scanner
 description: A Flutter plugin for the barcode scanner of Point Mobile PDAs.
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/DevAndroidPointMobile/pointmobile_scanner
 
 environment:
