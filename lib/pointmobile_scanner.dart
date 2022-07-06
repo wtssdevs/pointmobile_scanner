@@ -2,12 +2,12 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 class PointmobileScanner {
-  static const MethodChannel channel =
-      const MethodChannel("pointmobile_scanner");
+  static const MethodChannel channel = const MethodChannel("pointmobile_scanner");
 
   static const String ON_DECODE = "onDecode";
   static const String ON_ERROR = "onError";
-
+  static const String platformVersion = "42";
+//
   static const int SYM_NIL = 0;
   static const int SYM_AIRLINE_2OF5_13_DIGIT = 1;
   static const int SYM_AIRLINE_2OF5_15_DIGIT = 2;
