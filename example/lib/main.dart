@@ -5,8 +5,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pointmobile_scanner/pointmobile_scanner.dart';
-import 'package:pointmobile_scanner_example/rsa_drivers_scanner.dart';
-import 'package:pointmobile_scanner_example/rsa_scan.dart';
 import 'package:pointmobile_scanner_example/zar_drivers_license.dart';
 
 void main() {
@@ -63,86 +61,75 @@ class _MyAppState extends State<MyApp> {
           body: Center(
             child: ListView(
               children: [
-                Text('$_decodeResult\n'),
-                // ElevatedButton(
-                //   child: Text('Scan Driver\'s License'),
-                //   onPressed: () async {
-                //     final scannedDrivers = await Navigator.of(context).push(MaterialPageRoute(
-                //       builder: (context) => RsaDriversScanner(),
-                //     ));
-                //     print(scannedDrivers);
-                //     return scannedDrivers;
-                //   },
-                // ),
-                Divider(),
+             
                 ListTile(
                   title: Text('licenseNumber: ${rsaDriversLicense?.licenseNumber}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('idNumber: ${rsaDriversLicense?.idNumber}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('idNumberType: ${rsaDriversLicense?.idNumberType}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('idCountryOfIssue: ${rsaDriversLicense?.idCountryOfIssue}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('firstNames: ${rsaDriversLicense?.firstNames}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('surname: ${rsaDriversLicense?.surname}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('birthDate: ${rsaDriversLicense?.birthDate}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('gender: ${rsaDriversLicense?.gender}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('driverRestrictions: ${rsaDriversLicense?.driverRestrictions}'),
                 ),
-                Divider(),
+
                 // ListTile(
                 //   title: Text('issueDates: ${rsaDriversLicense?.issueDates}'),
                 // ),
-                Divider(),
+
                 ListTile(
                   title: Text('licenseIssueNumber: ${rsaDriversLicense?.licenseIssueNumber}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('licenseCountryOfIssue: ${rsaDriversLicense?.licenseCountryOfIssue}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('prdpCode: ${rsaDriversLicense?.prdpCode}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('prdpExpiry: ${rsaDriversLicense?.prdpExpiry}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('validFrom: ${rsaDriversLicense?.validFrom}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('validTo: ${rsaDriversLicense?.validTo}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('vehicleCodes: ${rsaDriversLicense?.vehicleCodes}'),
                 ),
-                Divider(),
+
                 ListTile(
                   title: Text('vehicleRestrictions: ${rsaDriversLicense?.vehicleRestrictions}'),
                 ),

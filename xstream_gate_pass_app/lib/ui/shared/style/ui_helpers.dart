@@ -1,0 +1,53 @@
+// Horizontal Spacing
+import 'package:flutter/material.dart';
+import 'package:xstream_gate_pass_app/core/enums/device_screen_type.dart';
+
+const Widget horizontalSpaceTiny = SizedBox(width: 5.0);
+const Widget horizontalSpaceSmall = SizedBox(width: 10.0);
+const Widget horizontalSpaceRegular = SizedBox(width: 18.0);
+const Widget horizontalSpaceMedium = SizedBox(width: 25.0);
+const Widget horizontalSpaceLarge = SizedBox(width: 50.0);
+
+const Widget verticalSpaceTiny = SizedBox(height: 5.0);
+const Widget verticalSpaceSmall = SizedBox(height: 10.0);
+const Widget verticalSpaceRegular = SizedBox(height: 18.0);
+const Widget verticalSpaceMedium = SizedBox(height: 25.0);
+const Widget verticalSpaceLarge = SizedBox(height: 50.0);
+
+// Screen Size helpers
+
+double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
+double screenHeight(BuildContext context) => MediaQuery.of(context).size.height;
+
+double screenHeightPercentage(BuildContext context, {double percentage = 1}) => screenHeight(context) * percentage;
+
+double screenWidthPercentage(BuildContext context, {double percentage = 1}) => screenWidth(context) * percentage;
+
+DeviceScreenType getDeviceType(MediaQueryData? mediaQuery) {
+  double deviceWidth = 0;
+  if (mediaQuery != null) {
+    deviceWidth = mediaQuery.size.shortestSide;
+  } else {
+    if (WidgetsBinding.instance == null) {
+      WidgetsFlutterBinding.ensureInitialized();
+    }
+
+    deviceWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.shortestSide;
+  }
+
+  return deviceWidth < 550 ? DeviceScreenType.Mobile : DeviceScreenType.Tablet;
+  // if (deviceWidth < 550) {
+  //   return DeviceScreenType.Desktop;
+  // }
+  //
+  //
+  // if (deviceWidth > 950) {
+  //   return DeviceScreenType.Desktop;
+  // }
+  //
+  // if (deviceWidth > 600) {
+  //   return DeviceScreenType.Tablet;
+  // }
+  //
+  // return DeviceScreenType.Mobile;
+}

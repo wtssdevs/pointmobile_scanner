@@ -23,7 +23,6 @@ import device.sdk.ScanManager;
 
 import java.util.ArrayList;
 
-
 /** PointmobileScannerPlugin */
 public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandler {
 
@@ -39,6 +38,7 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
   private int mBackupResultType = ScanConst.ResultType.DCD_RESULT_COPYPASTE;
 
   private static ScanResultReceiver mScanResultReceiver = null;
+
   public static class ScanResultReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -48,14 +48,14 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
           if (ScanConst.INTENT_USERMSG.equals(intent.getAction())) {
             Log.d(TAG, "[onReceive] INTENT_USERMSG");
             mScanner.aDecodeGetResult(mDecodeResult.recycle());
-           
-           // _onDecode(decodeBytesValue);
+
+            // _onDecode(decodeBytesValue);
             _onDecode(mDecodeResult);
           } else if (ScanConst.INTENT_EVENT.equals(intent.getAction())) {
             Log.d(TAG, "[onReceive] INTENT_EVENT");
             boolean result = intent.getBooleanExtra(ScanConst.EXTRA_EVENT_DECODE_RESULT, false);
             int decodeBytesLength = intent.getIntExtra(ScanConst.EXTRA_EVENT_DECODE_LENGTH, 0);
-            byte[] decodeBytesValue = intent.getByteArrayExtra(ScanConst.EXTRA_EVENT_DECODE_VALUE);            
+            byte[] decodeBytesValue = intent.getByteArrayExtra(ScanConst.EXTRA_EVENT_DECODE_VALUE);
             String decodeValue = new String(decodeBytesValue, 0, decodeBytesLength);
             int decodeLength = decodeValue.length();
             String symbolName = intent.getStringExtra(ScanConst.EXTRA_EVENT_SYMBOL_NAME);
@@ -76,7 +76,7 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
             Log.d(TAG, "10.decoding modifier: " + modifier);
             Log.d(TAG, "11.decoding time: " + decodingTime);
             _onDecode(mDecodeResult);
-            //_onDecode(decodeBytesValue);
+            // _onDecode(decodeBytesValue);
           }
         } catch (Exception e) {
           e.printStackTrace();
@@ -141,7 +141,7 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
         mScanner = new ScanManager();
         Log.d(TAG, "[_initScanner] new ScanManager()");
 
-        //mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_EVENT);
+        // mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_EVENT);
         mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
         Log.d(TAG, "[_initScanner] SetResultType(USERMSG)");
 
@@ -155,9 +155,9 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
         mDecodeResult = new DecodeResult();
       }
       return true;
-    }
-    catch (Throwable e) {
-      Log.d(TAG, "[_initScanner] Failed to initialise Scanner");
+    } catch (Throwable e) {
+      e.printStackTrace();
+      Log.d(TAG, e.getMessage() + e.toString() + " [_initScanner] Failed to initialise Scanner");
       return false;
     }
   }
@@ -218,14 +218,13 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
     }
   }
 
-
   // private static void _onDecode(byte[] decodeResult) {
-  //   ArrayList<String> alDecodeResult = new ArrayList<>();    
-  //   //String encoded = Base64.getEncoder().encodeToString(decodeResult);
-  //   String encoded = Base64.encodeToString(decodeResult, Base64.DEFAULT);
-  //   alDecodeResult.add(encoded);    
-  //   Log.d(TAG, "[_onDecode] " + alDecodeResult.toString());
-  //   mChannel.invokeMethod(_ON_DECODE, alDecodeResult);
+  // ArrayList<String> alDecodeResult = new ArrayList<>();
+  // //String encoded = Base64.getEncoder().encodeToString(decodeResult);
+  // String encoded = Base64.encodeToString(decodeResult, Base64.DEFAULT);
+  // alDecodeResult.add(encoded);
+  // Log.d(TAG, "[_onDecode] " + alDecodeResult.toString());
+  // mChannel.invokeMethod(_ON_DECODE, alDecodeResult);
   // }
 
   private static void _onDecode(DecodeResult decodeResult) {
@@ -234,9 +233,9 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
     String encoded = Base64.encodeToString(decodeResult.decodeValue, Base64.DEFAULT);
     alDecodeResult.add(encoded);
     alDecodeResult.add(decodeResult.toString());
-    
-    //var ss = encodeBase64String(alDecodeResult);
-//object
+
+    // var ss = encodeBase64String(alDecodeResult);
+    // object
     Log.d(TAG, "[_onDecode] " + decodeResult.toString());
     Log.d(TAG, "[_onDecode] " + decodeResult.decodeLength);
     mChannel.invokeMethod(_ON_DECODE, alDecodeResult);
