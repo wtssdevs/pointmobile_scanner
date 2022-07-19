@@ -11,8 +11,8 @@ import 'package:xstream_gate_pass_app/ui/views/startup/startup_view.dart';
 
 @StackedApp(
   routes: [
-    MaterialRoute(page: StartUpView, initial: true),
-    MaterialRoute(page: HomeView),
+    MaterialRoute(page: StartUpView),
+    MaterialRoute(page: HomeView, initial: true),
     MaterialRoute(page: GatePassView),
   ],
   dependencies: [

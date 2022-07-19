@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
@@ -17,18 +20,32 @@ class GatePassViewModel extends BaseViewModel {
   final _dialogService = locator<DialogService>();
   final _scanningService = locator<ScanningService>();
   final TextEditingController filterController = TextEditingController();
-
+  StreamSubscription<RsaDriversLicense>? streamSubscription;
   final _connectionService = locator<ConnectionService>();
   bool get hasConnection => _connectionService.hasConnection;
 
   RsaDriversLicense? _rsaDriversLicense;
-  RsaDriversLicense? get rsaDriversLicense => _scanningService.rsaDriversLicense;
+  RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
 
-  Future<void> runStartupLogic() async {
-    _scanningService.initialise();
+  void startconnectionListen() {
+    streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) {
+      log.i('Barcode Model Recieved? $data');
+      _rsaDriversLicense = data;
+      notifyListeners();
+    });
   }
 
-  void onDispose() {
+  Future<void> runStartupLogic() async {
+    FlutterNativeSplash.remove();
+    _scanningService.initialise();
+    startconnectionListen();
+  }
+
+  void onDispose() async {
+    if (streamSubscription != null) {
+      await streamSubscription?.cancel();
+    }
+
     _scanningService.onExit();
   }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:pointmobile_scanner/pointmobile_scanner.dart';
@@ -9,6 +10,8 @@ import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_driver
 @LazySingleton()
 class ScanningService {
   final log = getLogger('ScanningService');
+  StreamController<RsaDriversLicense> barcodeChangeController = StreamController<RsaDriversLicense>.broadcast();
+  Stream<RsaDriversLicense> get licenseStream => barcodeChangeController.stream;
 
   RsaDriversLicense? _rsaDriversLicense;
   RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
@@ -51,6 +54,12 @@ class ScanningService {
       _rsaDriversLicense = RsaDriversLicense.fromBarcodeBytes(bytes);
 
       log.i("Scan Complete");
+      if (_rsaDriversLicense != null) {
+        barcodeChangeController.add(_rsaDriversLicense!);
+      } else {
+        barcodeChangeController.add(_rsaDriversLicense!);
+      }
+
       return _rsaDriversLicense;
     }
     _rsaDriversLicense = null;

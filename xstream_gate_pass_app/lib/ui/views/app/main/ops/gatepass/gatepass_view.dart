@@ -38,98 +38,105 @@ class GatePassView extends StatelessWidget {
                 },
               ),
             ),
-            body: ListView(
-              children: [
-                ListTile(
-                  dense: true,
-                  title: Text('LicenseNumber: ${model.rsaDriversLicense?.licenseNumber}'),
-                ),
+            body: model.rsaDriversLicense == null
+                ? Container(
+                    child: const Padding(
+                      padding: EdgeInsets.only(top: 100, left: 8, right: 8),
+                      child: Text("Scan your driver's license."),
+                    ),
+                  )
+                : ListView(
+                    children: [
+                      ListTile(
+                        dense: true,
+                        title: Text('LicenseNumber: ${model.rsaDriversLicense?.licenseNumber}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('ID No: ${model.rsaDriversLicense?.idNumber}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('ID No: ${model.rsaDriversLicense?.idNumber}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('ID No Type: ${model.rsaDriversLicense?.idNumberType}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('ID No Type: ${model.rsaDriversLicense?.idNumberType}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Country Of Issue: ${model.rsaDriversLicense?.idCountryOfIssue}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Country Of Issue: ${model.rsaDriversLicense?.idCountryOfIssue}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('First Names: ${model.rsaDriversLicense?.firstNames}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('First Names: ${model.rsaDriversLicense?.firstNames}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Surname: ${model.rsaDriversLicense?.surname}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Surname: ${model.rsaDriversLicense?.surname}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Birth Date: ${model.rsaDriversLicense?.birthDate}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Birth Date: ${model.rsaDriversLicense?.birthDate}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Gender: ${model.rsaDriversLicense?.gender}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Gender: ${model.rsaDriversLicense?.gender}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Driver Restrictions: ${model.rsaDriversLicense?.driverRestrictions}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Driver Restrictions: ${model.rsaDriversLicense?.driverRestrictions}'),
+                      ),
 
-                // ListTile(
-                //   title: Text('issueDates: ${rsaDriversLicense?.issueDates}'),
-                // ),
+                      // ListTile(
+                      //   title: Text('issueDates: ${rsaDriversLicense?.issueDates}'),
+                      // ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('License Issue Number: ${model.rsaDriversLicense?.licenseIssueNumber}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('License Issue Number: ${model.rsaDriversLicense?.licenseIssueNumber}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('License Country Of Issue: ${model.rsaDriversLicense?.licenseCountryOfIssue}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('License Country Of Issue: ${model.rsaDriversLicense?.licenseCountryOfIssue}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Prdp Code: ${model.rsaDriversLicense?.prdpCode}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Prdp Code: ${model.rsaDriversLicense?.prdpCode}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Prdp Expiry: ${model.rsaDriversLicense?.prdpExpiry}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Prdp Expiry: ${model.rsaDriversLicense?.prdpExpiry}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Valid From: ${model.rsaDriversLicense?.validFrom}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Valid From: ${model.rsaDriversLicense?.validFrom}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Valid To: ${model.rsaDriversLicense?.validTo}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Valid To: ${model.rsaDriversLicense?.validTo}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Vehicle Codes: ${model.rsaDriversLicense?.vehicleCodes}'),
-                ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Vehicle Codes: ${model.rsaDriversLicense?.vehicleCodes}'),
+                      ),
 
-                ListTile(
-                  dense: true,
-                  title: Text('Vehicle Restrictions: ${model.rsaDriversLicense?.vehicleRestrictions}'),
-                ),
-              ],
-            ),
+                      ListTile(
+                        dense: true,
+                        title: Text('Vehicle Restrictions: ${model.rsaDriversLicense?.vehicleRestrictions}'),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),

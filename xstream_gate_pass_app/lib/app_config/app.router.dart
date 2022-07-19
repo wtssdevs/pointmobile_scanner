@@ -11,14 +11,17 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import '../ui/views/app/main/home_view.dart';
+import '../ui/views/app/main/ops/gatepass/gatepass_view.dart';
 import '../ui/views/startup/startup_view.dart';
 
 class Routes {
-  static const String startUpView = '/';
-  static const String homeView = '/home-view';
+  static const String startUpView = '/start-up-view';
+  static const String homeView = '/';
+  static const String gatePassView = '/gate-pass-view';
   static const all = <String>{
     startUpView,
     homeView,
+    gatePassView,
   };
 }
 
@@ -28,6 +31,7 @@ class StackedRouter extends RouterBase {
   final _routes = <RouteDef>[
     RouteDef(Routes.startUpView, page: StartUpView),
     RouteDef(Routes.homeView, page: HomeView),
+    RouteDef(Routes.gatePassView, page: GatePassView),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -47,6 +51,12 @@ class StackedRouter extends RouterBase {
           key: args.key,
           tabIndex: args.tabIndex,
         ),
+        settings: data,
+      );
+    },
+    GatePassView: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => const GatePassView(),
         settings: data,
       );
     },
@@ -97,6 +107,22 @@ extension NavigatorStateExtension on NavigationService {
     return navigateTo(
       Routes.homeView,
       arguments: HomeViewArguments(key: key, tabIndex: tabIndex),
+      id: routerId,
+      preventDuplicates: preventDuplicates,
+      parameters: parameters,
+      transition: transition,
+    );
+  }
+
+  Future<dynamic> navigateToGatePassView({
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  }) async {
+    return navigateTo(
+      Routes.gatePassView,
       id: routerId,
       preventDuplicates: preventDuplicates,
       parameters: parameters,
