@@ -3,7 +3,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <permission android:name="device.sdk.sample.scanner.permission.SCANNER_RESULT_RECEIVER" android:protectionLevel="normal" />
+    <permission android:name="device.sdk.sample.scanner.permission.SCANNER_RESULT_RECEIVER" />
 
     <uses-permission android:name="device.sdk.sample.scanner.permission.SCANNER_RESULT_RECEIVER" />
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />

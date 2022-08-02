@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/core/enums/device_screen_type.dart';
+import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
+import 'package:xstream_gate_pass_app/ui/shared/widgets/box_text.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/gatepass_viewmodel.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/empty_list_indicator.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/error_indicator.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/smart/search/search_app_bar.dart';
 
 class GatePassView extends StatelessWidget {
@@ -38,105 +43,110 @@ class GatePassView extends StatelessWidget {
                 },
               ),
             ),
-            body: model.rsaDriversLicense == null
-                ? Container(
-                    child: const Padding(
-                      padding: EdgeInsets.only(top: 100, left: 8, right: 8),
-                      child: Text("Scan your driver's license."),
+            resizeToAvoidBottomInset: true,
+            body: RefreshIndicator(
+              backgroundColor: Colors.blue,
+              color: Colors.white,
+              onRefresh: () => Future.sync(
+                () => model.pagingController.refresh(),
+              ),
+              child: CustomScrollView(
+                slivers: [
+                  PagedSliverList.separated(
+                    pagingController: model.pagingController,
+                    builderDelegate: PagedChildBuilderDelegate<GatePass>(
+                      itemBuilder: (context, entity, index) => InkWell(
+                        onTap: () => model.goToDetail(entity),
+                        child: (Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const BoxText.bodyListheading("Vehicle Reg No: "),
+                                    Text(entity.vehicleRegNumber),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    const BoxText.bodyListheading("License No: "),
+                                    Text(entity.driverLicenseNo ?? ""),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    const BoxText.bodyListheading("Status: "),
+                                    Text(entity.getGatePassStatusText()),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    const BoxText.bodyListheading("Time At Gate: "),
+                                    Text(entity.timeAtGate?.toString() ?? ""),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    const BoxText.bodyListheading("Time In: "),
+                                    Text(entity.timeIn?.toString() ?? ''),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    const BoxText.bodyListheading("Time Out: "),
+                                    Text(entity.timeOut?.toString() ?? ''),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        )),
+                      ),
+                      animateTransitions: true,
+                      transitionDuration: const Duration(milliseconds: 500),
+                      firstPageProgressIndicatorBuilder: (context) => const Padding(
+                        padding: EdgeInsets.all(32),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            backgroundColor: Colors.blue,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      newPageProgressIndicatorBuilder: (context) => const Padding(
+                        padding: EdgeInsets.only(
+                          top: 16,
+                          bottom: 16,
+                        ),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            backgroundColor: Colors.blue,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      firstPageErrorIndicatorBuilder: (context) => ErrorIndicator(
+                        error: model.pagingController.error,
+                        onTryAgain: () => model.pagingController.refresh(),
+                      ),
+                      noItemsFoundIndicatorBuilder: (context) => EmptyListIndicator(
+                        onTryAgain: () => model.pagingController.refresh(),
+                      ),
+                      newPageErrorIndicatorBuilder: (context) => ErrorIndicator(
+                        error: model.pagingController.error,
+                        onTryAgain: () => model.pagingController.refresh(),
+                      ),
                     ),
-                  )
-                : ListView(
-                    children: [
-                      ListTile(
-                        dense: true,
-                        title: Text('LicenseNumber: ${model.rsaDriversLicense?.licenseNumber}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('ID No: ${model.rsaDriversLicense?.idNumber}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('ID No Type: ${model.rsaDriversLicense?.idNumberType}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Country Of Issue: ${model.rsaDriversLicense?.idCountryOfIssue}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('First Names: ${model.rsaDriversLicense?.firstNames}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Surname: ${model.rsaDriversLicense?.surname}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Birth Date: ${model.rsaDriversLicense?.birthDate}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Gender: ${model.rsaDriversLicense?.gender}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Driver Restrictions: ${model.rsaDriversLicense?.driverRestrictions}'),
-                      ),
-
-                      // ListTile(
-                      //   title: Text('issueDates: ${rsaDriversLicense?.issueDates}'),
-                      // ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('License Issue Number: ${model.rsaDriversLicense?.licenseIssueNumber}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('License Country Of Issue: ${model.rsaDriversLicense?.licenseCountryOfIssue}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Prdp Code: ${model.rsaDriversLicense?.prdpCode}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Prdp Expiry: ${model.rsaDriversLicense?.prdpExpiry}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Valid From: ${model.rsaDriversLicense?.validFrom}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Valid To: ${model.rsaDriversLicense?.validTo}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Vehicle Codes: ${model.rsaDriversLicense?.vehicleCodes}'),
-                      ),
-
-                      ListTile(
-                        dense: true,
-                        title: Text('Vehicle Restrictions: ${model.rsaDriversLicense?.vehicleRestrictions}'),
-                      ),
-                    ],
+                    separatorBuilder: (context, index) => const SizedBox(
+                      height: 4,
+                    ),
                   ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

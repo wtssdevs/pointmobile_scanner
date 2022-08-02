@@ -1,8 +1,14 @@
+// ignore_for_file: prefer_conditional_assignment
+
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
+import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart';
+import 'package:xstream_gate_pass_app/core/models/account/ForgotPassword.dart';
+import 'package:xstream_gate_pass_app/core/models/account/GetCurrentLoginInformation.dart';
+import 'package:xstream_gate_pass_app/core/models/account/UserLoginInfo.dart';
 
 @Presolve()
 class LocalStorageService {
@@ -22,51 +28,55 @@ class LocalStorageService {
     return _instance;
   }
 
-  // AuthenticateResultModel? get getAuthToken {
-  //   var authToken = _getFromDisk(AppConst.auth_token);
-  //   if (authToken == null) {
-  //     return null;
-  //   }
+  AuthenticateResultModel? get getAuthToken {
+    var authToken = _getFromDisk(AppConst.auth_token);
+    if (authToken == null) {
+      return null;
+    }
 
-  //   return AuthenticateResultModel.fromJson(json.decode(authToken));
-  // }
+    return AuthenticateResultModel.fromJson(json.decode(authToken));
+  }
 
-  // void setAuthToken(AuthenticateResultModel authToken) {
-  //   // log.v('(TRACE) LocalStorageService: setAuthToken ' + authToken.toString());
-  //   _saveToDisk(AppConst.auth_token, json.encode(authToken.toJson()));
-  //   saveIsLoggedIn(true);
-  // }
+  void setAuthToken(AuthenticateResultModel authToken) {
+    // log.v('(TRACE) LocalStorageService: setAuthToken ' + authToken.toString());
+    _saveToDisk(AppConst.auth_token, json.encode(authToken.toJson()));
+    saveIsLoggedIn(true);
+  }
 
-  // void clearAuthToken() {
-  //   _preferences!.remove(AppConst.auth_token);
-  //   saveIsLoggedIn(false);
-  // }
+  void clearAuthToken() {
+    _preferences!.remove(AppConst.auth_token);
+    saveIsLoggedIn(false);
+  }
 
-  // void logout() {
-  //   clearAuthToken();
-  //   clearForgotPassword();
-  //   _preferences!.remove(AppConst.current_UserProfile);
-  // }
+  void logout() {
+    clearAuthToken();
+    clearForgotPassword();
+    _preferences!.remove(AppConst.current_UserProfile);
+  }
 
-  // CurrentLoginInformation? get getUserLoginInfo {
-  //   var userLoginInfo = _getFromDisk(AppConst.current_UserProfile);
-  //   if (userLoginInfo == null) {
-  //     return null;
-  //   }
-  //   return CurrentLoginInformation.fromJson(json.decode(userLoginInfo));
-  // }
+  void clearForgotPassword() {
+    _preferences!.remove(AppConst.is_OTP_Pin_Request);
+  }
 
-  // UserLoginInfo? get getUserInfo {
-  //   var userLoginInfo = getUserLoginInfo;
-  //   if (userLoginInfo == null) {
-  //     return null;
-  //   }
-  //   return userLoginInfo.user;
-  // }
+  CurrentLoginInformation? get getUserLoginInfo {
+    var userLoginInfo = _getFromDisk(AppConst.current_UserProfile);
+    if (userLoginInfo == null) {
+      return null;
+    }
+    return CurrentLoginInformation.fromJson(json.decode(userLoginInfo));
+  }
 
-  // void setUserLoginInfo(CurrentLoginInformation userLoginInfo) {
-  //   _saveToDisk(AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
-  // }
+  UserLoginInfo? get getUserInfo {
+    var userLoginInfo = getUserLoginInfo;
+    if (userLoginInfo == null) {
+      return null;
+    }
+    return userLoginInfo.user;
+  }
+
+  void setUserLoginInfo(CurrentLoginInformation userLoginInfo) {
+    _saveToDisk(AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
+  }
 
   bool get isLoggedIn {
     return _getFromDisk(AppConst.is_logged_in) ?? false;
@@ -201,4 +211,6 @@ class LocalStorageService {
       _preferences!.setStringList(key, content);
     }
   }
+
+  void setForgotPassword(ForgotPassword forgotPasswordReponse) {}
 }

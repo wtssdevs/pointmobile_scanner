@@ -10,6 +10,8 @@ import 'package:stacked_core/stacked_core.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import '../core/services/api/api_manager.dart';
+import '../core/services/services/account/authentication_service.dart';
+import '../core/services/services/ops/gatepass/gatepass_service.dart';
 import '../core/services/services/scanning/scan_manager.dart';
 import '../core/services/shared/connection_service.dart';
 import '../core/services/shared/environment_service.dart';
@@ -30,5 +32,7 @@ Future<void> setupLocator({String? environment, EnvironmentFilter? environmentFi
   locator.registerLazySingleton(() => NavigationService());
   locator.registerLazySingleton(() => DialogService());
   locator.registerLazySingleton(() => ApiManager());
+  locator.registerLazySingleton(() => AuthenticationService());
   locator.registerLazySingleton(() => ScanningService());
+  locator.registerLazySingleton(() => GatePassService());
 }

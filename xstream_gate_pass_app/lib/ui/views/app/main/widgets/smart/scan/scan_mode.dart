@@ -53,9 +53,9 @@ class _ScanboxState extends State<Scanbox> {
     setState(() {
 //      print(call);
       final List lDecodeResult = call.arguments;
-      var _decodeResult = "Symbology: ${lDecodeResult[0]}\n Base64Value: ${lDecodeResult[1]}";
+      var decodeResult = "Symbology: ${lDecodeResult[0]}\n Base64Value: ${lDecodeResult[1]}";
 
-      if (_decodeResult != null && _decodeResult!.isNotEmpty && lDecodeResult[1] != null && lDecodeResult[0] != "READ_FAIL") {
+      if (decodeResult.isNotEmpty && lDecodeResult[1] != null && lDecodeResult[0] != "READ_FAIL") {
         var base64String = lDecodeResult[1] as String;
         var withOutNewlines = base64String.replaceAll("\n", "");
         var normalBase64 = base64.normalize(withOutNewlines);

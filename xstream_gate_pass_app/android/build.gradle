@@ -16,7 +16,7 @@ allprojects {
         google()
         mavenCentral()
          maven {
-            url 'http://download.flutter.io'
+            url 'https://download.flutter.io'
         }
     }
 }

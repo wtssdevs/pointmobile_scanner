@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,12 +10,23 @@ import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
 import 'package:xstream_gate_pass_app/app_config/app.router.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = ((X509Certificate cert, String host, int port) {
+        final isValidHost = ["xstream-tms.com"].contains(host); // <-- allow only hosts in array
+        return isValidHost;
+      });
+  }
+}
+
 Future main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  //var envFileToLoad = ".env_dev";
+  var envFileToLoad = ".env_dev";
   //var envFileToLoad = ".env_qa";
-  var envFileToLoad = ".env_prod";
+  //var envFileToLoad = ".env_prod";
   await initialise(envFileToLoad);
   await setupLocator();
   await locator<ConnectionService>().initialize();

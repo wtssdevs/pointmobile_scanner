@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
 
 class DioErrorUtil {
   // general methods:------------------------------------------------------------
@@ -41,5 +42,49 @@ class DioErrorUtil {
       errorDescription = "Unexpected error occured";
     }
     return errorDescription;
+  }
+
+  static ApiResponse handleAbpError(DioError error) {
+    var apiResponse = ApiResponse();
+    apiResponse.success = false;
+
+    if (error is DioError) {
+      switch (error.type) {
+        case DioErrorType.cancel:
+          apiResponse.message = "Request to API server was cancelled";
+          break;
+        case DioErrorType.connectTimeout:
+        case DioErrorType.receiveTimeout:
+          apiResponse.message = "Connection timeout with TMS API server,please try again later.";
+          break;
+        case DioErrorType.other:
+          apiResponse.message = "Connection to API server failed due to internet connection";
+          break;
+        case DioErrorType.response:
+          apiResponse.message = "Received invalid status code: ${error.response!.statusCode}";
+          switch (error.response!.statusCode) {
+            case 400: //bad Request
+            case 401: //bad Request
+
+              break;
+            case 500: //Internal server error
+              apiResponse.message = "Bad Request";
+              if (error.response != null && error.response!.data != null) {
+                apiResponse = ApiResponse.fromJson(error.response!.data);
+              } else {
+                apiResponse.message = "Internal server error";
+              }
+
+              break;
+          }
+          break;
+        case DioErrorType.sendTimeout:
+          apiResponse.message = "Send timeout in connection with API server";
+          break;
+      }
+    } else {
+      apiResponse.message = "Unexpected error occured";
+    }
+    return apiResponse;
   }
 }
