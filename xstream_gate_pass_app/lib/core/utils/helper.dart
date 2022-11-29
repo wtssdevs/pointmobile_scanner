@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:add_to_gallery/add_to_gallery.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 T? asT<T>(dynamic value) {
@@ -10,6 +12,18 @@ T? asT<T>(dynamic value) {
     return value;
   }
   return null;
+}
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return TextEditingValue(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
+    );
+  }
+}
+extension HexString on String {
+  int getHexValue() => int.parse(replaceAll('#', '0xff'));
 }
 
 List<T> flattenDeep<T>(Iterable<dynamic> list) => [
@@ -104,80 +118,94 @@ Future<String?> convertFileStoreToBase64String(String localPath) async {
   }
 }
 
-String getSocialDateFormat(DateTime tm) {
-  DateTime today = new DateTime.now();
-  Duration oneDay = new Duration(days: 1);
-  Duration twoDay = new Duration(days: 2);
-  Duration oneWeek = new Duration(days: 7);
-  String month = "";
-  switch (tm.month) {
-    case 1:
-      month = "January";
-      break;
-    case 2:
-      month = "February";
-      break;
-    case 3:
-      month = "March";
-      break;
-    case 4:
-      month = "April";
-      break;
-    case 5:
-      month = "May";
-      break;
-    case 6:
-      month = "June";
-      break;
-    case 7:
-      month = "July";
-      break;
-    case 8:
-      month = "August";
-      break;
-    case 9:
-      month = "September";
-      break;
-    case 10:
-      month = "October";
-      break;
-    case 11:
-      month = "November";
-      break;
-    case 12:
-      month = "December";
-      break;
-  }
-
-  Duration difference = today.difference(tm);
-
-  if (difference.compareTo(oneDay) < 1) {
-    return "Today";
-  } else if (difference.compareTo(twoDay) < 1) {
-    return "Yesterday";
-  } else if (difference.compareTo(oneWeek) < 1) {
-    switch (tm.weekday) {
-      case 1:
-        return "Monday";
-      case 2:
-        return "Tuesday";
-      case 3:
-        return "Wednesday";
-      case 4:
-        return "Thursday";
-      case 5:
-        return "Friday";
-      case 6:
-        return "Saturday";
-      case 7:
-        return "Sunday";
+extension FormatDatedExtension on DateTime? {
+  String toFormattedString() {
+    try {
+      if (this == null) {
+        return "";
+      }
+      String formattedDate = DateFormat('yyyy/MM/dd HH:mm a').format(this!);
+      return formattedDate;
+    } catch (e) {
+      return "";
     }
-  } else if (tm.year == today.year) {
-    return '${tm.day} $month ${tm.year}';
-    //return "${tm.day} $month";
-  } else {
-    return '${tm.day} $month ${tm.year}';
   }
 
-  return "";
+  String getSocialDateFormat(DateTime tm) {
+    DateTime today = new DateTime.now();
+    Duration oneDay = new Duration(days: 1);
+    Duration twoDay = new Duration(days: 2);
+    Duration oneWeek = new Duration(days: 7);
+    String month = "";
+    switch (tm.month) {
+      case 1:
+        month = "January";
+        break;
+      case 2:
+        month = "February";
+        break;
+      case 3:
+        month = "March";
+        break;
+      case 4:
+        month = "April";
+        break;
+      case 5:
+        month = "May";
+        break;
+      case 6:
+        month = "June";
+        break;
+      case 7:
+        month = "July";
+        break;
+      case 8:
+        month = "August";
+        break;
+      case 9:
+        month = "September";
+        break;
+      case 10:
+        month = "October";
+        break;
+      case 11:
+        month = "November";
+        break;
+      case 12:
+        month = "December";
+        break;
+    }
+
+    Duration difference = today.difference(tm);
+
+    if (difference.compareTo(oneDay) < 1) {
+      return "Today";
+    } else if (difference.compareTo(twoDay) < 1) {
+      return "Yesterday";
+    } else if (difference.compareTo(oneWeek) < 1) {
+      switch (tm.weekday) {
+        case 1:
+          return "Monday";
+        case 2:
+          return "Tuesday";
+        case 3:
+          return "Wednesday";
+        case 4:
+          return "Thursday";
+        case 5:
+          return "Friday";
+        case 6:
+          return "Saturday";
+        case 7:
+          return "Sunday";
+      }
+    } else if (tm.year == today.year) {
+      return '${tm.day} $month ${tm.year}';
+      //return "${tm.day} $month";
+    } else {
+      return '${tm.day} $month ${tm.year}';
+    }
+
+    return "";
+  }
 }

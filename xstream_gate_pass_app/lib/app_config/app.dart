@@ -1,12 +1,18 @@
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
+import 'package:xstream_gate_pass_app/core/services/database/sembast_store.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
+import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
+import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_manager.dart';
+import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/account/login/login_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/home_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_gatepass_view.dart';
@@ -25,7 +31,7 @@ import 'package:xstream_gate_pass_app/ui/views/startup/termsandprivacy/terms_and
   ],
   dependencies: [
     Presolve(classType: LocalStorageService, presolveUsing: LocalStorageService.getInstance),
-    // Presolve(classType: AppDatabase, presolveUsing: AppDatabase.getInstance),
+    Presolve(classType: AppDatabase, presolveUsing: AppDatabase.getInstance),
     LazySingleton(classType: ConnectionService),
     LazySingleton(classType: EnvironmentService),
     LazySingleton(classType: NavigationService),
@@ -35,6 +41,12 @@ import 'package:xstream_gate_pass_app/ui/views/startup/termsandprivacy/terms_and
     LazySingleton(classType: ScanningService),
     LazySingleton(classType: GatePassService),
 
+
+    LazySingleton(classType: BackgroundJobInfoRepository),
+    LazySingleton(classType: FileStoreRepository),
+    LazySingleton(classType: MediaService),
+    LazySingleton(classType: FileStoreManager),
+    LazySingleton(classType: WorkerQueManager),
     //Local Repos
   ],
   logger: StackedLogger(),

@@ -32,13 +32,16 @@ class GatePassService {
 
       var baseResponse = await _apiManager.post(AppConst.GetAllGatePass, showLoader: false, data: queryParameters);
       if (baseResponse != null) {
-        for (final dynamic item in baseResponse['items']) {
-          if (item != null) {
-            items.add(GatePass.fromJson(item));
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+
+        if (apiResponse.success == true && apiResponse.result != null && apiResponse.result["items"] is List) {
+          for (final dynamic item in apiResponse.result["items"]) {
+            if (item != null) {
+              items.add(GatePass.fromJson(item));
+            }
           }
         }
-
-        outPut = PagedList<GatePass>.fromJsonWithItems(baseResponse, items);
+        outPut = PagedList<GatePass>.fromJsonWithItems(apiResponse.result, items);
 
         return outPut;
       }
@@ -49,7 +52,7 @@ class GatePassService {
     }
   }
 
-  Future<GatePass> create(GatePass costMobileEdit) async {
+  Future<GatePass?> create(GatePass costMobileEdit) async {
     try {
       var baseResponse = await _apiManager.post(AppConst.CreateGatePass, showLoader: true, data: costMobileEdit.toJson());
       if (baseResponse != null) {
@@ -58,12 +61,66 @@ class GatePassService {
           return GatePass.fromJson(apiResponse.result);
         }
 
-        return costMobileEdit;
+        return null;
       }
-      return costMobileEdit;
+      return null;
     } catch (e) {
       log.e(e.toString());
-      return costMobileEdit;
+      return null;
+    }
+  }
+
+  Future<GatePass?> authorizeForEntry(GatePass entity) async {
+    try {
+      var baseResponse = await _apiManager.post(AppConst.AuthorizeForEntryGatePass, showLoader: true, data: entity.toJson());
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success != null) {
+          return GatePass.fromJson(apiResponse.result);
+        }
+
+        return null;
+      }
+      return null;
+    } catch (e) {
+      log.e(e.toString());
+      return null;
+    }
+  }
+
+  Future<GatePass?> update(GatePass entity) async {
+    try {
+      var baseResponse = await _apiManager.post(AppConst.UpdateGatePass, showLoader: true, data: entity.toJson());
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success != null) {
+          return GatePass.fromJson(apiResponse.result);
+        }
+
+        return null;
+      }
+      return null;
+    } catch (e) {
+      log.e(e.toString());
+      return null;
+    }
+  }
+
+  Future<GatePass?> rejectForEntry(GatePass entity) async {
+    try {
+      var baseResponse = await _apiManager.post(AppConst.RejectEntryGatePass, showLoader: true, data: entity.toJson());
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success != null) {
+          return GatePass.fromJson(apiResponse.result);
+        }
+
+        return null;
+      }
+      return null;
+    } catch (e) {
+      log.e(e.toString());
+      return null;
     }
   }
 }

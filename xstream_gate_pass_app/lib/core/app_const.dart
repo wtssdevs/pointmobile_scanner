@@ -17,15 +17,22 @@ class AppConst {
   static const String NoKey = 'NO_KEY';
   static const String API_Base_Url = 'API_Base_Url_Key';
 
+  static const String DB_BackgroundJobInfo = "BackgroundJobInfo";
+  static const String DB_FileStore = "FileStore";
+
   //API Methods
+
   static const String FileUploading_Images = "/api/FileUpload/Uploads/1";
 
-  static const String GetAllGatePass = "/api/services/app/gatePass/GetAll";
+  static const String GetAllGatePass = "/api/services/app/GatePass/GetAll";
 
-  static const String CreateGatePass = "/api/services/app/gatePass/Create";
+  static const String CreateGatePass = "/api/services/app/GatePass/Create";
 
   static const String UpdateGatePass = "/api/services/app/gatePass/Update";
   static const String AuthorizeForEntryGatePass = "/api/services/app/gatePass/AuthorizeForEntry";
   static const String AuthorizeForExitGatePass = "/api/services/app/gatePass/AuthorizeForExit";
   static const String RejectEntryGatePass = "/api/services/app/gatePass/RejectEntry";
+
+  //INTERNET TIMEOUT
+  static const String InternetConnectionStatus = "The Network connection was lost.";
 }

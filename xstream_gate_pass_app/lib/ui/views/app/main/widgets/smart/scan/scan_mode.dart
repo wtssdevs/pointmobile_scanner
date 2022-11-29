@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:pointmobile_scanner/pointmobile_scanner.dart';
+//import 'package:pointmobile_scanner/pointmobile_scanner.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_drivers_license.dart';
 
 class Scanbox extends StatefulWidget {
@@ -18,14 +18,14 @@ class _ScanboxState extends State<Scanbox> {
   void initState() {
     super.initState();
 
-    PointmobileScanner.channel.setMethodCallHandler(_onBarcodeScannerHandler);
-    PointmobileScanner.initScanner();
-    PointmobileScanner.enableScanner();
-    PointmobileScanner.enableBeep();
-    PointmobileScanner.enableSymbology(PointmobileScanner.SYM_CODE128);
-    PointmobileScanner.enableSymbology(PointmobileScanner.SYM_EAN13);
-    PointmobileScanner.enableSymbology(PointmobileScanner.SYM_QR);
-    PointmobileScanner.enableSymbology(PointmobileScanner.SYM_PDF417);
+    // PointmobileScanner.channel.setMethodCallHandler(_onBarcodeScannerHandler);
+    // PointmobileScanner.initScanner();
+    // PointmobileScanner.enableScanner();
+    // PointmobileScanner.enableBeep();
+    // PointmobileScanner.enableSymbology(PointmobileScanner.SYM_CODE128);
+    // PointmobileScanner.enableSymbology(PointmobileScanner.SYM_EAN13);
+    // PointmobileScanner.enableSymbology(PointmobileScanner.SYM_QR);
+    // PointmobileScanner.enableSymbology(PointmobileScanner.SYM_PDF417);
 
     setState(() {});
   }
@@ -37,13 +37,13 @@ class _ScanboxState extends State<Scanbox> {
 
   Future<void> _onBarcodeScannerHandler(MethodCall call) async {
     try {
-      if (call.method == PointmobileScanner.ON_DECODE) {
-        _onDecode(call);
-      } else if (call.method == PointmobileScanner.ON_ERROR) {
-        _onError(call.arguments);
-      } else {
-        print(call.arguments);
-      }
+      // if (call.method == PointmobileScanner.ON_DECODE) {
+      //   _onDecode(call);
+      // } else if (call.method == PointmobileScanner.ON_ERROR) {
+      //   _onError(call.arguments);
+      // } else {
+      //   print(call.arguments);
+      // }
     } catch (e) {
       print(e);
     }
@@ -73,7 +73,7 @@ class _ScanboxState extends State<Scanbox> {
   }
 
   void _onExit() {
-    PointmobileScanner.disableScanner();
+    //PointmobileScanner.disableScanner();
   }
 
   void _onError(Exception error) {

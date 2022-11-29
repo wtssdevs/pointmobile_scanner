@@ -7,6 +7,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
 import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
 import 'package:xstream_gate_pass_app/app_config/app.router.dart';
+import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
@@ -43,22 +44,31 @@ class GatePassViewModel extends BaseViewModel {
   }
 
   Future<void> runStartupLogic() async {
-    _scanningService.initialise();
-    startconnectionListen();
     pagingController.addPageRequestListener((pageKey) {
       fetchPage(pageKey);
     });
+    //_scanningService.initialise();
+    //startconnectionListen();
+    fetchPage(_nextPage);
+    notifyListeners();
   }
 
   Future<void> fetchPage(int pageKey) async {
     try {
       log.i("fetchPage | pageKey$pageKey ");
 
-      final newPage = await _gatePassService.getPagedList(_pagedList.pageNumber, _pagedList.pageSize, "");
+      var filterValue = "";
+
+      if (filterController.text.isNotEmpty) {
+        filterValue = filterController.text;
+      }
+
+      final newPage = await _gatePassService.getPagedList(_pagedList.pageNumber, _pagedList.pageSize, filterValue);
 
       final previouslyFetchedItemsCount = pagingController.itemList?.length ?? 0;
 
       final isLastPage = newPage.isLastPage(previouslyFetchedItemsCount);
+
       final newItems = newPage.items;
 
       if (isLastPage) {
@@ -83,7 +93,10 @@ class GatePassViewModel extends BaseViewModel {
     _scanningService.onExit();
   }
 
-  void onFilterValueChanged(String value) {}
+  void onFilterValueChanged(String value) {
+    refreshList();
+  }
+
   refreshList() {
     _nextPage = 1;
     pagingController.refresh();
@@ -94,6 +107,17 @@ class GatePassViewModel extends BaseViewModel {
       Routes.gatePassEditView,
       arguments: GatePassEditViewArguments(
         gatePass: entity,
+      ),
+    );
+
+    refreshList();
+  }
+
+  Future onAddNewGatePass() async {
+    await _navigationService.navigateTo(
+      Routes.gatePassEditView,
+      arguments: GatePassEditViewArguments(
+        gatePass: GatePass(id: 0, gatePassStatus: GatePassStatus.atGate.index, vehicleRegNumber: "", timeAtGate: DateTime.now()),
       ),
     );
 

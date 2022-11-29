@@ -4,65 +4,65 @@ import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_question.da
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
 class GatePass {
-  GatePass({
-    required this.vehicleRegNumber,
-    this.timeAtGate,
-    this.timeIn,
-    this.extensionData,
-    this.customerName,
-    this.transporterName,
-    this.timeOut,
-    required this.gatePassStatus,
-    this.branchId,
-    this.statusDescription,
-    this.trailerNumber1,
-    this.trailerNumber2,
-    this.refNo,
-    this.isHazardous,
-    this.driverName,
-    this.driverIdNo,
-    this.driverLicenseNo,
-    this.driverLicenseCountryCode,
-    this.driverGender,
-    this.siNumber,
-    this.customerCode,
-    this.transporterCode,
-    this.goodsDescription,
-    this.gatePassType,
-    this.warehouseCode,
-    this.comments,
-    this.rejReason,
-    this.gatePassBookingType,
-    this.siteCardNumber,
-    this.driverAssistantDetails1,
-    this.driverAssistantDetails2,
-    this.totClaimedWeightIn,
-    this.totMeasuredWeightIn,
-    this.totClaimedWeightOut,
-    this.totMeasuredWeightOut,
-    this.productId,
-    this.noOfPcs,
-    this.containerNumber,
-    this.containerType,
-    this.containerSealNumber,
-    this.samplerSealNumber,
-    this.customerId,
-    this.transporterId,
-    this.productCode,
-    this.productDescription,
-    this.productAltCode,
-    this.hasBeenPrinted,
-    this.gatePassQuestions,
-    this.id,
-  });
+  GatePass(
+      {required this.vehicleRegNumber,
+      this.timeAtGate,
+      this.timeIn,
+      this.extensionData,
+      this.customerName,
+      this.transporterName,
+      this.timeOut,
+      required this.gatePassStatus,
+      this.branchId,
+      this.statusDescription,
+      this.trailerNumber1,
+      this.trailerNumber2,
+      this.refNo,
+      this.isHazardous,
+      this.driverName,
+      this.driverIdNo,
+      this.driverLicenseNo,
+      this.driverLicenseCountryCode,
+      this.driverGender,
+      this.siNumber,
+      this.customerCode,
+      this.transporterCode,
+      this.goodsDescription,
+      this.gatePassType,
+      this.warehouseCode,
+      this.comments,
+      this.rejReason,
+      this.gatePassBookingType = 0,
+      this.siteCardNumber,
+      this.driverAssistantDetails1,
+      this.driverAssistantDetails2,
+      this.totClaimedWeightIn,
+      this.totMeasuredWeightIn,
+      this.totClaimedWeightOut,
+      this.totMeasuredWeightOut,
+      this.productId,
+      this.noOfPcs,
+      this.containerNumber,
+      this.containerType,
+      this.containerSealNumber,
+      this.samplerSealNumber,
+      this.customerId,
+      this.transporterId,
+      this.productCode,
+      this.productDescription,
+      this.productAltCode,
+      this.hasBeenPrinted,
+      this.gatePassQuestions,
+      this.id,
+      this.hasDeliveryDocuments = false});
   factory GatePass.fromJson(Map<String, dynamic> jsonRes) => GatePass(
         vehicleRegNumber: asT<String>(jsonRes['vehicleRegNumber']) ?? "",
-        timeAtGate: asT<DateTime?>(jsonRes['timeAtGate']),
-        timeIn: asT<DateTime?>(jsonRes['timeIn']),
+        timeAtGate: jsonRes["timeAtGate"] != null ? DateTime.parse(jsonRes["timeAtGate"]) : null,
+        timeIn: jsonRes["timeIn"] != null ? DateTime.parse(jsonRes["timeIn"]) : null,
         extensionData: asT<String>(jsonRes['extensionData']) ?? "",
         customerName: asT<String>(jsonRes['customerName']) ?? "",
         transporterName: asT<String>(jsonRes['transporterName']) ?? "",
-        timeOut: asT<DateTime?>(jsonRes['timeOut']),
+        timeOut: jsonRes["timeOut"] != null ? DateTime.parse(jsonRes["timeOut"]) : null,
         gatePassStatus: asT<int>(jsonRes['gatePassStatus']) ?? 0,
         branchId: asT<int?>(jsonRes['branchId']),
         statusDescription: asT<String>(jsonRes['statusDescription']) ?? "",
@@ -103,11 +103,11 @@ class GatePass {
         productDescription: asT<String>(jsonRes['productDescription']) ?? "",
         productAltCode: asT<String>(jsonRes['productAltCode']) ?? "",
         hasBeenPrinted: asT<bool>(jsonRes['hasBeenPrinted']) ?? false,
-        gatePassQuestions:
-            jsonRes['gatePassQuestions'] == null ? null : GatePassQuestions.fromJson(asT<Map<String, dynamic>>(jsonRes['gatePassQuestions'])!),
+        gatePassQuestions: jsonRes['gatePassQuestions'] == null ? null : GatePassQuestions.fromJson(asT<Map<String, dynamic>>(jsonRes['gatePassQuestions'])!),
         id: asT<int>(jsonRes['id']) ?? 0,
       );
 
+  bool hasDeliveryDocuments;
   String vehicleRegNumber;
   DateTime? timeAtGate;
   DateTime? timeIn;
@@ -182,20 +182,22 @@ class GatePass {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
+
+    data['hasDeliveryDocuments'] = hasDeliveryDocuments;
     data['vehicleRegNumber'] = vehicleRegNumber;
-    data['timeAtGate'] = timeAtGate;
-    data['timeIn'] = timeIn;
+    data['timeAtGate'] = timeAtGate?.toIso8601String();
+    data['timeIn'] = timeIn?.toIso8601String();
     data['extensionData'] = extensionData;
     data['customerName'] = customerName;
     data['transporterName'] = transporterName;
-    data['timeOut'] = timeOut;
+    data['timeOut'] = timeOut?.toIso8601String();
     data['gatePassStatus'] = gatePassStatus;
-    data['branchId'] = branchId;
+    data['branchId'] = branchId ?? 0;
     data['statusDescription'] = statusDescription;
     data['trailerNumber1'] = trailerNumber1;
     data['trailerNumber2'] = trailerNumber2;
     data['refNo'] = refNo;
-    data['isHazardous'] = isHazardous;
+    data['isHazardous'] = isHazardous ?? false;
     data['driverName'] = driverName;
     data['driverIDNo'] = driverIdNo;
     data['driverLicenseNo'] = driverLicenseNo;
@@ -205,7 +207,7 @@ class GatePass {
     data['customerCode'] = customerCode;
     data['transporterCode'] = transporterCode;
     data['goodsDescription'] = goodsDescription;
-    data['gatePassType'] = gatePassType;
+    data['gatePassType'] = gatePassType ?? 0;
     data['warehouseCode'] = warehouseCode;
     data['comments'] = comments;
     data['rejReason'] = rejReason;
@@ -213,12 +215,12 @@ class GatePass {
     data['siteCardNumber'] = siteCardNumber;
     data['driverAssistantDetails1'] = driverAssistantDetails1;
     data['driverAssistantDetails2'] = driverAssistantDetails2;
-    data['totClaimedWeightIn'] = totClaimedWeightIn;
-    data['totMeasuredWeightIn'] = totMeasuredWeightIn;
-    data['totClaimedWeightOut'] = totClaimedWeightOut;
-    data['totMeasuredWeightOut'] = totMeasuredWeightOut;
+    data['totClaimedWeightIn'] = totClaimedWeightIn ?? 0;
+    data['totMeasuredWeightIn'] = totMeasuredWeightIn ?? 0;
+    data['totClaimedWeightOut'] = totClaimedWeightOut ?? 0;
+    data['totMeasuredWeightOut'] = totMeasuredWeightOut ?? 0;
     data['productId'] = productId;
-    data['noOfPcs'] = noOfPcs;
+    data['noOfPcs'] = noOfPcs ?? 0;
     data['containerNumber'] = containerNumber;
     data['containerType'] = containerType;
     data['containerSealNumber'] = containerSealNumber;
@@ -228,7 +230,7 @@ class GatePass {
     data['productCode'] = productCode;
     data['productDescription'] = productDescription;
     data['productAltCode'] = productAltCode;
-    data['hasBeenPrinted'] = hasBeenPrinted;
+    data['hasBeenPrinted'] = hasBeenPrinted ?? false;
     if (gatePassQuestions != null) {
       data['gatePassQuestions'] = gatePassQuestions!.toJson();
     }

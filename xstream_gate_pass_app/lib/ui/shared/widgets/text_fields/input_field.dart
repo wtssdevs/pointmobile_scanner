@@ -131,7 +131,7 @@ class _InputFieldState extends State<InputField> {
                             hintText: widget.placeholder,
                             border: InputBorder.none,
                             hintStyle: TextStyle(fontSize: widget.smallVersion ? 12 : 15),
-                            icon: widget.icon != null ? widget.icon : null,
+                            icon: widget.icon,
                             suffixIcon: widget.suffixIcon,
 
                             //prefixIcon: widget.icon != null ? Icon(widget.icon, color: Colors.black12) : null,
@@ -164,6 +164,6 @@ class _InputFieldState extends State<InputField> {
               ],
             ),
           )
-        : SizedBox.shrink();
+        : const SizedBox.shrink();
   }
 }

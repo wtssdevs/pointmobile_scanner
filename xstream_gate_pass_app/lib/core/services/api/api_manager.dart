@@ -8,8 +8,10 @@ import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
 import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
 import 'package:xstream_gate_pass_app/app_config/app.router.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
+import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
 import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart';
 import 'package:xstream_gate_pass_app/core/models/account/UserCredential.dart';
+import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/core/utils/dio_error_util.dart';
@@ -29,8 +31,9 @@ class ApiManager {
       // or new Dio with a BaseOptions instance.
       DioClient.BaseOptions options = DioClient.BaseOptions(
         baseUrl: _environmentService.getValue(AppConst.API_Base_Url),
-        connectTimeout: 30000,
-        receiveTimeout: 30000,
+        connectTimeout: 60000,
+        receiveTimeout: 60000,
+        sendTimeout: 60000,
         contentType: "application/json",
       );
 
@@ -99,11 +102,8 @@ class ApiManager {
           var tokenDio = DioClient.Dio();
           tokenDio.options = _dio!.options.copyWith();
 
-          var userCredential = UserCredential(
-              tenancyName: token.tenancyName!,
-              userNameOrEmailAddress: token.userNameOrEmailAddress!,
-              password: token.password!,
-              rememberClient: true);
+          var userCredential =
+              UserCredential(tenancyName: token.tenancyName!, userNameOrEmailAddress: token.userNameOrEmailAddress!, password: token.password!, rememberClient: true);
           tokenDio
               .get(
             "/api/Account/ExternalAuth",
@@ -146,8 +146,7 @@ class ApiManager {
         logOutCurrentUser();
       }
 
-      var userCredential = UserCredential(
-          tenancyName: token.tenancyName!, userNameOrEmailAddress: token.userNameOrEmailAddress!, password: token.password!, rememberClient: true);
+      var userCredential = UserCredential(tenancyName: token.tenancyName!, userNameOrEmailAddress: token.userNameOrEmailAddress!, password: token.password!, rememberClient: true);
 
       var authResult = await get("/api/Account/ExternalAuth", queryParameters: userCredential.toJson(), showLoader: false);
 
@@ -261,20 +260,21 @@ class ApiManager {
     } catch (e) {
       log.d(e.toString());
       EasyLoading.dismiss();
-      throw e;
+      rethrow;
     }
   }
 
-  Future<dynamic> uploadLoadImages(int refId, String pathToFile, String fileName) async {
+  Future<dynamic> uploadLoadImages(FileStore fileStore) async {
     try {
       DioClient.FormData formData = DioClient.FormData();
 
       formData = DioClient.FormData.fromMap({
         "files": await DioClient.MultipartFile.fromFile(
-          pathToFile,
-          filename: fileName,
+          fileStore.path,
+          filename: fileStore.fileName,
         )
       });
+      var documentTypeID = 7; //default
 
       //[5] SEND TO SERVER
       final DioClient.Response response = await _dio!.post(
@@ -282,12 +282,14 @@ class ApiManager {
         data: formData,
         options: DioClient.Options(
           headers: {
-            "uploadType": "2",
-            "uploadMethod": "4",
-            "referenceId": "$refId",
-            "documentFileName": "$fileName",
-            "documentTypeID": "7",
-            "name": "$fileName",
+            "uploadType": "2", //TMSConsts.UploadType.Files:
+            "uploadMethod": "4", //TMSConsts.UploadMethod.LoadAssignmentDocuments:
+            //FileStoreType
+            "fileStoreTypeId": "4",
+            "referenceId": "${fileStore.refId}",
+            "documentFileName": "${fileStore.fileName}",
+            "documentTypeID": documentTypeID, //7 = PICTURES ,6 = PROOF OF DELIVERY
+            "name": "${fileStore.fileName}",
             "antiForgeryToken": "",
           },
         ),
@@ -296,12 +298,11 @@ class ApiManager {
       return response.data;
     } catch (err) {
       log.e(err);
-      throw err;
+      rethrow;
     }
   }
 
-  Future<dynamic> postWithFile(
-      {required String uri, required String filePath, required String fileName, required Map<String, dynamic> modelData}) async {
+  Future<dynamic> postWithFile({required String uri, required String filePath, required String fileName, required Map<String, dynamic> modelData}) async {
     try {
       DioClient.FormData formData = DioClient.FormData();
 
@@ -327,7 +328,7 @@ class ApiManager {
       return response.data;
     } catch (err) {
       log.d(err.toString());
-      throw err;
+      rethrow;
     }
   }
 
@@ -358,7 +359,7 @@ class ApiManager {
       return response.data;
     } catch (e) {
       EasyLoading.dismiss();
-      throw e;
+      rethrow;
     }
   }
 
@@ -386,7 +387,7 @@ class ApiManager {
       return response;
     } catch (e) {
       EasyLoading.dismiss();
-      throw e;
+      rethrow;
     }
   }
 }

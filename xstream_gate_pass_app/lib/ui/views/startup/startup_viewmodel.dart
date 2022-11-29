@@ -47,7 +47,12 @@ class StartUpViewModel extends BaseViewModel {
         _navigationService.clearStackAndShow(Routes.loginView);
       } else {
         if (hasConnection) {
-          await _apiManager.refreshToken();
+          var canRefresh = await _apiManager.refreshToken();
+          if (canRefresh == false) {
+            FlutterNativeSplash.remove();
+            _navigationService.clearStackAndShow(Routes.loginView);
+          }
+
           await _authenticationService.getUserLoginInfo(true);
 
           // await Future.delayed(const Duration(milliseconds: 100));
@@ -66,6 +71,8 @@ class StartUpViewModel extends BaseViewModel {
       }
     } catch (e) {
       log.e(e);
+      FlutterNativeSplash.remove();
+      _navigationService.clearStackAndShow(Routes.loginView);
     }
   }
 }

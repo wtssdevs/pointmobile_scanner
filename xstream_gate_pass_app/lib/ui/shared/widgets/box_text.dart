@@ -47,6 +47,10 @@ class BoxText extends StatelessWidget {
       {Color color = kcMediumGreyColor, double fontSize = 16, FontWeight fontWeight = FontWeight.w400, TextAlign align = TextAlign.start})
       : style = bodyStyle.copyWith(color: color, fontSize: fontSize, fontWeight: fontWeight),
         alignment = align;
+  BoxText.label(this.text,
+      {Color color = kcMediumGreyColor, double fontSize = 14, FontWeight fontWeight = FontWeight.w600, TextAlign align = TextAlign.start})
+      : style = bodyStyle.copyWith(color: color, fontSize: fontSize, fontWeight: fontWeight),
+        alignment = align;
 
   @override
   Widget build(BuildContext context) {

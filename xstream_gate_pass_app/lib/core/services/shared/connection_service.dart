@@ -7,13 +7,25 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 class ConnectionService {
   bool _hasConnection = false;
   bool get hasConnection => _hasConnection;
-  static Connectivity _connectivity = new Connectivity();
+  static final Connectivity _connectivity = Connectivity();
   StreamController connectionChangeController = StreamController<bool>.broadcast();
 
-  // static Future<Connectivity?> getInstance() async {
-  //   _connectivity = new Connectivity();
-  //   initialize();
-  // }
+  ConnectivityResult _connectivityResult = ConnectivityResult.none;
+  String getConnectivityResultDisplayName() {
+    if (_connectivityResult == ConnectivityResult.wifi) {
+      return "Wifi";
+    }
+    if (_connectivityResult == ConnectivityResult.mobile) {
+      return "Mobile Data";
+    }
+    if (_connectivityResult == ConnectivityResult.none) {
+      return "None";
+    }
+    if (_connectivityResult == ConnectivityResult.bluetooth) {
+      return "Bluetooth";
+    }
+    return "";
+  }
 
   Future<void> initialize() async {
     await hasInternetInternetConnection();
@@ -21,6 +33,7 @@ class ConnectionService {
   }
 
   void _connectionChange(ConnectivityResult result) {
+    _connectivityResult = result;
     hasInternetInternetConnection();
   }
 
@@ -29,6 +42,7 @@ class ConnectionService {
   Future<bool> hasInternetInternetConnection() async {
     bool previousConnection = _hasConnection;
     var connectivityResult = await (Connectivity().checkConnectivity());
+    _connectivityResult = connectivityResult;
     if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
       // this is the different
       if (await InternetConnectionChecker().hasConnection) {
@@ -43,6 +57,7 @@ class ConnectionService {
     if (previousConnection != _hasConnection) {
       connectionChangeController.add(_hasConnection);
     }
+
     return _hasConnection;
   }
 }

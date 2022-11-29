@@ -16,7 +16,7 @@ class LocalStorageService {
   static LocalStorageService? _instance;
   static SharedPreferences? _preferences;
 
-  static Future<LocalStorageService?> getInstance() async {
+  static Future<LocalStorageService> getInstance() async {
     if (_instance == null) {
       _instance = LocalStorageService();
     }
@@ -25,7 +25,7 @@ class LocalStorageService {
       _preferences = await SharedPreferences.getInstance();
     }
 
-    return _instance;
+    return _instance!;
   }
 
   AuthenticateResultModel? get getAuthToken {

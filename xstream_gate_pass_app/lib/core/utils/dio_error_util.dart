@@ -64,6 +64,13 @@ class DioErrorUtil {
           apiResponse.message = "Received invalid status code: ${error.response!.statusCode}";
           switch (error.response!.statusCode) {
             case 400: //bad Request
+              if (error.response != null && error.response!.data != null) {
+                apiResponse = ApiResponse.fromJson(error.response!.data);
+              } else {
+                apiResponse.message = "Internal server error";
+              }
+
+              break;
             case 401: //bad Request
 
               break;
