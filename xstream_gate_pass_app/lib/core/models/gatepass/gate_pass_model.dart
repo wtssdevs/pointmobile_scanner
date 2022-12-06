@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_question.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
@@ -181,6 +182,7 @@ class GatePass {
   }
 
   Map<String, dynamic> toJson() {
+    final log = getLogger('GatePasstoJson');
     final Map<String, dynamic> data = <String, dynamic>{};
 
     data['hasDeliveryDocuments'] = hasDeliveryDocuments;
@@ -192,49 +194,50 @@ class GatePass {
     data['transporterName'] = transporterName;
     data['timeOut'] = timeOut?.toIso8601String();
     data['gatePassStatus'] = gatePassStatus;
-    data['branchId'] = branchId ?? 0;
-    data['statusDescription'] = statusDescription;
-    data['trailerNumber1'] = trailerNumber1;
-    data['trailerNumber2'] = trailerNumber2;
-    data['refNo'] = refNo;
-    data['isHazardous'] = isHazardous ?? false;
-    data['driverName'] = driverName;
-    data['driverIDNo'] = driverIdNo;
-    data['driverLicenseNo'] = driverLicenseNo;
-    data['driverLicenseCountryCode'] = driverLicenseCountryCode;
-    data['driverGender'] = driverGender;
-    data['siNumber'] = siNumber;
-    data['customerCode'] = customerCode;
-    data['transporterCode'] = transporterCode;
-    data['goodsDescription'] = goodsDescription;
-    data['gatePassType'] = gatePassType ?? 0;
-    data['warehouseCode'] = warehouseCode;
-    data['comments'] = comments;
-    data['rejReason'] = rejReason;
-    data['gatePassBookingType'] = gatePassBookingType;
-    data['siteCardNumber'] = siteCardNumber;
-    data['driverAssistantDetails1'] = driverAssistantDetails1;
-    data['driverAssistantDetails2'] = driverAssistantDetails2;
-    data['totClaimedWeightIn'] = totClaimedWeightIn ?? 0;
-    data['totMeasuredWeightIn'] = totMeasuredWeightIn ?? 0;
-    data['totClaimedWeightOut'] = totClaimedWeightOut ?? 0;
-    data['totMeasuredWeightOut'] = totMeasuredWeightOut ?? 0;
-    data['productId'] = productId;
-    data['noOfPcs'] = noOfPcs ?? 0;
-    data['containerNumber'] = containerNumber;
-    data['containerType'] = containerType;
-    data['containerSealNumber'] = containerSealNumber;
-    data['samplerSealNumber'] = samplerSealNumber;
-    data['customerID'] = customerId;
-    data['transporterID'] = transporterId;
-    data['productCode'] = productCode;
-    data['productDescription'] = productDescription;
-    data['productAltCode'] = productAltCode;
-    data['hasBeenPrinted'] = hasBeenPrinted ?? false;
+    // data['branchId'] = branchId ?? 0;
+    // data['statusDescription'] = statusDescription;
+    // data['trailerNumber1'] = trailerNumber1;
+    // data['trailerNumber2'] = trailerNumber2;
+    // data['refNo'] = refNo;
+    // data['isHazardous'] = isHazardous ?? false;
+    // data['driverName'] = driverName;
+    // data['driverIDNo'] = driverIdNo;
+    // data['driverLicenseNo'] = driverLicenseNo;
+    // data['driverLicenseCountryCode'] = driverLicenseCountryCode;
+    // data['driverGender'] = driverGender;
+    // data['siNumber'] = siNumber;
+    // data['customerCode'] = customerCode;
+    // data['transporterCode'] = transporterCode;
+    // data['goodsDescription'] = goodsDescription;
+    // data['gatePassType'] = gatePassType ?? 0;
+    // data['warehouseCode'] = warehouseCode;
+    // data['comments'] = comments;
+    // data['rejReason'] = rejReason;
+    // data['gatePassBookingType'] = gatePassBookingType;
+    // data['siteCardNumber'] = siteCardNumber;
+    // data['driverAssistantDetails1'] = driverAssistantDetails1;
+    // data['driverAssistantDetails2'] = driverAssistantDetails2;
+    // data['totClaimedWeightIn'] = totClaimedWeightIn ?? 0;
+    // data['totMeasuredWeightIn'] = totMeasuredWeightIn ?? 0;
+    // data['totClaimedWeightOut'] = totClaimedWeightOut ?? 0;
+    // data['totMeasuredWeightOut'] = totMeasuredWeightOut ?? 0;
+    // data['productId'] = productId;
+    // data['noOfPcs'] = noOfPcs ?? 0;
+    // data['containerNumber'] = containerNumber;
+    // data['containerType'] = containerType;
+    // data['containerSealNumber'] = containerSealNumber;
+    // data['samplerSealNumber'] = samplerSealNumber;
+    // data['customerID'] = customerId;
+    // data['transporterID'] = transporterId;
+    // data['productCode'] = productCode;
+    // data['productDescription'] = productDescription;
+    // data['productAltCode'] = productAltCode;
+    // data['hasBeenPrinted'] = hasBeenPrinted ?? false;
     if (gatePassQuestions != null) {
       data['gatePassQuestions'] = gatePassQuestions!.toJson();
     }
     data['id'] = id;
+
     return data;
   }
 }

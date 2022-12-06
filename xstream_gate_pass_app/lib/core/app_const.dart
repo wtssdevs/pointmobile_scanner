@@ -19,10 +19,12 @@ class AppConst {
 
   static const String DB_BackgroundJobInfo = "BackgroundJobInfo";
   static const String DB_FileStore = "FileStore";
+  static const String DB_Customers = "Customers";
 
   //API Methods
 
   static const String FileUploading_Images = "/api/FileUpload/Uploads/1";
+  static const String GetAllCustomers = "/api/services/app/Customer/GetAllCustomersLookup";
 
   static const String GetAllGatePass = "/api/services/app/GatePass/GetAll";
 

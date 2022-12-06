@@ -82,7 +82,7 @@ class GatePassView extends StatelessWidget {
                                 TopLabelWithTextWidget(
                                   label: "Status", //referenceNumber
                                   value: entity.getGatePassStatusText(),
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                                 TopLabelWithTextWidget(
                                   label: "Vehicle Reg No ", //referenceNumber
@@ -98,17 +98,17 @@ class GatePassView extends StatelessWidget {
                                 TopLabelWithTextWidget(
                                   label: "Time At Gate ", //referenceNumber
                                   value: entity.timeAtGate?.toFormattedString() ?? "",
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                                 TopLabelWithTextWidget(
                                   label: "Time In ", //referenceNumber
                                   value: entity.timeIn?.toFormattedString() ?? "",
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                                 TopLabelWithTextWidget(
                                   label: "Time Out ", //referenceNumber
                                   value: entity.timeOut?.toFormattedString() ?? "",
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                               ],
                             ),
@@ -117,19 +117,14 @@ class GatePassView extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 TopLabelWithTextWidget(
-                                  label: "Driver ID", //referenceNumber
-                                  value: entity.driverIdNo ?? "",
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                ),
-                                TopLabelWithTextWidget(
-                                  label: "Driver Name", //referenceNumber
-                                  value: entity.driverName ?? "",
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  label: "Customer", //referenceNumber
+                                  value: entity.customerName ?? "",
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                                 TopLabelWithTextWidget(
                                   label: "Transporter ", //referenceNumber
                                   value: entity.transporterName ?? "",
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                               ],
                             ),

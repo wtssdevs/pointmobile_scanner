@@ -43,6 +43,7 @@ dependencies:
      intl: ^0.17.0
      cron: ^0.5.1
      logger: ^1.1.0
+     package_info_plus: ^3.0.2
      #HTTP connections
      #https://pub.dev/packages/dio/changelog
      dio: ^4.0.6
@@ -51,7 +52,12 @@ dependencies:
      add_to_gallery: ^0.2.0+3
      image_picker: ^0.8.5+3
      image: ^3.2.0
-     camera: ^0.10.0+4
+     extended_image: ^6.2.1
+     image_editor: ^1.1.0
+     camerawesome: ^0.3.3
+     #camera: ^0.10.0+4
+     video_player: ^2.4.7
+     flutter_speed_dial: ^6.2.0
 
      path_provider: ^2.0.11
      #Netwrok Internet Cheker
@@ -66,9 +72,8 @@ dependencies:
      animations: ^2.0.0
      permission_handler: ^10.0.0
      # Data store BD
-     shared_preferences:
-          ^2.0.5
-          #Theme
+     shared_preferences: ^2.0.5
+     #Theme
      flex_color_scheme: ^5.0.0
      sembast: ^3.3.1
      # data models
@@ -80,12 +85,12 @@ dependencies:
      cupertino_icons: ^1.0.2
      asn1lib: ^1.1.0
      #pointmobile_scanner:
-     # When depending on this package from a real application you should use:
-     #   pointmobile_scanner: ^x.y.z
-     # See https://dart.dev/tools/pub/dependencies#version-constraints
-     # The example app is bundled with the plugin so we use a path dependency on
-     # the parent directory to use the current plugin's version.
-     #path: ../
+          # When depending on this package from a real application you should use:
+          #   pointmobile_scanner: ^x.y.z
+          # See https://dart.dev/tools/pub/dependencies#version-constraints
+          # The example app is bundled with the plugin so we use a path dependency on
+          # the parent directory to use the current plugin's version.
+          # path: ../
 
 dev_dependencies:
      flutter_test:

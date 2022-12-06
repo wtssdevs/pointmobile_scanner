@@ -3,6 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:animations/animations.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/account/account_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/home_view_model.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/gatepass_view.dart';
 
@@ -20,7 +21,7 @@ class HomeView extends StatelessWidget {
             return const GatePassView();
 
           case 1:
-            return const Text("Account");
+            return const AccountView();
         }
       }
       return null;

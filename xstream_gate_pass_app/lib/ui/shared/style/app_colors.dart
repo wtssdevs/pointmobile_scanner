@@ -7,7 +7,7 @@ const Color kcLightGreyColor = Color(0xffe5e5e5);
 const Color kcVeryLightGreyColor = Color(0xfff2f2f2);
 const Color kcButtonPrimarySaveColor = Color(0xff22A45D);
 
-const Color kcButtonPrimaryActionColor = Colors.blue;
+const Color kcButtonPrimaryActionColor = Colors.orange;
 const Color kcTabBarIndicatorColor = Colors.grey;
 
 Map<int, Color> color = {

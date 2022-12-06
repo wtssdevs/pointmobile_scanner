@@ -9,6 +9,7 @@ import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_manager.dart';
+import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterfiles_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
@@ -22,6 +23,7 @@ class WorkerQueManager {
   final StreamController _syncController = StreamController<bool>.broadcast();
   final _connectionService = locator<ConnectionService>();
   final _fileStoreManager = locator<FileStoreManager>();
+  final _masterFilesService = locator<MasterFilesService>();
 
   final int maxConcurrentTasks = 1;
   int runningTasks = 0;
@@ -148,7 +150,10 @@ class WorkerQueManager {
         case BackgroundJobType.none:
           deleteJob = true;
           break;
-
+        case BackgroundJobType.syncMasterfiles:
+          await _masterFilesService.syncServerWithLocalAll();
+          deleteJob = true;
+          break;
         case BackgroundJobType.syncImages:
           if (jobInfo.jobArgs != null) {
             var refIdAsString = asT<String>(jobInfo.jobArgs);

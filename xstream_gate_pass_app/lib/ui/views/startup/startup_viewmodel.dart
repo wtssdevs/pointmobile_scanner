@@ -6,6 +6,7 @@ import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
 import 'package:xstream_gate_pass_app/app_config/app.router.dart';
 import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 
@@ -15,7 +16,7 @@ class StartUpViewModel extends BaseViewModel {
   final ApiManager _apiManager = locator<ApiManager>();
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
-
+  final _workerQueManager = locator<WorkerQueManager>();
   final _authenticationService = locator<AuthenticationService>();
 
   final _connectionService = locator<ConnectionService>();
@@ -54,6 +55,7 @@ class StartUpViewModel extends BaseViewModel {
           }
 
           await _authenticationService.getUserLoginInfo(true);
+          _workerQueManager.enqueForStartUp();
 
           // await Future.delayed(const Duration(milliseconds: 100));
           // whenever your initialization is completed, remove the splash screen:
@@ -62,7 +64,7 @@ class StartUpViewModel extends BaseViewModel {
         } else {
           _apiManager.refreshToken();
           _authenticationService.getUserLoginInfo(true);
-          // _workerQueManager.enqueForStartUp();
+          _workerQueManager.enqueForStartUp();
           //  await Future.delayed(const Duration(milliseconds: 200));
           // whenever your initialization is completed, remove the splash screen:
           FlutterNativeSplash.remove();

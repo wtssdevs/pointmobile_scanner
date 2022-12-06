@@ -88,6 +88,24 @@ class GatePassService {
     }
   }
 
+  Future<GatePass?> authorizeExit(GatePass entity) async {
+    try {
+      var baseResponse = await _apiManager.post(AppConst.AuthorizeForExitGatePass, showLoader: true, data: entity.toJson());
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success != null) {
+          return GatePass.fromJson(apiResponse.result);
+        }
+
+        return null;
+      }
+      return null;
+    } catch (e) {
+      log.e(e.toString());
+      return null;
+    }
+  }
+
   Future<GatePass?> update(GatePass entity) async {
     try {
       var baseResponse = await _apiManager.post(AppConst.UpdateGatePass, showLoader: true, data: entity.toJson());

@@ -1,6 +1,7 @@
 import 'package:stacked/stacked.dart';
 
 class HomeViewModel extends BaseViewModel {
+  //final _syncManager = locator<SyncManager>();
   int _currentTabIndex = 0;
   int get currentTabIndex => _currentTabIndex;
 
@@ -15,9 +16,10 @@ class HomeViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  Future handleStartUpLogic(int? tabIndex) async {
+  Future<void> handleStartUpLogic(int? tabIndex) async {
     if (tabIndex != null) {
       setTabIndex(tabIndex);
     }
+    // await _syncManager.startBackgroundJob();
   }
 }

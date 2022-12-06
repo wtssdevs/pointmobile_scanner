@@ -2,13 +2,13 @@ import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
 class GatePassQuestions {
   GatePassQuestions({
-    required this.hasDeliveryDocuments,
-    required this.isContainerised,
-    required this.hasDamagesDefects,
-    required this.qtyMatchedDocs,
-    required this.itemCodesMatchDocs,
-    required this.expectedDelivery,
-    required this.driverAgree,
+    this.hasDeliveryDocuments = false,
+    this.isContainerised = false,
+    this.hasDamagesDefects = false,
+    this.qtyMatchedDocs = false,
+    this.itemCodesMatchDocs = false,
+    this.expectedDelivery = false,
+    this.driverAgree = false,
   });
 
   bool hasDeliveryDocuments;

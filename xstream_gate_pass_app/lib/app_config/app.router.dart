@@ -6,15 +6,20 @@
 
 // ignore_for_file: public_member_api_docs, unused_import, non_constant_identifier_names
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+import '../core/enums/filestore_type.dart';
 import '../core/models/gatepass/gate_pass_model.dart';
 import '../ui/views/account/login/login_view.dart';
+import '../ui/views/app/main/account/account_view.dart';
 import '../ui/views/app/main/home_view.dart';
 import '../ui/views/app/main/ops/gatepass/edit/edit_gatepass_view.dart';
 import '../ui/views/app/main/ops/gatepass/gatepass_view.dart';
+import '../ui/views/app/main/widgets/shared/camera/camera_capture_view.dart';
+import '../ui/views/app/main/widgets/shared/camera/editor/image_editor_view.dart';
 import '../ui/views/startup/startup_view.dart';
 import '../ui/views/startup/termsandprivacy/terms_and_privacy_view.dart';
 
@@ -25,6 +30,9 @@ class Routes {
   static const String loginView = '/login-view';
   static const String gatePassView = '/gate-pass-view';
   static const String gatePassEditView = '/gate-pass-edit-view';
+  static const String accountView = '/account-view';
+  static const String cameraCaptureView = '/camera-capture-view';
+  static const String imageEditorView = '/image-editor-view';
   static const all = <String>{
     startUpView,
     homeView,
@@ -32,6 +40,9 @@ class Routes {
     loginView,
     gatePassView,
     gatePassEditView,
+    accountView,
+    cameraCaptureView,
+    imageEditorView,
   };
 }
 
@@ -45,6 +56,9 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.loginView, page: LoginView),
     RouteDef(Routes.gatePassView, page: GatePassView),
     RouteDef(Routes.gatePassEditView, page: GatePassEditView),
+    RouteDef(Routes.accountView, page: AccountView),
+    RouteDef(Routes.cameraCaptureView, page: CameraCaptureView),
+    RouteDef(Routes.imageEditorView, page: ImageEditorView),
   ];
   @override
   Map<Type, StackedRouteFactory> get pagesMap => _pagesMap;
@@ -98,6 +112,34 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
+    AccountView: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => const AccountView(),
+        settings: data,
+      );
+    },
+    CameraCaptureView: (data) {
+      var args = data.getArgs<CameraCaptureViewArguments>(nullOk: false);
+      return CupertinoPageRoute<dynamic>(
+        builder: (context) => CameraCaptureView(
+          key: args.key,
+          refId: args.refId,
+          referanceId: args.referanceId,
+          fileStoreType: args.fileStoreType,
+        ),
+        settings: data,
+      );
+    },
+    ImageEditorView: (data) {
+      var args = data.getArgs<ImageEditorViewArguments>(nullOk: false);
+      return CupertinoPageRoute<dynamic>(
+        builder: (context) => ImageEditorView(
+          key: args.key,
+          filePath: args.filePath,
+        ),
+        settings: data,
+      );
+    },
   };
 }
 
@@ -123,6 +165,26 @@ class GatePassEditViewArguments {
   final Key? key;
   final GatePass gatePass;
   GatePassEditViewArguments({this.key, required this.gatePass});
+}
+
+/// CameraCaptureView arguments holder class
+class CameraCaptureViewArguments {
+  final Key? key;
+  final int refId;
+  final int referanceId;
+  final FileStoreType fileStoreType;
+  CameraCaptureViewArguments(
+      {this.key,
+      required this.refId,
+      required this.referanceId,
+      required this.fileStoreType});
+}
+
+/// ImageEditorView arguments holder class
+class ImageEditorViewArguments {
+  final Key? key;
+  final String filePath;
+  ImageEditorViewArguments({this.key, required this.filePath});
 }
 
 /// ************************************************************************
@@ -227,6 +289,66 @@ extension NavigatorStateExtension on NavigationService {
     return navigateTo(
       Routes.gatePassEditView,
       arguments: GatePassEditViewArguments(key: key, gatePass: gatePass),
+      id: routerId,
+      preventDuplicates: preventDuplicates,
+      parameters: parameters,
+      transition: transition,
+    );
+  }
+
+  Future<dynamic> navigateToAccountView({
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  }) async {
+    return navigateTo(
+      Routes.accountView,
+      id: routerId,
+      preventDuplicates: preventDuplicates,
+      parameters: parameters,
+      transition: transition,
+    );
+  }
+
+  Future<dynamic> navigateToCameraCaptureView({
+    Key? key,
+    required int refId,
+    required int referanceId,
+    required FileStoreType fileStoreType,
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  }) async {
+    return navigateTo(
+      Routes.cameraCaptureView,
+      arguments: CameraCaptureViewArguments(
+          key: key,
+          refId: refId,
+          referanceId: referanceId,
+          fileStoreType: fileStoreType),
+      id: routerId,
+      preventDuplicates: preventDuplicates,
+      parameters: parameters,
+      transition: transition,
+    );
+  }
+
+  Future<dynamic> navigateToImageEditorView({
+    Key? key,
+    required String filePath,
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  }) async {
+    return navigateTo(
+      Routes.imageEditorView,
+      arguments: ImageEditorViewArguments(key: key, filePath: filePath),
       id: routerId,
       preventDuplicates: preventDuplicates,
       parameters: parameters,

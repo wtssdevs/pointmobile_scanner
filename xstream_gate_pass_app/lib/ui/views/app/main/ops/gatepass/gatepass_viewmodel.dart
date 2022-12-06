@@ -9,6 +9,7 @@ import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
 import 'package:xstream_gate_pass_app/app_config/app.router.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart';
+import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_question.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manager.dart';
@@ -117,7 +118,7 @@ class GatePassViewModel extends BaseViewModel {
     await _navigationService.navigateTo(
       Routes.gatePassEditView,
       arguments: GatePassEditViewArguments(
-        gatePass: GatePass(id: 0, gatePassStatus: GatePassStatus.atGate.index, vehicleRegNumber: "", timeAtGate: DateTime.now()),
+        gatePass: GatePass(id: 0, gatePassStatus: GatePassStatus.atGate.index, vehicleRegNumber: "", timeAtGate: DateTime.now(), gatePassQuestions: GatePassQuestions()),
       ),
     );
 

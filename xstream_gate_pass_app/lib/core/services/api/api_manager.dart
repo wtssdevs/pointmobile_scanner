@@ -283,9 +283,9 @@ class ApiManager {
         options: DioClient.Options(
           headers: {
             "uploadType": "2", //TMSConsts.UploadType.Files:
-            "uploadMethod": "4", //TMSConsts.UploadMethod.LoadAssignmentDocuments:
+            "uploadMethod": "0", //TMSConsts.UploadMethod.LoadAssignmentDocuments:
             //FileStoreType
-            "fileStoreTypeId": "4",
+            "fileStoreTypeId": "15", //    GatePassDocuments = 15,
             "referenceId": "${fileStore.refId}",
             "documentFileName": "${fileStore.fileName}",
             "documentTypeID": documentTypeID, //7 = PICTURES ,6 = PROOF OF DELIVERY

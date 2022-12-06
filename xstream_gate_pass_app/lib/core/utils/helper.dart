@@ -4,8 +4,11 @@ import 'dart:typed_data';
 
 import 'package:add_to_gallery/add_to_gallery.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
+import 'package:xstream_gate_pass_app/core/models/shared/merge_delta_reponse%20copy.dart';
 
 T? asT<T>(dynamic value) {
   if (value is T) {
@@ -13,6 +16,7 @@ T? asT<T>(dynamic value) {
   }
   return null;
 }
+
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -22,19 +26,111 @@ class UpperCaseTextFormatter extends TextInputFormatter {
     );
   }
 }
+
 extension HexString on String {
   int getHexValue() => int.parse(replaceAll('#', '0xff'));
+}
+
+MergeDeltaResponse<T> getDeltaMerge<T>(List<T> local, List<T> server) {
+  var delta = MergeDeltaResponse(added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
+
+  //map ids from array
+  // old local
+  var mapLocal = mapFromTArray(local);
+  var mapServer = mapFromTArray(server);
+
+  mapLocal.forEach((key, value) {
+    //local
+    if (!mapServer.containsKey(key)) {
+      //was deleted  // Remove from local
+      delta.deleted.add(value);
+    } else {
+      //com
+      var iseq = isTEqual(mapServer[key], value);
+
+      if (iseq == false) {
+        //maybe save local here if we have status update or signature etc???
+        if (value is BaseLookup) {
+          value.mergeUpdate(mapServer[key]! as BaseLookup);
+        }
+        //delta.changed.add(mapServer[key]!); // update local from server "Server WINS Conflict"
+        delta.changed.add(value); // update local from server "Local WINS Conflict"
+      } else {
+        delta.same.add(value);
+      }
+    }
+  });
+
+  mapServer.forEach((key, value) {
+    if (!mapLocal.containsKey(key)) {
+      delta.added.add(value);
+    }
+  });
+
+  delta.all = [...delta.added, ...delta.changed, ...delta.same];
+
+  return delta;
+}
+
+MergeDeltaResponse<T> getDeltaMergLocalWins<T>(List<T> local, List<T> server) {
+  var delta = MergeDeltaResponse(added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
+
+  //map ids from array
+  // old local
+  var mapLocal = mapFromTArray(local);
+  var mapServer = mapFromTArray(server);
+
+  mapLocal.forEach((key, value) {
+    //local
+    if (!mapServer.containsKey(key)) {
+      //was deleted  // Remove from local
+      delta.deleted.add(value);
+    } else {
+      var iseq = isTEqual(mapServer[key], value);
+      if (iseq == false) {
+        if (value is BaseLookup) {
+          value.mergeUpdate(mapServer[key]! as BaseLookup);
+        } else {
+          var serverMapFound = mapServer[key];
+          if (serverMapFound != null) {
+            value = serverMapFound; //overwrite local with server values here
+          }
+        }
+        delta.changed.add(value); //maybe merge changes here based on rules set
+      } else {
+        delta.same.add(value);
+      }
+    }
+  });
+
+  mapServer.forEach((key, value) {
+    if (!mapLocal.containsKey(key)) {
+      delta.added.add(value);
+    }
+  });
+
+  delta.all = [...delta.added, ...delta.changed, ...delta.same];
+
+  return delta;
+}
+
+bool isTEqual<T>(T s, T l) {
+  if (s is BaseLookup && l is BaseLookup) {
+    return s.isEqualToServer(l);
+  }
+
+  return false;
+}
+
+Map<int, T> mapFromTArray<T>(List<T> list) {
+  var map = Map<int, T>.fromIterable(list, key: (e) => e.id, value: (e) => e);
+  return map;
 }
 
 List<T> flattenDeep<T>(Iterable<dynamic> list) => [
       for (var element in list)
         if (element is! Iterable) element else ...flattenDeep(element),
     ];
-
-Map<int, T> mapFromTArray<T>(List<T> list) {
-  var map = Map<int, T>.fromIterable(list, key: (e) => e.id, value: (e) => e);
-  return map;
-}
 
 String convertToTitleCase(String text) {
   if (text.isEmpty) {
@@ -129,6 +225,28 @@ extension FormatDatedExtension on DateTime? {
     } catch (e) {
       return "";
     }
+  }
+
+  double? initScale({
+    required Size imageSize,
+    required Size size,
+    double? initialScale,
+  }) {
+    final double n1 = imageSize.height / imageSize.width;
+    final double n2 = size.height / size.width;
+    if (n1 > n2) {
+      final FittedSizes fittedSizes = applyBoxFit(BoxFit.contain, imageSize, size);
+      //final Size sourceSize = fittedSizes.source;
+      final Size destinationSize = fittedSizes.destination;
+      return size.width / destinationSize.width;
+    } else if (n1 / n2 < 1 / 4) {
+      final FittedSizes fittedSizes = applyBoxFit(BoxFit.contain, imageSize, size);
+      //final Size sourceSize = fittedSizes.source;
+      final Size destinationSize = fittedSizes.destination;
+      return size.height / destinationSize.height;
+    }
+
+    return initialScale;
   }
 
   String getSocialDateFormat(DateTime tm) {

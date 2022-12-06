@@ -9,6 +9,7 @@ import 'package:xstream_gate_pass_app/core/models/account/ResetForgotPassword.da
 import 'package:xstream_gate_pass_app/core/models/account/UserCredential.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
 import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
+import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 
 @LazySingleton()
@@ -18,8 +19,8 @@ class AuthenticationService {
   UserCredential? get currentUser => _currentUser;
   final ApiManager? _apiManager = locator<ApiManager>();
   final LocalStorageService? _localStorageService = locator<LocalStorageService>();
+  final _workerQueManager = locator<WorkerQueManager>();
 
-  //final _workerQueManager = locator<WorkerQueManager>();
 
   //**********LOGIN ********************************** */
   Future<AuthenticateResultModel?> login({
@@ -49,7 +50,7 @@ class AuthenticationService {
 
       //remove await here to allow background...run and move on to screen...
       //_baseFilesService.getAndsyncServerWithLocalBaseFiles();
-      //await _workerQueManager.enqueForStartUp();
+      await _workerQueManager.enqueForStartUp();
     } else {
       // Unexpected result!
 

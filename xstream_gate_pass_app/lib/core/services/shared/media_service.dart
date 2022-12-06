@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:add_to_gallery/add_to_gallery.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stacked/stacked_annotations.dart';
-
+import 'package:xstream_gate_pass_app/core/app_const.dart';
 
 @LazySingleton()
 class MediaService {
@@ -57,5 +60,24 @@ class MediaService {
     await tmpFile.saveTo('$path/$fileName');
 
     return tmpFile;
+  }
+
+  Future<String?> imageSave(Uint8List imageAsBytes) async {
+    final Directory extDir = await getTemporaryDirectory();
+    final testDir = await Directory('${extDir.path}/TMS_Images').create(recursive: true);
+    var fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final String filePath = '${testDir.path}/$fileName';
+
+    File(filePath).writeAsBytesSync(imageAsBytes);
+
+    final file = File(filePath);
+
+    File addToGalleryFile = await AddToGallery.addToGallery(
+      originalFile: file,
+      albumName: AppConst.App_Gallery_Album,
+      deleteOriginalFile: true,
+    );
+
+    return addToGalleryFile.path;
   }
 }
