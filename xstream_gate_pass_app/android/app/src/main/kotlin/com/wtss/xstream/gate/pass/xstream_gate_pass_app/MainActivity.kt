@@ -1,4 +1,4 @@
-package com.wtss.xstream.gate.pass.xstream_gate_pass_app
+package com.wtss.xstream_gatepass
 
 import io.flutter.embedding.android.FlutterActivity
 

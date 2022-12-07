@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -62,7 +64,7 @@ class GatePassEditViewModel extends BaseFormViewModel {
       _rsaDriversLicense = data;
       gatePass.driverName = "${_rsaDriversLicense?.firstNames} ${_rsaDriversLicense?.surname}";
       gatePass.driverIdNo = _rsaDriversLicense?.idNumber;
-      gatePass.driverLicenseNo = "${_rsaDriversLicense?.licenseNumber} (${_rsaDriversLicense?.vehicleCodes.join(",")}),(${_rsaDriversLicense?.prdpCode})";
+      gatePass.driverLicenseNo = "${_rsaDriversLicense?.licenseNumber} (${_rsaDriversLicense?.vehicleCodes.join(",")})";
       gatePass.driverGender = _rsaDriversLicense?.gender;
       gatePass.driverLicenseCountryCode = _rsaDriversLicense?.licenseCountryOfIssue;
       setModelUpdate(_gatePass);
@@ -72,16 +74,27 @@ class GatePassEditViewModel extends BaseFormViewModel {
 
   Future<void> runStartupLogic() async {
     _scanningService.initialise();
-    //startconnectionListen();
+    startconnectionListen();
 
     setModelUpdate(_gatePass);
     await loadFileStoreImages();
     _customers = await _masterFilesService.getAllLocalDetainOptions("");
+
+    setCustomValidations();
     notifyListeners();
   }
 
   handleBackButton() async {
     _navigationService.back();
+  }
+
+  setCustomValidations() {
+    var valMsg = "Customer is required!";
+    if (gatePass.customerId == null || gatePass.customerId == 0) {
+      setValidationMessage(valMsg);
+    } else {
+      clearValidationMessage(valMsg);
+    }
   }
 
   listenToModelSet(Function onModelSet) {
@@ -133,7 +146,7 @@ class GatePassEditViewModel extends BaseFormViewModel {
     }
   }
 
-  void modelNotifyListeners(bool? val) {
+  void modelNotifyListeners() {
     notifyListeners();
   }
 
@@ -157,8 +170,24 @@ class GatePassEditViewModel extends BaseFormViewModel {
 
     if (reponse != null) {
       _gatePass = reponse;
+      Fluttertoast.showToast(
+          msg: "Save was successful! ",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 14.0);
     } else {
       //error could not save
+      Fluttertoast.showToast(
+          msg: "Save Failed!,Please try again or contact your system admin. ",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0);
     }
 
     //update Screen UI state with model changes
@@ -180,8 +209,24 @@ class GatePassEditViewModel extends BaseFormViewModel {
     var reponse = await _gatePassService.authorizeForEntry(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
+      Fluttertoast.showToast(
+          msg: "Save was successful! ",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 14.0);
     } else {
       //error could not save
+      Fluttertoast.showToast(
+          msg: "Save Failed!,Please try again or contact your system admin. ",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0);
     }
 
     //update Screen UI state with model changes
@@ -203,8 +248,24 @@ class GatePassEditViewModel extends BaseFormViewModel {
     var reponse = await _gatePassService.authorizeExit(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
+      Fluttertoast.showToast(
+          msg: "Save was successful! ",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 14.0);
     } else {
       //error could not save
+      Fluttertoast.showToast(
+          msg: "Save Failed!,Please try again or contact your system admin. ",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0);
     }
 
     //update Screen UI state with model changes
@@ -226,8 +287,24 @@ class GatePassEditViewModel extends BaseFormViewModel {
     var reponse = await _gatePassService.rejectForEntry(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
+      Fluttertoast.showToast(
+          msg: "Save was successful! ",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 14.0);
     } else {
       //error could not save
+      Fluttertoast.showToast(
+          msg: "Save Failed!,Please try again or contact your system admin. ",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0);
     }
 
     //update Screen UI state with model changes

@@ -38,3 +38,8 @@ flutter build apk --release
 
 #Google Play Store uploading
 flutter build appbundle
+
+#How to add the Point Mobile SDK files & add to path from root project
+1. In pubspec.yaml file add in the SDK " pointmobile_scanner:"
+2. Un-Comment all the scanning code from the scan manager (ScanningService) "PointmobileScanner"
+3. In the android app scr main androidManifest file un-comment the "<uses-library android:name="device.sdk" android:required="true" />"

@@ -8,10 +8,12 @@ class ModalSheetSelection<T> extends StatefulWidget {
   T? selectedItem;
   final Function onDropDownItemClick;
   final bool isVisible;
+  final Function(bool)? onTapped;
   final TextEditingController filterController = TextEditingController();
   List<T> filteredItems = [];
   final Widget? dropDownIcon;
-  ModalSheetSelection({Key? key, this.dropDownIcon, required this.dropDownList, required this.onDropDownItemClick, this.selectedItem, this.isVisible = true}) : super(key: key);
+  ModalSheetSelection({Key? key, this.dropDownIcon, required this.dropDownList, required this.onDropDownItemClick, this.selectedItem, this.onTapped, this.isVisible = true})
+      : super(key: key);
 
   @override
   _ModalSheetSelectionState createState() => _ModalSheetSelectionState();
@@ -30,11 +32,14 @@ class _ModalSheetSelectionState extends State<ModalSheetSelection> {
   Widget build(BuildContext context) {
     return widget.isVisible
         ? GestureDetector(
-            onTap: () {
+            onTap: () async {
               setState(() {
                 widget.filteredItems = widget.dropDownList;
               });
-              showModal(context, widget.selectedItem);
+              await showModal(context, widget.selectedItem);
+              if (widget.onTapped != null) {
+                widget.onTapped!(widget.selectedItem == null ? false : true);
+              }
             },
             child: Card(
               elevation: 6,
@@ -99,78 +104,103 @@ class _ModalSheetSelectionState extends State<ModalSheetSelection> {
         : const SizedBox.shrink();
   }
 
-  void showModal(context, dynamic selecteditem) {
-    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.Tablet ? MediaQuery.of(context).size.height * 0.8 : MediaQuery.of(context).size.height * 0.5;
-    showModalBottomSheet(
+  Future<void> showModal(context, dynamic selecteditem) async {
+    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.Tablet ? MediaQuery.of(context).size.width * 0.8 : MediaQuery.of(context).size.width * 0.8;
+    var sheetRespone = await showModalBottomSheet(
       context: context,
       elevation: 6,
       isDismissible: true,
       enableDrag: true,
-      isScrollControlled: false, //this makes it full screen
+      isScrollControlled: true, //this makes it full screen
+
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
       builder: (context) {
         return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-          return Column(
-            children: [
-              Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 15, left: 8, right: 8),
-                  child: SearchAppBar(
-                    controller: widget.filterController,
-                    searchWidth: searchWidth,
-                    onChanged: (value) {
-                      setState(() {
-                        widget.filteredItems = widget.dropDownList.where((u) => (u.name.toLowerCase().contains(value.toLowerCase()))).toList();
-                      });
-                    },
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 5,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  alignment: Alignment.center,
-                  child: ListView.separated(
-                    itemCount: widget.filteredItems.length,
-                    separatorBuilder: (context, int) {
-                      return const Divider();
-                    },
-                    itemBuilder: (context, index) {
-                      var item = widget.filteredItems[index];
-                      return ListTile(
-                        selected: selecteditem != null ? selecteditem.id == item.id : false,
-                        selectedTileColor: Colors.blue.withOpacity(0.85),
-                        dense: true,
-                        title: Text(
-                          item?.displayName ?? "",
-                          maxLines: 3,
-                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700),
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 2, left: 2, right: 2),
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(5.0, 5.0, 0.0, 5.0),
+                          child: IconButton(
+                            onPressed: () async {
+                              Navigator.of(context).pop();
+                            },
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.black,
+                              size: 26,
+                            ),
+                          ),
                         ),
-                        onTap: () {
-                          setState(() {
-                            widget.selectedItem = item;
-                          });
-                          widget.onDropDownItemClick(item);
-                          Navigator.of(context).pop();
-                        },
-                      );
-                      // GestureDetector(
-                      //     child: Text(item.name ?? ""),
-                      //     onTap: () {
-
-                      //     });
-                    },
+                        SearchAppBar(
+                          controller: widget.filterController,
+                          searchWidth: searchWidth,
+                          onChanged: (value) {
+                            setState(() {
+                              widget.filteredItems = widget.dropDownList
+                                  .where((u) => (u.name.toLowerCase().contains(value.toLowerCase())) || (u.code.toLowerCase().contains(value.toLowerCase())))
+                                  .toList();
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    alignment: Alignment.center,
+                    child: ListView.separated(
+                      itemCount: widget.filteredItems.length,
+                      separatorBuilder: (context, int) {
+                        return const Divider();
+                      },
+                      itemBuilder: (context, index) {
+                        var item = widget.filteredItems[index];
+                        return ListTile(
+                          selected: selecteditem != null ? selecteditem.id == item.id : false,
+                          selectedTileColor: Colors.blue.withOpacity(0.85),
+                          dense: true,
+                          title: Text(
+                            item?.displayName ?? "",
+                            maxLines: 3,
+                            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              widget.selectedItem = item;
+                            });
+                            widget.onDropDownItemClick(item);
+                            Navigator.of(context).pop();
+                          },
+                        );
+                        // GestureDetector(
+                        //     child: Text(item.name ?? ""),
+                        //     onTap: () {
+
+                        //     });
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         });
       },
     );
+
+    //after sheet closes
   }
 }

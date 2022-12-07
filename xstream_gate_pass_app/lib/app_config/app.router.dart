@@ -20,6 +20,7 @@ import '../ui/views/app/main/ops/gatepass/edit/edit_gatepass_view.dart';
 import '../ui/views/app/main/ops/gatepass/gatepass_view.dart';
 import '../ui/views/app/main/widgets/shared/camera/camera_capture_view.dart';
 import '../ui/views/app/main/widgets/shared/camera/editor/image_editor_view.dart';
+import '../ui/views/shared/data_sync/data_sync_view.dart';
 import '../ui/views/startup/startup_view.dart';
 import '../ui/views/startup/termsandprivacy/terms_and_privacy_view.dart';
 
@@ -31,6 +32,7 @@ class Routes {
   static const String gatePassView = '/gate-pass-view';
   static const String gatePassEditView = '/gate-pass-edit-view';
   static const String accountView = '/account-view';
+  static const String dataSyncView = '/data-sync-view';
   static const String cameraCaptureView = '/camera-capture-view';
   static const String imageEditorView = '/image-editor-view';
   static const all = <String>{
@@ -41,6 +43,7 @@ class Routes {
     gatePassView,
     gatePassEditView,
     accountView,
+    dataSyncView,
     cameraCaptureView,
     imageEditorView,
   };
@@ -57,6 +60,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.gatePassView, page: GatePassView),
     RouteDef(Routes.gatePassEditView, page: GatePassEditView),
     RouteDef(Routes.accountView, page: AccountView),
+    RouteDef(Routes.dataSyncView, page: DataSyncView),
     RouteDef(Routes.cameraCaptureView, page: CameraCaptureView),
     RouteDef(Routes.imageEditorView, page: ImageEditorView),
   ];
@@ -115,6 +119,12 @@ class StackedRouter extends RouterBase {
     AccountView: (data) {
       return MaterialPageRoute<dynamic>(
         builder: (context) => const AccountView(),
+        settings: data,
+      );
+    },
+    DataSyncView: (data) {
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => const DataSyncView(),
         settings: data,
       );
     },
@@ -305,6 +315,22 @@ extension NavigatorStateExtension on NavigationService {
   }) async {
     return navigateTo(
       Routes.accountView,
+      id: routerId,
+      preventDuplicates: preventDuplicates,
+      parameters: parameters,
+      transition: transition,
+    );
+  }
+
+  Future<dynamic> navigateToDataSyncView({
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  }) async {
+    return navigateTo(
+      Routes.dataSyncView,
       id: routerId,
       preventDuplicates: preventDuplicates,
       parameters: parameters,

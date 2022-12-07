@@ -38,7 +38,7 @@ class _CameraCaptureViewState extends State<CameraCaptureView> with TickerProvid
 
   final ValueNotifier<CameraFlashes> _switchFlash = ValueNotifier(CameraFlashes.NONE);
   final ValueNotifier<double> _zoomNotifier = ValueNotifier(0);
-  final ValueNotifier<Size> _photoSize = ValueNotifier(const Size(800, 600));
+  final ValueNotifier<Size> _photoSize = ValueNotifier(const Size(1024, 768));
   final ValueNotifier<Sensors> _sensor = ValueNotifier(Sensors.BACK);
   final ValueNotifier<CaptureModes> _captureMode = ValueNotifier(CaptureModes.PHOTO);
   final ValueNotifier<bool> _enableAudio = ValueNotifier(true);
@@ -346,7 +346,7 @@ class _CameraCaptureViewState extends State<CameraCaptureView> with TickerProvid
           // },
           onCameraStarted: () {
             // camera started here -- do your after start stuff
-            _photoSize.value = const Size(800.0, 600.0);
+            _photoSize.value = const Size(1024.0, 768.0);
           },
         ),
       ),

@@ -28,10 +28,10 @@ Future main() async {
   HttpOverrides.global = MyHttpOverrides();
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  var envFileToLoad = ".env_dev";
+  //var envFileToLoad = ".env_dev";
   //var envFileToLoad = ".env_ngrok_dev";
   //var envFileToLoad = ".env_qa";
-  //var envFileToLoad = ".env_prod";
+  var envFileToLoad = ".env_prod";
   await initialise(envFileToLoad);
 
   await setupLocator();

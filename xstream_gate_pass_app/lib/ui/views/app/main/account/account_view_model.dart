@@ -101,9 +101,9 @@ class AccountViewModel extends BaseViewModel {
   }
 
   Future<void> gotoSyncList() async {
-    // await _navigationService.navigateTo(
-    //   Routes.dataSyncView,
-    // );
+    await _navigationService.navigateTo(
+      Routes.dataSyncView,
+    );
     await loadTaskCount();
     notifyListeners();
   }

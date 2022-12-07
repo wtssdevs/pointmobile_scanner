@@ -72,7 +72,7 @@ class GatePass {
         refNo: asT<String>(jsonRes['refNo']) ?? "",
         isHazardous: asT<bool>(jsonRes['isHazardous']) ?? false,
         driverName: asT<String>(jsonRes['driverName']) ?? "",
-        driverIdNo: asT<String>(jsonRes['driverIdNo']) ?? "",
+        driverIdNo: asT<String>(jsonRes['driverIDNo']) ?? "",
         driverLicenseNo: asT<String>(jsonRes['driverLicenseNo']) ?? "",
         driverLicenseCountryCode: asT<String>(jsonRes['driverLicenseCountryCode']) ?? "",
         driverGender: asT<String>(jsonRes['driverGender']) ?? "",
@@ -190,26 +190,29 @@ class GatePass {
     data['timeAtGate'] = timeAtGate?.toIso8601String();
     data['timeIn'] = timeIn?.toIso8601String();
     data['extensionData'] = extensionData;
-    data['customerName'] = customerName;
+
     data['transporterName'] = transporterName;
     data['timeOut'] = timeOut?.toIso8601String();
     data['gatePassStatus'] = gatePassStatus;
     // data['branchId'] = branchId ?? 0;
     // data['statusDescription'] = statusDescription;
-    // data['trailerNumber1'] = trailerNumber1;
-    // data['trailerNumber2'] = trailerNumber2;
+    data['trailerNumber1'] = trailerNumber1;
+    data['trailerNumber2'] = trailerNumber2;
     // data['refNo'] = refNo;
     // data['isHazardous'] = isHazardous ?? false;
-    // data['driverName'] = driverName;
-    // data['driverIDNo'] = driverIdNo;
-    // data['driverLicenseNo'] = driverLicenseNo;
-    // data['driverLicenseCountryCode'] = driverLicenseCountryCode;
-    // data['driverGender'] = driverGender;
+    data['driverName'] = driverName;
+    data['driverIDNo'] = driverIdNo;
+    data['driverLicenseNo'] = driverLicenseNo;
+    data['driverLicenseCountryCode'] = driverLicenseCountryCode;
+    data['driverGender'] = driverGender;
+
+    data['customerCode'] = customerCode;
+    data['customerName'] = customerName;
     // data['siNumber'] = siNumber;
-    // data['customerCode'] = customerCode;
+    data['customerID'] = customerId == 0 ? "" : customerId;
     // data['transporterCode'] = transporterCode;
     // data['goodsDescription'] = goodsDescription;
-    // data['gatePassType'] = gatePassType ?? 0;
+    data['gatePassType'] = gatePassType ?? 0;
     // data['warehouseCode'] = warehouseCode;
     // data['comments'] = comments;
     // data['rejReason'] = rejReason;
@@ -227,7 +230,7 @@ class GatePass {
     // data['containerType'] = containerType;
     // data['containerSealNumber'] = containerSealNumber;
     // data['samplerSealNumber'] = samplerSealNumber;
-    // data['customerID'] = customerId;
+
     // data['transporterID'] = transporterId;
     // data['productCode'] = productCode;
     // data['productDescription'] = productDescription;

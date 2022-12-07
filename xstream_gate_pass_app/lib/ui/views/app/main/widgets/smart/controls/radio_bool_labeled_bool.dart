@@ -4,10 +4,21 @@ import 'package:xstream_gate_pass_app/ui/shared/widgets/box_text.dart';
 class ListRadioBoolWithLabel extends StatelessWidget {
   final bool value;
   final String label;
-  //final Function? onValueChanged;
-  //final Function(Object?)? onValueChanged;
+  final String falseLabel;
+  final String trueLabel;
+  final Color trueColor;
+  final Color falseColor;
   final ValueChanged<Object?>? onValueChanged;
-  const ListRadioBoolWithLabel({Key? key, required this.value, required this.label, required this.onValueChanged}) : super(key: key);
+  const ListRadioBoolWithLabel(
+      {Key? key,
+      required this.value,
+      required this.label,
+      required this.onValueChanged,
+      this.falseLabel = "No",
+      this.trueLabel = "Yes",
+      this.trueColor = Colors.green,
+      this.falseColor = Colors.red})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +26,7 @@ class ListRadioBoolWithLabel extends StatelessWidget {
       padding: const EdgeInsets.only(top: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           Expanded(
             flex: 3,
@@ -31,7 +42,7 @@ class ListRadioBoolWithLabel extends StatelessWidget {
             flex: 2,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: falseColor.withOpacity(0.1),
                 borderRadius: const BorderRadius.all(
                   Radius.circular(12.0),
                 ),
@@ -42,12 +53,12 @@ class ListRadioBoolWithLabel extends StatelessWidget {
                 groupValue: value,
                 dense: true,
                 title: BoxText.body(
-                  "No",
-                  color: Colors.red,
+                  falseLabel,
+                  color: falseColor,
                   fontSize: 12,
                 ),
                 onChanged: onValueChanged,
-                activeColor: Colors.red,
+                activeColor: falseColor,
                 selected: false,
               ),
             ),
@@ -65,8 +76,9 @@ class ListRadioBoolWithLabel extends StatelessWidget {
                 value: true,
                 groupValue: value,
                 dense: true,
+                contentPadding: const EdgeInsets.all(0),
                 title: BoxText.body(
-                  "Yes",
+                  trueLabel,
                   color: Colors.green,
                   fontSize: 12,
                 ),
