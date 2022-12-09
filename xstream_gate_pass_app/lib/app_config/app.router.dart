@@ -20,6 +20,7 @@ import '../ui/views/app/main/ops/gatepass/edit/edit_gatepass_view.dart';
 import '../ui/views/app/main/ops/gatepass/gatepass_view.dart';
 import '../ui/views/app/main/widgets/shared/camera/camera_capture_view.dart';
 import '../ui/views/app/main/widgets/shared/camera/editor/image_editor_view.dart';
+import '../ui/views/app/main/widgets/shared/camera/viewer/camera_view.dart';
 import '../ui/views/shared/data_sync/data_sync_view.dart';
 import '../ui/views/startup/startup_view.dart';
 import '../ui/views/startup/termsandprivacy/terms_and_privacy_view.dart';
@@ -34,6 +35,7 @@ class Routes {
   static const String accountView = '/account-view';
   static const String dataSyncView = '/data-sync-view';
   static const String cameraCaptureView = '/camera-capture-view';
+  static const String cameraView = '/camera-view';
   static const String imageEditorView = '/image-editor-view';
   static const all = <String>{
     startUpView,
@@ -45,6 +47,7 @@ class Routes {
     accountView,
     dataSyncView,
     cameraCaptureView,
+    cameraView,
     imageEditorView,
   };
 }
@@ -62,6 +65,7 @@ class StackedRouter extends RouterBase {
     RouteDef(Routes.accountView, page: AccountView),
     RouteDef(Routes.dataSyncView, page: DataSyncView),
     RouteDef(Routes.cameraCaptureView, page: CameraCaptureView),
+    RouteDef(Routes.cameraView, page: CameraView),
     RouteDef(Routes.imageEditorView, page: ImageEditorView),
   ];
   @override
@@ -140,6 +144,18 @@ class StackedRouter extends RouterBase {
         settings: data,
       );
     },
+    CameraView: (data) {
+      var args = data.getArgs<CameraViewArguments>(nullOk: false);
+      return MaterialPageRoute<dynamic>(
+        builder: (context) => CameraView(
+          key: args.key,
+          refId: args.refId,
+          referanceId: args.referanceId,
+          fileStoreType: args.fileStoreType,
+        ),
+        settings: data,
+      );
+    },
     ImageEditorView: (data) {
       var args = data.getArgs<ImageEditorViewArguments>(nullOk: false);
       return CupertinoPageRoute<dynamic>(
@@ -184,6 +200,19 @@ class CameraCaptureViewArguments {
   final int referanceId;
   final FileStoreType fileStoreType;
   CameraCaptureViewArguments(
+      {this.key,
+      required this.refId,
+      required this.referanceId,
+      required this.fileStoreType});
+}
+
+/// CameraView arguments holder class
+class CameraViewArguments {
+  final Key? key;
+  final int refId;
+  final int referanceId;
+  final FileStoreType fileStoreType;
+  CameraViewArguments(
       {this.key,
       required this.refId,
       required this.referanceId,
@@ -352,6 +381,31 @@ extension NavigatorStateExtension on NavigationService {
     return navigateTo(
       Routes.cameraCaptureView,
       arguments: CameraCaptureViewArguments(
+          key: key,
+          refId: refId,
+          referanceId: referanceId,
+          fileStoreType: fileStoreType),
+      id: routerId,
+      preventDuplicates: preventDuplicates,
+      parameters: parameters,
+      transition: transition,
+    );
+  }
+
+  Future<dynamic> navigateToCameraView({
+    Key? key,
+    required int refId,
+    required int referanceId,
+    required FileStoreType fileStoreType,
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  }) async {
+    return navigateTo(
+      Routes.cameraView,
+      arguments: CameraViewArguments(
           key: key,
           refId: refId,
           referanceId: referanceId,

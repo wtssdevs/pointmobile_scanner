@@ -24,30 +24,30 @@ class AccountView extends StatelessWidget {
         onWillPop: () async {
           return false;
         },
-        child: SafeArea(
-          child: Scaffold(
-            appBar: AppBar(
-              elevation: 6,
-              title: Row(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(right: 20),
-                    child: Icon(
-                      Icons.account_box,
-                    ),
+        child: Scaffold(
+          appBar: AppBar(
+            elevation: 6,
+            title: Row(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(right: 20),
+                  child: Icon(
+                    Icons.account_box,
                   ),
-                  Column(
-                    children: [BoxText.subheading(model.currentLoginInformation?.showFullName ?? "")],
-                  ),
-                ],
-              ),
-              titleSpacing: 10.0,
-              leading: null,
-              centerTitle: true,
-              automaticallyImplyLeading: false,
+                ),
+                Column(
+                  children: [BoxText.subheading(model.currentLoginInformation?.showFullName ?? "")],
+                ),
+              ],
             ),
-            resizeToAvoidBottomInset: true,
-            body: SingleChildScrollView(
+            titleSpacing: 10.0,
+            leading: null,
+            centerTitle: true,
+            automaticallyImplyLeading: false,
+          ),
+          resizeToAvoidBottomInset: true,
+          body: SafeArea(
+            child: SingleChildScrollView(
               child: Column(
                 children: [
                   verticalSpaceSmall,

@@ -130,131 +130,131 @@ class GatePassEditView extends StatelessWidget {
         onWillPop: () async {
           return true;
         },
-        child: SafeArea(
-          child: DefaultTabController(
-            length: 2,
-            child: Scaffold(
-              persistentFooterButtons: [
-                Visibility(
-                  visible: (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.atGate.index) ||
-                      (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.inYard.index),
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      // call method
-                      //validate UI first
-                      var isValid = await validateForm(model, context);
-                      if (isValid == true) {
-                        model.rejectEntry();
-                      }
-                    },
-                    icon: const FaIcon(
-                      FontAwesomeIcons.ban,
-                      color: Colors.red,
-                    ),
-                    label: const Text('Reject Entry'), // <-- Text
-                  ),
-                ),
-                Visibility(
-                  visible: model.gatePass.gatePassStatus == GatePassStatus.atGate.index && model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      // valiate first
-                      var isValid = await validateForm(model, context);
-                      if (isValid == true) {
-                        model.authorizeEntry();
-                      }
-                    },
-                    icon: const FaIcon(
-                      FontAwesomeIcons.arrowsDownToLine,
-                      color: Colors.blue,
-                    ),
-                    label: const Text("Authorize Entry"), // <-- Text
-                  ),
-                ),
-                Visibility(
-                  visible: model.gatePass.gatePassStatus == GatePassStatus.inYard.index && model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      // valiate first
-                      var isValid = await validateForm(model, context);
-                      if (isValid == true) {
-                        model.authorizeExit();
-                      }
-                    },
-                    icon: const FaIcon(
-                      FontAwesomeIcons.arrowsUpToLine,
-                      color: Colors.green,
-                    ),
-                    label: const Text("Authorize Exit"), // <-- Text
-                  ),
-                ),
-              ],
-              appBar: AppBar(
-                elevation: 6,
-
-                //title: const BoxText.headingThree("GatePass"),
-                title: ListTile(
-                  dense: true,
-                  contentPadding: const EdgeInsets.only(left: 2.0),
-                  leading: GatePassListIcon(statusId: model.gatePass.gatePassStatus),
-                  title: BoxText.label(model.gatePass.getGatePassStatusText(), color: Colors.white),
-                ),
-                titleSpacing: 2.0,
-                centerTitle: true,
-
-                actions: [
-                  // Visibility(
-                  //   visible: model.gatePass.id != 0,
-                  //   child: IconButton(
-                  //     onPressed: () async {
-                  //       await validateForm(model, context);
-                  //     },
-                  //     icon: const Icon(
-                  //       Icons.save,
-                  //       color: kcButtonPrimarySaveColor,
-                  //       size: 32,
-                  //     ),
-                  //   ),
-                  // ),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      // valiate first
-                      var isValid = await validateForm(model, context);
-                      if (isValid == true) {
-                        model.saveOnly();
-                      }
-                    },
-                    icon: const FaIcon(
-                      FontAwesomeIcons.floppyDisk,
-                      color: Colors.green,
-                    ),
-                    label: const Text("Save"), // <-- Text
-                  ),
-                ],
-                bottom: TabBar(
-                  onTap: (index) {
-                    model.onTabBarTap(index);
+        child: DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            persistentFooterButtons: [
+              Visibility(
+                visible: (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.atGate.index) ||
+                    (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.inYard.index),
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    // call method
+                    //validate UI first
+                    var isValid = await validateForm(model, context);
+                    if (isValid == true) {
+                      model.rejectEntry();
+                    }
                   },
-                  isScrollable: false,
-                  padding: const EdgeInsets.all(0),
-                  indicatorColor: kcTabBarIndicatorColor,
-                  labelStyle: tabBarHeadingTextStyle,
-                  tabs: const [
-                    Tab(
-                      iconMargin: EdgeInsets.all(0),
-                      icon: FaIcon(FontAwesomeIcons.listCheck),
-                      text: "GatePass",
-                    ),
-                    Tab(
-                      iconMargin: EdgeInsets.all(0),
-                      icon: Icon(Icons.camera_alt_outlined),
-                      text: "Images",
-                    ),
-                  ],
+                  icon: const FaIcon(
+                    FontAwesomeIcons.ban,
+                    color: Colors.red,
+                  ),
+                  label: const Text('Reject Entry'), // <-- Text
                 ),
               ),
-              resizeToAvoidBottomInset: true,
-              body: TabBarView(
+              Visibility(
+                visible: model.gatePass.gatePassStatus == GatePassStatus.atGate.index && model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    // valiate first
+                    var isValid = await validateForm(model, context);
+                    if (isValid == true) {
+                      model.authorizeEntry();
+                    }
+                  },
+                  icon: const FaIcon(
+                    FontAwesomeIcons.arrowsDownToLine,
+                    color: Colors.blue,
+                  ),
+                  label: const Text("Authorize Entry"), // <-- Text
+                ),
+              ),
+              Visibility(
+                visible: model.gatePass.gatePassStatus == GatePassStatus.inYard.index && model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    // valiate first
+                    var isValid = await validateForm(model, context);
+                    if (isValid == true) {
+                      model.authorizeExit();
+                    }
+                  },
+                  icon: const FaIcon(
+                    FontAwesomeIcons.arrowsUpToLine,
+                    color: Colors.green,
+                  ),
+                  label: const Text("Authorize Exit"), // <-- Text
+                ),
+              ),
+            ],
+            appBar: AppBar(
+              elevation: 6,
+
+              //title: const BoxText.headingThree("GatePass"),
+              title: ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.only(left: 2.0),
+                leading: GatePassListIcon(statusId: model.gatePass.gatePassStatus),
+                title: BoxText.label(model.gatePass.getGatePassStatusText(), color: Colors.white),
+              ),
+              titleSpacing: 2.0,
+              centerTitle: true,
+
+              actions: [
+                // Visibility(
+                //   visible: model.gatePass.id != 0,
+                //   child: IconButton(
+                //     onPressed: () async {
+                //       await validateForm(model, context);
+                //     },
+                //     icon: const Icon(
+                //       Icons.save,
+                //       color: kcButtonPrimarySaveColor,
+                //       size: 32,
+                //     ),
+                //   ),
+                // ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    // valiate first
+                    var isValid = await validateForm(model, context);
+                    if (isValid == true) {
+                      model.saveOnly();
+                    }
+                  },
+                  icon: const FaIcon(
+                    FontAwesomeIcons.floppyDisk,
+                    color: Colors.green,
+                  ),
+                  label: const Text("Save"), // <-- Text
+                ),
+              ],
+              bottom: TabBar(
+                onTap: (index) {
+                  model.onTabBarTap(index);
+                },
+                isScrollable: false,
+                padding: const EdgeInsets.all(0),
+                indicatorColor: kcTabBarIndicatorColor,
+                labelStyle: tabBarHeadingTextStyle,
+                tabs: const [
+                  Tab(
+                    iconMargin: EdgeInsets.all(0),
+                    icon: FaIcon(FontAwesomeIcons.listCheck),
+                    text: "GatePass",
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.all(0),
+                    icon: Icon(Icons.camera_alt_outlined),
+                    text: "Images",
+                  ),
+                ],
+              ),
+            ),
+            resizeToAvoidBottomInset: true,
+            body: SafeArea(
+              child: TabBarView(
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   SingleChildScrollView(
@@ -683,7 +683,11 @@ class GatePassEditView extends StatelessWidget {
                                   Container(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(8),
-                                      image: DecorationImage(image: FileImage(File(fileItem.path)), fit: BoxFit.fill),
+                                      image: DecorationImage(
+                                          image: FileImage(
+                                            File(fileItem.path),
+                                          ),
+                                          fit: BoxFit.fill),
                                     ),
                                     alignment: Alignment.center,
                                   ),
@@ -715,104 +719,104 @@ class GatePassEditView extends StatelessWidget {
                   ),
                 ],
               ),
-
-              // model.gatePass.id == 0
-              //     ? const Padding(
-              //         padding: EdgeInsets.only(top: 100, left: 8, right: 8),
-              //         child: Text("Scan your driver's license."),
-              //       )
-              //     : ListView(
-              // children: [
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('LicenseNumber: ${model.rsaDriversLicense?.licenseNumber}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('ID No: ${model.rsaDriversLicense?.idNumber}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('ID No Type: ${model.rsaDriversLicense?.idNumberType}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Country Of Issue: ${model.rsaDriversLicense?.idCountryOfIssue}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('First Names: ${model.rsaDriversLicense?.firstNames}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Surname: ${model.rsaDriversLicense?.surname}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Birth Date: ${model.rsaDriversLicense?.birthDate}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Gender: ${model.rsaDriversLicense?.gender}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Driver Restrictions: ${model.rsaDriversLicense?.driverRestrictions}'),
-              //   ),
-
-              //   // ListTile(
-              //   //   title: Text('issueDates: ${rsaDriversLicense?.issueDates}'),
-              //   // ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('License Issue Number: ${model.rsaDriversLicense?.licenseIssueNumber}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('License Country Of Issue: ${model.rsaDriversLicense?.licenseCountryOfIssue}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Prdp Code: ${model.rsaDriversLicense?.prdpCode}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Prdp Expiry: ${model.rsaDriversLicense?.prdpExpiry}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Valid From: ${model.rsaDriversLicense?.validFrom}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Valid To: ${model.rsaDriversLicense?.validTo}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Vehicle Codes: ${model.rsaDriversLicense?.vehicleCodes}'),
-              //   ),
-
-              //   ListTile(
-              //     dense: true,
-              //     title: Text('Vehicle Restrictions: ${model.rsaDriversLicense?.vehicleRestrictions}'),
-              //   ),
-              // ],
             ),
+
+            // model.gatePass.id == 0
+            //     ? const Padding(
+            //         padding: EdgeInsets.only(top: 100, left: 8, right: 8),
+            //         child: Text("Scan your driver's license."),
+            //       )
+            //     : ListView(
+            // children: [
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('LicenseNumber: ${model.rsaDriversLicense?.licenseNumber}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('ID No: ${model.rsaDriversLicense?.idNumber}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('ID No Type: ${model.rsaDriversLicense?.idNumberType}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Country Of Issue: ${model.rsaDriversLicense?.idCountryOfIssue}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('First Names: ${model.rsaDriversLicense?.firstNames}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Surname: ${model.rsaDriversLicense?.surname}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Birth Date: ${model.rsaDriversLicense?.birthDate}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Gender: ${model.rsaDriversLicense?.gender}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Driver Restrictions: ${model.rsaDriversLicense?.driverRestrictions}'),
+            //   ),
+
+            //   // ListTile(
+            //   //   title: Text('issueDates: ${rsaDriversLicense?.issueDates}'),
+            //   // ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('License Issue Number: ${model.rsaDriversLicense?.licenseIssueNumber}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('License Country Of Issue: ${model.rsaDriversLicense?.licenseCountryOfIssue}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Prdp Code: ${model.rsaDriversLicense?.prdpCode}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Prdp Expiry: ${model.rsaDriversLicense?.prdpExpiry}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Valid From: ${model.rsaDriversLicense?.validFrom}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Valid To: ${model.rsaDriversLicense?.validTo}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Vehicle Codes: ${model.rsaDriversLicense?.vehicleCodes}'),
+            //   ),
+
+            //   ListTile(
+            //     dense: true,
+            //     title: Text('Vehicle Restrictions: ${model.rsaDriversLicense?.vehicleRestrictions}'),
+            //   ),
+            // ],
           ),
         ),
       ),

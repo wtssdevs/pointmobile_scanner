@@ -165,6 +165,35 @@ class MasterFilesService {
     }
 
     return recordSnapshot.map((snapshot) {
+      return BaseLookup.fromJsonManualMap(snapshot.value, displayNameMap: "name", nameMap: "name", codeMap: "code");
+    }).toList();
+  }
+
+  Future<List<BaseLookup>> getAllPaged(String searchArg) async {
+    var finder = Finder(sortOrders: [SortOrder('orderBy', false, true)]);
+
+    if (searchArg.isNotEmpty) {
+      // Using a custom filter exact word (converting everything to lowercase)
+      searchArg = searchArg.toLowerCase();
+      var edgeCaseSearchArg = " $searchArg";
+      var filter = Filter.custom((snapshot) {
+        var value = snapshot["name"] as String;
+        return value.toLowerCase().startsWith(searchArg) || value.toLowerCase().contains(edgeCaseSearchArg);
+      });
+      finder.filter = filter;
+    }
+    var entityTable = intMapStoreFactory.store("${AppConst.DB_Customers}_$userId");
+
+    //  await entityTable.
+
+    final recordSnapshot = await entityTable.find(_appDatabase.db!, finder: finder);
+
+    if (recordSnapshot.isEmpty) {
+      List<BaseLookup> emptyList = [];
+      return emptyList;
+    }
+
+    return recordSnapshot.map((snapshot) {
       return BaseLookup.fromJsonManualMap(snapshot.value, displayNameMap: "name", nameMap: "name", codeMap: "altCode");
     }).toList();
   }

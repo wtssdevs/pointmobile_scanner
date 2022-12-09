@@ -137,6 +137,14 @@ class GatePassEditViewModel extends BaseFormViewModel {
     if (!storageStatus.isGranted) {
       await Permission.storage.request();
     }
+    var mediaLibraryStatus = await Permission.mediaLibrary.status;
+    if (!mediaLibraryStatus.isGranted) {
+      await Permission.mediaLibrary.request();
+    }
+    var camStatus = await Permission.camera.status;
+    if (!camStatus.isGranted) {
+      await Permission.camera.request();
+    }
   }
 
   void setDocRecievedChange(bool? val) {
@@ -331,9 +339,13 @@ class GatePassEditViewModel extends BaseFormViewModel {
   Future<void> goToCamView(FileStoreType fileStoreType) async {
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
+      // await _navigationService.navigateTo(
+      //   Routes.cameraCaptureView,
+      //   arguments: CameraCaptureViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
+      // );
       await _navigationService.navigateTo(
-        Routes.cameraCaptureView,
-        arguments: CameraCaptureViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
+        Routes.cameraView,
+        arguments: CameraViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
       );
 
       await loadFileStoreImages();

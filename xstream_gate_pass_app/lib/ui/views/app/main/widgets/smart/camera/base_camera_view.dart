@@ -20,7 +20,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/smart/camera/pre
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/smart/camera/top_bar.dart';
 
 class BaseCamera extends StatefulWidget {
-  BaseCamera({Key? key, this.randomPhotoName = true}) : super(key: key);
+  const BaseCamera({Key? key, this.randomPhotoName = true}) : super(key: key);
   final bool randomPhotoName;
   @override
   _BaseCameraState createState() => _BaseCameraState();
@@ -32,19 +32,19 @@ class _BaseCameraState extends State<BaseCamera> with TickerProviderStateMixin {
   String _lastVideoPath = '';
   bool _focus = false, _fullscreen = true, _isRecordingVideo = false;
 
-  ValueNotifier<CameraFlashes> _switchFlash = ValueNotifier(CameraFlashes.NONE);
-  ValueNotifier<double> _zoomNotifier = ValueNotifier(0);
-  ValueNotifier<Size> _photoSize = ValueNotifier(const Size(400, 600));
-  ValueNotifier<Sensors> _sensor = ValueNotifier(Sensors.BACK);
-  ValueNotifier<CaptureModes> _captureMode = ValueNotifier(CaptureModes.PHOTO);
-  ValueNotifier<bool> _enableAudio = ValueNotifier(true);
-  ValueNotifier<CameraOrientations> _orientation = ValueNotifier(CameraOrientations.PORTRAIT_UP);
+  final ValueNotifier<CameraFlashes> _switchFlash = ValueNotifier(CameraFlashes.NONE);
+  final ValueNotifier<double> _zoomNotifier = ValueNotifier(0);
+  final ValueNotifier<Size> _photoSize = ValueNotifier(const Size(1024, 768));
+  final ValueNotifier<Sensors> _sensor = ValueNotifier(Sensors.BACK);
+  final ValueNotifier<CaptureModes> _captureMode = ValueNotifier(CaptureModes.PHOTO);
+  final ValueNotifier<bool> _enableAudio = ValueNotifier(true);
+  final ValueNotifier<CameraOrientations> _orientation = ValueNotifier(CameraOrientations.PORTRAIT_UP);
 
   /// use this to call a take picture
-  PictureController _pictureController = PictureController();
+  final PictureController _pictureController = PictureController();
 
   /// use this to record a video
-  VideoController _videoController = VideoController();
+  final VideoController _videoController = VideoController();
 
   /// list of available sizes
   List<Size> _availableSizes = [];
@@ -199,8 +199,7 @@ class _BaseCameraState extends State<BaseCamera> with TickerProviderStateMixin {
     }
     final Directory extDir = await getTemporaryDirectory();
     final testDir = await Directory('${extDir.path}/test').create(recursive: true);
-    final String filePath =
-        widget.randomPhotoName ? '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg' : '${testDir.path}/photo_test.jpg';
+    final String filePath = widget.randomPhotoName ? '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg' : '${testDir.path}/photo_test.jpg';
 
     //await _pictureController.takePicture(filePath);
 
@@ -269,8 +268,7 @@ class _BaseCameraState extends State<BaseCamera> with TickerProviderStateMixin {
     } else {
       final Directory extDir = await getTemporaryDirectory();
       final testDir = await Directory('${extDir.path}/test').create(recursive: true);
-      final String filePath =
-          widget.randomPhotoName ? '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.mp4' : '${testDir.path}/video_test.mp4';
+      final String filePath = widget.randomPhotoName ? '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.mp4' : '${testDir.path}/video_test.mp4';
       await _videoController.recordVideo(filePath);
       _isRecordingVideo = true;
       _lastVideoPath = filePath;

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:add_to_gallery/add_to_gallery.dart';
+import 'package:camera/camera.dart';
 import 'package:camerawesome/picture_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,24 +28,19 @@ import 'package:xstream_gate_pass_app/core/models/background_job_que/background_
 import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_repository.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
 
-class CameraCaptureViewModel extends BaseViewModel {
-  //final LocationService _locationService = locator<LocationService>();
+class CameraViewModel extends BaseViewModel {
   final DialogService _dialogService = locator<DialogService>();
   final _navigationService = locator<NavigationService>();
+  final _mediaService = locator<MediaService>();
+
   final FileStoreType fileStoreType;
   final int refId;
   final int referanceId;
 
   final TickerProvider vsync;
-  CameraCaptureViewModel(this.refId, this.referanceId, this.fileStoreType, this.vsync);
-  PictureController pictureController = PictureController();
-  AnimationController? previewAnimationController;
-  Tween<Offset> tween = Tween<Offset>(
-    begin: const Offset(-2.0, 0.0),
-    end: Offset.zero,
-  );
-  Animation<Offset>? previewAnimation;
+  CameraViewModel(this.refId, this.referanceId, this.fileStoreType, this.vsync);
 
   final log = getLogger('CameraCaptureViewModel');
 
@@ -58,27 +54,6 @@ class CameraCaptureViewModel extends BaseViewModel {
   ) async {
     refId = refId;
     fileStoreType = fileStoreType;
-
-    previewAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 1300),
-      vsync: vsync,
-    );
-
-    previewAnimation = Tween<Offset>(
-      begin: const Offset(-2.0, 0.0),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: previewAnimationController != null
-            ? previewAnimationController!
-            : AnimationController(
-                duration: const Duration(milliseconds: 1300),
-                vsync: vsync,
-              ),
-        curve: Curves.elasticOut,
-        reverseCurve: Curves.elasticIn,
-      ),
-    );
   }
 
   Future<void> saveToLocalDb({required File galleryFile, required String tempFilePath, String? fileName}) async {
@@ -119,12 +94,11 @@ class CameraCaptureViewModel extends BaseViewModel {
         false);
   }
 
-  takePhoto() async {
+  takePhoto(XFile xFile) async {
     final Directory extDir = await getTemporaryDirectory();
     final testDir = await Directory('${extDir.path}/Images').create(recursive: true);
     var fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
     final String filePath = '${testDir.path}/$fileName';
-    //var fileNameNew = Guid.newGuidAsString;
     var status = await Permission.storage.status;
     if (status.isGranted == false) {
       await Permission.storage.request();
@@ -133,30 +107,31 @@ class CameraCaptureViewModel extends BaseViewModel {
       log.i("takePhoto : $status");
     }
 
-    await pictureController.takePicture(filePath).timeout(const Duration(seconds: 4), onTimeout: () async {
-      if (kDebugMode) {
-        log.i("takePhoto timeout Error : $status");
-      }
+    // await pictureController.takePicture(filePath).timeout(const Duration(seconds: 4), onTimeout: () async {
+    //   if (kDebugMode) {
+    //     log.i("takePhoto timeout Error : $status");
+    //   }
 
-      await _dialogService.showCustomDialog(
-        variant: DialogType.basic,
-        data: BasicDialogStatus.error,
-        title: "Capture Image Error.",
-        description: 'Capture Image Error,Please try agian.',
-        mainButtonTitle: "Ok",
-      );
-      return;
-    });
+    //   await _dialogService.showCustomDialog(
+    //     variant: DialogType.basic,
+    //     data: BasicDialogStatus.error,
+    //     title: "Capture Image Error.",
+    //     description: 'Capture Image Error,Please try agian.',
+    //     mainButtonTitle: "Ok",
+    //   );
+    //   return;
+    // });
+
     // lets just make our phone vibrate
     HapticFeedback.mediumImpact();
     try {
-      var file = File(filePath);
+      var file = File(xFile.path);
 
       if (fileStoreType == FileStoreType.documentScan) {
 //send for edit,after edit we will move forward
         var croppedFilePath = await _navigationService.navigateTo(
           Routes.imageEditorView,
-          arguments: ImageEditorViewArguments(filePath: filePath),
+          arguments: ImageEditorViewArguments(filePath: xFile.path),
         );
 
         if (croppedFilePath != null) {
@@ -211,7 +186,5 @@ class CameraCaptureViewModel extends BaseViewModel {
     }
   }
 
-  void onDispose() {
-    previewAnimationController?.dispose();
-  }
+  void onDispose() {}
 }

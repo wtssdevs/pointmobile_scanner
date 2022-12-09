@@ -40,41 +40,39 @@ class HomeView extends StatelessWidget {
         onWillPop: () async {
           return false;
         },
-        child: SafeArea(
-          child: Scaffold(
-            resizeToAvoidBottomInset: true,
-            bottomNavigationBar: BottomNavigationBar(
-              currentIndex: model.currentTabIndex,
-              onTap: model.setTabIndex,
-              items: const [
-                BottomNavigationBarItem(
-                  label: "GatePass",
-                  icon: FaIcon(FontAwesomeIcons.buildingLock),
-                  activeIcon: FaIcon(FontAwesomeIcons.buildingLock),
-                ),
-                BottomNavigationBarItem(
-                  label: "Account",
-                  icon: Icon(Icons.person),
-                  activeIcon: Icon(Icons.person),
-                )
-              ],
-            ),
-            body: PageTransitionSwitcher(
-              duration: const Duration(milliseconds: 450),
-              transitionBuilder: (
-                Widget child,
-                Animation<double> animation,
-                Animation<double> secondaryAnimation,
-              ) {
-                return SharedAxisTransition(
-                  animation: animation,
-                  secondaryAnimation: secondaryAnimation,
-                  transitionType: SharedAxisTransitionType.vertical,
-                  child: child,
-                );
-              },
-              child: getViewForIndex(model.currentTabIndex, model),
-            ),
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: model.currentTabIndex,
+            onTap: model.setTabIndex,
+            items: const [
+              BottomNavigationBarItem(
+                label: "GatePass",
+                icon: FaIcon(FontAwesomeIcons.buildingLock),
+                activeIcon: FaIcon(FontAwesomeIcons.buildingLock),
+              ),
+              BottomNavigationBarItem(
+                label: "Account",
+                icon: Icon(Icons.person),
+                activeIcon: Icon(Icons.person),
+              )
+            ],
+          ),
+          body: PageTransitionSwitcher(
+            duration: const Duration(milliseconds: 450),
+            transitionBuilder: (
+              Widget child,
+              Animation<double> animation,
+              Animation<double> secondaryAnimation,
+            ) {
+              return SharedAxisTransition(
+                animation: animation,
+                secondaryAnimation: secondaryAnimation,
+                transitionType: SharedAxisTransitionType.vertical,
+                child: child,
+              );
+            },
+            child: getViewForIndex(model.currentTabIndex, model),
           ),
         ),
       ),

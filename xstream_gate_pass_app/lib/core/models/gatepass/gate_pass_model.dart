@@ -98,7 +98,7 @@ class GatePass {
         containerType: asT<String>(jsonRes['containerType']) ?? "",
         containerSealNumber: asT<String>(jsonRes['containerSealNumber']) ?? "",
         samplerSealNumber: asT<String>(jsonRes['samplerSealNumber']) ?? "",
-        customerId: asT<int>(jsonRes['customerId']) ?? 0,
+        customerId: asT<int>(jsonRes['customerID']) ?? 0,
         transporterId: asT<int>(jsonRes['transporterId']) ?? 0,
         productCode: asT<String>(jsonRes['productCode']) ?? "",
         productDescription: asT<String>(jsonRes['productDescription']) ?? "",

@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class SearchAppBar extends StatelessWidget {
   final TextEditingController controller;
@@ -11,7 +10,7 @@ class SearchAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 2),
+      padding: const EdgeInsets.only(top: 2),
       height: 32,
       width: searchWidth,
       child: CupertinoTextField(
@@ -22,13 +21,13 @@ class SearchAppBar extends StatelessWidget {
         keyboardType: TextInputType.text,
         onTap: () async {},
         placeholder: 'Search',
-        placeholderStyle: TextStyle(
+        placeholderStyle: const TextStyle(
           color: Color(0xffC4C6CC),
           fontSize: 14.0,
           fontFamily: 'Brutal',
         ),
-        prefix: Padding(
-          padding: const EdgeInsets.fromLTRB(5.0, 5.0, 0.0, 5.0),
+        prefix: const Padding(
+          padding: EdgeInsets.fromLTRB(5.0, 5.0, 0.0, 5.0),
           child: Icon(
             Icons.search,
             size: 18,

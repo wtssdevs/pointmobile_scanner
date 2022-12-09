@@ -22,6 +22,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_g
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/gatepass_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/camera_capture_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/editor/image_editor_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/viewer/camera_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/data_sync/data_sync_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/startup/startup_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/startup/termsandprivacy/terms_and_privacy_view.dart';
@@ -37,6 +38,7 @@ import 'package:xstream_gate_pass_app/ui/views/startup/termsandprivacy/terms_and
     MaterialRoute(page: AccountView),
     MaterialRoute(page: DataSyncView),
     CupertinoRoute(page: CameraCaptureView),
+    MaterialRoute(page: CameraView),
     CupertinoRoute(page: ImageEditorView),
   ],
   dependencies: [

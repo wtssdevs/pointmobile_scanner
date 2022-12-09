@@ -7,10 +7,26 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stacked/stacked_annotations.dart';
+import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
+import 'package:camera/camera.dart';
 
 @LazySingleton()
 class MediaService {
+  final log = getLogger('EnvironmentService');
+  List<CameraDescription> _cameras = <CameraDescription>[];
+  List<CameraDescription> get cameras => _cameras;
+
+  Future<void> int() async {
+    try {
+      if (_cameras.isEmpty) {
+        _cameras = await availableCameras();
+      }
+    } on CameraException catch (e) {
+      log.e(e.code, e.description);
+    }
+  }
+
   Future getStoragePermissions() async {
     var storageStatus = await Permission.storage.status;
     if (!storageStatus.isGranted) {

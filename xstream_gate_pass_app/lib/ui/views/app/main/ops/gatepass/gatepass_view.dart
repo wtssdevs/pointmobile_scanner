@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/core/enums/device_screen_type.dart';
+import 'package:xstream_gate_pass_app/core/enums/gate_pass_type.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
@@ -32,28 +33,29 @@ class GatePassView extends StatelessWidget {
         onWillPop: () async {
           return false;
         },
-        child: SafeArea(
-          child: Scaffold(
-            appBar: AppBar(
-              leading: const SizedBox.shrink(),
-              leadingWidth: 0, //shrinks leading space to allow bar to be full,
-              title: SearchAppBar(
-                controller: model.filterController,
-                searchWidth: searchWidth,
-                onChanged: (value) {
-                  model.onFilterValueChanged(value);
-                },
-              ),
-            ),
-            resizeToAvoidBottomInset: true,
-            floatingActionButton: FloatingActionButton(
-              //backgroundColor: Colors.white,
-              onPressed: () async {
-                model.onAddNewGatePass();
+        child: Scaffold(
+          appBar: AppBar(
+            //backgroundColor: Colors.blue,
+            leading: const SizedBox.shrink(),
+            leadingWidth: 0, //shrinks leading space to allow bar to be full,
+            title: SearchAppBar(
+              controller: model.filterController,
+              searchWidth: searchWidth,
+              onChanged: (value) {
+                model.onFilterValueChanged(value);
               },
-              child: const FaIcon(FontAwesomeIcons.listCheck),
             ),
-            body: RefreshIndicator(
+          ),
+          resizeToAvoidBottomInset: true,
+          floatingActionButton: FloatingActionButton(
+            //backgroundColor: Colors.white,
+            onPressed: () async {
+              model.onAddNewGatePass();
+            },
+            child: const FaIcon(FontAwesomeIcons.listCheck),
+          ),
+          body: SafeArea(
+            child: RefreshIndicator(
               backgroundColor: Colors.blue,
               color: Colors.white,
               onRefresh: () => Future.sync(
@@ -119,6 +121,11 @@ class GatePassView extends StatelessWidget {
                                 TopLabelWithTextWidget(
                                   label: "Customer", //referenceNumber
                                   value: entity.customerName ?? "",
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                ),
+                                TopLabelWithTextWidget(
+                                  label: "Gatepass Type ", //referenceNumber
+                                  value: GatePassType.collection.mapToEnum(entity.gatePassType ?? 0).displayName,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                                 TopLabelWithTextWidget(

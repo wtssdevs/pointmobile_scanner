@@ -16,11 +16,12 @@ import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepa
 import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_drivers_license.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
 
 class GatePassViewModel extends BaseViewModel {
   final log = getLogger('GatePassViewModel');
   final GatePassService _gatePassService = locator<GatePassService>();
-
+  final _mediaService = locator<MediaService>();
   final _navigationService = locator<NavigationService>();
 
   int _nextPage = 1;
@@ -53,6 +54,8 @@ class GatePassViewModel extends BaseViewModel {
     //startconnectionListen();
     fetchPage(_nextPage);
     notifyListeners();
+
+    await _mediaService.int();
   }
 
   Future<void> fetchPage(int pageKey) async {
