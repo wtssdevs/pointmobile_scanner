@@ -60,7 +60,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Xstream Gatepass',
       theme: FlexThemeData.light(
-        scheme: FlexScheme.blueWhale,
+        scheme: FlexScheme.blue,
       ),
       // The Mandy red, dark theme.
       darkTheme: FlexThemeData.dark(scheme: FlexScheme.blueWhale),

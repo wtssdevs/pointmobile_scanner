@@ -33,7 +33,7 @@ class ExceptionIndicator extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
               if (message != null)
                 const SizedBox(
@@ -53,15 +53,15 @@ class ExceptionIndicator extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.blue,
-                    textStyle: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                    backgroundColor: Colors.blue,
+                    textStyle: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                   ),
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.login,
                     size: 28,
                     color: Colors.white,
                   ),
-                  label: Text(
+                  label: const Text(
                     'Try Again',
                     style: TextStyle(
                       fontSize: 16,

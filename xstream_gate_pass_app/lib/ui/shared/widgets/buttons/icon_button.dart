@@ -20,9 +20,9 @@ class RaisedIconButton extends StatelessWidget {
           padding: const EdgeInsets.all(4.0),
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              primary: !isDisabled ? Colors.blueGrey[700] : Colors.grey,
-              onPrimary: Colors.white,
-              onSurface: Colors.grey,
+              foregroundColor: !isDisabled ? Colors.blueGrey[700] : Colors.grey,
+              disabledForegroundColor: Colors.grey.withOpacity(0.38),
+              disabledBackgroundColor: Colors.grey.withOpacity(0.12),
               elevation: 5,
               padding: EdgeInsets.only(top: 4),
             ),

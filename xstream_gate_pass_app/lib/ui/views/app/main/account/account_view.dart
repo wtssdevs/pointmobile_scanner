@@ -24,7 +24,8 @@ class AccountView extends StatelessWidget {
         onWillPop: () async {
           return false;
         },
-        child: Scaffold(
+        child: 
+        Scaffold(
           appBar: AppBar(
             elevation: 6,
             title: Row(

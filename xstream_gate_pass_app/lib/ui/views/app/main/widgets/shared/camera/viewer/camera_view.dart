@@ -155,19 +155,10 @@ class _CameraCaptureViewState extends State<CameraView> with WidgetsBindingObser
           child: Column(
             children: <Widget>[
               Expanded(
-                child: Container(
-                  // decoration: BoxDecoration(
-                  //   color: Colors.black,
-                  //   border: Border.all(
-                  //     color: controller != null && controller!.value.isRecordingVideo ? Colors.redAccent : Colors.grey,
-                  //     width: 3.0,
-                  //   ),
-                  // ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(0.0),
-                    child: Center(
-                      child: _cameraPreviewWidget(),
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(0.0),
+                  child: Center(
+                    child: _cameraPreviewWidget(),
                   ),
                 ),
               ),
@@ -240,7 +231,7 @@ class _CameraCaptureViewState extends State<CameraView> with WidgetsBindingObser
         onPointerDown: (_) => _pointers++,
         onPointerUp: (_) => _pointers--,
         child: CameraPreview(
-          cameraController!,
+          cameraController,
           child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -295,8 +286,7 @@ class _CameraCaptureViewState extends State<CameraView> with WidgetsBindingObser
                     : Container(
                         decoration: BoxDecoration(border: Border.all(color: Colors.pink)),
                         child: Center(
-                          child: AspectRatio(
-                              aspectRatio: localVideoController.value.size != null ? localVideoController.value.aspectRatio : 1.0, child: VideoPlayer(localVideoController)),
+                          child: AspectRatio(aspectRatio: localVideoController.value.size != null ? localVideoController.value.aspectRatio : 1.0, child: VideoPlayer(localVideoController)),
                         ),
                       ),
               ),
@@ -389,12 +379,12 @@ class _CameraCaptureViewState extends State<CameraView> with WidgetsBindingObser
     final ButtonStyle styleAuto = TextButton.styleFrom(
       // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
       // ignore: deprecated_member_use
-      primary: controller?.value.exposureMode == ExposureMode.auto ? Colors.orange : Colors.blue,
+      foregroundColor: controller?.value.exposureMode == ExposureMode.auto ? Colors.orange : Colors.blue,
     );
     final ButtonStyle styleLocked = TextButton.styleFrom(
       // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
       // ignore: deprecated_member_use
-      primary: controller?.value.exposureMode == ExposureMode.locked ? Colors.orange : Colors.blue,
+      foregroundColor: controller?.value.exposureMode == ExposureMode.locked ? Colors.orange : Colors.blue,
     );
 
     return SizeTransition(
@@ -461,12 +451,12 @@ class _CameraCaptureViewState extends State<CameraView> with WidgetsBindingObser
     final ButtonStyle styleAuto = TextButton.styleFrom(
       // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
       // ignore: deprecated_member_use
-      primary: controller?.value.focusMode == FocusMode.auto ? Colors.orange : Colors.blue,
+      foregroundColor: controller?.value.focusMode == FocusMode.auto ? Colors.orange : Colors.blue,
     );
     final ButtonStyle styleLocked = TextButton.styleFrom(
       // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
       // ignore: deprecated_member_use
-      primary: controller?.value.focusMode == FocusMode.locked ? Colors.orange : Colors.blue,
+      foregroundColor: controller?.value.focusMode == FocusMode.locked ? Colors.orange : Colors.blue,
     );
 
     return SizeTransition(
@@ -650,12 +640,7 @@ class _CameraCaptureViewState extends State<CameraView> with WidgetsBindingObser
       await cameraController.initialize();
       await Future.wait(<Future<Object?>>[
         // The exposure mode is currently not supported on the web.
-        ...!kIsWeb
-            ? <Future<Object?>>[
-                cameraController.getMinExposureOffset().then((double value) => _minAvailableExposureOffset = value),
-                cameraController.getMaxExposureOffset().then((double value) => _maxAvailableExposureOffset = value)
-              ]
-            : <Future<Object?>>[],
+        ...!kIsWeb ? <Future<Object?>>[cameraController.getMinExposureOffset().then((double value) => _minAvailableExposureOffset = value), cameraController.getMaxExposureOffset().then((double value) => _maxAvailableExposureOffset = value)] : <Future<Object?>>[],
         cameraController.getMaxZoomLevel().then((double value) => _maxAvailableZoom = value),
         cameraController.getMinZoomLevel().then((double value) => _minAvailableZoom = value),
       ]);
