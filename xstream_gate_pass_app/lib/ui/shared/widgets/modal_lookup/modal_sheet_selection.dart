@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:xstream_gate_pass_app/core/enums/device_screen_type.dart';
+
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/smart/search/search_app_bar.dart';
 
@@ -12,7 +12,14 @@ class ModalSheetSelection<T> extends StatefulWidget {
   final TextEditingController filterController = TextEditingController();
   List<T> filteredItems = [];
   final Widget? dropDownIcon;
-  ModalSheetSelection({Key? key, this.dropDownIcon, required this.dropDownList, required this.onDropDownItemClick, this.selectedItem, this.onTapped, this.isVisible = true})
+  ModalSheetSelection(
+      {Key? key,
+      this.dropDownIcon,
+      required this.dropDownList,
+      required this.onDropDownItemClick,
+      this.selectedItem,
+      this.onTapped,
+      this.isVisible = true})
       : super(key: key);
 
   @override
@@ -44,7 +51,8 @@ class _ModalSheetSelectionState extends State<ModalSheetSelection> {
             child: Card(
               elevation: 6,
               color: Colors.white,
-              margin: const EdgeInsets.only(top: 4.0, left: 4.0, right: 4.0, bottom: 0),
+              margin: const EdgeInsets.only(
+                  top: 4.0, left: 4.0, right: 4.0, bottom: 0),
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(5),
@@ -78,9 +86,17 @@ class _ModalSheetSelectionState extends State<ModalSheetSelection> {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 8),
                         child: Text(
-                          widget.selectedItem != null ? (widget.selectedItem!.displayName ?? "") : "Select Value...",
-                          textScaleFactor: MediaQuery.of(context).textScaleFactor > 1.5 ? 1.5 : MediaQuery.of(context).textScaleFactor,
-                          style: const TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.normal),
+                          widget.selectedItem != null
+                              ? (widget.selectedItem!.displayName ?? "")
+                              : "Select Value...",
+                          textScaleFactor:
+                              MediaQuery.of(context).textScaleFactor > 1.5
+                                  ? 1.5
+                                  : MediaQuery.of(context).textScaleFactor,
+                          style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal),
                         ),
                       ),
                     ),
@@ -105,7 +121,10 @@ class _ModalSheetSelectionState extends State<ModalSheetSelection> {
   }
 
   Future<void> showModal(context, dynamic selecteditem) async {
-    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.Tablet ? MediaQuery.of(context).size.width * 0.8 : MediaQuery.of(context).size.width * 0.8;
+    double searchWidth =
+        getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet
+            ? MediaQuery.of(context).size.width * 0.8
+            : MediaQuery.of(context).size.width * 0.8;
     var sheetRespone = await showModalBottomSheet(
       context: context,
       elevation: 6,
@@ -117,7 +136,8 @@ class _ModalSheetSelectionState extends State<ModalSheetSelection> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
       builder: (context) {
-        return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
           return Container(
             height: MediaQuery.of(context).size.height * 0.8,
             child: Column(
@@ -129,7 +149,8 @@ class _ModalSheetSelectionState extends State<ModalSheetSelection> {
                     child: Row(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(5.0, 5.0, 0.0, 5.0),
+                          padding:
+                              const EdgeInsets.fromLTRB(5.0, 5.0, 0.0, 5.0),
                           child: IconButton(
                             onPressed: () async {
                               Navigator.of(context).pop();
@@ -147,7 +168,13 @@ class _ModalSheetSelectionState extends State<ModalSheetSelection> {
                           onChanged: (value) {
                             setState(() {
                               widget.filteredItems = widget.dropDownList
-                                  .where((u) => (u.name.toLowerCase().contains(value.toLowerCase())) || (u.code.toLowerCase().contains(value.toLowerCase())))
+                                  .where((u) =>
+                                      (u.name
+                                          .toLowerCase()
+                                          .contains(value.toLowerCase())) ||
+                                      (u.code
+                                          .toLowerCase()
+                                          .contains(value.toLowerCase())))
                                   .toList();
                             });
                           },
@@ -169,13 +196,17 @@ class _ModalSheetSelectionState extends State<ModalSheetSelection> {
                       itemBuilder: (context, index) {
                         var item = widget.filteredItems[index];
                         return ListTile(
-                          selected: selecteditem != null ? selecteditem.id == item.id : false,
+                          selected: selecteditem != null
+                              ? selecteditem.id == item.id
+                              : false,
                           selectedTileColor: Colors.blue.withOpacity(0.85),
                           dense: true,
                           title: Text(
                             item?.displayName ?? "",
                             maxLines: 3,
-                            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700),
+                            style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w700),
                           ),
                           onTap: () {
                             setState(() {

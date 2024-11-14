@@ -17,7 +17,8 @@ class DataSyncView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<DataSyncViewModel>.reactive(
       viewModelBuilder: () => DataSyncViewModel(),
-      onModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      onModelReady: (model) =>
+          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.runStartupLogic();
       }),
       onDispose: (model) {
@@ -76,8 +77,10 @@ class DataSyncView extends StatelessWidget {
                                 child: Column(
                                   children: [
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
                                       children: [
                                         if (stop.hasError)
                                           const FittedBox(
@@ -104,7 +107,8 @@ class DataSyncView extends StatelessWidget {
                                         CircleAvatar(
                                           backgroundColor: Colors.grey[300],
                                           child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               BoxText.body(
                                                 "Try Count",
@@ -124,24 +128,36 @@ class DataSyncView extends StatelessWidget {
                                     ),
                                     verticalSpaceSmall,
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        TopLabelWithTextWidget(label: "Task Creation Time", value: stop.creationTime.toDateTime().toFormattedString()),
+                                        TopLabelWithTextWidget(
+                                            label: "Task Creation Time",
+                                            value: stop.creationTime
+                                                .toDateTime()
+                                                .toFormattedString()),
                                         TopLabelWithTextWidget(
                                           label: "Task Next Try Time",
-                                          value: stop.nextTryTime.toDateTime().toFormattedString(),
+                                          value: stop.nextTryTime
+                                              .toDateTime()
+                                              .toFormattedString(),
                                         ),
                                         TopLabelWithTextWidget(
                                           label: "Task Last Try Time",
-                                          value: stop.lastTryTime.toDateTime().toFormattedString(),
+                                          value: stop.lastTryTime
+                                              .toDateTime()
+                                              .toFormattedString(),
                                         ),
                                       ],
                                     ),
                                     verticalSpaceSmall,
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
                                       children: [
                                         if (stop.hasError)
                                           const FittedBox(
@@ -163,7 +179,9 @@ class DataSyncView extends StatelessWidget {
                                           ),
                                         TopLabelWithTextWidget(
                                           label: "Error Message",
-                                          value: stop.errorMessage.isEmpty ? "None" : stop.errorMessage,
+                                          value: stop.errorMessage.isEmpty
+                                              ? "None"
+                                              : stop.errorMessage,
                                         ),
                                       ],
                                     ),
@@ -193,7 +211,8 @@ class DataSyncView extends StatelessWidget {
                                   const Text(
                                     "No Sync Task Found!",
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 18.0, color: Colors.black87),
+                                    style: TextStyle(
+                                        fontSize: 18.0, color: Colors.black87),
                                   ),
                                 ],
                               ),

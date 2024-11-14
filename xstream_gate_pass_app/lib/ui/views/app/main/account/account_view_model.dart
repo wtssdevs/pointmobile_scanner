@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.router.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.router.dart';
+
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/models/account/GetCurrentLoginInformation.dart';
@@ -15,20 +16,24 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 
 class AccountViewModel extends BaseViewModel {
   final NavigationService _navigationService = locator<NavigationService>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final _connectionService = locator<ConnectionService>();
   final _authenticationService = locator<AuthenticationService>();
   final _backgroundJobInfoRepository = locator<BackgroundJobInfoRepository>();
   CurrentLoginInformation? _currentLoginInformation;
   final DialogService _dialogService = locator<DialogService>();
 
-  String get showConnectionStatus => _connectionService.hasConnection == true ? "Online" : "Offline";
+  String get showConnectionStatus =>
+      _connectionService.hasConnection == true ? "Online" : "Offline";
   bool get hasConnection => _connectionService.hasConnection;
   int _syncCount = 0;
   int get syncCount => _syncCount;
 
-  CurrentLoginInformation? get currentLoginInformation => _currentLoginInformation;
-  String get connectivityResultDisplayName => _connectionService.getConnectivityResultDisplayName();
+  CurrentLoginInformation? get currentLoginInformation =>
+      _currentLoginInformation;
+  String get connectivityResultDisplayName =>
+      _connectionService.getConnectivityResultDisplayName();
 
   Future handleStartUpLogic() async {
     await loadTaskCount();
@@ -42,7 +47,8 @@ class AccountViewModel extends BaseViewModel {
 
   StreamSubscription? streamSubscription;
   void startconnectionListen() {
-    streamSubscription = _connectionService.connectionChange.asBroadcastStream().listen((data) {
+    streamSubscription =
+        _connectionService.connectionChange.asBroadcastStream().listen((data) {
       //log.i('Start Connectivity Change Listener? $data');
       notifyListeners();
     });
@@ -50,7 +56,8 @@ class AccountViewModel extends BaseViewModel {
 
   Future getCurrentUserInfo() async {
     //_currentLoginInformation = _localStorageService.getUserLoginInfo;
-    _currentLoginInformation = await _authenticationService.getUserLoginInfo(true);
+    _currentLoginInformation =
+        await _authenticationService.getUserLoginInfo(true);
   }
 
   Future loadTaskCount() async {

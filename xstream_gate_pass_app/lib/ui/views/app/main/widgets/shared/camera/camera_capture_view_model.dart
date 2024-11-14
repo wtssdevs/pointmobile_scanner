@@ -1,13 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:add_to_gallery/add_to_gallery.dart';
-import 'package:camerawesome/picture_controller.dart';
+import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gal/gal.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -15,9 +16,9 @@ import 'package:sembast/timestamp.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
-import 'package:xstream_gate_pass_app/app_config/app.router.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
@@ -29,22 +30,15 @@ import 'package:xstream_gate_pass_app/core/services/services/background/workqueu
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_repository.dart';
 
 class CameraCaptureViewModel extends BaseViewModel {
-  //final LocationService _locationService = locator<LocationService>();
   final DialogService _dialogService = locator<DialogService>();
   final _navigationService = locator<NavigationService>();
   final FileStoreType fileStoreType;
   final int refId;
   final int referanceId;
-
+  StreamSubscription<MediaCapture?>? listenEvent;
   final TickerProvider vsync;
-  CameraCaptureViewModel(this.refId, this.referanceId, this.fileStoreType, this.vsync);
-  PictureController pictureController = PictureController();
-  AnimationController? previewAnimationController;
-  Tween<Offset> tween = Tween<Offset>(
-    begin: const Offset(-2.0, 0.0),
-    end: Offset.zero,
-  );
-  Animation<Offset>? previewAnimation;
+  CameraCaptureViewModel(
+      this.refId, this.referanceId, this.fileStoreType, this.vsync);
 
   final log = getLogger('CameraCaptureViewModel');
 
@@ -59,29 +53,34 @@ class CameraCaptureViewModel extends BaseViewModel {
     refId = refId;
     fileStoreType = fileStoreType;
 
-    previewAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 1300),
-      vsync: vsync,
-    );
+    var status = await Permission.storage.status;
+    if (status.isGranted == false) {
+      await Permission.storage.request();
+    }
 
-    previewAnimation = Tween<Offset>(
-      begin: const Offset(-2.0, 0.0),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: previewAnimationController != null
-            ? previewAnimationController!
-            : AnimationController(
-                duration: const Duration(milliseconds: 1300),
-                vsync: vsync,
-              ),
-        curve: Curves.elasticOut,
-        reverseCurve: Curves.elasticIn,
-      ),
-    );
+    // Check Permission
+
+    var hasAccess = await Gal.hasAccess();
+    if (hasAccess == false) {
+      // Request Permission
+      await Gal.requestAccess();
+    }
   }
 
-  Future<void> saveToLocalDb({required File galleryFile, required String tempFilePath, String? fileName}) async {
+  Future<SingleCaptureRequest> getFilePath(sensors) async {
+    final Directory extDir = await getTemporaryDirectory();
+    final testDir =
+        await Directory('${extDir.path}/Images').create(recursive: true);
+    const String fileExtension = 'jpg';
+    final String filePath =
+        '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+    return SingleCaptureRequest(filePath, sensors.first);
+  }
+
+  Future<void> saveToLocalDb(
+      {required File galleryFile,
+      required String tempFilePath,
+      String? fileName}) async {
     // var newLocation = await _locationService.getLocation().timeout(const Duration(seconds: 12), onTimeout: () => null);
     // if (newLocation != null && newLocation.latitude == null) {
     //   newLocation = await _locationService.getLocation().timeout(const Duration(seconds: 10), onTimeout: () => null);
@@ -119,34 +118,41 @@ class CameraCaptureViewModel extends BaseViewModel {
         false);
   }
 
-  takePhoto() async {
-    final Directory extDir = await getTemporaryDirectory();
-    final testDir = await Directory('${extDir.path}/Images').create(recursive: true);
-    var fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final String filePath = '${testDir.path}/$fileName';
-    //var fileNameNew = Guid.newGuidAsString;
-    var status = await Permission.storage.status;
-    if (status.isGranted == false) {
-      await Permission.storage.request();
-    }
-    if (kDebugMode) {
-      log.i("takePhoto : $status");
-    }
-
-    await pictureController.takePicture(filePath).timeout(const Duration(seconds: 4), onTimeout: () async {
+  void setUpCaptureStateSubscription(CameraState state) {
+    if (listenEvent != null) {
       if (kDebugMode) {
-        log.i("takePhoto timeout Error : $status");
+        log.d("Cancel existing Listener.");
+      }
+      listenEvent!.cancel();
+    }
+    listenEvent = state.captureState$.listen((event) async {
+      if (event == null) return;
+
+      if (event.captureRequest.path == null) {
+        return;
       }
 
-      await _dialogService.showCustomDialog(
-        variant: DialogType.basic,
-        data: BasicDialogStatus.error,
-        title: "Capture Image Error.",
-        description: 'Capture Image Error,Please try agian.',
-        mainButtonTitle: "Ok",
-      );
-      return;
+      if (event.isPicture && event.status == MediaCaptureStatus.success) {
+        if (lastPhotoPath != event.captureRequest.path) {
+          if (event.exception != null) {
+            await _dialogService.showCustomDialog(
+              variant: DialogType.basic,
+              data: BasicDialogStatus.error,
+              title: "Capture Image Error.",
+              description: event.exception.toString(),
+              mainButtonTitle: "Ok",
+            );
+          } else {
+            await takePhoto(event.captureRequest.path!);
+          }
+        }
+
+        lastPhotoPath = event.captureRequest.path!;
+      }
     });
+  }
+
+  takePhoto(String filePath) async {
     // lets just make our phone vibrate
     HapticFeedback.mediumImpact();
     try {
@@ -166,33 +172,31 @@ class CameraCaptureViewModel extends BaseViewModel {
         }
       }
 
-      File addToGalleryFile = await AddToGallery.addToGallery(
-        originalFile: file,
-        albumName: AppConst.App_Gallery_Album,
-        deleteOriginalFile: true,
-      );
+      // Check Permission
+      var hasAccess = await Gal.hasAccess();
+      if (hasAccess == false) {
+        // Request Permission
+        await Gal.requestAccess();
+      }
 
-      lastPhotoPath = addToGalleryFile.path;
+      await Gal.putImage(filePath, album: '$AppConst.App_Gallery_Album');
+
+      lastPhotoPath = file.path;
       //here we will
-      await saveToLocalDb(galleryFile: addToGalleryFile, tempFilePath: filePath, fileName: fileName);
+      await saveToLocalDb(
+          galleryFile: file, tempFilePath: filePath, fileName: null);
 
       notifyListeners();
 
       Fluttertoast.showToast(
-          msg: "Image capture successful",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 3,
-          backgroundColor: Colors.green.withOpacity(0.8),
-          textColor: Colors.black,
-          fontSize: 14.0);
-      // if (previewAnimationController?.status == AnimationStatus.completed) {
-      //   previewAnimationController?.reset();
-      // }
-
-      // if (previewAnimationController != null) {
-      //   previewAnimationController?.forward();
-      // }
+        msg: "Image capture successful",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM_LEFT,
+        timeInSecForIosWeb: 3,
+        backgroundColor: Colors.green.withOpacity(0.8),
+        textColor: Colors.black,
+        fontSize: 14.0,
+      );
 
       if (kDebugMode) {
         log.d("----------------------------------");
@@ -211,7 +215,5 @@ class CameraCaptureViewModel extends BaseViewModel {
     }
   }
 
-  void onDispose() {
-    previewAnimationController?.dispose();
-  }
+  void onDispose() {}
 }

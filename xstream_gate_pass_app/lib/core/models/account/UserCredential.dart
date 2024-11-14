@@ -6,12 +6,17 @@ class UserCredential {
   String password;
   bool rememberClient;
 
-  UserCredential({required this.tenancyName, required this.userNameOrEmailAddress, required this.password, required this.rememberClient});
+  UserCredential(
+      {required this.tenancyName,
+      required this.userNameOrEmailAddress,
+      required this.password,
+      required this.rememberClient});
 
   factory UserCredential.fromJson(Map<String, dynamic> jsonRes) {
     return UserCredential(
       tenancyName: asT<String>(jsonRes['tenancyName']) ?? "",
-      userNameOrEmailAddress: asT<String?>(jsonRes['userNameOrEmailAddress']) ?? "",
+      userNameOrEmailAddress:
+          asT<String?>(jsonRes['userNameOrEmailAddress']) ?? "",
       password: asT<String>(jsonRes['password']) ?? "",
       rememberClient: asT<bool>(jsonRes['rememberClient']) ?? false,
     );

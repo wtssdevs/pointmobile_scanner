@@ -1,236 +1,341 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:dio/dio.dart' as DioClient;
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
-import 'package:xstream_gate_pass_app/app_config/app.router.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
+
 import 'package:xstream_gate_pass_app/core/app_const.dart';
-import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
-import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart';
-import 'package:xstream_gate_pass_app/core/models/account/UserCredential.dart';
+import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
+import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
+
 import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart';
+import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart';
-import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
+
 import 'package:xstream_gate_pass_app/core/utils/dio_error_util.dart';
+import 'package:dio/dio.dart' as DioClient;
+import 'package:dio_http2_adapter/dio_http2_adapter.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
-@LazySingleton()
+@InitializableSingleton()
 class ApiManager {
-  final DialogService? _dialogService = locator<DialogService>();
-  final LocalStorageService? _localStorageService = locator<LocalStorageService>();
-  final NavigationService? _navigationService = locator<NavigationService>();
+  final DialogService _dialogService = locator<DialogService>();
   final _environmentService = locator<EnvironmentService>();
-
+  final AccessTokenRepo _accessTokenRepo = locator<AccessTokenRepo>();
   final log = getLogger('ApiManager');
-  // dio instance
-  static DioClient.Dio? _dio;
-  ApiManager() {
-    if (_dio == null) {
-      // or new Dio with a BaseOptions instance.
-      DioClient.BaseOptions options = DioClient.BaseOptions(
-        baseUrl: _environmentService.getValue(AppConst.API_Base_Url),
-        connectTimeout: 60000,
-        receiveTimeout: 60000,
-        sendTimeout: 60000,
-        contentType: "application/json",
+
+  //static DioClient.Dio? _dio;
+  late Dio _dio;
+
+  Future<void> init() async {
+    // Or create `Dio` with a `BaseOptions` instance.
+    final options = BaseOptions(
+      baseUrl: _environmentService.getValue(AppConst.API_Base_Url),
+      connectTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
+      receiveTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
+    );
+    _dio = DioClient.Dio()
+      ..options = options
+      ..httpClientAdapter = Http2Adapter(
+        ConnectionManager(
+          idleTimeout: const Duration(seconds: 15),
+          onClientCreate: (_, config) => config.onBadCertificate = (_) => true,
+        ),
       );
 
-      _dio = DioClient.Dio(options);
-    }
-    _dio!.interceptors.add(DioClient.InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        // Do something before request is sent
-        // return handler.next(options); //continue
-        // If you want to resolve the request with some custom data，
-        // you can resolve a `Response` object eg: return `dio.resolve(response)`.
-        // If you want to reject the request with a error message,
-        // you can reject a `DioError` object eg: return `dio.reject(dioError)`
-        //
-        //if auth ignor
-        if (options.path == "/api/Account/ExternalAuth") {
-          return handler.next(options);
-        }
-        // Do something before request is sent
-        var token = _localStorageService!.getAuthToken;
-        var authHeader = options.headers["authorization"];
+//RETRY
+    //  _dio.interceptors.add(
+    // RetryInterceptor(
+    //   dio: _dio,
+    //   logPrint: log.d, // specify log function (optional)
+    //   retries: 3, // retry count (optional)
+    //   retryDelays: const [
+    //     // set delays between retries (optional)
+    //     Duration(seconds: 1), // wait 1 sec before first retry
+    //     Duration(seconds: 3), // wait 2 sec before second retry
+    //     Duration(seconds: 5), // wait 3 sec before third retry
+    //   ],
+    // ),
+    // );
 
-        //options.headers.putIfAbsent('Authorization', () => token);
+    // Add interceptor for bearer token
+    // AuthInterceptor
+    _dio.interceptors.add(
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+        logPrint: log.d,
+        maxWidth: 160,
+        enabled: true,
+        request: true,
+      ),
+    );
 
-        if (authHeader == null && token != null && token.accessToken != null) {
-          options.headers["authorization"] = "Bearer ${token.accessToken}";
-        }
-        options.headers["Accept"] = "application/json";
-        return handler.next(options);
-      },
-      onResponse: (response, handler) {
-        // Do something with response data
-        return handler.next(response); // continue
-        // If you want to reject the request with a error message,
-        // you can reject a `DioError` object eg: return `dio.reject(dioError)`
-      },
-      onError: (error, handler) {
-        // Assume 401 stands for token expired\
-        //  if (error.response?.statusCode == 403 || error.response?.statusCode == 401) {
-        if (error.response?.statusCode == 401) {
-          var options = error.response!.requestOptions;
-          // If the token has been updated, repeat directly.
-          var token = _localStorageService!.getAuthToken;
-          if (token != null && token.accessToken != options.headers['authorization']) {
-            options.headers["authorization"] = "Bearer ${token.accessToken}";
-            //repeat
-            _dio!.fetch(options).then(
-              (r) => handler.resolve(r),
-              onError: (e) {
-                handler.reject(e);
-              },
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        //*****onError****** */
+
+        onError: (DioException error, ErrorInterceptorHandler handler) async {
+          if (error.response?.statusCode == HttpStatus.forbidden ||
+              error.response?.statusCode == HttpStatus.unauthorized) {
+            log.i('AuthInterceptor - Error 401');
+            final accessToken =
+                await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
+
+            //Happens on first request if badly handled
+            //Or if the user cleaned his local storage at Runtime
+            if (accessToken == null || accessToken.isEmpty) {
+              log.i('AuthInterceptor - No Local AccessToken');
+              //log out the user
+              _accessTokenRepo.logOutCurrentUser();
+              return handler.reject(error);
+            }
+
+            // Create a new request options object with the updated token
+
+            final options = error.requestOptions;
+            final data = options.data;
+            final newOptions = options.copyWith(
+              data: data is FormData ? data.clone() : data,
             );
-            return;
-          } else {
-            logOutCurrentUser();
-          }
-          // update token and repeat
-          // Lock to block the incoming request until the token updated
-          if (token == null || token.tenancyName == null) {
-            // logOutCurrentUser();
-            return;
-          }
-          _dio!.lock();
-          _dio!.interceptors.responseLock.lock();
-          _dio!.interceptors.errorLock.lock();
-          var tokenDio = DioClient.Dio();
-          tokenDio.options = _dio!.options.copyWith();
 
-          var userCredential =
-              UserCredential(tenancyName: token.tenancyName!, userNameOrEmailAddress: token.userNameOrEmailAddress!, password: token.password!, rememberClient: true);
-          tokenDio
-              .get(
-            "/api/Account/ExternalAuth",
-            queryParameters: userCredential.toJson(),
-          )
-              .then((authResult) {
-            var authenticateResultModel = AuthenticateResultModel.fromJson(authResult.data);
-            processAuthenticateResult(authenticateResultModel, userCredential);
-          }).whenComplete(() {
-            _dio!.unlock();
-            _dio!.interceptors.responseLock.unlock();
-            _dio!.interceptors.errorLock.unlock();
-          }).then((e) {
-            //repeat
-            _dio!.fetch(options).then(
-              (r) => handler.resolve(r),
-              onError: (e) {
-                handler.reject(e);
-              },
-            );
-          });
-          return;
-        } else {
+            newOptions.headers["authorization"] = "Bearer $accessToken";
+
+            try {
+              // Retry the request with the new token
+
+              final response = await retryInternal(newOptions);
+
+              return handler.resolve(response);
+            } on DioException catch (e) {
+              //DioErrorUtil.handleError(e);
+              handelError(error);
+              return handler.next(e);
+            }
+          }
+          //DioErrorUtil.handleError(error);
           handelError(error);
-        }
-        return handler.next(error);
-      },
-    ));
+          return handler.next(error);
+        },
+        //*****onRequest****** */
+        onRequest: (
+          RequestOptions options,
+          RequestInterceptorHandler handler,
+        ) async {
+          // //Getting cached Access Token, or getting it from storage and caching it
+
+          //TODO add ignor type to request to skip it
+          var pathLowerCase = options.path.toLowerCase();
+
+          if (pathLowerCase == "/api/TokenAuth/Authenticate".toLowerCase()) {
+            return handler.next(options);
+          }
+          if (pathLowerCase ==
+              "/api/services/app/Account/register".toLowerCase()) {
+            return handler.next(options);
+          }
+          if (pathLowerCase ==
+              "/api/services/app/Account/ForgotPassword".toLowerCase()) {
+            return handler.next(options);
+          }
+          if (pathLowerCase ==
+              "/api/services/app/Account/ResetForgotPassword".toLowerCase()) {
+            return handler.next(options);
+          }
+
+          var token =
+              await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
+
+          var authHeader = options.headers["authorization"];
+          if (authHeader == null && token != null) {
+            options.headers["authorization"] = "Bearer $token";
+          }
+          options.headers["Accept"] = "application/json";
+
+          if (options.headers['requires-token'] == 'false') {
+            // if the request doesn't need token, then just continue to the next
+            // interceptor
+            options.headers
+                .remove('requiresToken'); //remove the auxiliary header
+            return handler.next(options);
+          }
+
+          options.headers.addAll({'authorization': 'Bearer ${token!}'});
+          return handler.next(options);
+        },
+      ),
+    );
+
+    log.d('Initialized');
   }
 
-  void logOutCurrentUser() {
-    _localStorageService!.logout();
-    _navigationService!.clearStackAndShow(Routes.loginView);
-  }
-
-  Future<bool> refreshToken() async {
-    var token = _localStorageService!.getAuthToken;
-    if (token != null) {
-      if (token.autTokenIsEmpty()) {
-        logOutCurrentUser();
-      }
-
-      var userCredential = UserCredential(tenancyName: token.tenancyName!, userNameOrEmailAddress: token.userNameOrEmailAddress!, password: token.password!, rememberClient: true);
-
-      var authResult = await get("/api/Account/ExternalAuth", queryParameters: userCredential.toJson(), showLoader: false);
-
-      var authenticateResultModel = AuthenticateResultModel.fromJson(authResult);
-
-      await processAuthenticateResult(authenticateResultModel, userCredential);
-      return true;
-    } else {
-      return false;
+  handelError(DioException dioError) {
+    if (dioError.error is SocketException) {
+      return;
+      //TODO handel state check and route to error page
     }
-  }
 
-  Future processAuthenticateResult(AuthenticateResultModel authenticateResultModel, UserCredential userCredential) async {
-    if (authenticateResultModel.accessToken!.isNotEmpty) {
-      // Successfully logged in
-
-      authenticateResultModel.tenancyName = userCredential.tenancyName;
-      authenticateResultModel.userNameOrEmailAddress = userCredential.userNameOrEmailAddress;
-      authenticateResultModel.password = userCredential.password;
-      authenticateResultModel.setUserCredentials(
-          tenancyName: userCredential.tenancyName, userNameOrEmailAddress: userCredential.userNameOrEmailAddress, password: userCredential.password);
-
-      _localStorageService!.setAuthToken(authenticateResultModel);
-      _localStorageService!.saveIsLoggedIn(true);
-      _localStorageService!.clearForgotPassword();
-    } else {
-      logOutCurrentUser();
-    }
-  }
-
-  handelError(DioClient.DioError dioError) {
-    // log.d(dioError);
-    // if (dioError.error is SocketException) {
-    //   Fluttertoast.showToast(
-    //       msg: "No active internet connection found!",
-    //       toastLength: Toast.LENGTH_SHORT,
-    //       gravity: ToastGravity.CENTER,
-    //       timeInSecForIosWeb: 3,
-    //       backgroundColor: Colors.red,
-    //       textColor: Colors.white,
-    //       fontSize: 18.0);
+    // if (dioError.requestOptions.disableRetry == false) {
     //   return;
+    //   //silent failure
     // }
 
-    var errorResponseToShow = DioErrorUtil.handleAbpError(dioError);
-
-    if (errorResponseToShow.error == null) {
-      return;
+    if (dioError.response == null || dioError.response?.statusCode == null) {
+      _dialogService.showDialog(
+        title: "Error",
+        description: "Internal error,Please try again later",
+        buttonTitle: "OK",
+      );
     }
-    //this was from auto refresh.user creds have changed or removed via logout
-    if (errorResponseToShow.error != null && errorResponseToShow.error?.details != null) {
-      if (dioError.requestOptions.path.isNotEmpty &&
-          dioError.requestOptions.path == "/api/Account/ExternalAuth" &&
-          errorResponseToShow.error?.details == "Invalid user name or password") {
-        logOutCurrentUser();
+
+    var listOrfCodesToAllow = [
+      HttpStatus.internalServerError,
+      HttpStatus.badRequest,
+      HttpStatus.forbidden,
+      HttpStatus.notFound
+    ];
+
+    //check if it is a general HTTP error or if it is a custom Server API error
+    //if it is a custom Server API error, then we need to show the error message
+    if ((listOrfCodesToAllow.contains(dioError.response!.statusCode)) &&
+        dioError.response?.data != null) {
+      //if it is a custom Server API error, then we need to show the error message
+
+      //check if the error can be parsed as a Server API error
+      try {
+        var errorResponse = DioErrorUtil.handleAbpError(dioError);
+        if (errorResponse.success != null && errorResponse.error != null) {
+          //VALIDATION ERRORS
+
+          if (errorResponse.error != null &&
+              errorResponse.error?.details != null) {
+            if (dioError.requestOptions.path.isNotEmpty &&
+                dioError.requestOptions.path == "/api/Account/ExternalAuth" &&
+                errorResponse.error?.details ==
+                    "Invalid user name or password") {
+              _accessTokenRepo.logOutCurrentUser();
+            }
+          }
+
+          if (errorResponse.error!.validationErrors != null &&
+              errorResponse.error!.message!.isNotEmpty) {
+            var title = errorResponse.error!
+                .message!; // + " " + errorResponse.error?.details! ?? "";
+            var description = errorResponse.error!.details;
+
+            if (description == null || description.isEmpty) {
+              description = errorResponse.error!.validationErrors!.join(",\n");
+            }
+            _dialogService.showCustomDialog(
+              variant: DialogType.basic,
+              data: BasicDialogStatus.error,
+              title: title,
+              description: description,
+              mainButtonTitle: "Ok",
+            );
+
+            return;
+          }
+
+          if (errorResponse.error!.validationErrors == null &&
+              errorResponse.error!.message != null) {
+            var description = errorResponse.error!.details;
+            var title = errorResponse.error!.message;
+            if (title == null || title.isEmpty) {
+              title = "Error";
+            }
+
+            _dialogService.showCustomDialog(
+              variant: DialogType.basic,
+              data: BasicDialogStatus.error,
+              title: title,
+              description: description,
+              mainButtonTitle: "Ok",
+            );
+
+            return;
+          }
+
+          if (errorResponse.error!.validationErrors!.isNotEmpty ||
+              errorResponse.error!.message!.isNotEmpty) {
+            _dialogService.showDialog(
+              title: errorResponse.error!.message,
+              description: errorResponse.error!.details,
+            );
+            return;
+          }
+        }
+      } catch (e) {
+        log.e(e);
+      }
+
+      if (dioError.response!.statusCode == 400 ||
+          dioError.response!.statusCode == 401 ||
+          dioError.response!.statusCode == 403 ||
+          dioError.response!.statusCode == 404 ||
+          dioError.response!.statusCode == 405 ||
+          dioError.response!.statusCode == 500) {
+        var errorResponseToShow = DioErrorUtil.handleError(dioError);
+        if (errorResponseToShow.isNotEmpty) {
+          _dialogService.showDialog(
+            title: "Error",
+            description: errorResponseToShow,
+            buttonTitle: "OK",
+          );
+          return;
+        }
       }
     }
+    //else we need to show the general error message
 
-    if (errorResponseToShow.error!.validationErrors == null && errorResponseToShow.error!.message!.isNotEmpty) {
-      _dialogService!.showDialog(
-        title: errorResponseToShow.error!.message,
-        description: errorResponseToShow.error!.details,
-      );
-      return;
-    }
+    var err = DioErrorUtil.handleError(dioError);
 
-    if (errorResponseToShow.error!.validationErrors!.length > 0 || errorResponseToShow.error!.message!.isNotEmpty) {
-      _dialogService!.showDialog(
-        title: errorResponseToShow.error!.message,
-        description: errorResponseToShow.error!.details,
+    _dialogService.showDialog(
+      title: "Error",
+      description: err,
+      buttonTitle: "OK",
+    );
+  }
+
+  Future<Response<dynamic>> retryInternal(RequestOptions requestOptions) async {
+    final options = Options(
+      method: requestOptions.method,
+      headers: requestOptions.headers,
+    );
+
+    final baseOptions = BaseOptions(
+      baseUrl: _environmentService.getValue(AppConst.API_Base_Url),
+      connectTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
+      receiveTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
+      method: requestOptions.method,
+      headers: requestOptions.headers,
+    );
+
+    //var dioRetryClient = Dio(baseOptions);
+
+    var dioRetryClient = Dio()
+      ..options = baseOptions
+      ..httpClientAdapter = Http2Adapter(
+        ConnectionManager(
+          idleTimeout: const Duration(seconds: 15),
+          onClientCreate: (_, config) => config.onBadCertificate = (_) => true,
+        ),
       );
-      return;
-    }
-    if (errorResponseToShow.message!.isNotEmpty) {
-      Fluttertoast.showToast(
-          msg: errorResponseToShow.message!,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 3,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0);
-      return;
-    }
+
+    return dioRetryClient.request<dynamic>(requestOptions.path,
+        data: requestOptions.data,
+        queryParameters: requestOptions.queryParameters,
+        options: options);
   }
 
   // injecting dio instance
@@ -248,7 +353,7 @@ class ApiManager {
         EasyLoading.show();
       }
 
-      final DioClient.Response response = await _dio!.get(
+      final DioClient.Response response = await _dio.get(
         uri,
         queryParameters: queryParameters,
         options: options,
@@ -277,18 +382,20 @@ class ApiManager {
       var documentTypeID = 7; //default
 
       //[5] SEND TO SERVER
-      final DioClient.Response response = await _dio!.post(
+      final DioClient.Response response = await _dio.post(
         AppConst.FileUploading_Images,
         data: formData,
         options: DioClient.Options(
           headers: {
             "uploadType": "2", //TMSConsts.UploadType.Files:
-            "uploadMethod": "0", //TMSConsts.UploadMethod.LoadAssignmentDocuments:
+            "uploadMethod":
+                "0", //TMSConsts.UploadMethod.LoadAssignmentDocuments:
             //FileStoreType
             "fileStoreTypeId": "15", //    GatePassDocuments = 15,
             "referenceId": "${fileStore.refId}",
             "documentFileName": "${fileStore.fileName}",
-            "documentTypeID": documentTypeID, //7 = PICTURES ,6 = PROOF OF DELIVERY
+            "documentTypeID":
+                documentTypeID, //7 = PICTURES ,6 = PROOF OF DELIVERY
             "name": "${fileStore.fileName}",
             "antiForgeryToken": "",
           },
@@ -302,14 +409,23 @@ class ApiManager {
     }
   }
 
-  Future<dynamic> postWithFile({required String uri, required String filePath, required String fileName, required Map<String, dynamic> modelData}) async {
+  Future<dynamic> postWithFile({
+    required String uri,
+    required String filePath,
+    required String fileName,
+    required Map<String, dynamic> modelData,
+  }) async {
     try {
       DioClient.FormData formData = DioClient.FormData();
 
-      formData = DioClient.FormData.fromMap({...modelData, "file": await DioClient.MultipartFile.fromFile(filePath, filename: fileName)});
+      formData = DioClient.FormData.fromMap({
+        ...modelData,
+        "file":
+            await DioClient.MultipartFile.fromFile(filePath, filename: fileName)
+      });
 
       //[5] SEND TO SERVER
-      final DioClient.Response response = await _dio!.post(
+      final DioClient.Response response = await _dio.post(
         uri,
         data: formData,
         //  options: DioClient.Options(
@@ -333,20 +449,22 @@ class ApiManager {
   }
 
   // Post:----------------------------------------------------------------------
-  Future<dynamic> post(String uri,
-      {data,
-      Map<String, dynamic>? queryParameters,
-      DioClient.Options? options,
-      DioClient.CancelToken? cancelToken,
-      DioClient.ProgressCallback? onSendProgress,
-      DioClient.ProgressCallback? onReceiveProgress,
-      bool showLoader = true}) async {
+  Future<dynamic> post(
+    String uri, {
+    data,
+    Map<String, dynamic>? queryParameters,
+    DioClient.Options? options,
+    DioClient.CancelToken? cancelToken,
+    DioClient.ProgressCallback? onSendProgress,
+    DioClient.ProgressCallback? onReceiveProgress,
+    bool showLoader = true,
+  }) async {
     try {
       if (showLoader) {
         EasyLoading.show();
       }
 
-      final DioClient.Response response = await _dio!.post(
+      final DioClient.Response response = await _dio.post(
         uri,
         data: data,
         queryParameters: queryParameters,
@@ -363,6 +481,37 @@ class ApiManager {
     }
   }
 
+  // Put:----------------------------------------------------------------------
+  Future<dynamic> put(String uri,
+      {data,
+      Map<String, dynamic>? queryParameters,
+      DioClient.Options? options,
+      DioClient.CancelToken? cancelToken,
+      DioClient.ProgressCallback? onSendProgress,
+      DioClient.ProgressCallback? onReceiveProgress,
+      bool showLoader = true}) async {
+    try {
+      if (showLoader) {
+        //  EasyLoading.show();
+      }
+
+      final DioClient.Response response = await _dio.put(
+        uri,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
+      );
+      // EasyLoading.dismiss();
+      return response.data;
+    } catch (e) {
+      //EasyLoading.dismiss();
+      rethrow;
+    }
+  }
+
   Future<DioClient.Response> request(
     String uri, {
     data,
@@ -374,7 +523,7 @@ class ApiManager {
   }) async {
     try {
       EasyLoading.show();
-      final DioClient.Response response = await _dio!.request(
+      final DioClient.Response response = await _dio.request(
         uri,
         data: data,
         queryParameters: queryParameters,

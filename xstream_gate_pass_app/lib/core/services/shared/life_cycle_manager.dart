@@ -1,11 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/stoppable_service.dart';
-
 
 class LifeCycleManager extends StatefulWidget {
   final Widget? child;
@@ -14,9 +13,11 @@ class LifeCycleManager extends StatefulWidget {
   _LifeCycleManagerState createState() => _LifeCycleManagerState();
 }
 
-class _LifeCycleManagerState extends State<LifeCycleManager> with WidgetsBindingObserver {
+class _LifeCycleManagerState extends State<LifeCycleManager>
+    with WidgetsBindingObserver {
   final log = getLogger('LifeCycleManager');
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final NavigationService _navigationService = locator<NavigationService>();
   List<StoppableService> services = [
     locator<SyncManager>(),

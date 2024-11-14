@@ -14,7 +14,8 @@ class AccountView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<AccountViewModel>.reactive(
       viewModelBuilder: () => AccountViewModel(),
-      onModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      onModelReady: (model) =>
+          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.handleStartUpLogic();
       }),
       onDispose: (model) {
@@ -24,8 +25,7 @@ class AccountView extends StatelessWidget {
         onWillPop: () async {
           return false;
         },
-        child: 
-        Scaffold(
+        child: Scaffold(
           appBar: AppBar(
             elevation: 6,
             title: Row(
@@ -37,7 +37,10 @@ class AccountView extends StatelessWidget {
                   ),
                 ),
                 Column(
-                  children: [BoxText.subheading(model.currentLoginInformation?.showFullName ?? "")],
+                  children: [
+                    BoxText.subheading(
+                        model.currentLoginInformation?.showFullName ?? "")
+                  ],
                 ),
               ],
             ),
@@ -86,8 +89,12 @@ class AccountView extends StatelessWidget {
                     elevation: 8,
                     child: ListTile(
                       leading: Icon(
-                        model.hasConnection == false ? Icons.offline_bolt : Icons.online_prediction,
-                        color: model.hasConnection == false ? Colors.red : Colors.green,
+                        model.hasConnection == false
+                            ? Icons.offline_bolt
+                            : Icons.online_prediction,
+                        color: model.hasConnection == false
+                            ? Colors.red
+                            : Colors.green,
                       ),
                       title: BoxText.tileTitle(
                         "Status: ${model.showConnectionStatus} - ${model.connectivityResultDisplayName}",
@@ -102,7 +109,8 @@ class AccountView extends StatelessWidget {
                       },
                       leading: Icon(
                         Icons.sync,
-                        color: model.syncCount > 0 ? Colors.orange : Colors.green,
+                        color:
+                            model.syncCount > 0 ? Colors.orange : Colors.green,
                       ),
                       // onTap: model.navigateToTermsView,
                       title: BoxText.tileTitle(
@@ -122,12 +130,16 @@ class AccountView extends StatelessWidget {
                               child: AboutListTile(
                                 dense: true,
                                 applicationName: snapshot.data?.appName,
-                                applicationVersion: 'Version: ${snapshot.data?.version}.${snapshot.data?.buildNumber}',
+                                applicationVersion:
+                                    'Version: ${snapshot.data?.version}.${snapshot.data?.buildNumber}',
                                 applicationIcon: Container(
                                   height: 50,
                                   width: 50,
                                   decoration: const BoxDecoration(
-                                    image: DecorationImage(image: AssetImage("assets/wtssgrplogo.png"), fit: BoxFit.contain),
+                                    image: DecorationImage(
+                                        image: AssetImage(
+                                            "assets/wtssgrplogo.png"),
+                                        fit: BoxFit.contain),
                                   ),
                                 ),
                                 icon: const Icon(Icons.info),

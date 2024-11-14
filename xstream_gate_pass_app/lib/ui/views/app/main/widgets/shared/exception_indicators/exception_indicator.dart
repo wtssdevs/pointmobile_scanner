@@ -54,7 +54,8 @@ class ExceptionIndicator extends StatelessWidget {
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    textStyle: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                    textStyle: const TextStyle(
+                        fontSize: 30, fontWeight: FontWeight.bold),
                   ),
                   icon: const Icon(
                     Icons.login,

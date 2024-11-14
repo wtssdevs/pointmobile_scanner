@@ -7,7 +7,12 @@ class TopLabelWithTextWidget extends StatelessWidget {
   final String value;
   final String hasTextBadge;
   final CrossAxisAlignment crossAxisAlignment;
-  const TopLabelWithTextWidget({Key? key, required this.label, required this.value, this.hasTextBadge = "", this.crossAxisAlignment = CrossAxisAlignment.stretch})
+  const TopLabelWithTextWidget(
+      {Key? key,
+      required this.label,
+      required this.value,
+      this.hasTextBadge = "",
+      this.crossAxisAlignment = CrossAxisAlignment.stretch})
       : super(key: key);
 
   @override
@@ -35,7 +40,8 @@ class TopLabelWithTextWidget extends StatelessWidget {
                   padding: const EdgeInsets.all(0),
                   backgroundColor: Color(hasTextBadge.getHexValue()),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: const VisualDensity(horizontal: 0.0, vertical: -4),
+                  visualDensity:
+                      const VisualDensity(horizontal: 0.0, vertical: -4),
                   label: BoxText.body(
                     value,
                     fontSize: 12,

@@ -9,7 +9,16 @@ class RegisterUser {
   String? dateOfBirth;
   String? phoneNumber;
 
-  RegisterUser({name, surname, userName, emailAddress, password, confirmPassword, captchaResponse, dateOfBirth, phoneNumber});
+  RegisterUser(
+      {name,
+      surname,
+      userName,
+      emailAddress,
+      password,
+      confirmPassword,
+      captchaResponse,
+      dateOfBirth,
+      phoneNumber});
 
   RegisterUser.fromJson(Map<String, dynamic> json) {
     name = json['name'] as String?;

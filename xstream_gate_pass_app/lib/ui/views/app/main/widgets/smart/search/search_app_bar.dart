@@ -5,7 +5,12 @@ class SearchAppBar extends StatelessWidget {
   final TextEditingController controller;
   final Function(String)? onChanged;
   final double searchWidth;
-  const SearchAppBar({Key? key, required this.controller, this.onChanged, required this.searchWidth}) : super(key: key);
+  const SearchAppBar(
+      {Key? key,
+      required this.controller,
+      this.onChanged,
+      required this.searchWidth})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +43,10 @@ class SearchAppBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(6.0),
           color: Colors.white,
           boxShadow: <BoxShadow>[
-            BoxShadow(color: Colors.grey.withOpacity(0.5), offset: const Offset(1.1, 1.1), blurRadius: 9.0),
+            BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                offset: const Offset(1.1, 1.1),
+                blurRadius: 9.0),
           ],
         ),
       ),

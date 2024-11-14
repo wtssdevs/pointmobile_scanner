@@ -2,8 +2,6 @@ import 'dart:convert';
 
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
-
-
 class AuthenticateResultModel {
   String? accessToken;
   String? encryptedAccessToken;
@@ -54,7 +52,8 @@ class AuthenticateResultModel {
   }
 
   encodeUserNameOrEmailAddress(String userNameOrEmailAddressToEncode) {
-    userNameOrEmailAddress = base64.encode(utf8.encode(userNameOrEmailAddressToEncode));
+    userNameOrEmailAddress =
+        base64.encode(utf8.encode(userNameOrEmailAddressToEncode));
   }
 
   String decodeUserNameOrEmailAddress() {
@@ -71,7 +70,10 @@ class AuthenticateResultModel {
     //String decoded = utf8.decode(base64.decode(encoded));     // username:password
   }
 
-  setUserCredentials({required String tenancyName, required String userNameOrEmailAddress, required String password}) {
+  setUserCredentials(
+      {required String tenancyName,
+      required String userNameOrEmailAddress,
+      required String password}) {
     tenancyName = tenancyName;
     userNameOrEmailAddress = userNameOrEmailAddress;
     password = password;
@@ -80,6 +82,8 @@ class AuthenticateResultModel {
   }
 
   bool autTokenIsEmpty() {
-    return tenancyName == null || userNameOrEmailAddress == null || password == null;
+    return tenancyName == null ||
+        userNameOrEmailAddress == null ||
+        password == null;
   }
 }

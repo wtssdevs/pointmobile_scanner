@@ -33,7 +33,9 @@ class FileStore {
         latitude: asT<double?>(jsonRes['latitude']),
         longitude: asT<double?>(jsonRes['longitude']),
         filestoreType: asT<int>(jsonRes['filestoreType']) ?? 0,
-        createdDateTime: Timestamp.tryAnyAsTimestamp((jsonRes['createdDateTime'])) ?? Timestamp.fromDateTime(DateTime.now()),
+        createdDateTime:
+            Timestamp.tryAnyAsTimestamp((jsonRes['createdDateTime'])) ??
+                Timestamp.fromDateTime(DateTime.now()),
       );
 
   String fileName;
@@ -45,8 +47,8 @@ class FileStore {
   bool upLoaded;
   String id;
   Timestamp createdDateTime;
-  int refId;//step
-  int referanceId;//stop
+  int refId; //step
+  int referanceId; //stop
   int filestoreType;
   double? latitude;
   double? longitude;

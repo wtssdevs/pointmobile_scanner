@@ -19,13 +19,16 @@ class BoxText extends StatelessWidget {
   const BoxText.headline(this.text, {TextAlign align = TextAlign.start})
       : style = headlineStyle,
         alignment = align;
-  const BoxText.subheading(this.text, {TextStyle textStyle = subheadingStyle, TextAlign align = TextAlign.start})
+  const BoxText.subheading(this.text,
+      {TextStyle textStyle = subheadingStyle,
+      TextAlign align = TextAlign.start})
       : style = textStyle,
         alignment = align;
   const BoxText.caption(this.text, {TextAlign align = TextAlign.start})
       : style = captionStyle,
         alignment = align;
-  const BoxText.validationMessageList(this.text, {TextAlign align = TextAlign.start})
+  const BoxText.validationMessageList(this.text,
+      {TextAlign align = TextAlign.start})
       : style = validationMessageStyle,
         alignment = align;
   const BoxText.tileTitle(this.text, {TextAlign align = TextAlign.start})
@@ -44,12 +47,20 @@ class BoxText extends StatelessWidget {
         alignment = align;
 
   BoxText.body(this.text,
-      {Color color = kcMediumGreyColor, double fontSize = 16, FontWeight fontWeight = FontWeight.w400, TextAlign align = TextAlign.start})
-      : style = bodyStyle.copyWith(color: color, fontSize: fontSize, fontWeight: fontWeight),
+      {Color color = kcMediumGreyColor,
+      double fontSize = 16,
+      FontWeight fontWeight = FontWeight.w400,
+      TextAlign align = TextAlign.start})
+      : style = bodyStyle.copyWith(
+            color: color, fontSize: fontSize, fontWeight: fontWeight),
         alignment = align;
   BoxText.label(this.text,
-      {Color color = kcMediumGreyColor, double fontSize = 14, FontWeight fontWeight = FontWeight.w600, TextAlign align = TextAlign.start})
-      : style = bodyStyle.copyWith(color: color, fontSize: fontSize, fontWeight: fontWeight),
+      {Color color = kcMediumGreyColor,
+      double fontSize = 14,
+      FontWeight fontWeight = FontWeight.w600,
+      TextAlign align = TextAlign.start})
+      : style = bodyStyle.copyWith(
+            color: color, fontSize: fontSize, fontWeight: fontWeight),
         alignment = align;
 
   @override

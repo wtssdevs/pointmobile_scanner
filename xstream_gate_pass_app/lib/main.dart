@@ -3,21 +3,24 @@ import 'dart:io';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.router.dart';
+import 'package:xstream_gate_pass_app/app/app.bottomsheets.dart';
+import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/dialogs/setup_dialog_ui.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
       ..badCertificateCallback = ((X509Certificate cert, String host, int port) {
-        final isValidHost = ["xstream-tms.com", "b71b-169-159-185-137.ngrok.io"].contains(host); // <-- allow only hosts in array
+        final isValidHost = ["xstream-tms.com", "localhost", "localhost:44311", "b71b-169-159-185-137.ngrok.io"].contains(host); // <-- allow only hosts in array
         return isValidHost;
       });
   }
@@ -25,6 +28,10 @@ class MyHttpOverrides extends HttpOverrides {
 
 Future main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
   HttpOverrides.global = MyHttpOverrides();
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
@@ -36,6 +43,8 @@ Future main() async {
 
   await setupLocator();
   setupDialogUi();
+  //setupBottomSheetUi();
+  locator<EnvironmentService>().setBasics();
   await locator<ConnectionService>().initialize();
 
   runApp(const MyApp());
@@ -68,6 +77,9 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       navigatorKey: StackedService.navigatorKey,
       onGenerateRoute: StackedRouter().onGenerateRoute,
+      navigatorObservers: [
+        StackedService.routeObserver,
+      ],
       builder: EasyLoading.init(),
     );
   }

@@ -13,7 +13,8 @@ class ImageEditorView extends StatelessWidget {
   final String filePath;
   @override
   Widget build(BuildContext context) {
-    var provider = ExtendedFileImageProvider(File(filePath), cacheRawData: true);
+    var provider =
+        ExtendedFileImageProvider(File(filePath), cacheRawData: true);
     return ViewModelBuilder<ImageEditorViewModel>.reactive(
       viewModelBuilder: () => ImageEditorViewModel(),
       onModelReady: (model) {
@@ -46,7 +47,11 @@ class ImageEditorView extends StatelessWidget {
               mode: ExtendedImageMode.editor,
               extendedImageEditorKey: model.editorKey,
               initEditorConfigHandler: (state) {
-                return EditorConfig(maxScale: 8.0, cropRectPadding: const EdgeInsets.all(16.0), hitTestSize: 20.0, cropAspectRatio: CropAspectRatios.original);
+                return EditorConfig(
+                    maxScale: 8.0,
+                    cropRectPadding: const EdgeInsets.all(16.0),
+                    hitTestSize: 20.0,
+                    cropAspectRatio: CropAspectRatios.original);
                 //_aspectRatio.aspectRatio);
               },
             ),

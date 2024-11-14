@@ -3,11 +3,20 @@ class ApiResponse {
   String? targetUrl;
   String? message;
   bool? success;
+  bool? showMessage;
   Error? error;
   bool? unAuthorizedRequest;
   bool? bAbp;
 
-  ApiResponse({this.result, this.targetUrl, this.message, this.success, this.error, this.unAuthorizedRequest, this.bAbp});
+  ApiResponse(
+      {this.result,
+      this.targetUrl,
+      this.message,
+      this.success,
+      this.error,
+      this.unAuthorizedRequest,
+      this.bAbp,
+      this.showMessage = false});
 
   ApiResponse.fromJson(Map<String, dynamic> json) {
     result = json['result'];
@@ -60,7 +69,8 @@ class Error {
     data['message'] = this.message;
     data['details'] = this.details;
     if (this.validationErrors != null) {
-      data['validationErrors'] = this.validationErrors!.map((v) => v.toJson()).toList();
+      data['validationErrors'] =
+          this.validationErrors!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -88,18 +98,25 @@ class ValidationErrors {
 class BaseResponse {
   bool? success;
   List<String>? messages;
+  String? message;
 
-  BaseResponse({this.success, this.messages});
+  BaseResponse({this.success, this.messages, this.message});
 
   BaseResponse.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    messages = json['messages'].cast<String>();
+    message = json['message']?.cast<String>();
+    messages = json['messages']?.cast<String>();
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['messages'] = this.messages;
+    data['success'] = success;
+    data['messages'] = messages;
+    data['message'] = message;
     return data;
+  }
+
+  String messagesToString() {
+    return messages != null ? messages!.join(", ") : "";
   }
 }

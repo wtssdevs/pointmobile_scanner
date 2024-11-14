@@ -1,9 +1,10 @@
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
-import 'package:xstream_gate_pass_app/app_config/app.router.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.router.dart';
+
 import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
@@ -12,7 +13,8 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 
 class StartUpViewModel extends BaseViewModel {
   final log = getLogger('StartUpViewModel');
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final ApiManager _apiManager = locator<ApiManager>();
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
@@ -27,28 +29,11 @@ class StartUpViewModel extends BaseViewModel {
       var useIsLoggedIn = _localStorageService.isLoggedIn;
 
       if (useIsLoggedIn == false) {
-        // if (!_localStorageService.hasDisclosedBackgroundPermission) {
-        //   FlutterNativeSplash.remove();
-        //   //show the alert to user ,then update localstorage
-        //   // await _dialogService.showDialog(
-        //   //     title: 'Background Location Access',
-        //   //     description:
-        //   //         'Xstream Gatepass, collects location data to enable tracking your trip delivery/collections and calculate distance travelled even when the app is closed or not in use.This data will be uploaded to xstream-tms.com where you may view and/request your location history.',
-        //   //     buttonTitle: "Close",
-        //   //     barrierDismissible: true,
-        //   //     cancelTitleColor: Colors.black,
-        //   //     buttonTitleColor: Colors.blue);
-
-        //   _localStorageService.saveHasDisclosedBackgroundPermission(true);
-        // } else {
-        //   FlutterNativeSplash.remove();
-        // }
-        // whenever your initialization is completed, remove the splash screen:
         FlutterNativeSplash.remove();
         _navigationService.clearStackAndShow(Routes.loginView);
       } else {
         if (hasConnection) {
-          var canRefresh = await _apiManager.refreshToken();
+          var canRefresh = await _authenticationService.refreshToken();
           if (canRefresh == false) {
             FlutterNativeSplash.remove();
             _navigationService.clearStackAndShow(Routes.loginView);
@@ -62,8 +47,8 @@ class StartUpViewModel extends BaseViewModel {
           FlutterNativeSplash.remove();
           _navigationService.clearStackAndShow(Routes.homeView);
         } else {
-          _apiManager.refreshToken();
-          _authenticationService.getUserLoginInfo(true);
+          await _authenticationService.refreshToken();
+          await _authenticationService.getUserLoginInfo(true);
           _workerQueManager.enqueForStartUp();
           //  await Future.delayed(const Duration(milliseconds: 200));
           // whenever your initialization is completed, remove the splash screen:

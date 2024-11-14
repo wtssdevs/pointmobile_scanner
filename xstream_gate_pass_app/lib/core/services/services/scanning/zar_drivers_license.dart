@@ -167,7 +167,8 @@ class RsaDriversLicense implements RsaIdDocument {
         imageData: imageData,
       );
     } catch (e) {
-      throw FormatException('Could not instantiate Drivers License from bytes: $e');
+      throw FormatException(
+          'Could not instantiate Drivers License from bytes: $e');
     }
   }
 
@@ -242,7 +243,10 @@ class RsaDriversLicense implements RsaIdDocument {
 
       while (values.length < 12) {
         // If values.length is 0, 5, 7, or 8 - the next values is 2 nibbles (letters) long
-        if (values.isEmpty || values.length == 5 || values.length == 7 || values.length == 11) {
+        if (values.isEmpty ||
+            values.length == 5 ||
+            values.length == 7 ||
+            values.length == 11) {
           //2 nibbles
           values.add(nibbleString.substring(0, 2));
           nibbleString = nibbleString.substring(2);
@@ -315,11 +319,16 @@ Kw==
       var sequence = _parseSequence(rows);
       var modulus = (sequence.elements[0] as ASN1Integer).valueAsBigInteger!;
       var exponent = (sequence.elements[1] as ASN1Integer).valueAsBigInteger!;
-      decrypted.addAll(_encryptValue(block1, exponent, modulus, 128).sublist(5));
-      decrypted.addAll(_encryptValue(block2, exponent, modulus, 128).sublist(5));
-      decrypted.addAll(_encryptValue(block3, exponent, modulus, 128).sublist(5));
-      decrypted.addAll(_encryptValue(block4, exponent, modulus, 128).sublist(5));
-      decrypted.addAll(_encryptValue(block5, exponent, modulus, 128).sublist(5));
+      decrypted
+          .addAll(_encryptValue(block1, exponent, modulus, 128).sublist(5));
+      decrypted
+          .addAll(_encryptValue(block2, exponent, modulus, 128).sublist(5));
+      decrypted
+          .addAll(_encryptValue(block3, exponent, modulus, 128).sublist(5));
+      decrypted
+          .addAll(_encryptValue(block4, exponent, modulus, 128).sublist(5));
+      decrypted
+          .addAll(_encryptValue(block5, exponent, modulus, 128).sublist(5));
 
       // decode last block of 74 and add to decrypted.
       rows = key74.split(RegExp(r'\r\n?|\n'));
@@ -350,8 +359,11 @@ Kw==
   /// manually since encryption packages don't seem to be working.
   static ASN1Sequence _parseSequence(List<String> rows) {
     try {
-      final keyText =
-          rows.skipWhile((row) => row.startsWith('-----BEGIN')).takeWhile((row) => !row.startsWith('-----END')).map((row) => row.trim()).join('');
+      final keyText = rows
+          .skipWhile((row) => row.startsWith('-----BEGIN'))
+          .takeWhile((row) => !row.startsWith('-----END'))
+          .map((row) => row.trim())
+          .join('');
 
       final keyBytes = Uint8List.fromList(base64.decode(keyText));
       final asn1Parser = ASN1Parser(keyBytes);

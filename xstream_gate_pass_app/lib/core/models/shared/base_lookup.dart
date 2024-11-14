@@ -3,8 +3,18 @@ import 'dart:convert';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
 class BaseLookup {
-  BaseLookup({this.name, this.code, this.isActive, this.displayName, this.id, this.type});
-  factory BaseLookup.fromJsonManualMap(Map<String, dynamic> jsonRes, {required String nameMap, required String displayNameMap, required String codeMap}) => BaseLookup(
+  BaseLookup(
+      {this.name,
+      this.code,
+      this.isActive,
+      this.displayName,
+      this.id,
+      this.type});
+  factory BaseLookup.fromJsonManualMap(Map<String, dynamic> jsonRes,
+          {required String nameMap,
+          required String displayNameMap,
+          required String codeMap}) =>
+      BaseLookup(
         name: asT<String>(jsonRes[nameMap]) ?? "",
         displayName: asT<String>(jsonRes[displayNameMap]) ?? "",
         id: asT<int>(jsonRes['id']) ?? 0,
@@ -32,7 +42,11 @@ class BaseLookup {
   }
 
   bool isEqualToServer(BaseLookup l) {
-    return id == l.id && name == l.name && code == l.code && displayName == l.displayName && type == l.type;
+    return id == l.id &&
+        name == l.name &&
+        code == l.code &&
+        displayName == l.displayName &&
+        type == l.type;
   }
 
   void mergeUpdate(BaseLookup server) {
@@ -50,7 +64,8 @@ class BaseLookup {
     if (jsonRes is List) {
       for (final dynamic item in jsonRes.entries) {
         if (item != null) {
-          newStopTypes.add(BaseLookup.fromJson(asT<Map<String, dynamic>>(item)!));
+          newStopTypes
+              .add(BaseLookup.fromJson(asT<Map<String, dynamic>>(item)!));
         }
       }
     }

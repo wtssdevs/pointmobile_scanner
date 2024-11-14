@@ -39,10 +39,15 @@ class UserLoginInfo {
         transporterId: asT<int?>(json['transporterID']) ?? null,
         podCanAddTrip: asT<bool>(json['podCanAddTrip']) ?? false,
         mustCompleteSurvey: asT<bool>(json['mustCompleteSurvey']) ?? false,
-        podAccess_Orders_IsVisible: asT<bool>(json['podAccess_Orders_IsVisible']) ?? false,
-        podAccess_Parcels_IsVisible: asT<bool>(json['podAccess_Parcels_IsVisible']) ?? false,
-        podAccess_Signature_IsRequired: asT<bool>(json['podAccess_Signature_IsRequired']) ?? false,
-        podAccess_Device_Tracking_IsEnabled: asT<bool>(json['podAccess_Device_Tracking_IsEnabled'] ?? true) ?? true,
+        podAccess_Orders_IsVisible:
+            asT<bool>(json['podAccess_Orders_IsVisible']) ?? false,
+        podAccess_Parcels_IsVisible:
+            asT<bool>(json['podAccess_Parcels_IsVisible']) ?? false,
+        podAccess_Signature_IsRequired:
+            asT<bool>(json['podAccess_Signature_IsRequired']) ?? false,
+        podAccess_Device_Tracking_IsEnabled:
+            asT<bool>(json['podAccess_Device_Tracking_IsEnabled'] ?? true) ??
+                true,
       );
 
   Map<String, dynamic> toJson() {
@@ -57,8 +62,10 @@ class UserLoginInfo {
     data['mustCompleteSurvey'] = this.mustCompleteSurvey;
     data['podAccess_Orders_IsVisible'] = this.podAccess_Orders_IsVisible;
     data['podAccess_Parcels_IsVisible'] = this.podAccess_Parcels_IsVisible;
-    data['podAccess_Signature_IsRequired'] = this.podAccess_Signature_IsRequired;
-    data['podAccess_Device_Tracking_IsEnabled'] = this.podAccess_Device_Tracking_IsEnabled;
+    data['podAccess_Signature_IsRequired'] =
+        this.podAccess_Signature_IsRequired;
+    data['podAccess_Device_Tracking_IsEnabled'] =
+        this.podAccess_Device_Tracking_IsEnabled;
 
     return data;
   }

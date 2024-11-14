@@ -24,7 +24,8 @@ class LoginView extends StatelessWidget with $LoginView {
   Widget build(BuildContext context) {
     precacheImage(const AssetImage("assets/wtssgrplogo.png"), context);
     void validateForm(LoginViewModel model) async {
-      model.validateModel(tenantCodeController.text, emailController.text, passwordController.text);
+      model.validateModel(tenantCodeController.text, emailController.text,
+          passwordController.text);
       if (_loginFormKey.currentState!.validate()) {
         FocusScope.of(context).requestFocus(FocusNode());
         await model.signInRequest(
@@ -47,7 +48,9 @@ class LoginView extends StatelessWidget with $LoginView {
             child: Container(
               constraints: const BoxConstraints.expand(),
               decoration: const BoxDecoration(
-                image: DecorationImage(image: AssetImage('assets/wtssgrplogo.png'), fit: BoxFit.scaleDown),
+                image: DecorationImage(
+                    image: AssetImage('assets/wtssgrplogo.png'),
+                    fit: BoxFit.scaleDown),
               ),
               child: ClipRRect(
                 // make sure we apply clip it properly
@@ -57,7 +60,7 @@ class LoginView extends StatelessWidget with $LoginView {
                     padding: const EdgeInsets.symmetric(horizontal: 25),
                     child: ListView(
                       children: [
-                        verticalSpaceRegular,
+                        verticalSpaceMedium,
                         const Text(
                           "Xstream Gatepass",
                           textAlign: TextAlign.center,
@@ -67,14 +70,15 @@ class LoginView extends StatelessWidget with $LoginView {
                         Align(
                           alignment: Alignment.center,
                           child: SizedBox(
-                            width: screenWidthPercentage(context, percentage: 0.7),
+                            width:
+                                screenWidthPercentage(context, percentage: 0.7),
                             child: BoxText.body(
                               "Enter your account details to sign in.",
                               color: Colors.black,
                             ),
                           ),
                         ),
-                        verticalSpaceRegular,
+                        verticalSpaceMedium,
                         verticalSpaceLarge,
                         Form(
                           key: _loginFormKey,
@@ -141,13 +145,14 @@ class LoginView extends StatelessWidget with $LoginView {
                             ],
                           ),
                         ),
-                        verticalSpaceRegular,
+                        verticalSpaceMedium,
                         if (model.validationMessage != null)
                           BoxText.body(
                             model.validationMessage!,
                             color: Colors.red,
                           ),
-                        if (model.validationMessage != null) verticalSpaceRegular,
+                        if (model.validationMessage != null)
+                          verticalSpaceMedium,
                         GestureDetector(
                           onTap: () async {
                             validateForm(model);
@@ -162,11 +167,15 @@ class LoginView extends StatelessWidget with $LoginView {
                             ),
                             child: model.isBusy
                                 ? const CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                                    valueColor:
+                                        AlwaysStoppedAnimation(Colors.white),
                                   )
                                 : const Text(
                                     "SIGN IN",
-                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14),
                                   ),
                           ),
                         ),
@@ -182,7 +191,7 @@ class LoginView extends StatelessWidget with $LoginView {
                             model.navigateToTermsView();
                           },
                         ),
-                        verticalSpaceRegular,
+                        verticalSpaceMedium,
                       ],
                     ),
                   ),

@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:stacked/stacked.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/models/account/GetCurrentLoginInformation.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
@@ -17,7 +18,8 @@ class DataSyncViewModel extends BaseViewModel {
 
   final TextEditingController filterController = TextEditingController();
   final _connectionService = locator<ConnectionService>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final _workerQueManager = locator<WorkerQueManager>();
   final _backgroundJobInfoRepository = locator<BackgroundJobInfoRepository>();
   bool get hasConnection => _connectionService.hasConnection;
@@ -32,7 +34,8 @@ class DataSyncViewModel extends BaseViewModel {
   StreamSubscription? connectionStreamSubscription;
   StreamSubscription? syncTaskStreamSubscription;
   bool isPageLoad = true;
-  CurrentLoginInformation? get appSession => _localStorageService.getUserLoginInfo;
+  CurrentLoginInformation? get appSession =>
+      _localStorageService.getUserLoginInfo;
 
   Future<void> runStartupLogic() async {
     await loadSyncData();
@@ -42,13 +45,15 @@ class DataSyncViewModel extends BaseViewModel {
   }
 
   void startconnectionListen() {
-    connectionStreamSubscription = _connectionService.connectionChange.asBroadcastStream().listen((data) {
+    connectionStreamSubscription =
+        _connectionService.connectionChange.asBroadcastStream().listen((data) {
       if (_connectionService.hasConnection) {
         onRefresh();
       }
     });
 
-    syncTaskStreamSubscription = _workerQueManager.onSyncTaskChange.asBroadcastStream().listen((data) {
+    syncTaskStreamSubscription =
+        _workerQueManager.onSyncTaskChange.asBroadcastStream().listen((data) {
       onRefresh();
     });
   }

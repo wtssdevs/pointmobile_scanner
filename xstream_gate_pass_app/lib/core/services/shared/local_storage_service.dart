@@ -4,26 +4,26 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stacked/stacked_annotations.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart';
 import 'package:xstream_gate_pass_app/core/models/account/ForgotPassword.dart';
 import 'package:xstream_gate_pass_app/core/models/account/GetCurrentLoginInformation.dart';
 import 'package:xstream_gate_pass_app/core/models/account/UserLoginInfo.dart';
 
-@Presolve()
+@InitializableSingleton()
 class LocalStorageService {
-  //final log = getLogger('LocalStorageService');
+  final log = getLogger('LocalStorageService');
   static LocalStorageService? _instance;
   static SharedPreferences? _preferences;
-
-  static Future<LocalStorageService> getInstance() async {
+  @override
+  Future<LocalStorageService> init() async {
+    log.d('Initialized');
     if (_instance == null) {
       _instance = LocalStorageService();
     }
-
-    if (_preferences == null) {
-      _preferences = await SharedPreferences.getInstance();
-    }
+    _preferences = await SharedPreferences.getInstance();
 
     return _instance!;
   }
@@ -75,7 +75,8 @@ class LocalStorageService {
   }
 
   void setUserLoginInfo(CurrentLoginInformation userLoginInfo) {
-    _saveToDisk(AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
+    _saveToDisk(
+        AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
   }
 
   bool get isLoggedIn {
@@ -132,7 +133,8 @@ class LocalStorageService {
       searchText = searchText.trim();
     }
 
-    if (searchText == null || searchText.isEmpty || searchText == " ") return; //Should not be null
+    if (searchText == null || searchText.isEmpty || searchText == " ")
+      return; //Should not be null
 
     var listData = getRecentSearches();
     //Use `Set` to avoid duplication of recentSearches

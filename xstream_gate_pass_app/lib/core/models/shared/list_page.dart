@@ -31,7 +31,9 @@ class PagedList<T> {
     return (pageNumber - 1) * pageSize;
   }
 
-  factory PagedList.fromJsonWithItems(Map<String, dynamic> jsonRes, List<T> items) => PagedList(
+  factory PagedList.fromJsonWithItems(
+          Map<String, dynamic> jsonRes, List<T> items) =>
+      PagedList(
         totalCount: asT<int>(jsonRes["totalCount"]) ?? 0,
         totalPages: asT<int>(jsonRes["totalPages"]) ?? 0,
         pageNumber: asT<int>(jsonRes['currentPage']) ?? 0,

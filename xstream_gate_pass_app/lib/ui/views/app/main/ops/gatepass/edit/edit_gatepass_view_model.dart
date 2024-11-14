@@ -6,9 +6,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
-import 'package:xstream_gate_pass_app/app_config/app.router.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
@@ -36,7 +36,8 @@ class GatePassEditViewModel extends BaseFormViewModel {
   Function? _onModelSet;
 
   final log = getLogger('GatePassEditViewModel');
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final GatePassService _gatePassService = locator<GatePassService>();
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
@@ -59,14 +60,18 @@ class GatePassEditViewModel extends BaseFormViewModel {
   List<BaseLookup> get customers => _customers;
 
   void startconnectionListen() {
-    streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) {
+    streamSubscription =
+        _scanningService.licenseStream.asBroadcastStream().listen((data) {
       // log.i('Barcode Model Recieved? $data');
       _rsaDriversLicense = data;
-      gatePass.driverName = "${_rsaDriversLicense?.firstNames} ${_rsaDriversLicense?.surname}";
+      gatePass.driverName =
+          "${_rsaDriversLicense?.firstNames} ${_rsaDriversLicense?.surname}";
       gatePass.driverIdNo = _rsaDriversLicense?.idNumber;
-      gatePass.driverLicenseNo = "${_rsaDriversLicense?.licenseNumber} (${_rsaDriversLicense?.vehicleCodes.join(",")})";
+      gatePass.driverLicenseNo =
+          "${_rsaDriversLicense?.licenseNumber} (${_rsaDriversLicense?.vehicleCodes.join(",")})";
       gatePass.driverGender = _rsaDriversLicense?.gender;
-      gatePass.driverLicenseCountryCode = _rsaDriversLicense?.licenseCountryOfIssue;
+      gatePass.driverLicenseCountryCode =
+          _rsaDriversLicense?.licenseCountryOfIssue;
       setModelUpdate(_gatePass);
       notifyListeners();
     });
@@ -164,7 +169,8 @@ class GatePassEditViewModel extends BaseFormViewModel {
         variant: DialogType.basic,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description: 'Could not Save,Please check you internet connection and try again',
+        description:
+            'Could not Save,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
@@ -209,7 +215,8 @@ class GatePassEditViewModel extends BaseFormViewModel {
         variant: DialogType.basic,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description: 'Could not authorize for entry,Please check you internet connection and try again',
+        description:
+            'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
@@ -248,7 +255,8 @@ class GatePassEditViewModel extends BaseFormViewModel {
         variant: DialogType.basic,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description: 'Could not authorize for entry,Please check you internet connection and try again',
+        description:
+            'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
@@ -287,7 +295,8 @@ class GatePassEditViewModel extends BaseFormViewModel {
         variant: DialogType.basic,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description: 'Could not authorize for entry,Please check you internet connection and try again',
+        description:
+            'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
@@ -343,10 +352,8 @@ class GatePassEditViewModel extends BaseFormViewModel {
       //   Routes.cameraCaptureView,
       //   arguments: CameraCaptureViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
       // );
-      await _navigationService.navigateTo(
-        Routes.cameraView,
-        arguments: CameraViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
-      );
+      await _navigationService.navigateToCameraCaptureView(
+          refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType);
 
       await loadFileStoreImages();
 
@@ -354,7 +361,8 @@ class GatePassEditViewModel extends BaseFormViewModel {
     }
   }
 
-  Future<void> saveImageToLocalDb({required File galleryFile, required String tempFilePath}) async {
+  Future<void> saveImageToLocalDb(
+      {required File galleryFile, required String tempFilePath}) async {
     await _fileStoreRepository.insert(
       FileStore(
           desc: "",
@@ -416,7 +424,11 @@ class GatePassEditViewModel extends BaseFormViewModel {
 
   BaseLookup? getCustomer() {
     if (gatePass.customerName != null && gatePass.customerName!.isNotEmpty) {
-      return BaseLookup(code: gatePass.customerCode, id: gatePass.customerId, name: gatePass.customerName, displayName: gatePass.customerName);
+      return BaseLookup(
+          code: gatePass.customerCode,
+          id: gatePass.customerId,
+          name: gatePass.customerName,
+          displayName: gatePass.customerName);
     }
     if (gatePass.customerId == null) {
       return null;

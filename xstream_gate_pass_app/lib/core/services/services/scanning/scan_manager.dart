@@ -3,14 +3,16 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:pointmobile_scanner/pointmobile_scanner.dart';
 import 'package:stacked/stacked_annotations.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_drivers_license.dart';
 
 /// Returns values from the environment read from the .env file
 @LazySingleton()
 class ScanningService {
   final log = getLogger('ScanningService');
-  StreamController<RsaDriversLicense> barcodeChangeController = StreamController<RsaDriversLicense>.broadcast();
+  StreamController<RsaDriversLicense> barcodeChangeController =
+      StreamController<RsaDriversLicense>.broadcast();
   Stream<RsaDriversLicense> get licenseStream => barcodeChangeController.stream;
 
   RsaDriversLicense? _rsaDriversLicense;
@@ -44,7 +46,9 @@ class ScanningService {
   RsaDriversLicense? onDecode(MethodCall call) {
     final List lDecodeResult = call.arguments;
     //var _decodeResult = "Symbology: ${lDecodeResult[0]}\n Base64Value: ${lDecodeResult[1]}";
-    if (lDecodeResult[1] != null && lDecodeResult[0] != null && lDecodeResult[0] != "READ_FAIL") {
+    if (lDecodeResult[1] != null &&
+        lDecodeResult[0] != null &&
+        lDecodeResult[0] != "READ_FAIL") {
       var base64String = lDecodeResult[1] as String;
       var withOutNewlines = base64String.replaceAll("\n", "");
       var normalBase64 = base64.normalize(withOutNewlines);

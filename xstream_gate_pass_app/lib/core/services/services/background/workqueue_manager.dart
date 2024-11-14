@@ -3,8 +3,8 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:stacked/stacked_annotations.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
@@ -39,7 +39,8 @@ class WorkerQueManager {
   //get stream for sync que tasks
   Stream get onSyncTaskChange => _syncController.stream;
 
-  Future<void> enqueSingle(BackgroundJobInfo value, [bool startNow = true]) async {
+  Future<void> enqueSingle(BackgroundJobInfo value,
+      [bool startNow = true]) async {
     //_input.add(value);
 
     await _backgroundJobInfoRepository.insert(value);
@@ -113,7 +114,8 @@ class WorkerQueManager {
 
         await tryProcessJob(firstJob);
         if (kDebugMode) {
-          log.d('TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
+          log.d(
+              'TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
         }
       } else {
         //TODO clean job list from db and report issues maybe...

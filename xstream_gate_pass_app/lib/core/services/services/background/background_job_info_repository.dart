@@ -1,21 +1,20 @@
-
 import 'package:sembast/sembast.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:stacked/stacked_annotations.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
 import 'package:xstream_gate_pass_app/core/services/database/sembast_store.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 
-
 @LazySingleton()
 class BackgroundJobInfoRepository {
   final log = getLogger('BackgroundJobInfoRepository');
   final _appDatabase = locator<AppDatabase>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   int? userId = 0;
   StoreRef? _store;
 
@@ -28,7 +27,8 @@ class BackgroundJobInfoRepository {
       userId = _localStorageService.getAuthToken?.userId;
     }
 
-    _store ??= stringMapStoreFactory.store("${AppConst.DB_BackgroundJobInfo}_$userId");
+    _store ??=
+        stringMapStoreFactory.store("${AppConst.DB_BackgroundJobInfo}_$userId");
   }
 
   Future<void> insert(BackgroundJobInfo entity) async {
@@ -76,7 +76,8 @@ class BackgroundJobInfoRepository {
       //   Timestamp.now(),
       // ),
     ]);
-    var finder = Finder(sortOrders: [SortOrder("tryCount")], filter: filter, limit: 300);
+    var finder =
+        Finder(sortOrders: [SortOrder("tryCount")], filter: filter, limit: 300);
 
     final recordSnapshot = await _store!.find(_appDatabase.db!, finder: finder);
 
@@ -86,11 +87,13 @@ class BackgroundJobInfoRepository {
     }
 
     var outPutList = recordSnapshot.map((snapshot) {
-      return BackgroundJobInfo.fromJson(snapshot.value);
+      return BackgroundJobInfo.fromJson(snapshot.value as Map<String, dynamic>);
     }).toList();
     var dateNow = DateTime.now();
     //filter date delay
-    outPutList = outPutList.where((x) => x.nextTryTime.toDateTime().isBefore(dateNow)).toList();
+    outPutList = outPutList
+        .where((x) => x.nextTryTime.toDateTime().isBefore(dateNow))
+        .toList();
 
     // for (var x in outPutList) {
     //   var isBefore = x.nextTryTime.toDateTime().isBefore(dateNow);

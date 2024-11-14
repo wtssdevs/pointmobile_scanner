@@ -3,94 +3,99 @@ import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
 
 class DioErrorUtil {
   // general methods:------------------------------------------------------------
-  static String handleError(DioError error) {
-    String errorDescription = "";
-    if (error is DioError) {
-      switch (error.type) {
-        case DioErrorType.cancel:
-          errorDescription = "Request to API server was cancelled";
-          break;
-        case DioErrorType.connectTimeout:
-        case DioErrorType.receiveTimeout:
-          errorDescription = "Connection timeout with TMS API server,please try again later.";
-          break;
-        case DioErrorType.other:
-          errorDescription = "Connection to API server failed due to internet connection";
-          break;
-
-        case DioErrorType.response:
-          errorDescription = "Received invalid status code: ${error.response!.statusCode}";
-          switch (error.response!.statusCode) {
-            case 404: //not found
-              errorDescription = "";
-              break;
-            case 400: //bad Request
-            case 500: //Internal server error
-              errorDescription = "Bad Request";
-              if (error.response != null && error.response!.data != null) {
-              } else {
-                errorDescription = "Internal server error";
-              }
-              break;
-          }
-          break;
-        case DioErrorType.sendTimeout:
-          errorDescription = "Send timeout in connection with API server";
-          break;
-      }
-    } else {
-      errorDescription = "Unexpected error occured";
+  static String handleError(DioException error) {
+    String errorDescription = "Internal Server Error";
+    switch (error.type) {
+      case DioExceptionType.cancel:
+        errorDescription = "Request to API server was cancelled";
+        break;
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.connectionError:
+      case DioExceptionType.receiveTimeout:
+        errorDescription =
+            "Connection timeout with API server,please try again later.";
+        break;
+      case DioExceptionType.unknown:
+        errorDescription =
+            "Received invalid status code: ${error.response!.statusCode}";
+        switch (error.response!.statusCode) {
+          case 404: //not found
+            errorDescription = "";
+            break;
+          case 400: //bad Request
+          case 500: //Internal server error
+            errorDescription = "Bad Request";
+            if (error.response != null && error.response!.data != null) {
+            } else {
+              errorDescription = "Internal server error";
+            }
+            break;
+        }
+        break;
+      case DioExceptionType.sendTimeout:
+        errorDescription = "Send timeout in connection with API server";
+        break;
+      case DioExceptionType.badCertificate:
+      case DioExceptionType.badResponse:
     }
     return errorDescription;
   }
 
-  static ApiResponse handleAbpError(DioError error) {
+  static ApiResponse handleAbpError(DioException error,
+      [bool showMessage = true]) {
     var apiResponse = ApiResponse();
-    apiResponse.success = false;
+    apiResponse.success = null;
+    apiResponse.showMessage = showMessage;
 
-    if (error is DioError) {
-      switch (error.type) {
-        case DioErrorType.cancel:
-          apiResponse.message = "Request to API server was cancelled";
-          break;
-        case DioErrorType.connectTimeout:
-        case DioErrorType.receiveTimeout:
-          apiResponse.message = "Connection timeout with TMS API server,please try again later.";
-          break;
-        case DioErrorType.other:
-          apiResponse.message = "Connection to API server failed due to internet connection";
-          break;
-        case DioErrorType.response:
-          apiResponse.message = "Received invalid status code: ${error.response!.statusCode}";
-          switch (error.response!.statusCode) {
-            case 400: //bad Request
-              if (error.response != null && error.response!.data != null) {
-                apiResponse = ApiResponse.fromJson(error.response!.data);
-              } else {
-                apiResponse.message = "Internal server error";
-              }
+    //if (kDebugMode) {}
 
-              break;
-            case 401: //bad Request
+    switch (error.type) {
+      case DioExceptionType.cancel:
+        apiResponse.success = false;
+        apiResponse.message = "Request to API server was cancelled";
+        break;
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.connectionError:
+      case DioExceptionType.receiveTimeout:
+        apiResponse.success = false;
+        apiResponse.message =
+            "Connection timeout with API server,please try again later.";
+        break;
+      case DioExceptionType.unknown:
+        apiResponse.success = false;
+        apiResponse.message =
+            "Connection to API server failed due to internet connection";
 
-              break;
-            case 500: //Internal server error
-              apiResponse.message = "Bad Request";
-              if (error.response != null && error.response!.data != null) {
-                apiResponse = ApiResponse.fromJson(error.response!.data);
-              } else {
-                apiResponse.message = "Internal server error";
-              }
+        apiResponse.error = Error(
+            message:
+                "Connection to API server failed due to internet connection");
+        apiResponse.showMessage = false;
+        break;
 
-              break;
-          }
-          break;
-        case DioErrorType.sendTimeout:
-          apiResponse.message = "Send timeout in connection with API server";
-          break;
-      }
-    } else {
-      apiResponse.message = "Unexpected error occured";
+      case DioExceptionType.sendTimeout:
+        apiResponse.success = false;
+        apiResponse.message = "Send timeout in connection with API server";
+        break;
+      case DioExceptionType.badResponse:
+        switch (error.response!.statusCode) {
+          case 400: //bad Request
+          case 401: //bad Request
+          case 500: //Internal server error
+            apiResponse.message = "Bad Request";
+            if (error.response != null &&
+                error.response!.data != null &&
+                error.response!.data != "") {
+              apiResponse = ApiResponse.fromJson(error.response!.data);
+            } else {
+              apiResponse.message = "Internal server error";
+            }
+            break;
+        }
+
+      case DioExceptionType.badCertificate:
+        apiResponse.success = false;
+        apiResponse.message = "Bad Certificate with API server";
+        break;
     }
     return apiResponse;
   }

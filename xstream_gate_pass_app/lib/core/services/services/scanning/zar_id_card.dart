@@ -1,5 +1,3 @@
-
-
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_id_doc.dart';
 
 /// A South African Smart ID Card. Includes all the details of the Smart ID.
@@ -88,7 +86,8 @@ class RsaIdCard implements RsaIdDocument {
         citizenshipStatus: citizenshipStatus,
       );
     } catch (e) {
-      throw FormatException('Could not instantiate Smart ID from given barcode String: $e');
+      throw FormatException(
+          'Could not instantiate Smart ID from given barcode String: $e');
     }
   }
 

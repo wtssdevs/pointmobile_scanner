@@ -4,9 +4,9 @@ import 'package:flutter/widgets.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
-import 'package:xstream_gate_pass_app/app_config/app.router.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_type.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart';
@@ -25,9 +25,15 @@ class GatePassViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
 
   int _nextPage = 1;
-  final pagingController = PagingController<int, GatePass>(firstPageKey: 1, invisibleItemsThreshold: 5);
+  final pagingController = PagingController<int, GatePass>(
+      firstPageKey: 1, invisibleItemsThreshold: 5);
 
-  final PagedList<GatePass> _pagedList = PagedList<GatePass>(totalCount: 0, items: <GatePass>[], pageNumber: 1, pageSize: 15, totalPages: 0);
+  final PagedList<GatePass> _pagedList = PagedList<GatePass>(
+      totalCount: 0,
+      items: <GatePass>[],
+      pageNumber: 1,
+      pageSize: 15,
+      totalPages: 0);
 
   final _scanningService = locator<ScanningService>();
   final TextEditingController filterController = TextEditingController();
@@ -39,7 +45,8 @@ class GatePassViewModel extends BaseViewModel {
   RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
 
   void startconnectionListen() {
-    streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) {
+    streamSubscription =
+        _scanningService.licenseStream.asBroadcastStream().listen((data) {
       log.i('Barcode Model Recieved? $data');
       _rsaDriversLicense = data;
       notifyListeners();
@@ -68,9 +75,11 @@ class GatePassViewModel extends BaseViewModel {
         filterValue = filterController.text;
       }
 
-      final newPage = await _gatePassService.getPagedList(_pagedList.pageNumber, _pagedList.pageSize, filterValue);
+      final newPage = await _gatePassService.getPagedList(
+          _pagedList.pageNumber, _pagedList.pageSize, filterValue);
 
-      final previouslyFetchedItemsCount = pagingController.itemList?.length ?? 0;
+      final previouslyFetchedItemsCount =
+          pagingController.itemList?.length ?? 0;
 
       final isLastPage = newPage.isLastPage(previouslyFetchedItemsCount);
 

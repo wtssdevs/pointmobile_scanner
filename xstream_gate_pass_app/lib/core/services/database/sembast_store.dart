@@ -1,22 +1,21 @@
-
 import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'dart:async';
 import 'package:sembast/sembast.dart';
 import 'package:path/path.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 
-
-@Presolve()
+@InitializableSingleton()
 class AppDatabase {
   final log = getLogger('AppDatabase');
   static AppDatabase? _instance;
   static Database? _db;
   Database? get db => _db;
 
-  Future initialise() async {
+  Future init() async {
     log.i('Load AppDatabase');
     await initSembast();
     log.v('AppDatabase loaded');

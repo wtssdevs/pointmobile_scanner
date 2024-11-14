@@ -1,6 +1,6 @@
 import 'package:stacked/stacked_annotations.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
@@ -12,10 +12,16 @@ class GatePassService {
   final log = getLogger('GatePassService');
   final ApiManager _apiManager = locator<ApiManager>();
 
-  Future<PagedList<GatePass>> getPagedList(int pageNumber, int pageSize, String searchValue) async {
+  Future<PagedList<GatePass>> getPagedList(
+      int pageNumber, int pageSize, String searchValue) async {
     try {
       List<GatePass> items = <GatePass>[];
-      var outPut = PagedList<GatePass>(totalCount: 0, items: items, pageNumber: pageNumber, pageSize: pageSize, totalPages: 0);
+      var outPut = PagedList<GatePass>(
+          totalCount: 0,
+          items: items,
+          pageNumber: pageNumber,
+          pageSize: pageSize,
+          totalPages: 0);
 
       final Map<String, dynamic> queryParameters = <String, dynamic>{};
 
@@ -30,18 +36,22 @@ class GatePassService {
         queryParameters['pageNumber'] = pageNumber;
       }
 
-      var baseResponse = await _apiManager.post(AppConst.GetAllGatePass, showLoader: false, data: queryParameters);
+      var baseResponse = await _apiManager.post(AppConst.GetAllGatePass,
+          showLoader: false, data: queryParameters);
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
 
-        if (apiResponse.success == true && apiResponse.result != null && apiResponse.result["items"] is List) {
+        if (apiResponse.success == true &&
+            apiResponse.result != null &&
+            apiResponse.result["items"] is List) {
           for (final dynamic item in apiResponse.result["items"]) {
             if (item != null) {
               items.add(GatePass.fromJson(item));
             }
           }
         }
-        outPut = PagedList<GatePass>.fromJsonWithItems(apiResponse.result, items);
+        outPut =
+            PagedList<GatePass>.fromJsonWithItems(apiResponse.result, items);
 
         return outPut;
       }
@@ -54,7 +64,8 @@ class GatePassService {
 
   Future<GatePass?> create(GatePass costMobileEdit) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.CreateGatePass, showLoader: true, data: costMobileEdit.toJson());
+      var baseResponse = await _apiManager.post(AppConst.CreateGatePass,
+          showLoader: true, data: costMobileEdit.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -72,7 +83,10 @@ class GatePassService {
 
   Future<GatePass?> authorizeForEntry(GatePass entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.AuthorizeForEntryGatePass, showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(
+          AppConst.AuthorizeForEntryGatePass,
+          showLoader: true,
+          data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -90,7 +104,10 @@ class GatePassService {
 
   Future<GatePass?> authorizeExit(GatePass entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.AuthorizeForExitGatePass, showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(
+          AppConst.AuthorizeForExitGatePass,
+          showLoader: true,
+          data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -108,7 +125,8 @@ class GatePassService {
 
   Future<GatePass?> update(GatePass entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.UpdateGatePass, showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.UpdateGatePass,
+          showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -126,7 +144,8 @@ class GatePassService {
 
   Future<GatePass?> rejectForEntry(GatePass entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.RejectEntryGatePass, showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.RejectEntryGatePass,
+          showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {

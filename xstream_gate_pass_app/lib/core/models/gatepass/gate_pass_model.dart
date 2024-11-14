@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_question.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
@@ -58,12 +58,18 @@ class GatePass {
       this.hasDeliveryDocuments = false});
   factory GatePass.fromJson(Map<String, dynamic> jsonRes) => GatePass(
         vehicleRegNumber: asT<String>(jsonRes['vehicleRegNumber']) ?? "",
-        timeAtGate: jsonRes["timeAtGate"] != null ? DateTime.parse(jsonRes["timeAtGate"]) : null,
-        timeIn: jsonRes["timeIn"] != null ? DateTime.parse(jsonRes["timeIn"]) : null,
+        timeAtGate: jsonRes["timeAtGate"] != null
+            ? DateTime.parse(jsonRes["timeAtGate"])
+            : null,
+        timeIn: jsonRes["timeIn"] != null
+            ? DateTime.parse(jsonRes["timeIn"])
+            : null,
         extensionData: asT<String>(jsonRes['extensionData']) ?? "",
         customerName: asT<String>(jsonRes['customerName']) ?? "",
         transporterName: asT<String>(jsonRes['transporterName']) ?? "",
-        timeOut: jsonRes["timeOut"] != null ? DateTime.parse(jsonRes["timeOut"]) : null,
+        timeOut: jsonRes["timeOut"] != null
+            ? DateTime.parse(jsonRes["timeOut"])
+            : null,
         gatePassStatus: asT<int>(jsonRes['gatePassStatus']) ?? 0,
         branchId: asT<int?>(jsonRes['branchId']),
         statusDescription: asT<String>(jsonRes['statusDescription']) ?? "",
@@ -74,7 +80,8 @@ class GatePass {
         driverName: asT<String>(jsonRes['driverName']) ?? "",
         driverIdNo: asT<String>(jsonRes['driverIDNo']) ?? "",
         driverLicenseNo: asT<String>(jsonRes['driverLicenseNo']) ?? "",
-        driverLicenseCountryCode: asT<String>(jsonRes['driverLicenseCountryCode']) ?? "",
+        driverLicenseCountryCode:
+            asT<String>(jsonRes['driverLicenseCountryCode']) ?? "",
         driverGender: asT<String>(jsonRes['driverGender']) ?? "",
         siNumber: asT<String>(jsonRes['siNumber']) ?? "",
         customerCode: asT<String>(jsonRes['customerCode']) ?? "",
@@ -86,8 +93,10 @@ class GatePass {
         rejReason: asT<String>(jsonRes['rejReason']) ?? "",
         gatePassBookingType: asT<int>(jsonRes['gatePassBookingType']) ?? 0,
         siteCardNumber: asT<String>(jsonRes['siteCardNumber']) ?? "",
-        driverAssistantDetails1: asT<String>(jsonRes['driverAssistantDetails1']) ?? "",
-        driverAssistantDetails2: asT<String>(jsonRes['driverAssistantDetails2']) ?? "",
+        driverAssistantDetails1:
+            asT<String>(jsonRes['driverAssistantDetails1']) ?? "",
+        driverAssistantDetails2:
+            asT<String>(jsonRes['driverAssistantDetails2']) ?? "",
         totClaimedWeightIn: asT<double>(jsonRes['totClaimedWeightIn']) ?? 0,
         totMeasuredWeightIn: asT<double>(jsonRes['totMeasuredWeightIn']) ?? 0,
         totClaimedWeightOut: asT<double>(jsonRes['totClaimedWeightOut']) ?? 0,
@@ -104,7 +113,10 @@ class GatePass {
         productDescription: asT<String>(jsonRes['productDescription']) ?? "",
         productAltCode: asT<String>(jsonRes['productAltCode']) ?? "",
         hasBeenPrinted: asT<bool>(jsonRes['hasBeenPrinted']) ?? false,
-        gatePassQuestions: jsonRes['gatePassQuestions'] == null ? null : GatePassQuestions.fromJson(asT<Map<String, dynamic>>(jsonRes['gatePassQuestions'])!),
+        gatePassQuestions: jsonRes['gatePassQuestions'] == null
+            ? null
+            : GatePassQuestions.fromJson(
+                asT<Map<String, dynamic>>(jsonRes['gatePassQuestions'])!),
         id: asT<int>(jsonRes['id']) ?? 0,
       );
 

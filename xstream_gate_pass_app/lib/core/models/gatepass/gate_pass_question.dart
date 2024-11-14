@@ -19,8 +19,10 @@ class GatePassQuestions {
   bool expectedDelivery;
   bool driverAgree;
 
-  factory GatePassQuestions.fromJson(Map<String, dynamic> jsonRes) => GatePassQuestions(
-        hasDeliveryDocuments: asT<bool>(jsonRes['hasDeliveryDocuments']) ?? false,
+  factory GatePassQuestions.fromJson(Map<String, dynamic> jsonRes) =>
+      GatePassQuestions(
+        hasDeliveryDocuments:
+            asT<bool>(jsonRes['hasDeliveryDocuments']) ?? false,
         isContainerised: asT<bool>(jsonRes['isContainerised']) ?? false,
         hasDamagesDefects: asT<bool>(jsonRes['hasDamagesDefects']) ?? false,
         qtyMatchedDocs: asT<bool>(jsonRes['qtyMatchedDocs']) ?? false,

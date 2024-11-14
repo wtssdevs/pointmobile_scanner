@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/exception_indicator.dart';
 
-
 /// Indicates that a connection error occurred.
 class NoConnectionIndicator extends StatelessWidget {
   const NoConnectionIndicator({

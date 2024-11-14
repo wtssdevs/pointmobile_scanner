@@ -4,10 +4,12 @@
 // StackedFormGenerator
 // **************************************************************************
 
-// ignore_for_file: public_member_api_docs,  constant_identifier_names, non_constant_identifier_names,unnecessary_this
+// ignore_for_file: public_member_api_docs, constant_identifier_names, non_constant_identifier_names,unnecessary_this
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+
+const bool _autoTextFieldValidation = true;
 
 const String TenantCodeValueKey = 'tenantCode';
 const String EmailValueKey = 'email';
@@ -23,22 +25,26 @@ final Map<String, String? Function(String?)?> _LoginViewTextValidations = {
   PasswordValueKey: null,
 };
 
-mixin $LoginView on StatelessWidget {
+mixin $LoginView {
   TextEditingController get tenantCodeController =>
       _getFormTextEditingController(TenantCodeValueKey);
   TextEditingController get emailController =>
       _getFormTextEditingController(EmailValueKey);
   TextEditingController get passwordController =>
       _getFormTextEditingController(PasswordValueKey);
+
   FocusNode get tenantCodeFocusNode => _getFormFocusNode(TenantCodeValueKey);
   FocusNode get emailFocusNode => _getFormFocusNode(EmailValueKey);
   FocusNode get passwordFocusNode => _getFormFocusNode(PasswordValueKey);
 
-  TextEditingController _getFormTextEditingController(String key,
-      {String? initialValue}) {
+  TextEditingController _getFormTextEditingController(
+    String key, {
+    String? initialValue,
+  }) {
     if (_LoginViewTextEditingControllers.containsKey(key)) {
       return _LoginViewTextEditingControllers[key]!;
     }
+
     _LoginViewTextEditingControllers[key] =
         TextEditingController(text: initialValue);
     return _LoginViewTextEditingControllers[key]!;
@@ -54,20 +60,30 @@ mixin $LoginView on StatelessWidget {
 
   /// Registers a listener on every generated controller that calls [model.setData()]
   /// with the latest textController values
+  void syncFormWithViewModel(FormStateHelper model) {
+    tenantCodeController.addListener(() => _updateFormData(model));
+    emailController.addListener(() => _updateFormData(model));
+    passwordController.addListener(() => _updateFormData(model));
+
+    _updateFormData(model, forceValidate: _autoTextFieldValidation);
+  }
+
+  /// Registers a listener on every generated controller that calls [model.setData()]
+  /// with the latest textController values
+  @Deprecated(
+    'Use syncFormWithViewModel instead.'
+    'This feature was deprecated after 3.1.0.',
+  )
   void listenToFormUpdated(FormViewModel model) {
     tenantCodeController.addListener(() => _updateFormData(model));
     emailController.addListener(() => _updateFormData(model));
     passwordController.addListener(() => _updateFormData(model));
-  }
 
-  final bool _autoTextFieldValidation = true;
-  bool validateFormFields(FormViewModel model) {
-    _updateFormData(model, forceValidate: true);
-    return model.isFormValid;
+    _updateFormData(model, forceValidate: _autoTextFieldValidation);
   }
 
   /// Updates the formData on the FormViewModel
-  void _updateFormData(FormViewModel model, {bool forceValidate = false}) {
+  void _updateFormData(FormStateHelper model, {bool forceValidate = false}) {
     model.setData(
       model.formValueMap
         ..addAll({
@@ -76,26 +92,15 @@ mixin $LoginView on StatelessWidget {
           PasswordValueKey: passwordController.text,
         }),
     );
+
     if (_autoTextFieldValidation || forceValidate) {
-      _updateValidationData(model);
+      updateValidationData(model);
     }
   }
 
-  /// Updates the fieldsValidationMessages on the FormViewModel
-  void _updateValidationData(FormViewModel model) =>
-      model.setValidationMessages({
-        TenantCodeValueKey: _getValidationMessage(TenantCodeValueKey),
-        EmailValueKey: _getValidationMessage(EmailValueKey),
-        PasswordValueKey: _getValidationMessage(PasswordValueKey),
-      });
-
-  /// Returns the validation message for the given key
-  String? _getValidationMessage(String key) {
-    final validatorForKey = _LoginViewTextValidations[key];
-    if (validatorForKey == null) return null;
-    String? validationMessageForKey =
-        validatorForKey(_LoginViewTextEditingControllers[key]!.text);
-    return validationMessageForKey;
+  bool validateFormFields(FormViewModel model) {
+    _updateFormData(model, forceValidate: true);
+    return model.isFormValid;
   }
 
   /// Calls dispose on all the generated controllers and focus nodes
@@ -114,17 +119,62 @@ mixin $LoginView on StatelessWidget {
   }
 }
 
-extension ValueProperties on FormViewModel {
-  bool get isFormValid =>
-      this.fieldsValidationMessages.values.every((element) => element == null);
+extension ValueProperties on FormStateHelper {
+  bool get hasAnyValidationMessage => this
+      .fieldsValidationMessages
+      .values
+      .any((validation) => validation != null);
+
+  bool get isFormValid {
+    if (!_autoTextFieldValidation) this.validateForm();
+
+    return !hasAnyValidationMessage;
+  }
+
   String? get tenantCodeValue =>
       this.formValueMap[TenantCodeValueKey] as String?;
   String? get emailValue => this.formValueMap[EmailValueKey] as String?;
   String? get passwordValue => this.formValueMap[PasswordValueKey] as String?;
 
-  bool get hasTenantCode => this.formValueMap.containsKey(TenantCodeValueKey);
-  bool get hasEmail => this.formValueMap.containsKey(EmailValueKey);
-  bool get hasPassword => this.formValueMap.containsKey(PasswordValueKey);
+  set tenantCodeValue(String? value) {
+    this.setData(
+      this.formValueMap..addAll({TenantCodeValueKey: value}),
+    );
+
+    if (_LoginViewTextEditingControllers.containsKey(TenantCodeValueKey)) {
+      _LoginViewTextEditingControllers[TenantCodeValueKey]?.text = value ?? '';
+    }
+  }
+
+  set emailValue(String? value) {
+    this.setData(
+      this.formValueMap..addAll({EmailValueKey: value}),
+    );
+
+    if (_LoginViewTextEditingControllers.containsKey(EmailValueKey)) {
+      _LoginViewTextEditingControllers[EmailValueKey]?.text = value ?? '';
+    }
+  }
+
+  set passwordValue(String? value) {
+    this.setData(
+      this.formValueMap..addAll({PasswordValueKey: value}),
+    );
+
+    if (_LoginViewTextEditingControllers.containsKey(PasswordValueKey)) {
+      _LoginViewTextEditingControllers[PasswordValueKey]?.text = value ?? '';
+    }
+  }
+
+  bool get hasTenantCode =>
+      this.formValueMap.containsKey(TenantCodeValueKey) &&
+      (tenantCodeValue?.isNotEmpty ?? false);
+  bool get hasEmail =>
+      this.formValueMap.containsKey(EmailValueKey) &&
+      (emailValue?.isNotEmpty ?? false);
+  bool get hasPassword =>
+      this.formValueMap.containsKey(PasswordValueKey) &&
+      (passwordValue?.isNotEmpty ?? false);
 
   bool get hasTenantCodeValidationMessage =>
       this.fieldsValidationMessages[TenantCodeValueKey]?.isNotEmpty ?? false;
@@ -141,11 +191,47 @@ extension ValueProperties on FormViewModel {
       this.fieldsValidationMessages[PasswordValueKey];
 }
 
-extension Methods on FormViewModel {
+extension Methods on FormStateHelper {
   setTenantCodeValidationMessage(String? validationMessage) =>
       this.fieldsValidationMessages[TenantCodeValueKey] = validationMessage;
   setEmailValidationMessage(String? validationMessage) =>
       this.fieldsValidationMessages[EmailValueKey] = validationMessage;
   setPasswordValidationMessage(String? validationMessage) =>
       this.fieldsValidationMessages[PasswordValueKey] = validationMessage;
+
+  /// Clears text input fields on the Form
+  void clearForm() {
+    tenantCodeValue = '';
+    emailValue = '';
+    passwordValue = '';
+  }
+
+  /// Validates text input fields on the Form
+  void validateForm() {
+    this.setValidationMessages({
+      TenantCodeValueKey: getValidationMessage(TenantCodeValueKey),
+      EmailValueKey: getValidationMessage(EmailValueKey),
+      PasswordValueKey: getValidationMessage(PasswordValueKey),
+    });
+  }
 }
+
+/// Returns the validation message for the given key
+String? getValidationMessage(String key) {
+  final validatorForKey = _LoginViewTextValidations[key];
+  if (validatorForKey == null) return null;
+
+  String? validationMessageForKey = validatorForKey(
+    _LoginViewTextEditingControllers[key]!.text,
+  );
+
+  return validationMessageForKey;
+}
+
+/// Updates the fieldsValidationMessages on the FormViewModel
+void updateValidationData(FormStateHelper model) =>
+    model.setValidationMessages({
+      TenantCodeValueKey: getValidationMessage(TenantCodeValueKey),
+      EmailValueKey: getValidationMessage(EmailValueKey),
+      PasswordValueKey: getValidationMessage(PasswordValueKey),
+    });

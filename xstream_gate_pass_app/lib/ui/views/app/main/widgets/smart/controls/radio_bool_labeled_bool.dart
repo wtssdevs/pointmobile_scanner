@@ -34,7 +34,10 @@ class ListRadioBoolWithLabel extends StatelessWidget {
               padding: const EdgeInsets.only(left: 9.0),
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5),
               ),
             ),
           ),

@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_id_doc.dart';
 
 class RsaIdBook implements RsaIdDocument {

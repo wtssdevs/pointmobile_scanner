@@ -23,15 +23,19 @@ class TenantLoginInfo {
     this.pODAPP_Survey_IsEnabled = false,
   });
 
-  factory TenantLoginInfo.fromJson(Map<String, dynamic> json) => TenantLoginInfo(
+  factory TenantLoginInfo.fromJson(Map<String, dynamic> json) =>
+      TenantLoginInfo(
         name: asT<String>(json['name']) ?? "",
         tenancyName: asT<String>(json['tenancyName']) ?? "",
         code: asT<String?>(json['code']) ?? "",
         taxFactor: asT<double>(json['taxFactor']) ?? 0,
         id: asT<int>(json['id']) ?? 0,
-        pODAPP_GrossWeight_DefaultValue: asT<double>(json['pODAPP_GrossWeight_DefaultValue']) ?? 0,
-        pODAPP_VerifyLoads_IsEnabled: asT<bool>(json['pODAPP_VerifyLoads_IsEnabled']) ?? false,
-        pODAPP_Survey_IsEnabled: asT<bool>(json['pODAPP_Survey_IsEnabled']) ?? false,
+        pODAPP_GrossWeight_DefaultValue:
+            asT<double>(json['pODAPP_GrossWeight_DefaultValue']) ?? 0,
+        pODAPP_VerifyLoads_IsEnabled:
+            asT<bool>(json['pODAPP_VerifyLoads_IsEnabled']) ?? false,
+        pODAPP_Survey_IsEnabled:
+            asT<bool>(json['pODAPP_Survey_IsEnabled']) ?? false,
         mobileSurveyType: asT<int>(json['mobileSurveyType']) ?? 0,
       );
 

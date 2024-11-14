@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'package:cron/cron.dart';
 import 'package:stacked/stacked_annotations.dart';
-import 'package:xstream_gate_pass_app/app_config/app.locator.dart';
-import 'package:xstream_gate_pass_app/app_config/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/stoppable_service.dart';
-
 
 @Singleton()
 class SyncManager extends StoppableService {
