@@ -5,18 +5,21 @@ import 'package:pointmobile_scanner/pointmobile_scanner.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/core/services/services/scanning/rsa_scan.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_drivers_license.dart';
 
 /// Returns values from the environment read from the .env file
 @LazySingleton()
 class ScanningService {
   final log = getLogger('ScanningService');
-  StreamController<RsaDriversLicense> barcodeChangeController =
-      StreamController<RsaDriversLicense>.broadcast();
+  StreamController<RsaDriversLicense> barcodeChangeController = StreamController<RsaDriversLicense>.broadcast();
   Stream<RsaDriversLicense> get licenseStream => barcodeChangeController.stream;
 
   RsaDriversLicense? _rsaDriversLicense;
   RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
+
+  String _barcode = '';
+  String? get barcode => _barcode;
 
   void initialise() {
     PointmobileScanner.channel.setMethodCallHandler(_onBarcodeScannerHandler);
@@ -32,7 +35,8 @@ class ScanningService {
   Future<void> _onBarcodeScannerHandler(MethodCall call) async {
     try {
       if (call.method == PointmobileScanner.ON_DECODE) {
-        onDecode(call);
+        //onDecode(call);
+        onDecodeDebug(call);
       } else if (call.method == PointmobileScanner.ON_ERROR) {
         onError(call.arguments);
       } else {
@@ -43,12 +47,23 @@ class ScanningService {
     }
   }
 
+  void onDecodeDebug(MethodCall call) {
+    if (call.arguments != null) {
+      var scanData = Uint8List.fromList(call.arguments);
+
+      // final decryptedData = RSAScanner.decryptData(scanData);
+
+      // final driversLicense = RSAScanner.parseDecryptedData(decryptedData);
+
+      var rsaDriversLicense = RsaDriversLicense.fromBarcodeBytes(scanData);
+      if (rsaDriversLicense != null) {}
+    }
+  }
+
   RsaDriversLicense? onDecode(MethodCall call) {
     final List lDecodeResult = call.arguments;
     //var _decodeResult = "Symbology: ${lDecodeResult[0]}\n Base64Value: ${lDecodeResult[1]}";
-    if (lDecodeResult[1] != null &&
-        lDecodeResult[0] != null &&
-        lDecodeResult[0] != "READ_FAIL") {
+    if (lDecodeResult[1] != null && lDecodeResult[0] != null && lDecodeResult[0] != "READ_FAIL") {
       var base64String = lDecodeResult[1] as String;
       var withOutNewlines = base64String.replaceAll("\n", "");
       var normalBase64 = base64.normalize(withOutNewlines);

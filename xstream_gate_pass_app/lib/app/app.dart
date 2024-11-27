@@ -30,6 +30,8 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/ed
 import 'package:xstream_gate_pass_app/ui/views/shared/data_sync/data_sync_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/startup/startup_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/startup/termsandprivacy/terms_and_privacy_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_barcode_reader/cam_barcode_reader_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/account/config/device_scan_settings/device_scan_settings_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -44,7 +46,9 @@ import 'package:xstream_gate_pass_app/ui/views/startup/termsandprivacy/terms_and
     MaterialRoute(page: DataSyncView),
     CupertinoRoute(page: CameraCaptureView),
     CupertinoRoute(page: ImageEditorView),
-    // @stacked-route
+    MaterialRoute(page: CamBarcodeReader),
+    MaterialRoute(page: DeviceScanSettingsView),
+// @stacked-route
   ],
   dependencies: [
     InitializableSingleton(classType: LocalStorageService),

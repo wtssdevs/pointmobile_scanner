@@ -352,8 +352,7 @@ class GatePassEditViewModel extends BaseFormViewModel {
       //   Routes.cameraCaptureView,
       //   arguments: CameraCaptureViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
       // );
-      await _navigationService.navigateToCameraCaptureView(
-          refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType);
+      await _navigationService.navigateToCamBarcodeReader();
 
       await loadFileStoreImages();
 

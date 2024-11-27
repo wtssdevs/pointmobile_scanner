@@ -48,6 +48,7 @@ dependencies:
      pretty_dio_logger: ^1.4.0
      dio_http2_adapter: ^2.5.3
      url_launcher: ^6.3.1
+     pointycastle: ^3.9.1
      #https://pub.dev/packages/add_to_gallery
      #add_to_gallery: ^0.2.0+3
      jwt_decoder: ^2.0.1
@@ -71,7 +72,7 @@ dependencies:
      cached_network_image: ^3.4.1
      overlay_support: ^2.1.0
      #https://pub.dev/packages/infinite_scroll_pagination/example
-     infinite_scroll_pagination: ^4.1.0
+     #infinite_scroll_pagination: ^4.1.0
      fluttertoast: ^8.2.8
      flutter_easyloading: ^3.0.5
      email_validator: ^3.0.0
@@ -84,11 +85,22 @@ dependencies:
      sembast: ^3.7.5+2
      # data models
      #freezed_annotation: ^0.14.3
-
+     flutter_logs: ^2.2.1
      flutter_dotenv: ^5.2.1
      json_serializable: ^6.8.0
      json_annotation: ^4.9.0
      cupertino_icons: ^1.0.8
+     google_mlkit_barcode_scanning: ^0.13.0
+     clipboard_watcher: ^0.3.0
+     flutter_barcode_listener:
+          git:
+               url: https://github.com/wtssdevs/flutter_barcode_listener.git
+               ref: master # branch name
+
+     infinite_scroll_pagination:
+          git:
+               url: https://github.com/EdsonBueno/infinite_scroll_pagination.git
+               ref: master # branch name
      asn1lib: ^1.5.8
      pointmobile_scanner:
           # When depending on this package from a real application you should use:

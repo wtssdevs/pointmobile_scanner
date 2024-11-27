@@ -25,19 +25,15 @@ class ConnectionService implements InitializableDependency {
   bool _busyChecking = false;
   bool get hasConnection => _hasConnection;
 //_localStorageService
-  bool get _showNoConnectionOverlay =>
-      _localStorageService.isLoggedIn && _hasConnection == false;
-  String get showConnectionStatus =>
-      _hasConnection == true ? "Online" : "Offline";
+  bool get _showNoConnectionOverlay => _hasConnection == false;
+  String get showConnectionStatus => _hasConnection == true ? "Online" : "Offline";
 
   String get showConnectivityResultDisplayName => _connectivityResultName;
 
   static final Connectivity _connectivity = Connectivity();
-  InternetConnectionChecker _internetConnectionChecker =
-      InternetConnectionChecker();
+  InternetConnectionChecker _internetConnectionChecker = InternetConnectionChecker();
 
-  StreamController connectionChangeController =
-      StreamController<bool>.broadcast();
+  StreamController connectionChangeController = StreamController<bool>.broadcast();
 
   String getConnectivityResultDisplayName() {
     if (_connectivityResult.contains(ConnectivityResult.wifi)) {
@@ -83,15 +79,12 @@ class ConnectionService implements InitializableDependency {
   @override
   Future<InternetConnectionChecker> init() async {
     log.d('Initialized');
-    _internetConnectionChecker =
-        _internetConnectionChecker = InternetConnectionChecker.createInstance(
+    _internetConnectionChecker = _internetConnectionChecker = InternetConnectionChecker.createInstance(
       checkTimeout: const Duration(seconds: 5), // Custom check timeout
       checkInterval: const Duration(seconds: 5), // Custom check interval
 
       addresses: [
-        AddressCheckOptions(
-            hostname: _environmentService.getValue(AppConst.Base_hostname),
-            port: 443),
+        AddressCheckOptions(hostname: _environmentService.getValue(AppConst.Base_hostname), port: 443),
       ],
     );
 
@@ -124,8 +117,7 @@ class ConnectionService implements InitializableDependency {
     bool previousConnection = _hasConnection;
     _connectivityResult = await (Connectivity().checkConnectivity());
     getConnectivityResultDisplayName();
-    if (_connectivityResult.contains(ConnectivityResult.mobile) ||
-        _connectivityResult.contains(ConnectivityResult.wifi)) {
+    if (_connectivityResult.contains(ConnectivityResult.mobile) || _connectivityResult.contains(ConnectivityResult.wifi)) {
       // this is the different
       if (await _internetConnectionChecker.hasConnection) {
         _hasConnection = true;

@@ -3,7 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_type.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
@@ -20,13 +20,9 @@ class GatePassView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double searchWidth =
-        getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet
-            ? MediaQuery.of(context).size.height * 0.8
-            : MediaQuery.of(context).size.height * 0.5;
+    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet ? MediaQuery.of(context).size.height * 0.8 : MediaQuery.of(context).size.height * 0.5;
     return ViewModelBuilder<GatePassViewModel>.reactive(
-      onModelReady: (model) =>
-          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      onModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.runStartupLogic();
       }),
       onDispose: (model) {
@@ -41,12 +37,20 @@ class GatePassView extends StatelessWidget {
             //backgroundColor: Colors.blue,
             leading: const SizedBox.shrink(),
             leadingWidth: 0, //shrinks leading space to allow bar to be full,
-            title: SearchAppBar(
-              controller: model.filterController,
-              searchWidth: searchWidth,
-              onChanged: (value) {
-                model.onFilterValueChanged(value);
+            title: BarcodeKeyboardListener(
+              bufferDuration: const Duration(milliseconds: 200),
+              caseSensitive: false,
+              useKeyDownEvent: false,
+              onBarcodeScanned: (barcode) {
+                model.onBarcodeScanned(barcode);
               },
+              child: SearchAppBar(
+                controller: model.filterController,
+                searchWidth: searchWidth,
+                onChanged: (value) {
+                  model.onFilterValueChanged(value);
+                },
+              ),
             ),
           ),
           resizeToAvoidBottomInset: true,
@@ -82,8 +86,7 @@ class GatePassView extends StatelessWidget {
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.all(4.0),
-                                  child: GatePassListIcon(
-                                      statusId: entity.gatePassStatus),
+                                  child: GatePassListIcon(statusId: entity.gatePassStatus),
                                 ),
                                 TopLabelWithTextWidget(
                                   label: "Status", //referenceNumber
@@ -103,21 +106,17 @@ class GatePassView extends StatelessWidget {
                               children: [
                                 TopLabelWithTextWidget(
                                   label: "Time At Gate ", //referenceNumber
-                                  value:
-                                      entity.timeAtGate?.toFormattedString() ??
-                                          "",
+                                  value: entity.timeAtGate?.toFormattedString() ?? "",
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                                 TopLabelWithTextWidget(
                                   label: "Time In ", //referenceNumber
-                                  value:
-                                      entity.timeIn?.toFormattedString() ?? "",
+                                  value: entity.timeIn?.toFormattedString() ?? "",
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                                 TopLabelWithTextWidget(
                                   label: "Time Out ", //referenceNumber
-                                  value:
-                                      entity.timeOut?.toFormattedString() ?? "",
+                                  value: entity.timeOut?.toFormattedString() ?? "",
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                               ],
@@ -133,9 +132,7 @@ class GatePassView extends StatelessWidget {
                                 ),
                                 TopLabelWithTextWidget(
                                   label: "Gatepass Type ", //referenceNumber
-                                  value: GatePassType.collection
-                                      .mapToEnum(entity.gatePassType ?? 0)
-                                      .displayName,
+                                  value: GatePassType.collection.mapToEnum(entity.gatePassType ?? 0).displayName,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                 ),
                                 TopLabelWithTextWidget(

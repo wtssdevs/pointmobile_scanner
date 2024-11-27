@@ -11,6 +11,7 @@ import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultMode
 import 'package:xstream_gate_pass_app/core/models/account/ForgotPassword.dart';
 import 'package:xstream_gate_pass_app/core/models/account/GetCurrentLoginInformation.dart';
 import 'package:xstream_gate_pass_app/core/models/account/UserLoginInfo.dart';
+import 'package:xstream_gate_pass_app/core/models/device/device_config.dart';
 
 @InitializableSingleton()
 class LocalStorageService {
@@ -26,6 +27,22 @@ class LocalStorageService {
     _preferences = await SharedPreferences.getInstance();
 
     return _instance!;
+  }
+
+  DeviceConfig get getDeviceConfig {
+    var deviceConfig = _getFromDisk(AppConst.deviceConfig);
+    if (deviceConfig == null) {
+      var newDeviceConfig =
+          DeviceConfig(deviceScanningMode: DeviceScanningMode.keyboard);
+      _saveToDisk(AppConst.deviceConfig, json.encode(newDeviceConfig.toJson()));
+      return newDeviceConfig;
+    }
+
+    return DeviceConfig.fromJson(json.decode(deviceConfig));
+  }
+
+  void setDeviceConfig(DeviceConfig deviceConfig) {
+    _saveToDisk(AppConst.deviceConfig, json.encode(deviceConfig.toJson()));
   }
 
   AuthenticateResultModel? get getAuthToken {

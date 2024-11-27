@@ -734,6 +734,12 @@ class GatePassEditView extends StatelessWidget {
                           label: 'Image Picker',
                           onTap: () => model.openImagePicker(),
                         ),
+                        SpeedDialChild(
+                          child: const Icon(Icons.barcode_reader),
+                          label: 'Barcode Scanner',
+                          onTap: () =>
+                              model.goToCamView(FileStoreType.documentScan),
+                        ),
                       ],
                     ),
                     body: GridView.builder(

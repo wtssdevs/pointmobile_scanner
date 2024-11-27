@@ -5,15 +5,15 @@
 // **************************************************************************
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flutter/cupertino.dart' as _i13;
-import 'package:flutter/foundation.dart' as _i14;
-import 'package:flutter/material.dart' as _i12;
+import 'package:flutter/cupertino.dart' as _i15;
+import 'package:flutter/foundation.dart' as _i16;
+import 'package:flutter/material.dart' as _i14;
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart' as _i1;
-import 'package:stacked_services/stacked_services.dart' as _i17;
-import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart' as _i16;
+import 'package:stacked_services/stacked_services.dart' as _i19;
+import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart' as _i18;
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart'
-    as _i15;
+    as _i17;
 import 'package:xstream_gate_pass_app/ui/views/account/login/login_view.dart'
     as _i5;
 import 'package:xstream_gate_pass_app/ui/views/app/main/account/account_view.dart'
@@ -23,10 +23,14 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_g
     as _i7;
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/gatepass_view.dart'
     as _i6;
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_barcode_reader/cam_barcode_reader_view.dart'
+    as _i12;
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/camera_capture_view.dart'
     as _i10;
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/editor/image_editor_view.dart'
     as _i11;
+import 'package:xstream_gate_pass_app/ui/views/app/main/account/config/device_scan_settings/device_scan_settings_view.dart'
+    as _i13;
 import 'package:xstream_gate_pass_app/ui/views/shared/data_sync/data_sync_view.dart'
     as _i9;
 import 'package:xstream_gate_pass_app/ui/views/startup/startup_view.dart'
@@ -55,6 +59,10 @@ class Routes {
 
   static const imageEditorView = '/image-editor-view';
 
+  static const camBarcodeReader = '/cam-barcode-reader';
+
+  static const deviceScanSettingsView = '/device-scan-settings-view';
+
   static const all = <String>{
     startUpView,
     homeView,
@@ -66,6 +74,8 @@ class Routes {
     dataSyncView,
     cameraCaptureView,
     imageEditorView,
+    camBarcodeReader,
+    deviceScanSettingsView,
   };
 }
 
@@ -111,11 +121,19 @@ class StackedRouter extends _i1.RouterBase {
       Routes.imageEditorView,
       page: _i11.ImageEditorView,
     ),
+    _i1.RouteDef(
+      Routes.camBarcodeReader,
+      page: _i12.CamBarcodeReader,
+    ),
+    _i1.RouteDef(
+      Routes.deviceScanSettingsView,
+      page: _i13.DeviceScanSettingsView,
+    ),
   ];
 
   final _pagesMap = <Type, _i1.StackedRouteFactory>{
     _i2.StartUpView: (data) {
-      return _i12.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i2.StartUpView(),
         settings: data,
       );
@@ -124,14 +142,14 @@ class StackedRouter extends _i1.RouterBase {
       final args = data.getArgs<HomeViewArguments>(
         orElse: () => const HomeViewArguments(),
       );
-      return _i12.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) =>
             _i3.HomeView(key: args.key, tabIndex: args.tabIndex),
         settings: data,
       );
     },
     _i4.TermsAndPrivacyView: (data) {
-      return _i12.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i4.TermsAndPrivacyView(),
         settings: data,
       );
@@ -140,40 +158,40 @@ class StackedRouter extends _i1.RouterBase {
       final args = data.getArgs<LoginViewArguments>(
         orElse: () => const LoginViewArguments(),
       );
-      return _i12.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => _i5.LoginView(key: args.key),
         settings: data,
       );
     },
     _i6.GatePassView: (data) {
-      return _i12.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i6.GatePassView(),
         settings: data,
       );
     },
     _i7.GatePassEditView: (data) {
       final args = data.getArgs<GatePassEditViewArguments>(nullOk: false);
-      return _i12.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) =>
             _i7.GatePassEditView(key: args.key, gatePass: args.gatePass),
         settings: data,
       );
     },
     _i8.AccountView: (data) {
-      return _i12.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i8.AccountView(),
         settings: data,
       );
     },
     _i9.DataSyncView: (data) {
-      return _i12.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i9.DataSyncView(),
         settings: data,
       );
     },
     _i10.CameraCaptureView: (data) {
       final args = data.getArgs<CameraCaptureViewArguments>(nullOk: false);
-      return _i13.CupertinoPageRoute<dynamic>(
+      return _i15.CupertinoPageRoute<dynamic>(
         builder: (context) => _i10.CameraCaptureView(
             key: args.key,
             refId: args.refId,
@@ -184,9 +202,21 @@ class StackedRouter extends _i1.RouterBase {
     },
     _i11.ImageEditorView: (data) {
       final args = data.getArgs<ImageEditorViewArguments>(nullOk: false);
-      return _i13.CupertinoPageRoute<dynamic>(
+      return _i15.CupertinoPageRoute<dynamic>(
         builder: (context) =>
             _i11.ImageEditorView(key: args.key, filePath: args.filePath),
+        settings: data,
+      );
+    },
+    _i12.CamBarcodeReader: (data) {
+      return _i14.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i12.CamBarcodeReader(),
+        settings: data,
+      );
+    },
+    _i13.DeviceScanSettingsView: (data) {
+      return _i14.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i13.DeviceScanSettingsView(),
         settings: data,
       );
     },
@@ -205,7 +235,7 @@ class HomeViewArguments {
     this.tabIndex,
   });
 
-  final _i14.Key? key;
+  final _i16.Key? key;
 
   final int? tabIndex;
 
@@ -229,7 +259,7 @@ class HomeViewArguments {
 class LoginViewArguments {
   const LoginViewArguments({this.key});
 
-  final _i14.Key? key;
+  final _i16.Key? key;
 
   @override
   String toString() {
@@ -254,9 +284,9 @@ class GatePassEditViewArguments {
     required this.gatePass,
   });
 
-  final _i14.Key? key;
+  final _i16.Key? key;
 
-  final _i15.GatePass gatePass;
+  final _i17.GatePass gatePass;
 
   @override
   String toString() {
@@ -283,13 +313,13 @@ class CameraCaptureViewArguments {
     required this.fileStoreType,
   });
 
-  final _i14.Key? key;
+  final _i16.Key? key;
 
   final int refId;
 
   final int referanceId;
 
-  final _i16.FileStoreType fileStoreType;
+  final _i18.FileStoreType fileStoreType;
 
   @override
   String toString() {
@@ -320,7 +350,7 @@ class ImageEditorViewArguments {
     required this.filePath,
   });
 
-  final _i14.Key? key;
+  final _i16.Key? key;
 
   final String filePath;
 
@@ -341,7 +371,7 @@ class ImageEditorViewArguments {
   }
 }
 
-extension NavigatorStateExtension on _i17.NavigationService {
+extension NavigatorStateExtension on _i19.NavigationService {
   Future<dynamic> navigateToStartUpView([
     int? routerId,
     bool preventDuplicates = true,
@@ -357,7 +387,7 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> navigateToHomeView({
-    _i14.Key? key,
+    _i16.Key? key,
     int? tabIndex,
     int? routerId,
     bool preventDuplicates = true,
@@ -388,7 +418,7 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> navigateToLoginView({
-    _i14.Key? key,
+    _i16.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -418,8 +448,8 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> navigateToGatePassEditView({
-    _i14.Key? key,
-    required _i15.GatePass gatePass,
+    _i16.Key? key,
+    required _i17.GatePass gatePass,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -463,10 +493,10 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> navigateToCameraCaptureView({
-    _i14.Key? key,
+    _i16.Key? key,
     required int refId,
     required int referanceId,
-    required _i16.FileStoreType fileStoreType,
+    required _i18.FileStoreType fileStoreType,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -486,7 +516,7 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> navigateToImageEditorView({
-    _i14.Key? key,
+    _i16.Key? key,
     required String filePath,
     int? routerId,
     bool preventDuplicates = true,
@@ -496,6 +526,34 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }) async {
     return navigateTo<dynamic>(Routes.imageEditorView,
         arguments: ImageEditorViewArguments(key: key, filePath: filePath),
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> navigateToCamBarcodeReader([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return navigateTo<dynamic>(Routes.camBarcodeReader,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> navigateToDeviceScanSettingsView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return navigateTo<dynamic>(Routes.deviceScanSettingsView,
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,
@@ -517,7 +575,7 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> replaceWithHomeView({
-    _i14.Key? key,
+    _i16.Key? key,
     int? tabIndex,
     int? routerId,
     bool preventDuplicates = true,
@@ -548,7 +606,7 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> replaceWithLoginView({
-    _i14.Key? key,
+    _i16.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -578,8 +636,8 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> replaceWithGatePassEditView({
-    _i14.Key? key,
-    required _i15.GatePass gatePass,
+    _i16.Key? key,
+    required _i17.GatePass gatePass,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -623,10 +681,10 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> replaceWithCameraCaptureView({
-    _i14.Key? key,
+    _i16.Key? key,
     required int refId,
     required int referanceId,
-    required _i16.FileStoreType fileStoreType,
+    required _i18.FileStoreType fileStoreType,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -646,7 +704,7 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }
 
   Future<dynamic> replaceWithImageEditorView({
-    _i14.Key? key,
+    _i16.Key? key,
     required String filePath,
     int? routerId,
     bool preventDuplicates = true,
@@ -656,6 +714,34 @@ extension NavigatorStateExtension on _i17.NavigationService {
   }) async {
     return replaceWith<dynamic>(Routes.imageEditorView,
         arguments: ImageEditorViewArguments(key: key, filePath: filePath),
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> replaceWithCamBarcodeReader([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return replaceWith<dynamic>(Routes.camBarcodeReader,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> replaceWithDeviceScanSettingsView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return replaceWith<dynamic>(Routes.deviceScanSettingsView,
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,

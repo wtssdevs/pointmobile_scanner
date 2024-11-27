@@ -14,6 +14,8 @@ class UserLoginInfo {
   bool podAccess_Parcels_IsVisible;
   bool podAccess_Device_Tracking_IsEnabled;
 
+  //settings for device per users
+
   String get showFullName => (name ?? "") + (surname ?? "");
 
   UserLoginInfo(

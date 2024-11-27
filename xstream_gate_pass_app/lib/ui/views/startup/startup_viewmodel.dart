@@ -1,3 +1,4 @@
+import 'package:flutter_logs/flutter_logs.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -13,11 +14,9 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 
 class StartUpViewModel extends BaseViewModel {
   final log = getLogger('StartUpViewModel');
-  final LocalStorageService _localStorageService =
-      locator<LocalStorageService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
   final ApiManager _apiManager = locator<ApiManager>();
   final _navigationService = locator<NavigationService>();
-  final _dialogService = locator<DialogService>();
   final _workerQueManager = locator<WorkerQueManager>();
   final _authenticationService = locator<AuthenticationService>();
 
@@ -30,6 +29,7 @@ class StartUpViewModel extends BaseViewModel {
 
       if (useIsLoggedIn == false) {
         FlutterNativeSplash.remove();
+        _authenticationService.logOutCurrentUser();
         _navigationService.clearStackAndShow(Routes.loginView);
       } else {
         if (hasConnection) {
@@ -47,17 +47,28 @@ class StartUpViewModel extends BaseViewModel {
           FlutterNativeSplash.remove();
           _navigationService.clearStackAndShow(Routes.homeView);
         } else {
-          await _authenticationService.refreshToken();
-          await _authenticationService.getUserLoginInfo(true);
-          _workerQueManager.enqueForStartUp();
-          //  await Future.delayed(const Duration(milliseconds: 200));
-          // whenever your initialization is completed, remove the splash screen:
-          FlutterNativeSplash.remove();
-          _navigationService.clearStackAndShow(Routes.homeView);
+          var canRefresToken = await _authenticationService.refreshToken();
+          if (canRefresToken) {
+            await _authenticationService.getUserLoginInfo(true);
+            _workerQueManager.enqueForStartUp();
+            //  await Future.delayed(const Duration(milliseconds: 200));
+            // whenever your initialization is completed, remove the splash screen:
+            FlutterNativeSplash.remove();
+            _navigationService.clearStackAndShow(Routes.homeView);
+          } else {
+            FlutterNativeSplash.remove();
+            _navigationService.clearStackAndShow(Routes.loginView);
+          }
         }
       }
     } catch (e) {
       log.e(e);
+      await FlutterLogs.logError(
+        "StartUpViewModel",
+        "runStartupLogic",
+        e.toString(),
+      );
+
       FlutterNativeSplash.remove();
       _navigationService.clearStackAndShow(Routes.loginView);
     }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart';
 
 class AuthInterceptor extends InterceptorsWrapper {
@@ -37,7 +38,7 @@ class AuthInterceptor extends InterceptorsWrapper {
     // //Getting cached Access Token, or getting it from storage and caching it
 
     if (options.path == "/api/TokenAuth/Authenticate" ||
-        options.path == "/api/Account/ExternalAuth") {
+        options.path == AppConst.authentication) {
       return handler.next(options);
     }
 

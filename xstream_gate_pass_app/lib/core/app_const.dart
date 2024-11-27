@@ -13,6 +13,8 @@ class AppConst {
   static const String has_disclosed_background_permission =
       "has_disclosed_background_permission";
   static const String recentSearches = "recent_Searches";
+
+  static const String deviceConfig = "device_config";
   //ENV File maps
   static const String GoogleMapsEnvKey = 'GOOGLE_MAPS_API_KEY';
   static const String NoKey = 'NO_KEY';
@@ -23,6 +25,10 @@ class AppConst {
   static const String DB_FileStore = "FileStore";
   static const String DB_Customers = "Customers";
 
+  //API AUTH
+
+  ///api/Account/ExternalAuth
+  static const String authentication = "/api/Account/ExternalAuth";
   //API Methods
 
   static const String FileUploading_Images = "/api/FileUpload/Uploads/1";

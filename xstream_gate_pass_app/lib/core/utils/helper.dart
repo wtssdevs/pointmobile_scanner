@@ -7,12 +7,18 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/merge_delta_reponse%20copy.dart';
 
 bool tokenHasExpired(String? token) {
   if (token == null) return true;
   return JwtDecoder.isExpired(token);
+}
+
+bool tokenHasExpiredByDate(AuthenticateResultModel token) {
+  if (token.expireInSeconds == null) return true;
+  return DateTime.now().toUtc().isAfter(token.expiryDate!);
 }
 
 bool isNullOrEmpty(String? value) => value == '' || value == null;

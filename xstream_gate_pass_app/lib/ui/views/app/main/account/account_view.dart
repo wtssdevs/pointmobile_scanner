@@ -3,6 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:stacked/stacked.dart';
+import 'package:xstream_gate_pass_app/core/models/device/device_config.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 import 'package:xstream_gate_pass_app/ui/shared/widgets/box_text.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/account/account_view_model.dart';
@@ -14,7 +15,7 @@ class AccountView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<AccountViewModel>.reactive(
       viewModelBuilder: () => AccountViewModel(),
-      onModelReady: (model) =>
+      onViewModelReady: (model) =>
           SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.handleStartUpLogic();
       }),
@@ -74,15 +75,31 @@ class AccountView extends StatelessWidget {
                   ),
                   Card(
                     elevation: 8,
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.info_outline_rounded,
-                        color: Colors.black,
-                      ),
-                      onTap: model.navigateToTermsView,
-                      title: const BoxText.tileTitle(
-                        "T&Cs - Privacy Policy",
-                      ),
+                    child: Column(
+                      children: [
+                        const ListDividerWrapper(
+                          size: 2000,
+                          child: BoxText.headingThree("Scanning Mode"),
+                        ),
+                        RadioListTile<DeviceScanningMode>(
+                          title: const Text("Keyboard Mode"),
+                          value: DeviceScanningMode.keyboard,
+                          groupValue: model.deviceConfig.deviceScanningMode,
+                          onChanged: (value) {
+                            model.updateDeviceConfig(value);
+                          },
+                        ),
+                        RadioListTile<DeviceScanningMode>(
+                          title: const Text("Laser Mode"),
+                          subtitle: const Text(
+                              "Special device only settings needed..."),
+                          value: DeviceScanningMode.laser,
+                          groupValue: model.deviceConfig.deviceScanningMode,
+                          onChanged: (value) {
+                            model.updateDeviceConfig(value);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   Card(
@@ -115,6 +132,19 @@ class AccountView extends StatelessWidget {
                       // onTap: model.navigateToTermsView,
                       title: BoxText.tileTitle(
                         "Sync Count: ${model.syncCount}",
+                      ),
+                    ),
+                  ),
+                  Card(
+                    elevation: 8,
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.info_outline_rounded,
+                        color: Colors.black,
+                      ),
+                      onTap: model.navigateToTermsView,
+                      title: const BoxText.tileTitle(
+                        "T&Cs - Privacy Policy",
                       ),
                     ),
                   ),

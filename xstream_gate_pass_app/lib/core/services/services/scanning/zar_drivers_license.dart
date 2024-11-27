@@ -112,9 +112,10 @@ class RsaDriversLicense implements RsaIdDocument {
   /// - https://stackoverflow.com/questions/17549231/decode-south-african-za-drivers-license
   factory RsaDriversLicense.fromBarcodeBytes(Uint8List bytes) {
     try {
-      bytes = _decodeDrivers(bytes);
+      bytes = _decodeDriversAll(bytes);
       var section1 = bytes.sublist(10, 10 + bytes[5]);
       var section2 = bytes.sublist(10 + bytes[5], 10 + bytes[5] + bytes[7]);
+
       // TODO: Determine length of section 3 (Image Section) and extract image.
       var section3;
 
@@ -167,8 +168,7 @@ class RsaDriversLicense implements RsaIdDocument {
         imageData: imageData,
       );
     } catch (e) {
-      throw FormatException(
-          'Could not instantiate Drivers License from bytes: $e');
+      throw FormatException('Could not instantiate Drivers License from bytes: $e');
     }
   }
 
@@ -243,10 +243,7 @@ class RsaDriversLicense implements RsaIdDocument {
 
       while (values.length < 12) {
         // If values.length is 0, 5, 7, or 8 - the next values is 2 nibbles (letters) long
-        if (values.isEmpty ||
-            values.length == 5 ||
-            values.length == 7 ||
-            values.length == 11) {
+        if (values.isEmpty || values.length == 5 || values.length == 7 || values.length == 11) {
           //2 nibbles
           values.add(nibbleString.substring(0, 2));
           nibbleString = nibbleString.substring(2);
@@ -255,14 +252,7 @@ class RsaDriversLicense implements RsaIdDocument {
 
         // If values.length is 0, 5, 7, or 8 - the next values is a date, which can be
         // a single nibble or 8 nibbles long.
-        if (values.length == 1 ||
-            values.length == 2 ||
-            values.length == 3 ||
-            values.length == 4 ||
-            values.length == 6 ||
-            values.length == 8 ||
-            values.length == 9 ||
-            values.length == 10) {
+        if (values.length == 1 || values.length == 2 || values.length == 3 || values.length == 4 || values.length == 6 || values.length == 8 || values.length == 9 || values.length == 10) {
           if (nibbleString.substring(0, 1) == 'a') {
             // 1 nibble
             values.add(null);
@@ -280,6 +270,65 @@ class RsaDriversLicense implements RsaIdDocument {
       }
 
       return values;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Uint8List _decodeDriversAll(Uint8List bytes) {
+    var key128v1 = '''-----BEGIN RSA PUBLIC KEY-----
+MIGXAoGBAP7S4cJ+M2MxbncxenpSxUmBOVGGvkl0dgxyUY1j4FRKSNCIszLFsMNwx2XWXZg8H53gpCsxDMwHrncL0rYdak3M6sdXaJvcv2CEePrzEvYIfMSWw3Ys9cRlHK7No0mfrn7bfrQOPhjrMEFw6R7VsVaqzm9DLW7KbMNYUd6MZ49nAhEAu3l//ex/nkLJ1vebE3BZ2w==
+-----END RSA PUBLIC KEY-----''';
+
+    var key74v2 = '''-----BEGIN RSA PUBLIC KEY-----
+MGACSwD/POxrX0Djw2YUUbn8+u866wbcIynA5vTczJJ5cmcWzhW74F7tLFcRvPj1tsj3J221xDv6owQNwBqxS5xNFvccDOXqlT8MdUxrFwIRANsFuoItmswz+rfY9Cf5zmU=
+-----END RSA PUBLIC KEY-----''';
+
+    var key128v2 = '''-----BEGIN RSA PUBLIC KEY-----
+MIGWAoGBAMqfGO9sPz+kxaRh/qVKsZQGul7NdG1gonSS3KPXTjtcHTFfexA4MkGAmwKeu9XeTRFgMMxX99WmyaFvNzuxSlCFI/foCkx0TZCFZjpKFHLXryxWrkG1Bl9++gKTvTJ4rWk1RvnxYhm3n/Rxo2NoJM/822Oo7YBZ5rmk8NuJU4HLAhAYcJLaZFTOsYU+aRX4RmoF
+-----END RSA PUBLIC KEY-----''';
+
+    var key74v1 = '''-----BEGIN RSA PUBLIC KEY-----
+MF8CSwC0BKDfEdHKz/GhoEjU1XP5U6YsWD10klknVhpteh4rFAQlJq9wtVBUc5DqbsdI0w/bga20kODDahmGtASy9fae9dobZj5ZUJEw5wIQMJz+2XGf4qXiDJu0R2U4Kw==
+-----END RSA PUBLIC KEY-----''';
+
+    var decrypted = <int>[];
+    try {
+      // Check version from header bytes
+      bool isVersion2 = bytes[0] == 0x01 && bytes[1] == 0x9b && bytes[2] == 0x09 && bytes[3] == 0x45;
+
+      // Select appropriate keys based on version
+      var key128 = isVersion2 ? key128v2 : key128v1;
+      var key74 = isVersion2 ? key74v2 : key74v1;
+
+      // 5 blocks of 128, 1 block of 74
+      var block1 = bytes.sublist(6, 134);
+      var block2 = bytes.sublist(134, 262);
+      var block3 = bytes.sublist(262, 390);
+      var block4 = bytes.sublist(390, 518);
+      var block5 = bytes.sublist(518, 646);
+      var block6 = bytes.sublist(646, 720);
+
+      // decode first 5 blocks using 128-bit key
+      var rows = key128.split(RegExp(r'\r\n?|\n'));
+      var sequence = _parseSequence(rows);
+      var modulus = (sequence.elements[0] as ASN1Integer).valueAsBigInteger!;
+      var exponent = (sequence.elements[1] as ASN1Integer).valueAsBigInteger!;
+
+      decrypted.addAll(_encryptValue(block1, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block2, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block3, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block4, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block5, exponent, modulus, 128).sublist(5));
+
+      // decode last block using 74-bit key
+      rows = key74.split(RegExp(r'\r\n?|\n'));
+      sequence = _parseSequence(rows);
+      modulus = (sequence.elements[0] as ASN1Integer).valueAsBigInteger!;
+      exponent = (sequence.elements[1] as ASN1Integer).valueAsBigInteger!;
+      decrypted.addAll(_encryptValue(block6, exponent, modulus, 74));
+
+      return Uint8List.fromList(decrypted);
     } catch (e) {
       rethrow;
     }
@@ -303,6 +352,7 @@ MF8CSwC0BKDfEdHKz/GhoEjU1XP5U6YsWD10klknVhpteh4rFAQlJq9wtVBUc5Dq
 bsdI0w/bga20kODDahmGtASy9fae9dobZj5ZUJEw5wIQMJz+2XGf4qXiDJu0R2U4
 Kw==
 -----END RSA PUBLIC KEY-----''';
+
     var decrypted = <int>[];
 
     try {
@@ -316,22 +366,19 @@ Kw==
 
       // decode first 5 blocks and add to decrypted.
       var rows = key128.split(RegExp(r'\r\n?|\n'));
+
       var sequence = _parseSequence(rows);
       var modulus = (sequence.elements[0] as ASN1Integer).valueAsBigInteger!;
       var exponent = (sequence.elements[1] as ASN1Integer).valueAsBigInteger!;
-      decrypted
-          .addAll(_encryptValue(block1, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block2, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block3, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block4, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block5, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block1, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block2, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block3, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block4, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block5, exponent, modulus, 128).sublist(5));
 
       // decode last block of 74 and add to decrypted.
       rows = key74.split(RegExp(r'\r\n?|\n'));
+
       sequence = _parseSequence(rows);
       modulus = (sequence.elements[0] as ASN1Integer).valueAsBigInteger!;
       exponent = (sequence.elements[1] as ASN1Integer).valueAsBigInteger!;
@@ -359,11 +406,7 @@ Kw==
   /// manually since encryption packages don't seem to be working.
   static ASN1Sequence _parseSequence(List<String> rows) {
     try {
-      final keyText = rows
-          .skipWhile((row) => row.startsWith('-----BEGIN'))
-          .takeWhile((row) => !row.startsWith('-----END'))
-          .map((row) => row.trim())
-          .join('');
+      final keyText = rows.skipWhile((row) => row.startsWith('-----BEGIN')).takeWhile((row) => !row.startsWith('-----END')).map((row) => row.trim()).join('');
 
       final keyBytes = Uint8List.fromList(base64.decode(keyText));
       final asn1Parser = ASN1Parser(keyBytes);

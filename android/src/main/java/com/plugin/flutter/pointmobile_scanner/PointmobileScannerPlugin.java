@@ -45,19 +45,21 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
       Log.d(TAG, "[onReceive]");
       if (mScanner != null) {
         try {
+          int decodeBytesLength = intent.getIntExtra(ScanConst.EXTRA_EVENT_DECODE_LENGTH, 0);
+          byte[] decodeBytesValue = intent.getByteArrayExtra(ScanConst.EXTRA_EVENT_DECODE_VALUE);
+          String decodeValue = new String(decodeBytesValue, 0, decodeBytesLength);
+          int decodeLength = decodeValue.length();
+
           if (ScanConst.INTENT_USERMSG.equals(intent.getAction())) {
             Log.d(TAG, "[onReceive] INTENT_USERMSG");
             mScanner.aDecodeGetResult(mDecodeResult.recycle());
 
             // _onDecode(decodeBytesValue);
-            _onDecode(mDecodeResult);
+            _onDecodeCustom(mDecodeResult, decodeValue, decodeBytesValue);
           } else if (ScanConst.INTENT_EVENT.equals(intent.getAction())) {
             Log.d(TAG, "[onReceive] INTENT_EVENT");
             boolean result = intent.getBooleanExtra(ScanConst.EXTRA_EVENT_DECODE_RESULT, false);
-            int decodeBytesLength = intent.getIntExtra(ScanConst.EXTRA_EVENT_DECODE_LENGTH, 0);
-            byte[] decodeBytesValue = intent.getByteArrayExtra(ScanConst.EXTRA_EVENT_DECODE_VALUE);
-            String decodeValue = new String(decodeBytesValue, 0, decodeBytesLength);
-            int decodeLength = decodeValue.length();
+
             String symbolName = intent.getStringExtra(ScanConst.EXTRA_EVENT_SYMBOL_NAME);
             byte symbolId = intent.getByteExtra(ScanConst.EXTRA_EVENT_SYMBOL_ID, (byte) 0);
             int symbolType = intent.getIntExtra(ScanConst.EXTRA_EVENT_SYMBOL_TYPE, 0);
@@ -75,7 +77,7 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
             Log.d(TAG, "9. decoding letter: " + letter);
             Log.d(TAG, "10.decoding modifier: " + modifier);
             Log.d(TAG, "11.decoding time: " + decodingTime);
-            _onDecode(mDecodeResult);
+            _onDecodeCustom(mDecodeResult, decodeValue, decodeBytesValue);
             // _onDecode(decodeBytesValue);
           }
         } catch (Exception e) {
@@ -227,18 +229,39 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
   // mChannel.invokeMethod(_ON_DECODE, alDecodeResult);
   // }
 
-  private static void _onDecode(DecodeResult decodeResult) {
+  // private static void _onDecode(DecodeResult decodeResult) {
+  // ArrayList<String> alDecodeResult = new ArrayList<>();
+  // alDecodeResult.add(decodeResult.symName);
+  // String encoded = Base64.encodeToString(decodeResult.decodeValue,
+  // Base64.DEFAULT);
+  // alDecodeResult.add(encoded);
+  // alDecodeResult.add(decodeResult.toString());
+
+  // // var ss = encodeBase64String(alDecodeResult);
+  // // object
+  // Log.d(TAG, "[_onDecode] " + decodeResult.toString());
+  // Log.d(TAG, "[_onDecode] " + decodeResult.decodeLength);
+  // mChannel.invokeMethod(_ON_DECODE, alDecodeResult);
+  // }
+
+  private static void _onDecode(DecodeResult decodeResult, String decodeValue, byte[] valueAsBytes) {
     ArrayList<String> alDecodeResult = new ArrayList<>();
     alDecodeResult.add(decodeResult.symName);
-    String encoded = Base64.encodeToString(decodeResult.decodeValue, Base64.DEFAULT);
-    alDecodeResult.add(encoded);
     alDecodeResult.add(decodeResult.toString());
+    alDecodeResult.add(decodeValue);
 
-    // var ss = encodeBase64String(alDecodeResult);
-    // object
-    Log.d(TAG, "[_onDecode] " + decodeResult.toString());
-    Log.d(TAG, "[_onDecode] " + decodeResult.decodeLength);
+    Log.d(TAG, "[_onDecodeCustom] " + decodeValue);
     mChannel.invokeMethod(_ON_DECODE, alDecodeResult);
+  }
+
+  private static void _onDecodeCustom(DecodeResult decodeResult, String decodeValue, byte[] valueAsBytes) {
+    // ArrayList<String> alDecodeResult = new ArrayList<>();
+    // alDecodeResult.add(decodeResult.symName);
+    // alDecodeResult.add(decodeResult.toString());
+    // alDecodeResult.add(decodeValue);
+
+    Log.d(TAG, "[_onDecodeCustom] " + decodeValue);
+    mChannel.invokeMethod(_ON_DECODE, valueAsBytes);
   }
 
   private void _onError(Exception error) {

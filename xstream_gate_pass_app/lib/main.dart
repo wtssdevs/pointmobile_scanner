@@ -7,8 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/app/app.bottomsheets.dart';
+import 'package:flutter_logs/flutter_logs.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
@@ -19,8 +20,14 @@ class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback = ((X509Certificate cert, String host, int port) {
-        final isValidHost = ["xstream-tms.com", "localhost", "localhost:44311", "b71b-169-159-185-137.ngrok.io"].contains(host); // <-- allow only hosts in array
+      ..badCertificateCallback =
+          ((X509Certificate cert, String host, int port) {
+        final isValidHost = [
+          "xstream-tms.com",
+          "localhost",
+          "localhost:44311",
+          "b71b-169-159-185-137.ngrok.io"
+        ].contains(host); // <-- allow only hosts in array
         return isValidHost;
       });
   }
@@ -35,6 +42,26 @@ Future main() async {
   HttpOverrides.global = MyHttpOverrides();
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  //Initialize Logging
+  await FlutterLogs.initLogs(
+    logLevelsEnabled: [
+      LogLevel.INFO,
+      LogLevel.WARNING,
+      LogLevel.ERROR,
+      LogLevel.SEVERE
+    ],
+    timeStampFormat: TimeStampFormat.TIME_FORMAT_READABLE,
+    directoryStructure: DirectoryStructure.FOR_DATE,
+    logTypesEnabled: ["device", "network", "errors"],
+    logFileExtension: LogFileExtension.TXT,
+    logsWriteDirectoryName: "GatePassLogs",
+    logsExportDirectoryName: "GatePassLogs/Exported",
+    debugFileOperations: true,
+    autoDeleteZipOnExport: true,
+    isDebuggable: true,
+  );
+
   //var envFileToLoad = ".env_dev";
   //var envFileToLoad = ".env_ngrok_dev";
   //var envFileToLoad = ".env_qa";
@@ -66,21 +93,23 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Xstream Gatepass',
-      theme: FlexThemeData.light(
-        scheme: FlexScheme.blue,
+    return OverlaySupport.global(
+      child: MaterialApp(
+        title: 'Xstream Gatepass',
+        theme: FlexThemeData.light(
+          scheme: FlexScheme.blue,
+        ),
+        // The Mandy red, dark theme.
+        darkTheme: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
+        // Use dark or light theme based on system setting.
+        themeMode: ThemeMode.light,
+        navigatorKey: StackedService.navigatorKey,
+        onGenerateRoute: StackedRouter().onGenerateRoute,
+        navigatorObservers: [
+          StackedService.routeObserver,
+        ],
+        builder: EasyLoading.init(),
       ),
-      // The Mandy red, dark theme.
-      darkTheme: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
-      // Use dark or light theme based on system setting.
-      themeMode: ThemeMode.light,
-      navigatorKey: StackedService.navigatorKey,
-      onGenerateRoute: StackedRouter().onGenerateRoute,
-      navigatorObservers: [
-        StackedService.routeObserver,
-      ],
-      builder: EasyLoading.init(),
     );
   }
 }

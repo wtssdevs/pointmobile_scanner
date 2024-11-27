@@ -43,3 +43,4 @@ flutter build appbundle
 1. In pubspec.yaml file add in the SDK " pointmobile_scanner:"
 2. Un-Comment all the scanning code from the scan manager (ScanningService) "PointmobileScanner"
 3. In the android app scr main androidManifest file un-comment the "<uses-library android:name="device.sdk" android:required="true" />"
+3.1 android:required="true" is for installing on actual Point Mobile device (not emulator) or if you want to test on emulator then set to "false"

@@ -25,15 +25,9 @@ class GatePassViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
 
   int _nextPage = 1;
-  final pagingController = PagingController<int, GatePass>(
-      firstPageKey: 1, invisibleItemsThreshold: 5);
+  final pagingController = PagingController<int, GatePass>(firstPageKey: 1, invisibleItemsThreshold: 5);
 
-  final PagedList<GatePass> _pagedList = PagedList<GatePass>(
-      totalCount: 0,
-      items: <GatePass>[],
-      pageNumber: 1,
-      pageSize: 15,
-      totalPages: 0);
+  final PagedList<GatePass> _pagedList = PagedList<GatePass>(totalCount: 0, items: <GatePass>[], pageNumber: 1, pageSize: 15, totalPages: 0);
 
   final _scanningService = locator<ScanningService>();
   final TextEditingController filterController = TextEditingController();
@@ -45,8 +39,7 @@ class GatePassViewModel extends BaseViewModel {
   RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
 
   void startconnectionListen() {
-    streamSubscription =
-        _scanningService.licenseStream.asBroadcastStream().listen((data) {
+    streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) {
       log.i('Barcode Model Recieved? $data');
       _rsaDriversLicense = data;
       notifyListeners();
@@ -75,11 +68,9 @@ class GatePassViewModel extends BaseViewModel {
         filterValue = filterController.text;
       }
 
-      final newPage = await _gatePassService.getPagedList(
-          _pagedList.pageNumber, _pagedList.pageSize, filterValue);
+      final newPage = await _gatePassService.getPagedList(_pagedList.pageNumber, _pagedList.pageSize, filterValue);
 
-      final previouslyFetchedItemsCount =
-          pagingController.itemList?.length ?? 0;
+      final previouslyFetchedItemsCount = pagingController.itemList?.length ?? 0;
 
       final isLastPage = newPage.isLastPage(previouslyFetchedItemsCount);
 
@@ -131,16 +122,18 @@ class GatePassViewModel extends BaseViewModel {
     await _navigationService.navigateTo(
       Routes.gatePassEditView,
       arguments: GatePassEditViewArguments(
-        gatePass: GatePass(
-            id: 0,
-            gatePassStatus: GatePassStatus.atGate.index,
-            vehicleRegNumber: "",
-            timeAtGate: DateTime.now(),
-            gatePassQuestions: GatePassQuestions(),
-            gatePassType: GatePassType.delivery.index),
+        gatePass: GatePass(id: 0, gatePassStatus: GatePassStatus.atGate.index, vehicleRegNumber: "", timeAtGate: DateTime.now(), gatePassQuestions: GatePassQuestions(), gatePassType: GatePassType.delivery.index),
       ),
     );
 
     refreshList();
+  }
+
+  void onBarcodeScanned(String barcode) {
+    if (barcode.isNotEmpty) {
+//      filterController.text = barcode;
+      log.i("barcode: $barcode");
+      rebuildUi();
+    }
   }
 }

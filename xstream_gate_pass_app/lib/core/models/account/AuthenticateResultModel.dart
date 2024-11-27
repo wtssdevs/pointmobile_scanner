@@ -24,6 +24,9 @@ class AuthenticateResultModel {
       this.tenantId});
 
   AuthenticateResultModel.fromJson(Map<String, dynamic> json) {
+    var dd = DateTime.parse(json["expiryDate"]);
+    var ss = DateTime.tryParse(json["expiryDate"]);
+
     accessToken = json['accessToken'] as String?;
     encryptedAccessToken = json['encryptedAccessToken'] as String?;
     password = json['password'] as String?;
@@ -32,7 +35,8 @@ class AuthenticateResultModel {
     expireInSeconds = json['expireInSeconds'] as int?;
     userId = json['userId'] as int?;
     tenantId = json['tenantId'] as int?;
-    expiryDate = asT<DateTime?>(json['expiryDate']) ?? null;
+    //expiryDate = asT<DateTime?>(json['expiryDate']) ?? null;
+    expiryDate = DateTime.parse(json["expiryDate"]);
 
     //fromBase64
   }
@@ -46,7 +50,7 @@ class AuthenticateResultModel {
     data['tenancyName'] = tenancyName;
     data['expireInSeconds'] = expireInSeconds;
     data['userId'] = userId;
-    data['expiryDate'] = expiryDate;
+    data['expiryDate'] = expiryDate?.toIso8601String();
     data['tenantId'] = tenantId;
     return data;
   }

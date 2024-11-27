@@ -1,6 +1,7 @@
 import 'package:stacked/stacked_annotations.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart';
 import 'package:xstream_gate_pass_app/core/models/account/ForgotPassword.dart';
 import 'package:xstream_gate_pass_app/core/models/account/GetCurrentLoginInformation.dart';
@@ -28,7 +29,7 @@ class AuthenticationService {
   Future<AuthenticateResultModel?> login({
     required UserCredential userCredential,
   }) async {
-    var authResult = await _apiManager.get("/api/Account/ExternalAuth",
+    var authResult = await _apiManager.get(AppConst.authentication,
         queryParameters: userCredential.toJson(), showLoader: true);
 
     var authenticateResultModel = AuthenticateResultModel.fromJson(authResult);
@@ -121,6 +122,11 @@ class AuthenticationService {
     }
   }
 
+  void logOutCurrentUser() {
+    _localStorageService.logout();
+    _localStorageService.saveIsLoggedIn(false);
+  }
+
   Future<bool> refreshToken() async {
     var token = _localStorageService.getAuthToken;
     if (token != null) {
@@ -135,9 +141,20 @@ class AuthenticationService {
         rememberClient: true,
       );
 
-      var authResult = await _apiManager.post("/api/TokenAuth/Authenticate",
-          data: userCredential.toJson(), showLoader: false);
+      var authResult = await _apiManager.get(AppConst.authentication,
+          queryParameters: userCredential.toJson(), showLoader: false);
+
       var apiResponse = ApiResponse.fromJson(authResult);
+
+      if (apiResponse == null) {
+        var authenticateResultModel =
+            AuthenticateResultModel.fromJson(authResult);
+        if (authenticateResultModel != null) {
+          await _accessTokenRepo.processAuthenticateResult(
+              authenticateResultModel, userCredential);
+          return true;
+        }
+      }
 
       if (apiResponse.success != null && apiResponse.success == true) {
         var authenticateResultModel =

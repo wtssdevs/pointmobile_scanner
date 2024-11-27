@@ -140,6 +140,9 @@ class ApiManager {
           if (pathLowerCase == "/api/TokenAuth/Authenticate".toLowerCase()) {
             return handler.next(options);
           }
+          if (pathLowerCase == AppConst.authentication.toLowerCase()) {
+            return handler.next(options);
+          }
           if (pathLowerCase ==
               "/api/services/app/Account/register".toLowerCase()) {
             return handler.next(options);

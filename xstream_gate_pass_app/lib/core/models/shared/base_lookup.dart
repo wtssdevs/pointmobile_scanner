@@ -10,10 +10,12 @@ class BaseLookup {
       this.displayName,
       this.id,
       this.type});
-  factory BaseLookup.fromJsonManualMap(Map<String, dynamic> jsonRes,
-          {required String nameMap,
-          required String displayNameMap,
-          required String codeMap}) =>
+  factory BaseLookup.fromJsonManualMap(
+    Map<String, dynamic> jsonRes, {
+    required String nameMap,
+    required String displayNameMap,
+    required String codeMap,
+  }) =>
       BaseLookup(
         name: asT<String>(jsonRes[nameMap]) ?? "",
         displayName: asT<String>(jsonRes[displayNameMap]) ?? "",

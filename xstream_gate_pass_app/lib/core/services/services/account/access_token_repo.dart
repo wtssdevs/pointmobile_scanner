@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
@@ -84,7 +85,7 @@ class AccessTokenRepo {
       }
 
       //check if token has not expired
-      if (tokenHasExpired(token!.accessToken) == false) {
+      if (!tokenHasExpiredByDate(token!)) {
         return token.accessToken;
       }
 
@@ -105,7 +106,7 @@ class AccessTokenRepo {
 
       //TODO add error handler here
 
-      var response = await dioClient.post("/api/TokenAuth/Authenticate",
+      var response = await dioClient.post(AppConst.authentication,
           data: userCredential.toJson());
 
       var apiResponse = ApiResponse.fromJson(response.data);
