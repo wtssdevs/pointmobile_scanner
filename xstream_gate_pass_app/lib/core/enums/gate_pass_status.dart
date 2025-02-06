@@ -1,5 +1,5 @@
 enum GatePassStatus {
-  none(0, "Idle"),
+  pending(0, "Pending"),
   atGate(1, "At Gate"),
   inYard(2, "In Yard"),
   leftTheYard(3, "Left The Yard"),
@@ -19,6 +19,6 @@ extension GatePassStatusExtension on GatePassStatus {
       }
     }
 
-    return GatePassStatus.none;
+    return GatePassStatus.pending;
   }
 }

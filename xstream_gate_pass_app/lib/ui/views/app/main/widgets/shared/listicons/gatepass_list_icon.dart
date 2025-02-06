@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 
 class GatePassListIcon extends StatelessWidget {
   const GatePassListIcon({Key? key, required this.statusId}) : super(key: key);
-  final int statusId;
+  final GatePassStatus statusId;
   @override
   Widget build(BuildContext context) {
     switch (statusId) {
-      case 1: //GatePassStatus.AtGate:
+      case GatePassStatus.pending:
+        return CircleAvatar(
+          backgroundColor: Colors.grey[300],
+          child: const FittedBox(
+            fit: BoxFit.fill,
+            child: FaIcon(
+              FontAwesomeIcons.ellipsis,
+              color: Colors.orange,
+            ),
+          ),
+        );
+      case GatePassStatus.atGate:
         return CircleAvatar(
           backgroundColor: Colors.grey[300],
           child: const FittedBox(
@@ -18,7 +30,7 @@ class GatePassListIcon extends StatelessWidget {
             ),
           ),
         );
-      case 2: //GatePassStatus.InYard:
+      case GatePassStatus.inYard:
         return CircleAvatar(
           backgroundColor: Colors.grey[300],
           child: const FittedBox(
@@ -29,7 +41,7 @@ class GatePassListIcon extends StatelessWidget {
             ),
           ),
         );
-      case 3: //GatePassStatus.LeftTheYard:
+      case GatePassStatus.leftTheYard:
         return CircleAvatar(
           backgroundColor: Colors.grey[300],
           child: const FittedBox(
@@ -40,7 +52,7 @@ class GatePassListIcon extends StatelessWidget {
             ),
           ),
         );
-      case 4: //GatePassStatus.RejectedEntry:
+      case GatePassStatus.rejectedEntry:
         return CircleAvatar(
           backgroundColor: Colors.grey[300],
           child: const FittedBox(

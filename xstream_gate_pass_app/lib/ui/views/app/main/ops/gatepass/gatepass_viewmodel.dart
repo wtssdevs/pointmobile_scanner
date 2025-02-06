@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dart_helper_utils/dart_helper_utils.dart';
 import 'package:flutter/widgets.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
@@ -7,8 +8,8 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
-import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
-import 'package:xstream_gate_pass_app/core/enums/gate_pass_type.dart';
+
+import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_question.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
@@ -23,13 +24,12 @@ class GatePassViewModel extends BaseViewModel {
   final GatePassService _gatePassService = locator<GatePassService>();
   final _mediaService = locator<MediaService>();
   final _navigationService = locator<NavigationService>();
-
-  int _nextPage = 1;
-  final pagingController = PagingController<int, GatePass>(firstPageKey: 1, invisibleItemsThreshold: 5);
-
-  final PagedList<GatePass> _pagedList = PagedList<GatePass>(totalCount: 0, items: <GatePass>[], pageNumber: 1, pageSize: 15, totalPages: 0);
-
   final _scanningService = locator<ScanningService>();
+  int _nextPage = 1;
+  final pagingController = PagingController<int, GatePassAccess>(firstPageKey: 1, invisibleItemsThreshold: 5);
+
+  PagedList<GatePassAccess> _pagedList = PagedList<GatePassAccess>(totalCount: 0, items: <GatePassAccess>[], pageNumber: 1, pageSize: 10, totalPages: 0);
+
   final TextEditingController filterController = TextEditingController();
   StreamSubscription<RsaDriversLicense>? streamSubscription;
   final _connectionService = locator<ConnectionService>();
@@ -37,6 +37,10 @@ class GatePassViewModel extends BaseViewModel {
 
   RsaDriversLicense? _rsaDriversLicense;
   RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
+
+  void setscanMode(bool value) {
+    //_scanningService.setScanMode(value);
+  }
 
   void startconnectionListen() {
     streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) {
@@ -51,12 +55,43 @@ class GatePassViewModel extends BaseViewModel {
       fetchPage(pageKey);
     });
     //_scanningService.initialise();
-    //startconnectionListen();
+
     fetchPage(_nextPage);
-    notifyListeners();
 
     await _mediaService.int();
   }
+
+  // Future<void> fetchPage(int pageKey) async {
+  //   try {
+  //     log.i("fetchPage | pageKey$pageKey ");
+
+  //     var filterValue = "";
+
+  //     if (filterController.text.isNotEmpty) {
+  //       filterValue = filterController.text;
+  //     }
+
+  //     final newPage = await _gatePassService.getPagedList(_pagedList.pageNumber, _pagedList.pageSize, filterValue);
+
+  //     final previouslyFetchedItemsCount = pagingController.itemList?.length ?? 0;
+
+  //     final isLastPage = newPage.isLastPage(previouslyFetchedItemsCount);
+
+  //     final newItems = newPage.items;
+
+  //     if (isLastPage) {
+  //       pagingController.appendLastPage(newItems);
+  //     } else {
+  //       _nextPage = pageKey + 1;
+  //       pagingController.appendPage(newItems, _nextPage);
+  //     }
+  //     log.i("fetchPage | newItems: ${newItems.length} ");
+  //     notifyListeners();
+  //   } catch (error) {
+  //     pagingController.error = error;
+  //     notifyListeners();
+  //   }
+  // }
 
   Future<void> fetchPage(int pageKey) async {
     try {
@@ -68,25 +103,50 @@ class GatePassViewModel extends BaseViewModel {
         filterValue = filterController.text;
       }
 
-      final newPage = await _gatePassService.getPagedList(_pagedList.pageNumber, _pagedList.pageSize, filterValue);
-
+      _pagedList = await _gatePassService.getPagedList(_pagedList.pageNumber, _pagedList.pageSize, filterValue);
       final previouslyFetchedItemsCount = pagingController.itemList?.length ?? 0;
 
-      final isLastPage = newPage.isLastPage(previouslyFetchedItemsCount);
-
-      final newItems = newPage.items;
+      final isLastPage = _pagedList.isLastPage(previouslyFetchedItemsCount);
 
       if (isLastPage) {
-        pagingController.appendLastPage(newItems);
+        pagingController.appendLastPage(_pagedList.items);
       } else {
         _nextPage = pageKey + 1;
-        pagingController.appendPage(newItems, _nextPage);
+        pagingController.appendPage(_pagedList.items, _nextPage);
       }
-      log.i("fetchPage | newItems: ${newItems.length} ");
-      notifyListeners();
+      log.i("fetchPage | newItems: ${_pagedList.items.length} ");
     } catch (error) {
       pagingController.error = error;
-      notifyListeners();
+      rebuildUi();
+    }
+  }
+
+  Future<void> fetchLastPage(int pageKey) async {
+    try {
+      log.i("fetchPage | pageKey$pageKey ");
+
+      var filterValue = "";
+
+      if (filterController.text.isNotEmpty) {
+        filterValue = filterController.text;
+      }
+
+      var pagedList = await _gatePassService.getPagedList(_pagedList.pageNumber, _pagedList.pageSize, filterValue);
+
+      if (pagedList.items.isNotEmpty && pagingController.itemList != null && pagingController.itemList!.isNotEmpty) {
+        //find all items in the pagingController list that are int pagedlist items and update/replace them with the new pagedlist items
+        for (var item in pagedList.items) {
+          var index = pagingController.itemList?.firstWhereOrNull((element) => element.id == item.id);
+          if (index != null) {
+            index = item;
+          }
+        }
+      }
+
+      //rebuildUi();
+    } catch (error) {
+      pagingController.error = error;
+      rebuildUi();
     }
   }
 
@@ -115,16 +175,17 @@ class GatePassViewModel extends BaseViewModel {
       ),
     );
 
-    refreshList();
+    //refreshList();
+    await fetchLastPage(_pagedList.pageNumber);
   }
 
   Future onAddNewGatePass() async {
-    await _navigationService.navigateTo(
-      Routes.gatePassEditView,
-      arguments: GatePassEditViewArguments(
-        gatePass: GatePass(id: 0, gatePassStatus: GatePassStatus.atGate.index, vehicleRegNumber: "", timeAtGate: DateTime.now(), gatePassQuestions: GatePassQuestions(), gatePassType: GatePassType.delivery.index),
-      ),
-    );
+    // await _navigationService.navigateTo(
+    //   Routes.gatePassEditView,
+    //   arguments: GatePassEditViewArguments(
+    //     gatePass: GatePass(id: 0, gatePassStatus: GatePassStatus.atGate.index, vehicleRegNumber: "", timeAtGate: DateTime.now(), gatePassQuestions: GatePassQuestions(), gatePassType: GatePassType.delivery.index),
+    //   ),
+    // );
 
     refreshList();
   }
@@ -136,4 +197,6 @@ class GatePassViewModel extends BaseViewModel {
       rebuildUi();
     }
   }
+
+  void goToFindGatePass() {}
 }

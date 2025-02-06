@@ -86,15 +86,13 @@ class ApiManager {
         //*****onError****** */
 
         onError: (DioException error, ErrorInterceptorHandler handler) async {
-          if (error.response?.statusCode == HttpStatus.forbidden ||
-              error.response?.statusCode == HttpStatus.unauthorized) {
+          if (error.response?.statusCode == HttpStatus.forbidden || error.response?.statusCode == HttpStatus.unauthorized) {
             log.i('AuthInterceptor - Error 401');
-            final accessToken =
-                await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
+            final accessToken = await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
 
             //Happens on first request if badly handled
             //Or if the user cleaned his local storage at Runtime
-            if (accessToken == null || accessToken.isEmpty) {
+            if (accessToken == null || accessToken.accessToken == null) {
               log.i('AuthInterceptor - No Local AccessToken');
               //log out the user
               _accessTokenRepo.logOutCurrentUser();
@@ -143,37 +141,35 @@ class ApiManager {
           if (pathLowerCase == AppConst.authentication.toLowerCase()) {
             return handler.next(options);
           }
-          if (pathLowerCase ==
-              "/api/services/app/Account/register".toLowerCase()) {
+          if (pathLowerCase == "/api/services/app/Account/register".toLowerCase()) {
             return handler.next(options);
           }
-          if (pathLowerCase ==
-              "/api/services/app/Account/ForgotPassword".toLowerCase()) {
+          if (pathLowerCase == "/api/services/app/Account/ForgotPassword".toLowerCase()) {
             return handler.next(options);
           }
-          if (pathLowerCase ==
-              "/api/services/app/Account/ResetForgotPassword".toLowerCase()) {
+          if (pathLowerCase == "/api/services/app/Account/ResetForgotPassword".toLowerCase()) {
             return handler.next(options);
           }
 
-          var token =
-              await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
+          var token = await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
 
           var authHeader = options.headers["authorization"];
-          if (authHeader == null && token != null) {
-            options.headers["authorization"] = "Bearer $token";
+          if (authHeader == null && token != null && token.accessToken != null) {
+            options.headers["authorization"] = "Bearer ${token.accessToken}";
+            options.headers["Abp-TenantId"] = token.tenantId;
           }
           options.headers["Accept"] = "application/json";
 
           if (options.headers['requires-token'] == 'false') {
             // if the request doesn't need token, then just continue to the next
             // interceptor
-            options.headers
-                .remove('requiresToken'); //remove the auxiliary header
+            options.headers.remove('requiresToken'); //remove the auxiliary header
             return handler.next(options);
           }
+          if (token != null) {
+            options.headers.addAll({'authorization': 'Bearer ${token.accessToken}'});
+          }
 
-          options.headers.addAll({'authorization': 'Bearer ${token!}'});
           return handler.next(options);
         },
       ),
@@ -201,17 +197,11 @@ class ApiManager {
       );
     }
 
-    var listOrfCodesToAllow = [
-      HttpStatus.internalServerError,
-      HttpStatus.badRequest,
-      HttpStatus.forbidden,
-      HttpStatus.notFound
-    ];
+    var listOrfCodesToAllow = [HttpStatus.internalServerError, HttpStatus.badRequest, HttpStatus.forbidden, HttpStatus.notFound];
 
     //check if it is a general HTTP error or if it is a custom Server API error
     //if it is a custom Server API error, then we need to show the error message
-    if ((listOrfCodesToAllow.contains(dioError.response!.statusCode)) &&
-        dioError.response?.data != null) {
+    if ((listOrfCodesToAllow.contains(dioError.response!.statusCode)) && dioError.response?.data != null) {
       //if it is a custom Server API error, then we need to show the error message
 
       //check if the error can be parsed as a Server API error
@@ -220,20 +210,14 @@ class ApiManager {
         if (errorResponse.success != null && errorResponse.error != null) {
           //VALIDATION ERRORS
 
-          if (errorResponse.error != null &&
-              errorResponse.error?.details != null) {
-            if (dioError.requestOptions.path.isNotEmpty &&
-                dioError.requestOptions.path == "/api/Account/ExternalAuth" &&
-                errorResponse.error?.details ==
-                    "Invalid user name or password") {
+          if (errorResponse.error != null && errorResponse.error?.details != null) {
+            if (dioError.requestOptions.path.isNotEmpty && dioError.requestOptions.path == "/api/Account/ExternalAuth" && errorResponse.error?.details == "Invalid user name or password") {
               _accessTokenRepo.logOutCurrentUser();
             }
           }
 
-          if (errorResponse.error!.validationErrors != null &&
-              errorResponse.error!.message!.isNotEmpty) {
-            var title = errorResponse.error!
-                .message!; // + " " + errorResponse.error?.details! ?? "";
+          if (errorResponse.error!.validationErrors != null && errorResponse.error!.message!.isNotEmpty) {
+            var title = errorResponse.error!.message!; // + " " + errorResponse.error?.details! ?? "";
             var description = errorResponse.error!.details;
 
             if (description == null || description.isEmpty) {
@@ -250,8 +234,7 @@ class ApiManager {
             return;
           }
 
-          if (errorResponse.error!.validationErrors == null &&
-              errorResponse.error!.message != null) {
+          if (errorResponse.error!.validationErrors == null && errorResponse.error!.message != null) {
             var description = errorResponse.error!.details;
             var title = errorResponse.error!.message;
             if (title == null || title.isEmpty) {
@@ -269,8 +252,7 @@ class ApiManager {
             return;
           }
 
-          if (errorResponse.error!.validationErrors!.isNotEmpty ||
-              errorResponse.error!.message!.isNotEmpty) {
+          if (errorResponse.error!.validationErrors!.isNotEmpty || errorResponse.error!.message!.isNotEmpty) {
             _dialogService.showDialog(
               title: errorResponse.error!.message,
               description: errorResponse.error!.details,
@@ -282,12 +264,7 @@ class ApiManager {
         log.e(e);
       }
 
-      if (dioError.response!.statusCode == 400 ||
-          dioError.response!.statusCode == 401 ||
-          dioError.response!.statusCode == 403 ||
-          dioError.response!.statusCode == 404 ||
-          dioError.response!.statusCode == 405 ||
-          dioError.response!.statusCode == 500) {
+      if (dioError.response!.statusCode == 400 || dioError.response!.statusCode == 401 || dioError.response!.statusCode == 403 || dioError.response!.statusCode == 404 || dioError.response!.statusCode == 405 || dioError.response!.statusCode == 500) {
         var errorResponseToShow = DioErrorUtil.handleError(dioError);
         if (errorResponseToShow.isNotEmpty) {
           _dialogService.showDialog(
@@ -335,22 +312,14 @@ class ApiManager {
         ),
       );
 
-    return dioRetryClient.request<dynamic>(requestOptions.path,
-        data: requestOptions.data,
-        queryParameters: requestOptions.queryParameters,
-        options: options);
+    return dioRetryClient.request<dynamic>(requestOptions.path, data: requestOptions.data, queryParameters: requestOptions.queryParameters, options: options);
   }
 
   // injecting dio instance
 
   // Get:-----------------------------------------------------------------------
 
-  Future<dynamic> get(String uri,
-      {Map<String, dynamic>? queryParameters,
-      DioClient.Options? options,
-      DioClient.CancelToken? cancelToken,
-      DioClient.ProgressCallback? onReceiveProgress,
-      bool showLoader = false}) async {
+  Future<dynamic> get(String uri, {Map<String, dynamic>? queryParameters, DioClient.Options? options, DioClient.CancelToken? cancelToken, DioClient.ProgressCallback? onReceiveProgress, bool showLoader = false}) async {
     try {
       if (showLoader) {
         EasyLoading.show();
@@ -391,14 +360,12 @@ class ApiManager {
         options: DioClient.Options(
           headers: {
             "uploadType": "2", //TMSConsts.UploadType.Files:
-            "uploadMethod":
-                "0", //TMSConsts.UploadMethod.LoadAssignmentDocuments:
+            "uploadMethod": "0", //TMSConsts.UploadMethod.LoadAssignmentDocuments:
             //FileStoreType
             "fileStoreTypeId": "15", //    GatePassDocuments = 15,
             "referenceId": "${fileStore.refId}",
             "documentFileName": "${fileStore.fileName}",
-            "documentTypeID":
-                documentTypeID, //7 = PICTURES ,6 = PROOF OF DELIVERY
+            "documentTypeID": documentTypeID, //7 = PICTURES ,6 = PROOF OF DELIVERY
             "name": "${fileStore.fileName}",
             "antiForgeryToken": "",
           },
@@ -421,11 +388,7 @@ class ApiManager {
     try {
       DioClient.FormData formData = DioClient.FormData();
 
-      formData = DioClient.FormData.fromMap({
-        ...modelData,
-        "file":
-            await DioClient.MultipartFile.fromFile(filePath, filename: fileName)
-      });
+      formData = DioClient.FormData.fromMap({...modelData, "file": await DioClient.MultipartFile.fromFile(filePath, filename: fileName)});
 
       //[5] SEND TO SERVER
       final DioClient.Response response = await _dio.post(
@@ -485,14 +448,7 @@ class ApiManager {
   }
 
   // Put:----------------------------------------------------------------------
-  Future<dynamic> put(String uri,
-      {data,
-      Map<String, dynamic>? queryParameters,
-      DioClient.Options? options,
-      DioClient.CancelToken? cancelToken,
-      DioClient.ProgressCallback? onSendProgress,
-      DioClient.ProgressCallback? onReceiveProgress,
-      bool showLoader = true}) async {
+  Future<dynamic> put(String uri, {data, Map<String, dynamic>? queryParameters, DioClient.Options? options, DioClient.CancelToken? cancelToken, DioClient.ProgressCallback? onSendProgress, DioClient.ProgressCallback? onReceiveProgress, bool showLoader = true}) async {
     try {
       if (showLoader) {
         //  EasyLoading.show();

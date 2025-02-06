@@ -51,9 +51,6 @@ class ScanningService {
     if (call.arguments != null) {
       var scanData = Uint8List.fromList(call.arguments);
 
-      // final decryptedData = RSAScanner.decryptData(scanData);
-
-      // final driversLicense = RSAScanner.parseDecryptedData(decryptedData);
 
       var rsaDriversLicense = RsaDriversLicense.fromBarcodeBytes(scanData);
       if (rsaDriversLicense != null) {}

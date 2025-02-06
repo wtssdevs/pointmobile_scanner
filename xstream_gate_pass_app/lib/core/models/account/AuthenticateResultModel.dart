@@ -13,19 +13,11 @@ class AuthenticateResultModel {
   int? userId;
   int? tenantId;
 
-  AuthenticateResultModel(
-      {this.accessToken,
-      this.encryptedAccessToken,
-      this.password,
-      this.userNameOrEmailAddress,
-      this.expireInSeconds,
-      this.expiryDate,
-      this.userId,
-      this.tenantId});
+  AuthenticateResultModel({this.accessToken, this.encryptedAccessToken, this.password, this.userNameOrEmailAddress, this.expireInSeconds, this.expiryDate, this.userId, this.tenantId});
 
   AuthenticateResultModel.fromJson(Map<String, dynamic> json) {
-    var dd = DateTime.parse(json["expiryDate"]);
-    var ss = DateTime.tryParse(json["expiryDate"]);
+    //var dd = DateTime.parse(json["expiryDate"]);
+    //var ss = DateTime.tryParse(json["expiryDate"]);
 
     accessToken = json['accessToken'] as String?;
     encryptedAccessToken = json['encryptedAccessToken'] as String?;
@@ -36,7 +28,7 @@ class AuthenticateResultModel {
     userId = json['userId'] as int?;
     tenantId = json['tenantId'] as int?;
     //expiryDate = asT<DateTime?>(json['expiryDate']) ?? null;
-    expiryDate = DateTime.parse(json["expiryDate"]);
+    //expiryDate = DateTime.parse(json["expiryDate"]);
 
     //fromBase64
   }
@@ -56,8 +48,7 @@ class AuthenticateResultModel {
   }
 
   encodeUserNameOrEmailAddress(String userNameOrEmailAddressToEncode) {
-    userNameOrEmailAddress =
-        base64.encode(utf8.encode(userNameOrEmailAddressToEncode));
+    userNameOrEmailAddress = base64.encode(utf8.encode(userNameOrEmailAddressToEncode));
   }
 
   String decodeUserNameOrEmailAddress() {
@@ -74,20 +65,17 @@ class AuthenticateResultModel {
     //String decoded = utf8.decode(base64.decode(encoded));     // username:password
   }
 
-  setUserCredentials(
-      {required String tenancyName,
-      required String userNameOrEmailAddress,
-      required String password}) {
+  setUserCredentials({required String tenancyName, required String userNameOrEmailAddress, required String password, int? tenantId}) {
     tenancyName = tenancyName;
     userNameOrEmailAddress = userNameOrEmailAddress;
     password = password;
+    tenantId = tenantId;
+
     //encodeUserNameOrEmailAddress(userNameOrEmailAddress);
     //encodePassword(password);
   }
 
   bool autTokenIsEmpty() {
-    return tenancyName == null ||
-        userNameOrEmailAddress == null ||
-        password == null;
+    return tenancyName == null || userNameOrEmailAddress == null || password == null;
   }
 }

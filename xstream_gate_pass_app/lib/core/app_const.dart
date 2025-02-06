@@ -10,8 +10,7 @@ class AppConst {
   static const String current_language = "current_language";
   static const String current_UserProfile = "current_UserProfile";
   static const String is_OTP_Pin_Request = "is_OTP_Pin_Request";
-  static const String has_disclosed_background_permission =
-      "has_disclosed_background_permission";
+  static const String has_disclosed_background_permission = "has_disclosed_background_permission";
   static const String recentSearches = "recent_Searches";
 
   static const String deviceConfig = "device_config";
@@ -28,26 +27,24 @@ class AppConst {
   //API AUTH
 
   ///api/Account/ExternalAuth
-  static const String authentication = "/api/Account/ExternalAuth";
+  //static const String authentication = "/api/Account/ExternalAuth";
+  static const String authentication = "/api/TokenAuth/Authenticate";
   //API Methods
 
   static const String FileUploading_Images = "/api/FileUpload/Uploads/1";
-  static const String GetAllCustomers =
-      "/api/services/app/Customer/GetAllCustomersLookup";
+  static const String GetAllCustomers = "/api/services/app/Customer/GetAllCustomersLookup";
 
-  static const String GetAllGatePass = "/api/services/app/GatePass/GetAll";
+  static const String GetAllGatePass = "/api/services/app/MobileGatePassAccess/GetAllPaged";
+
+  ///api/services/app/MobileGatePassAccess/GetAllPaged
 
   static const String CreateGatePass = "/api/services/app/GatePass/Create";
 
   static const String UpdateGatePass = "/api/services/app/gatePass/Update";
-  static const String AuthorizeForEntryGatePass =
-      "/api/services/app/gatePass/AuthorizeForEntry";
-  static const String AuthorizeForExitGatePass =
-      "/api/services/app/gatePass/AuthorizeForExit";
-  static const String RejectEntryGatePass =
-      "/api/services/app/gatePass/RejectEntry";
+  static const String AuthorizeForEntryGatePass = "/api/services/app/gatePass/AuthorizeForEntry";
+  static const String AuthorizeForExitGatePass = "/api/services/app/gatePass/AuthorizeForExit";
+  static const String RejectEntryGatePass = "/api/services/app/gatePass/RejectEntry";
 
   //INTERNET TIMEOUT
-  static const String InternetConnectionStatus =
-      "The Network connection was lost.";
+  static const String InternetConnectionStatus = "The Network connection was lost.";
 }

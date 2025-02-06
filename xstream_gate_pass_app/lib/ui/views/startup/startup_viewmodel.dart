@@ -40,7 +40,7 @@ class StartUpViewModel extends BaseViewModel {
           }
 
           await _authenticationService.getUserLoginInfo(true);
-          _workerQueManager.enqueForStartUp();
+          //_workerQueManager.enqueForStartUp();
 
           // await Future.delayed(const Duration(milliseconds: 100));
           // whenever your initialization is completed, remove the splash screen:
@@ -50,7 +50,7 @@ class StartUpViewModel extends BaseViewModel {
           var canRefresToken = await _authenticationService.refreshToken();
           if (canRefresToken) {
             await _authenticationService.getUserLoginInfo(true);
-            _workerQueManager.enqueForStartUp();
+            //_workerQueManager.enqueForStartUp();
             //  await Future.delayed(const Duration(milliseconds: 200));
             // whenever your initialization is completed, remove the splash screen:
             FlutterNativeSplash.remove();

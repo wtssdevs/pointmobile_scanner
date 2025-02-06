@@ -16,12 +16,11 @@ class AuthInterceptor extends InterceptorsWrapper {
     //On Unauthorized, the AccessToken or RefreshToken may be outdated
     if (err.response?.statusCode == HttpStatus.unauthorized) {
       log.i('AuthInterceptor - Error 401');
-      final accessToken =
-          await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
+      final accessToken = await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
 
       //Happens on first request if badly handled
       //Or if the user cleaned his local storage at Runtime
-      if (accessToken == null || accessToken.isEmpty) {
+      if (accessToken == null || accessToken.accessToken == null) {
         log.i('AuthInterceptor - No Local AccessToken');
         return handler.next(err);
       }
@@ -37,8 +36,7 @@ class AuthInterceptor extends InterceptorsWrapper {
   ) async {
     // //Getting cached Access Token, or getting it from storage and caching it
 
-    if (options.path == "/api/TokenAuth/Authenticate" ||
-        options.path == AppConst.authentication) {
+    if (options.path == "/api/TokenAuth/Authenticate" || options.path == AppConst.authentication) {
       return handler.next(options);
     }
 

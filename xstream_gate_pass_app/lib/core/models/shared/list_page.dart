@@ -2,13 +2,7 @@ import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
 /// Represents each page returned by a paginated endpoint.
 class PagedList<T> {
-  PagedList(
-      {required this.totalCount,
-      required this.items,
-      required this.pageNumber,
-      required this.pageSize,
-      required this.totalPages,
-      this.itemRequestThreshold = 15});
+  PagedList({required this.totalCount, required this.items, required this.pageNumber, required this.pageSize, required this.totalPages, this.itemRequestThreshold = 15});
 
   int totalCount;
   int totalPages;
@@ -31,12 +25,11 @@ class PagedList<T> {
     return (pageNumber - 1) * pageSize;
   }
 
-  factory PagedList.fromJsonWithItems(
-          Map<String, dynamic> jsonRes, List<T> items) =>
-      PagedList(
+  factory PagedList.fromJsonWithItems(Map<String, dynamic> jsonRes, List<T> items) => PagedList(
         totalCount: asT<int>(jsonRes["totalCount"]) ?? 0,
         totalPages: asT<int>(jsonRes["totalPages"]) ?? 0,
         pageNumber: asT<int>(jsonRes['currentPage']) ?? 0,
+        //currentPage: asT<int>(jsonRes['currentPage']) ?? 0,
         items: items,
         pageSize: asT<int>(jsonRes['pageSize']) ?? 0,
       );

@@ -10,8 +10,7 @@ import 'package:xstream_gate_pass_app/core/services/services/account/authenticat
 
 class LoginViewModel extends FormViewModel {
   final log = getLogger('LoginViewModel');
-  final AuthenticationService _authenticationService =
-      locator<AuthenticationService>();
+  final AuthenticationService _authenticationService = locator<AuthenticationService>();
   final NavigationService _navigationService = locator<NavigationService>();
   final DialogService _dialogService = locator<DialogService>();
 
@@ -25,8 +24,7 @@ class LoginViewModel extends FormViewModel {
   }
 
   void navigateToCreateAccount() {}
-  void validateModel(
-      String? tenancyName, String? userNameOrEmailAddress, String? password) {
+  void validateModel(String? tenancyName, String? userNameOrEmailAddress, String? password) {
     String valiMsg = "";
     if (tenancyName == null || tenancyName == "") {
       valiMsg = "Client code is requried";
@@ -41,18 +39,11 @@ class LoginViewModel extends FormViewModel {
     notifyListeners();
   }
 
-  Future signInRequest(
-      {required String tenancyName,
-      required String userNameOrEmailAddress,
-      required String password}) async {
+  Future signInRequest({required String tenancyName, required String userNameOrEmailAddress, required String password}) async {
     validateModel(tenancyName, userNameOrEmailAddress, password);
     if (!showValidationMessage) {
       var authResult = await _authenticationService.login(
-        userCredential: UserCredential(
-            tenancyName: tenancyName,
-            userNameOrEmailAddress: userNameOrEmailAddress,
-            password: password,
-            rememberClient: true),
+        userCredential: UserCredential(tenancyName: tenancyName, userNameOrEmailAddress: userNameOrEmailAddress, password: password, rememberClient: true, tenantId: null),
       );
 
       if (authResult != null) {
@@ -62,12 +53,7 @@ class LoginViewModel extends FormViewModel {
 
           _navigationService.navigateTo(Routes.homeView);
         } else {
-          await _dialogService.showDialog(
-              title: 'Login Failure',
-              description: 'General login failure. Please try again later',
-              buttonTitle: "Ok",
-              cancelTitleColor: Colors.black,
-              buttonTitleColor: Colors.black);
+          await _dialogService.showDialog(title: 'Login Failure', description: 'General login failure. Please try again later', buttonTitle: "Ok", cancelTitleColor: Colors.black, buttonTitleColor: Colors.black);
         }
       }
     }

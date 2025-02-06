@@ -44,7 +44,7 @@ class AccountViewModel extends BaseViewModel {
     startconnectionListen();
     if (hasConnection) {
       await getCurrentUserInfo();
-      notifyListeners();
+       rebuildUi();
     }
   }
 

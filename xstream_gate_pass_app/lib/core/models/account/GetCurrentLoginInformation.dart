@@ -8,24 +8,21 @@ class CurrentLoginInformation {
     required this.tenant,
   });
 
-  factory CurrentLoginInformation.fromJson(Map<String, dynamic> jsonRes) =>
-      CurrentLoginInformation(
+  factory CurrentLoginInformation.fromJson(Map<String, dynamic> jsonRes) => CurrentLoginInformation(
         user: UserLoginInfo.fromJson((jsonRes['user']) ?? UserLoginInfo()),
-        tenant: TenantLoginInfo.fromJson((jsonRes['tenant']) ??
-            TenantLoginInfo(
-                code: "", id: 0, name: "", tenancyName: "", taxFactor: 0)),
+        tenant: TenantLoginInfo.fromJson((jsonRes['tenant']) ?? TenantLoginInfo(code: "", id: 0, name: "", tenancyName: "", taxFactor: 0)),
       );
 
   UserLoginInfo user;
   TenantLoginInfo tenant;
-  String get showFullName => (tenant.tenancyName) + "\\" + (user.showFullName);
+  String get showFullName => "${tenant.tenancyName}\\${user.showFullName}";
   @override
   String toString() {
     return jsonEncode(this);
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'user': user,
-        'tenant': tenant,
+        'user': user.toJson(),
+        'tenant': tenant.toJson(),
       };
 }

@@ -19,42 +19,35 @@ import 'package:xstream_gate_pass_app/ui/shared/widgets/box_text.dart';
 import 'package:xstream_gate_pass_app/ui/shared/widgets/modal_lookup/modal_sheet_selection.dart';
 import 'package:xstream_gate_pass_app/ui/shared/widgets/text_fields/input_field.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_gatepass_view_model.dart';
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/listicons/gatepass_list_icon.dart';
+
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/smart/controls/radio_bool_labeled_bool.dart';
 
 class GatePassEditView extends StatelessWidget {
   final GatePass gatePass;
   GatePassEditView({Key? key, required this.gatePass}) : super(key: key);
 
-  final TextEditingController vehicleRegNumberTextController =
-      TextEditingController();
+  final TextEditingController vehicleRegNumberTextController = TextEditingController();
   final FocusNode vehicleRegNumberTextFocusNode = FocusNode();
 
-  final TextEditingController trailerNo1TextController =
-      TextEditingController();
+  final TextEditingController trailerNo1TextController = TextEditingController();
   final FocusNode trailerNo1TextFocusNode = FocusNode();
 
-  final TextEditingController trailerNo2TextController =
-      TextEditingController();
+  final TextEditingController trailerNo2TextController = TextEditingController();
   final FocusNode trailerNo2TextFocusNode = FocusNode();
 
   final TextEditingController driverIDTextController = TextEditingController();
   final FocusNode driverIDTextFocusNode = FocusNode();
 
-  final TextEditingController driverLisenceNoTextController =
-      TextEditingController();
+  final TextEditingController driverLisenceNoTextController = TextEditingController();
   final FocusNode driverLisenceNoTextFocusNode = FocusNode();
 
-  final TextEditingController driverNameTextController =
-      TextEditingController();
+  final TextEditingController driverNameTextController = TextEditingController();
   final FocusNode driverdriverNameTextFocusNode = FocusNode();
 
-  final TextEditingController driverGenderTextController =
-      TextEditingController();
+  final TextEditingController driverGenderTextController = TextEditingController();
   final FocusNode driverdriverGenderTextFocusNode = FocusNode();
 
-  final TextEditingController driverLicenseTypeTextController =
-      TextEditingController();
+  final TextEditingController driverLicenseTypeTextController = TextEditingController();
   final FocusNode driverLicenseTypeTextFocusNode = FocusNode();
 
   final formKeyAtGate = GlobalKey<FormState>();
@@ -68,8 +61,7 @@ class GatePassEditView extends StatelessWidget {
     driverLisenceNoTextController.text = data.driverLicenseNo ?? "";
   }
 
-  Future<bool> validateByFormKey(GlobalKey<FormState> formKey,
-      BuildContext context, GatePassEditViewModel model) async {
+  Future<bool> validateByFormKey(GlobalKey<FormState> formKey, BuildContext context, GatePassEditViewModel model) async {
     var isvalid = formKey.currentState!.validate();
     if (isvalid && model.showValidation == false) {
       formKey.currentState!.save();
@@ -80,8 +72,7 @@ class GatePassEditView extends StatelessWidget {
     }
   }
 
-  Future<bool> validateForm(
-      GatePassEditViewModel model, BuildContext context) async {
+  Future<bool> validateForm(GatePassEditViewModel model, BuildContext context) async {
     //validate per status
     var isValid = false;
     switch (model.gatePass.gatePassStatus) {
@@ -93,15 +84,7 @@ class GatePassEditView extends StatelessWidget {
         if (isValid) {
           //model.authorizeEntry();
         } else {
-          Fluttertoast.showToast(
-              msg:
-                  "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ",
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM_LEFT,
-              timeInSecForIosWeb: 8,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 14.0);
+          Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
         }
         break;
       default:
@@ -126,8 +109,7 @@ class GatePassEditView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<GatePassEditViewModel>.reactive(
-      onModelReady: (model) =>
-          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      onModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.listenToModelSet(onModelSet);
         model.runStartupLogic();
         if (gatePass.id == 0) {
@@ -146,15 +128,7 @@ class GatePassEditView extends StatelessWidget {
           child: Scaffold(
             persistentFooterButtons: [
               Visibility(
-                visible: (model.gatePass.gatePassQuestions
-                                ?.hasDeliveryDocuments ==
-                            false &&
-                        model.gatePass.gatePassStatus ==
-                            GatePassStatus.atGate.index) ||
-                    (model.gatePass.gatePassQuestions?.hasDeliveryDocuments ==
-                            false &&
-                        model.gatePass.gatePassStatus ==
-                            GatePassStatus.inYard.index),
+                visible: (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.atGate.index) || (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.inYard.index),
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     // call method
@@ -172,10 +146,7 @@ class GatePassEditView extends StatelessWidget {
                 ),
               ),
               Visibility(
-                visible: model.gatePass.gatePassStatus ==
-                        GatePassStatus.atGate.index &&
-                    model.gatePass.gatePassQuestions?.hasDeliveryDocuments ==
-                        true,
+                visible: model.gatePass.gatePassStatus == GatePassStatus.atGate.index && model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     // valiate first
@@ -192,10 +163,7 @@ class GatePassEditView extends StatelessWidget {
                 ),
               ),
               Visibility(
-                visible: model.gatePass.gatePassStatus ==
-                        GatePassStatus.inYard.index &&
-                    model.gatePass.gatePassQuestions?.hasDeliveryDocuments ==
-                        true,
+                visible: model.gatePass.gatePassStatus == GatePassStatus.inYard.index && model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     // valiate first
@@ -219,10 +187,9 @@ class GatePassEditView extends StatelessWidget {
               title: ListTile(
                 dense: true,
                 contentPadding: const EdgeInsets.only(left: 2.0),
-                leading:
-                    GatePassListIcon(statusId: model.gatePass.gatePassStatus),
-                title: BoxText.label(model.gatePass.getGatePassStatusText(),
-                    color: Colors.white),
+                //leading:
+                //  GatePassListIcon(statusId: model.gatePass.gatePassStatus),
+                title: BoxText.label(model.gatePass.getGatePassStatusText(), color: Colors.white),
               ),
               titleSpacing: 2.0,
               centerTitle: true,
@@ -302,8 +269,7 @@ class GatePassEditView extends StatelessWidget {
                                     fontSize: 12,
                                   ),
                                   onChanged: (v) {
-                                    model.gatePass.gatePassType =
-                                        GatePassType.collection.index;
+                                    model.gatePass.gatePassType = GatePassType.collection.index;
                                     model.modelNotifyListeners();
                                   },
                                   activeColor: Colors.green,
@@ -322,8 +288,7 @@ class GatePassEditView extends StatelessWidget {
                                     fontSize: 12,
                                   ),
                                   onChanged: (v) {
-                                    model.gatePass.gatePassType =
-                                        GatePassType.delivery.index;
+                                    model.gatePass.gatePassType = GatePassType.delivery.index;
                                     model.modelNotifyListeners();
                                   },
                                   activeColor: Colors.green,
@@ -334,14 +299,11 @@ class GatePassEditView extends StatelessWidget {
                           ),
                           InputField(
                             placeholder: "Type The Vehicle Reg Number...",
-                            padding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 5),
+                            padding: const EdgeInsets.only(left: 4, right: 4, top: 5),
                             controller: vehicleRegNumberTextController,
                             icon: FaIcon(
                               FontAwesomeIcons.truck,
-                              color: model.gatePass.vehicleRegNumber.isNotEmpty
-                                  ? Colors.green
-                                  : Colors.red,
+                              color: model.gatePass.vehicleRegNumber.isNotEmpty ? Colors.green : Colors.red,
                             ),
                             fieldFocusNode: vehicleRegNumberTextFocusNode,
                             nextFocusNode: trailerNo1TextFocusNode,
@@ -370,15 +332,11 @@ class GatePassEditView extends StatelessWidget {
                           ),
                           InputField(
                             placeholder: "Type The Trailer No 1...",
-                            padding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 0),
+                            padding: const EdgeInsets.only(left: 4, right: 4, top: 0),
                             controller: trailerNo1TextController,
                             icon: FaIcon(
                               FontAwesomeIcons.trailer,
-                              color: model.gatePass.trailerNumber1 != null &&
-                                      model.gatePass.trailerNumber1!.isNotEmpty
-                                  ? Colors.green
-                                  : Colors.red,
+                              color: model.gatePass.trailerNumber1 != null && model.gatePass.trailerNumber1!.isNotEmpty ? Colors.green : Colors.red,
                             ),
                             fieldFocusNode: trailerNo1TextFocusNode,
                             nextFocusNode: trailerNo2TextFocusNode,
@@ -407,15 +365,11 @@ class GatePassEditView extends StatelessWidget {
                           ),
                           InputField(
                             placeholder: "Type The Trailer No 2...",
-                            padding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 0),
+                            padding: const EdgeInsets.only(left: 4, right: 4, top: 0),
                             controller: trailerNo1TextController,
                             icon: FaIcon(
                               FontAwesomeIcons.trailer,
-                              color: model.gatePass.trailerNumber2 != null &&
-                                      model.gatePass.trailerNumber2!.isNotEmpty
-                                  ? Colors.green
-                                  : Colors.red,
+                              color: model.gatePass.trailerNumber2 != null && model.gatePass.trailerNumber2!.isNotEmpty ? Colors.green : Colors.red,
                             ),
                             fieldFocusNode: trailerNo2TextFocusNode,
                             nextFocusNode: null,
@@ -473,15 +427,11 @@ class GatePassEditView extends StatelessWidget {
                           ),
                           InputField(
                             placeholder: "Driver Name",
-                            padding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 4),
+                            padding: const EdgeInsets.only(left: 4, right: 4, top: 4),
                             controller: driverNameTextController,
                             icon: FaIcon(
                               FontAwesomeIcons.idCard,
-                              color: model.gatePass.driverName != null &&
-                                      model.gatePass.driverName!.isNotEmpty
-                                  ? Colors.green
-                                  : Colors.red,
+                              color: model.gatePass.driverName != null && model.gatePass.driverName!.isNotEmpty ? Colors.green : Colors.red,
                             ),
                             fieldFocusNode: driverdriverNameTextFocusNode,
                             nextFocusNode: null,
@@ -507,15 +457,11 @@ class GatePassEditView extends StatelessWidget {
                           ),
                           InputField(
                             placeholder: "Driver ID",
-                            padding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 0),
+                            padding: const EdgeInsets.only(left: 4, right: 4, top: 0),
                             controller: driverIDTextController,
                             icon: FaIcon(
                               FontAwesomeIcons.idCard,
-                              color: model.gatePass.driverIdNo != null &&
-                                      model.gatePass.driverIdNo!.isNotEmpty
-                                  ? Colors.green
-                                  : Colors.red,
+                              color: model.gatePass.driverIdNo != null && model.gatePass.driverIdNo!.isNotEmpty ? Colors.green : Colors.red,
                             ),
                             fieldFocusNode: driverIDTextFocusNode,
                             nextFocusNode: null,
@@ -541,15 +487,11 @@ class GatePassEditView extends StatelessWidget {
                           ),
                           InputField(
                             placeholder: "Driver License No",
-                            padding: const EdgeInsets.only(
-                                left: 4, right: 4, top: 0),
+                            padding: const EdgeInsets.only(left: 4, right: 4, top: 0),
                             controller: driverLisenceNoTextController,
                             icon: FaIcon(
                               FontAwesomeIcons.idCard,
-                              color: model.gatePass.driverLicenseNo != null &&
-                                      model.gatePass.driverLicenseNo!.isNotEmpty
-                                  ? Colors.green
-                                  : Colors.red,
+                              color: model.gatePass.driverLicenseNo != null && model.gatePass.driverLicenseNo!.isNotEmpty ? Colors.green : Colors.red,
                             ),
                             fieldFocusNode: driverLisenceNoTextFocusNode,
                             nextFocusNode: null,
@@ -576,10 +518,8 @@ class GatePassEditView extends StatelessWidget {
                           ListTile(
                             dense: true,
                             contentPadding: const EdgeInsets.only(left: 9.0),
-                            leading: GatePassListIcon(
-                                statusId: model.gatePass.gatePassStatus),
-                            subtitle: BoxText.caption(
-                                model.gatePass.getGatePassStatusText()),
+                            //  leading: GatePassListIcon(statusId: model.gatePass.gatePassStatus),
+                            subtitle: BoxText.caption(model.gatePass.getGatePassStatusText()),
                             title: BoxText.label(
                               "Status",
                               color: Colors.black,
@@ -588,8 +528,7 @@ class GatePassEditView extends StatelessWidget {
                           ListTile(
                             dense: true,
                             contentPadding: const EdgeInsets.only(left: 9.0),
-                            subtitle: BoxText.caption(
-                                model.gatePass.timeAtGate.toFormattedString()),
+                            subtitle: BoxText.caption(model.gatePass.timeAtGate.toFormattedString()),
                             title: BoxText.label(
                               "Time At Gate",
                               color: Colors.black,
@@ -598,8 +537,7 @@ class GatePassEditView extends StatelessWidget {
                           ListTile(
                             dense: true,
                             contentPadding: const EdgeInsets.only(left: 9.0),
-                            subtitle: BoxText.caption(
-                                model.gatePass.timeIn?.toString() ?? ""),
+                            subtitle: BoxText.caption(model.gatePass.timeIn?.toString() ?? ""),
                             title: BoxText.label(
                               "Time In",
                               color: Colors.black,
@@ -608,8 +546,7 @@ class GatePassEditView extends StatelessWidget {
                           ListTile(
                             dense: true,
                             contentPadding: const EdgeInsets.only(left: 9.0),
-                            subtitle: BoxText.caption(
-                                model.gatePass.timeOut?.toString() ?? ""),
+                            subtitle: BoxText.caption(model.gatePass.timeOut?.toString() ?? ""),
                             title: BoxText.label(
                               "Time Out",
                               color: Colors.black,
@@ -617,9 +554,7 @@ class GatePassEditView extends StatelessWidget {
                           ),
                           ListRadioBoolWithLabel(
                             label: "Documents Received ?",
-                            value: model.gatePass.gatePassQuestions
-                                    ?.hasDeliveryDocuments ??
-                                false,
+                            value: model.gatePass.gatePassQuestions?.hasDeliveryDocuments ?? false,
                             onValueChanged: (Object? newValue) {
                               if (newValue is bool?) {
                                 model.setDocRecievedChange(newValue);
@@ -628,81 +563,60 @@ class GatePassEditView extends StatelessWidget {
                           ),
                           ListRadioBoolWithLabel(
                             label: "Containerised (Y/N)?",
-                            value: model.gatePass.gatePassQuestions
-                                    ?.isContainerised ??
-                                false,
+                            value: model.gatePass.gatePassQuestions?.isContainerised ?? false,
                             onValueChanged: (Object? val) {
                               if (val is bool?) {
-                                model.gatePass.gatePassQuestions
-                                    ?.isContainerised = val ?? false;
+                                model.gatePass.gatePassQuestions?.isContainerised = val ?? false;
                                 model.modelNotifyListeners();
                               }
                             },
                           ),
                           ListRadioBoolWithLabel(
-                            label:
-                                "Any visible damages/quality defects on the items/pallets/packaging (Y/N)?",
-                            value: model.gatePass.gatePassQuestions
-                                    ?.hasDamagesDefects ??
-                                false,
+                            label: "Any visible damages/quality defects on the items/pallets/packaging (Y/N)?",
+                            value: model.gatePass.gatePassQuestions?.hasDamagesDefects ?? false,
                             onValueChanged: (Object? val) {
                               if (val is bool?) {
-                                model.gatePass.gatePassQuestions
-                                    ?.hasDamagesDefects = val ?? false;
+                                model.gatePass.gatePassQuestions?.hasDamagesDefects = val ?? false;
                                 model.modelNotifyListeners();
                               }
                             },
                           ),
                           ListRadioBoolWithLabel(
-                            label:
-                                "Does the qty delivered match the docs? (Y/N)?",
-                            value: model.gatePass.gatePassQuestions
-                                    ?.qtyMatchedDocs ??
-                                false,
+                            label: "Does the qty delivered match the docs? (Y/N)?",
+                            value: model.gatePass.gatePassQuestions?.qtyMatchedDocs ?? false,
                             onValueChanged: (Object? val) {
                               if (val is bool?) {
-                                model.gatePass.gatePassQuestions
-                                    ?.qtyMatchedDocs = val ?? false;
+                                model.gatePass.gatePassQuestions?.qtyMatchedDocs = val ?? false;
                                 model.modelNotifyListeners();
                               }
                             },
                           ),
                           ListRadioBoolWithLabel(
                             label: "Do the item numbers match the docs (Y/N)?",
-                            value: model.gatePass.gatePassQuestions
-                                    ?.itemCodesMatchDocs ??
-                                false,
+                            value: model.gatePass.gatePassQuestions?.itemCodesMatchDocs ?? false,
                             onValueChanged: (Object? val) {
                               if (val is bool?) {
-                                model.gatePass.gatePassQuestions
-                                    ?.itemCodesMatchDocs = val ?? false;
+                                model.gatePass.gatePassQuestions?.itemCodesMatchDocs = val ?? false;
                                 model.modelNotifyListeners();
                               }
                             },
                           ),
                           ListRadioBoolWithLabel(
                             label: "Was the delivery expected (Y/N)?",
-                            value: model.gatePass.gatePassQuestions
-                                    ?.expectedDelivery ??
-                                false,
+                            value: model.gatePass.gatePassQuestions?.expectedDelivery ?? false,
                             onValueChanged: (Object? val) {
                               if (val is bool?) {
-                                model.gatePass.gatePassQuestions
-                                    ?.expectedDelivery = val ?? false;
+                                model.gatePass.gatePassQuestions?.expectedDelivery = val ?? false;
                                 model.modelNotifyListeners();
                               }
                             },
                           ),
                           ListRadioBoolWithLabel(
-                            label:
-                                "Does the driver agree with the info captured (Y/N)?",
-                            value:
-                                model.gatePass.gatePassQuestions?.driverAgree ??
-                                    false,
+                            label: "Does the driver agree with the info captured (Y/N)?",
+                            value: model.gatePass.gatePassQuestions?.driverAgree ?? false,
                             onValueChanged: (Object? val) {
                               if (val is bool?) {
-                                model.gatePass.gatePassQuestions?.driverAgree =
-                                    val ?? false;
+                                model.gatePass.gatePassQuestions?.driverAgree = val ?? false;
                                 model.modelNotifyListeners();
                               }
                             },
@@ -713,8 +627,7 @@ class GatePassEditView extends StatelessWidget {
                   ),
                   Scaffold(
                     floatingActionButton: SpeedDial(
-                      visible:
-                          model.gatePass.id != null && model.gatePass.id != 0,
+                      visible: model.gatePass.id != null && model.gatePass.id != 0,
                       icon: Icons.add_a_photo,
                       spaceBetweenChildren: 6,
                       activeIcon: Icons.close,
@@ -737,15 +650,13 @@ class GatePassEditView extends StatelessWidget {
                         SpeedDialChild(
                           child: const Icon(Icons.barcode_reader),
                           label: 'Barcode Scanner',
-                          onTap: () =>
-                              model.goToCamView(FileStoreType.documentScan),
+                          onTap: () => model.goToCamView(FileStoreType.documentScan),
                         ),
                       ],
                     ),
                     body: GridView.builder(
                       padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         mainAxisSpacing: 1,
                         crossAxisSpacing: 1,
@@ -782,13 +693,7 @@ class GatePassEditView extends StatelessWidget {
                                     alignment: Alignment.bottomRight,
                                     child: Row(
                                       children: [
-                                        if (fileItem.filestoreType ==
-                                            FileStoreType
-                                                .customerSignature.index)
-                                          const FaIcon(
-                                              FontAwesomeIcons.signature,
-                                              size: 16,
-                                              color: Colors.black),
+                                        if (fileItem.filestoreType == FileStoreType.customerSignature.index) const FaIcon(FontAwesomeIcons.signature, size: 16, color: Colors.black),
                                         fileItem.upLoaded
                                             ? const Icon(
                                                 Icons.checklist,

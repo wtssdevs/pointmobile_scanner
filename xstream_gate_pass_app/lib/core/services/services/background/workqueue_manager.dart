@@ -39,8 +39,7 @@ class WorkerQueManager {
   //get stream for sync que tasks
   Stream get onSyncTaskChange => _syncController.stream;
 
-  Future<void> enqueSingle(BackgroundJobInfo value,
-      [bool startNow = true]) async {
+  Future<void> enqueSingle(BackgroundJobInfo value, [bool startNow = true]) async {
     //_input.add(value);
 
     await _backgroundJobInfoRepository.insert(value);
@@ -63,14 +62,7 @@ class WorkerQueManager {
       //     nextTryTime: Timestamp.now(),
       //     id: "",
       //     isAbandoned: false),
-      BackgroundJobInfo(
-          jobType: BackgroundJobType.syncMasterfiles.index,
-          jobArgs: "",
-          lastTryTime: Timestamp.now(),
-          creationTime: Timestamp.now(),
-          nextTryTime: Timestamp.now(),
-          id: "",
-          isAbandoned: false),
+      BackgroundJobInfo(jobType: BackgroundJobType.syncMasterfiles.index, jobArgs: "", lastTryTime: Timestamp.now(), creationTime: Timestamp.now(), nextTryTime: Timestamp.now(), id: "", isAbandoned: false),
     ]);
   }
 
@@ -114,12 +106,11 @@ class WorkerQueManager {
 
         await tryProcessJob(firstJob);
         if (kDebugMode) {
-          log.d(
-              'TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
+          log.d('TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
         }
       } else {
         //TODO clean job list from db and report issues maybe...
-        // await _backgroundJobInfoRepository.delete(firstJob);
+//         await _backgroundJobInfoRepository.delete(firstJob);
       }
       isExecuting = false;
     }
@@ -133,6 +124,10 @@ class WorkerQueManager {
 
   Future<void> updateJobValues(BackgroundJobInfo jobInfo) async {
     jobInfo.tryCount = jobInfo.calculateTryCount();
+
+    if (jobInfo.isAbandoned) {
+      await _backgroundJobInfoRepository.delete(jobInfo);
+    }
 
     var newNextTryTime = jobInfo.calculateNextTryTime();
     if (newNextTryTime != null) {
@@ -153,7 +148,7 @@ class WorkerQueManager {
           deleteJob = true;
           break;
         case BackgroundJobType.syncMasterfiles:
-          await _masterFilesService.syncServerWithLocalAll();
+          //await _masterFilesService.syncServerWithLocalAll();
           deleteJob = true;
           break;
         case BackgroundJobType.syncImages:
