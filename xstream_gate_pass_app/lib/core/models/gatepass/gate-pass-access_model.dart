@@ -16,8 +16,9 @@ enum GatePassBookingType {
 }
 
 enum DeliveryType {
-  receive(0, "receive"),
-  dispatch(1, "dispatch");
+  receive(0, "Receive"),
+  dispatch(1, "Dispatch"),
+  other(2, "Other");
 
   final int value;
   final String text;
@@ -37,21 +38,21 @@ enum GatePassContainerType {
 
 class GatePassAccess {
   String id;
-  DateTime creationTime;
+  DateTime? creationTime;
   int? creatorUserId;
   DateTime? lastModificationTime;
   int? lastModifierUserId;
-  bool isDeleted;
+  bool isDeleted = false;
   int? deleterUserId;
   DateTime? deletionTime;
-  String createdByUser;
+  String? createdByUser;
   String? lastModifiedByUser;
   String? deletedByUser;
   String? externalKey;
   int tenantId;
   String? extensionData;
-  String concurrencyStamp;
-  bool isActive;
+  String? concurrencyStamp;
+  bool isActive = true;
   bool canRelease;
   DateTime? timeAtGate;
   DateTime? timeIn;
@@ -61,6 +62,7 @@ class GatePassAccess {
   DeliveryType gatePassDeliveryType;
   GatePassBookingType gatePassBookingType;
   String? vehicleRegNumber;
+  String? vehicleRegNumberValidation;
   String? trailerRegNumberOne;
   String? trailerRegNumberTwo;
   String? logisticRefNumber;
@@ -71,7 +73,7 @@ class GatePassAccess {
   String? voyageNo;
   String? ticketNo;
   String? refNo;
-  bool isHazardous;
+  bool isHazardous = false;
   String? driverName;
   String? driverIdNo;
   String? driverLicenceNo;
@@ -88,7 +90,7 @@ class GatePassAccess {
   String? warehouseCode;
   String? comments;
   String? rejectReason;
-  bool hasBeenPrinted;
+  bool hasBeenPrinted = false;
   String? externalId;
   double? grossWeightIn;
   double? grossWeightOut;
@@ -118,22 +120,22 @@ class GatePassAccess {
 
   GatePassAccess({
     required this.id,
-    required this.creationTime,
+    this.creationTime,
     this.creatorUserId,
     this.lastModificationTime,
     this.lastModifierUserId,
-    required this.isDeleted,
+    this.isDeleted = false,
     this.deleterUserId,
     this.deletionTime,
-    required this.createdByUser,
+    this.createdByUser,
     this.lastModifiedByUser,
     this.deletedByUser,
     this.externalKey,
-    required this.tenantId,
-    required this.extensionData,
-    required this.concurrencyStamp,
-    required this.isActive,
-    required this.canRelease,
+    this.tenantId = 0,
+    this.extensionData,
+    this.concurrencyStamp,
+    this.isActive = true,
+    this.canRelease = false,
     this.timeAtGate,
     this.timeIn,
     this.timeOut,
@@ -142,17 +144,18 @@ class GatePassAccess {
     required this.gatePassDeliveryType,
     required this.gatePassBookingType,
     this.vehicleRegNumber,
+    this.vehicleRegNumberValidation,
     this.trailerRegNumberOne,
     this.trailerRegNumberTwo,
     this.logisticRefNumber,
     this.siNumber,
     this.customerRefNo,
-    required this.transactionNo,
+    this.transactionNo,
     this.gatePassCode,
     this.voyageNo,
     this.ticketNo,
     this.refNo,
-    required this.isHazardous,
+    this.isHazardous = false,
     this.driverName,
     this.driverIdNo,
     this.driverLicenceNo,
@@ -169,7 +172,7 @@ class GatePassAccess {
     this.warehouseCode,
     this.comments,
     this.rejectReason,
-    required this.hasBeenPrinted,
+    this.hasBeenPrinted = false,
     this.externalId,
     this.grossWeightIn,
     this.grossWeightOut,
@@ -204,7 +207,7 @@ class GatePassAccess {
 
   factory GatePassAccess.fromJson(Map<String, dynamic> json) => GatePassAccess(
         id: json["id"],
-        creationTime: DateTime.parse(json["creationTime"]),
+        creationTime: json["creationTime"] != null ? DateTime.parse(json["creationTime"]) : null,
         lastModificationTime: json["lastModificationTime"] != null ? DateTime.parse(json["lastModificationTime"]) : null,
         creatorUserId: json["creatorUserId"],
         lastModifierUserId: json["lastModifierUserId"],
@@ -215,7 +218,7 @@ class GatePassAccess {
         lastModifiedByUser: json["lastModifiedByUser"] ?? "",
         deletedByUser: json["deletedByUser"] ?? "",
         externalKey: json["externalKey"] ?? "",
-        tenantId: json["tenantId"],
+        tenantId: json["tenantId"] ?? 0,
         extensionData: json["extensionData"],
         concurrencyStamp: json["concurrencyStamp"],
         isActive: json["isActive"],
@@ -228,6 +231,7 @@ class GatePassAccess {
         gatePassDeliveryType: DeliveryType.values[asT<int>(json['gatePassDeliveryType']) ?? 0],
         gatePassBookingType: GatePassBookingType.values[asT<int>(json['gatePassBookingType']) ?? 0],
         vehicleRegNumber: json["vehicleRegNumber"],
+        //vehicleRegNumberValidation
         trailerRegNumberOne: json["trailerRegNumberOne"],
         trailerRegNumberTwo: json["trailerRegNumberTwo"],
         logisticRefNumber: json["logisticRefNumber"],
@@ -286,7 +290,7 @@ class GatePassAccess {
 
   Map<String, dynamic> toMap() => {
         "id": id,
-        "creationTime": creationTime.toIso8601String(),
+        "creationTime": creationTime?.toIso8601String(),
         "creatorUserId": creatorUserId,
         "lastModificationTime": lastModificationTime?.toIso8601String(),
         "lastModifierUserId": lastModifierUserId,
@@ -310,6 +314,7 @@ class GatePassAccess {
         "gatePassDeliveryType": gatePassDeliveryType,
         "gatePassBookingType": gatePassBookingType,
         "vehicleRegNumber": vehicleRegNumber,
+        "vehicleRegNumberValidation": vehicleRegNumberValidation,
         "trailerRegNumberOne": trailerRegNumberOne,
         "trailerRegNumberTwo": trailerRegNumberTwo,
         "logisticRefNumber": logisticRefNumber,

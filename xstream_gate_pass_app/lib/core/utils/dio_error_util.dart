@@ -81,6 +81,7 @@ class DioErrorUtil {
           case 400: //bad Request
           case 401: //bad Request
           case 500: //Internal server error
+          case 403: //Internal server error
             apiResponse.message = "Bad Request";
             if (error.response != null &&
                 error.response!.data != null &&

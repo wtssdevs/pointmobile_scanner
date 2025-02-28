@@ -69,14 +69,14 @@ class ApiManager {
     _dio.interceptors.add(
       PrettyDioLogger(
         requestHeader: true,
-        requestBody: true,
+        requestBody: false,
         responseBody: true,
         responseHeader: false,
         error: true,
         compact: true,
         logPrint: log.d,
         maxWidth: 160,
-        enabled: true,
+        enabled: false,
         request: true,
       ),
     );
@@ -152,6 +152,12 @@ class ApiManager {
           }
 
           var token = await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
+          // if (pathLowerCase == "/AbpUserConfiguration/GetAll/".toLowerCase()) {
+          //   if (token != null && token.accessToken != null) {
+          //     options.headers["Abp-TenantId"] = token.tenantId;
+          //   }
+          //   return handler.next(options);
+          // }
 
           var authHeader = options.headers["authorization"];
           if (authHeader == null && token != null && token.accessToken != null) {
@@ -223,30 +229,36 @@ class ApiManager {
             if (description == null || description.isEmpty) {
               description = errorResponse.error!.validationErrors!.join(",\n");
             }
-            _dialogService.showCustomDialog(
-              variant: DialogType.basic,
-              data: BasicDialogStatus.error,
+            _dialogService.showDialog(
+              //variant: DialogType.basic,
+              //data: BasicDialogStatus.error,
               title: title,
               description: description,
-              mainButtonTitle: "Ok",
+              //mainButtonTitle: "Ok",
             );
 
             return;
           }
 
           if (errorResponse.error!.validationErrors == null && errorResponse.error!.message != null) {
-            var description = errorResponse.error!.details;
-            var title = errorResponse.error!.message;
-            if (title == null || title.isEmpty) {
-              title = "Error";
+            var title = "Error";
+            var desc = "";
+            if (errorResponse.error!.details != null) {
+              desc = errorResponse.error!.details!;
+            } else {
+              desc = errorResponse.error!.message!;
             }
 
-            _dialogService.showCustomDialog(
-              variant: DialogType.basic,
-              data: BasicDialogStatus.error,
+            if (errorResponse.error!.message != null) {
+              title = errorResponse.error!.message!;
+            }
+
+            _dialogService.showDialog(
+              //variant: DialogType.basic,
+              //data: BasicDialogStatus.error,
               title: title,
-              description: description,
-              mainButtonTitle: "Ok",
+              description: desc,
+              //mainButtonTitle: "Ok",
             );
 
             return;

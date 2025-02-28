@@ -15,11 +15,12 @@ class BaseLookup {
     required String nameMap,
     required String displayNameMap,
     required String codeMap,
+    required String idMap,
   }) =>
       BaseLookup(
         name: asT<String>(jsonRes[nameMap]) ?? "",
         displayName: asT<String>(jsonRes[displayNameMap]) ?? "",
-        id: asT<int>(jsonRes['id']) ?? 0,
+        id: asT<int>(jsonRes[idMap]) ?? 0,
         isActive: asT<bool?>(jsonRes['isActive']),
         code: asT<String?>(jsonRes[codeMap]),
       );

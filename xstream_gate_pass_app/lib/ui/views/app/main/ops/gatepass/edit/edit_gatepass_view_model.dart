@@ -15,7 +15,7 @@ import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
 import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_model.dart';
+import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_repository.dart';
@@ -28,11 +28,12 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
 
 import 'package:xstream_gate_pass_app/ui/views/shared/base_form_view_model.dart';
+import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
 
-class GatePassEditViewModel extends BaseFormViewModel {
+class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   GatePassEditViewModel(this._gatePass);
-  GatePass _gatePass;
-  GatePass get gatePass => _gatePass;
+  GatePassAccess _gatePass;
+  GatePassAccess get gatePass => _gatePass;
   Function? _onModelSet;
 
   final log = getLogger('GatePassEditViewModel');
@@ -67,11 +68,10 @@ class GatePassEditViewModel extends BaseFormViewModel {
       gatePass.driverName =
           "${_rsaDriversLicense?.firstNames} ${_rsaDriversLicense?.surname}";
       gatePass.driverIdNo = _rsaDriversLicense?.idNumber;
-      gatePass.driverLicenseNo =
+      gatePass.driverLicenceNo =
           "${_rsaDriversLicense?.licenseNumber} (${_rsaDriversLicense?.vehicleCodes.join(",")})";
-      gatePass.driverGender = _rsaDriversLicense?.gender;
-      gatePass.driverLicenseCountryCode =
-          _rsaDriversLicense?.licenseCountryOfIssue;
+      //gatePass.driv = _rsaDriversLicense?.gender;
+
       setModelUpdate(_gatePass);
       notifyListeners();
     });
@@ -106,12 +106,12 @@ class GatePassEditViewModel extends BaseFormViewModel {
     _onModelSet = onModelSet;
   }
 
-  setModelUpdate(GatePass entity) {
+  setModelUpdate(GatePassAccess entity) {
     _onModelSet?.call(entity);
     notifyListeners();
   }
 
-  void setModeldata(GatePass updatedData) {
+  void setModeldata(GatePassAccess updatedData) {
     _gatePass = updatedData;
 
     //updateHasEdit(true);
@@ -154,7 +154,7 @@ class GatePassEditViewModel extends BaseFormViewModel {
 
   void setDocRecievedChange(bool? val) {
     if (val != null) {
-      gatePass.gatePassQuestions?.hasDeliveryDocuments = val;
+      //gatePass.gatePassQuestions?.hasDeliveryDocuments = val;
       notifyListeners();
     }
   }
@@ -175,7 +175,7 @@ class GatePassEditViewModel extends BaseFormViewModel {
       );
     }
     //here we save back to server
-    GatePass? reponse;
+    GatePassAccess? reponse;
     if (gatePass.id == 0) {
       reponse = await _gatePassService.create(gatePass);
     } else {
@@ -341,7 +341,7 @@ class GatePassEditViewModel extends BaseFormViewModel {
 
   Future<void> loadFileStoreImages() async {
     if (gatePass.id != null && gatePass.id != 0) {
-      _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, 100);
+      // _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, 100);
     }
   }
 
@@ -390,7 +390,7 @@ class GatePassEditViewModel extends BaseFormViewModel {
 
       //server side delete of image
       await _workerQueManager.enqueSingle(BackgroundJobInfo(
-          refTransactionId: gatePass.id!,
+          refTransactionId: gatePass.id,
           jobType: BackgroundJobType.syncImages.index,
           jobArgs: fileItem.fileName,
           lastTryTime: Timestamp.now(),
@@ -424,7 +424,7 @@ class GatePassEditViewModel extends BaseFormViewModel {
   BaseLookup? getCustomer() {
     if (gatePass.customerName != null && gatePass.customerName!.isNotEmpty) {
       return BaseLookup(
-          code: gatePass.customerCode,
+          // code: gatePass.customerCode,
           id: gatePass.customerId,
           name: gatePass.customerName,
           displayName: gatePass.customerName);
@@ -443,7 +443,7 @@ class GatePassEditViewModel extends BaseFormViewModel {
   void setCustomer(BaseLookup selectedItem) {
     gatePass.customerId = selectedItem.id;
     gatePass.customerName = selectedItem.name;
-    gatePass.customerCode = selectedItem.code;
+//    gatePass.cu = selectedItem.code;
 
     notifyListeners();
   }

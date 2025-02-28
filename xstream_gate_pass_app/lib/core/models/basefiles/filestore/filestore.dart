@@ -28,7 +28,7 @@ class FileStore {
         imageAsBase64String: asT<String?>(jsonRes['imageAsBase64String']) ?? "",
         upLoaded: asT<bool>(jsonRes['upLoaded']) ?? false,
         id: asT<String>(jsonRes['id']) ?? "",
-        refId: asT<int>(jsonRes['refId']) ?? 0,
+        refId: asT<String>(jsonRes['refId']) ?? '',
         referanceId: asT<int>(jsonRes['referanceId']) ?? 0,
         latitude: asT<double?>(jsonRes['latitude']),
         longitude: asT<double?>(jsonRes['longitude']),
@@ -47,7 +47,7 @@ class FileStore {
   bool upLoaded;
   String id;
   Timestamp createdDateTime;
-  int refId; //step
+  String refId; //step
   int referanceId; //stop
   int filestoreType;
   double? latitude;

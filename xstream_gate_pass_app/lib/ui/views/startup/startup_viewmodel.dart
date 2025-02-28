@@ -11,19 +11,24 @@ import 'package:xstream_gate_pass_app/core/services/services/account/authenticat
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
+import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
 
-class StartUpViewModel extends BaseViewModel {
+class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
   final log = getLogger('StartUpViewModel');
   final LocalStorageService _localStorageService = locator<LocalStorageService>();
   final ApiManager _apiManager = locator<ApiManager>();
   final _navigationService = locator<NavigationService>();
   final _workerQueManager = locator<WorkerQueManager>();
   final _authenticationService = locator<AuthenticationService>();
-
+  final _localizationManager = locator<LocalizationManagerService>();
   final _connectionService = locator<ConnectionService>();
   bool get hasConnection => _connectionService.hasConnection;
 
   Future<void> runStartupLogic() async {
+    //FlutterNativeSplash.remove();
+    //_navigationService.clearStackAndShow(Routes.gateAccessPreBookingFindView);
+
     try {
       var useIsLoggedIn = _localStorageService.isLoggedIn;
 
@@ -38,7 +43,7 @@ class StartUpViewModel extends BaseViewModel {
             FlutterNativeSplash.remove();
             _navigationService.clearStackAndShow(Routes.loginView);
           }
-
+          var local = await _localizationManager.getLocalizeValues();
           await _authenticationService.getUserLoginInfo(true);
           //_workerQueManager.enqueForStartUp();
 
@@ -63,11 +68,11 @@ class StartUpViewModel extends BaseViewModel {
       }
     } catch (e) {
       log.e(e);
-      await FlutterLogs.logError(
-        "StartUpViewModel",
-        "runStartupLogic",
-        e.toString(),
-      );
+      // await FlutterLogs.logError(
+      //   "StartUpViewModel",
+      //   "runStartupLogic",
+      //   e.toString(),
+      // );
 
       FlutterNativeSplash.remove();
       _navigationService.clearStackAndShow(Routes.loginView);

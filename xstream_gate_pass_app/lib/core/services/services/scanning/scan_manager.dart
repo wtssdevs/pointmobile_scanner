@@ -5,15 +5,24 @@ import 'package:pointmobile_scanner/pointmobile_scanner.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/rsa_scan.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_drivers_license.dart';
+import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_license_disk.dart';
 
 /// Returns values from the environment read from the .env file
 @LazySingleton()
 class ScanningService {
   final log = getLogger('ScanningService');
+
   StreamController<RsaDriversLicense> barcodeChangeController = StreamController<RsaDriversLicense>.broadcast();
   Stream<RsaDriversLicense> get licenseStream => barcodeChangeController.stream;
+
+  StreamController<String> barcodeScanChangeController = StreamController<String>.broadcast();
+  Stream<String> get rawStringStream => barcodeScanChangeController.stream;
+
+  StreamController<LicenseDiskData> barcodeScanLicenseDiskDataChangeController = StreamController<LicenseDiskData>.broadcast();
+  Stream<LicenseDiskData> get licenseDiskDataStream => barcodeScanLicenseDiskDataChangeController.stream;
 
   RsaDriversLicense? _rsaDriversLicense;
   RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
@@ -21,22 +30,52 @@ class ScanningService {
   String _barcode = '';
   String? get barcode => _barcode;
 
-  void initialise() {
+  bool _initScanner = false;
+  bool? get initScanner => _initScanner;
+
+  BarcodeScanType _barcodeScanType = BarcodeScanType.loadConQrCode;
+  BarcodeScanType get barcodeScanType => _barcodeScanType;
+
+  void setBarcodeScanType(BarcodeScanType barcodeScanType) {
+    _barcodeScanType = barcodeScanType;
+  }
+
+  void initialise({BarcodeScanType barcodeScanType = BarcodeScanType.loadConQrCode}) {
+    setBarcodeScanType(barcodeScanType);
+
+    if (_initScanner) {
+      return;
+    }
+
     PointmobileScanner.channel.setMethodCallHandler(_onBarcodeScannerHandler);
     PointmobileScanner.initScanner();
     PointmobileScanner.enableScanner();
     PointmobileScanner.enableBeep();
-    PointmobileScanner.enableSymbology(PointmobileScanner.SYM_CODE128);
-    PointmobileScanner.enableSymbology(PointmobileScanner.SYM_EAN13);
+    //from config later on?
+    //PointmobileScanner.enableSymbology(PointmobileScanner.SYM_CODE128);
+    //PointmobileScanner.enableSymbology(PointmobileScanner.SYM_EAN13);
     PointmobileScanner.enableSymbology(PointmobileScanner.SYM_QR);
     PointmobileScanner.enableSymbology(PointmobileScanner.SYM_PDF417);
+    _initScanner = true;
   }
 
   Future<void> _onBarcodeScannerHandler(MethodCall call) async {
     try {
       if (call.method == PointmobileScanner.ON_DECODE) {
-        //onDecode(call);
-        onDecodeDebug(call);
+        switch (barcodeScanType) {
+          case BarcodeScanType.loadConQrCode:
+          case BarcodeScanType.staffQrCode:
+            onDecodeQrCode(call);
+            break;
+          case BarcodeScanType.driversCard:
+            //onDecode(call);
+            onDecodeDebug(call);
+            break;
+          case BarcodeScanType.vehicleDisc:
+            onDecodeVehicleDisc(call);
+            break;
+          default:
+        }
       } else if (call.method == PointmobileScanner.ON_ERROR) {
         onError(call.arguments);
       } else {
@@ -51,9 +90,11 @@ class ScanningService {
     if (call.arguments != null) {
       var scanData = Uint8List.fromList(call.arguments);
 
-
       var rsaDriversLicense = RsaDriversLicense.fromBarcodeBytes(scanData);
-      if (rsaDriversLicense != null) {}
+      if (rsaDriversLicense != null) {
+        _rsaDriversLicense = rsaDriversLicense;
+        barcodeChangeController.add(_rsaDriversLicense!);
+      }
     }
   }
 
@@ -83,7 +124,7 @@ class ScanningService {
   }
 
   void onExit() {
-    //PointmobileScanner.disableScanner();
+    PointmobileScanner.disableScanner();
     _rsaDriversLicense = null;
   }
 
@@ -91,5 +132,31 @@ class ScanningService {
     log.i(error);
     _rsaDriversLicense = null;
     //return error.toString();
+  }
+
+  void onDecodeQrCode(MethodCall call) {
+    var scanData = Uint8List.fromList(call.arguments);
+    var textScanData = utf8.decode(scanData);
+    if (textScanData != "READ_FAIL") {
+      log.i("Scan Complete $textScanData");
+      if (textScanData.isNotEmpty) {
+        barcodeScanChangeController.add(textScanData.trim());
+      }
+    }
+  }
+
+  void onDecodeVehicleDisc(MethodCall call) {
+    final List lDecodeResult = call.arguments;
+    var as = call.arguments as Object?;
+    var scanData = Uint8List.fromList(call.arguments);
+    var textScanData = utf8.decode(scanData);
+    if (textScanData != "READ_FAIL") {
+      log.i("Scan Complete $textScanData");
+      if (textScanData.isNotEmpty) {
+        //convert to license disk data
+        var licenseDiskData = LicenseDiskData.fromString(textScanData);
+        barcodeScanLicenseDiskDataChangeController.add(licenseDiskData);
+      }
+    }
   }
 }

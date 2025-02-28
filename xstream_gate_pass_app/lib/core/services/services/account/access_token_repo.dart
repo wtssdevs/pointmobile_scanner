@@ -19,7 +19,8 @@ import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 class AccessTokenRepo {
   final log = getLogger('AccessTokenRepo');
   final _environmentService = locator<EnvironmentService>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final NavigationService _navigationService = locator<NavigationService>();
   Future<void> init() async {
     log.d('Initialized');
@@ -45,18 +46,26 @@ class AccessTokenRepo {
     // }
   }
 
-  void logOutCurrentUser() {
+  void logOutCurrentUser() async {
     _localStorageService.logout();
-    _navigationService.clearStackAndShow(Routes.loginView);
+    await _navigationService.clearStackAndShow(Routes.loginView);
   }
 
-  Future<AuthenticateResultModel?> processAuthenticateResult(AuthenticateResultModel authenticateResultModel, UserCredential userCredential) async {
+  Future<AuthenticateResultModel?> processAuthenticateResult(
+      AuthenticateResultModel authenticateResultModel,
+      UserCredential userCredential) async {
     if (authenticateResultModel.accessToken!.isNotEmpty) {
       // Successfully logged in
 
-      authenticateResultModel.userNameOrEmailAddress = userCredential.userNameOrEmailAddress;
+      authenticateResultModel.userNameOrEmailAddress =
+          userCredential.userNameOrEmailAddress;
       authenticateResultModel.password = userCredential.password;
-      authenticateResultModel.setUserCredentials(tenancyName: userCredential.tenancyName ?? "", userNameOrEmailAddress: userCredential.userNameOrEmailAddress, password: userCredential.password, tenantId: userCredential.tenantId);
+      userCredential.tenantId ??= authenticateResultModel.tenantId;
+      authenticateResultModel.setUserCredentials(
+          tenancyName: userCredential.tenancyName ?? "",
+          userNameOrEmailAddress: userCredential.userNameOrEmailAddress,
+          password: userCredential.password,
+          tenantId: userCredential.tenantId);
 
       _localStorageService.setAuthToken(authenticateResultModel);
       _localStorageService.saveIsLoggedIn(true);
@@ -73,7 +82,9 @@ class AccessTokenRepo {
       // do actual refresh token logic here
       var token = _localStorageService.getAuthToken;
       //get user credentials from storage
-      if (token == null || token.autTokenIsEmpty()) {
+      if (token == null ||
+          token.accessToken == null ||
+          token.autTokenIsEmpty()) {
         logOutCurrentUser();
       }
 
@@ -100,14 +111,17 @@ class AccessTokenRepo {
 
       //TODO add error handler here
 
-      var response = await dioClient.post(AppConst.authentication, data: userCredential.toJson());
+      var response = await dioClient.post(AppConst.authentication,
+          data: userCredential.toJson());
 
       var apiResponse = ApiResponse.fromJson(response.data);
 
       if (apiResponse.success != null && apiResponse.success == true) {
-        var authenticateResultModel = AuthenticateResultModel.fromJson(apiResponse.result);
+        var authenticateResultModel =
+            AuthenticateResultModel.fromJson(apiResponse.result);
 
-        return await processAuthenticateResult(authenticateResultModel, userCredential);
+        return await processAuthenticateResult(
+            authenticateResultModel, userCredential);
       } else {
         logOutCurrentUser();
       }

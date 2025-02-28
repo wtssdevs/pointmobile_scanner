@@ -32,6 +32,10 @@ import 'package:xstream_gate_pass_app/ui/views/startup/startup_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/startup/termsandprivacy/terms_and_privacy_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_barcode_reader/cam_barcode_reader_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/account/config/device_scan_settings/device_scan_settings_view.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/gate_access_menu_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/gate_access_pre_booking_find/gate_access_pre_booking_find_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_staff_list/gate_access_staff_list_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -48,6 +52,9 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/account/config/device_sc
     CupertinoRoute(page: ImageEditorView),
     MaterialRoute(page: CamBarcodeReader),
     MaterialRoute(page: DeviceScanSettingsView),
+    MaterialRoute(page: GateAccessMenuView),
+    MaterialRoute(page: GateAccessPreBookingFindView),
+    MaterialRoute(page: GateAccessStaffListView),
 // @stacked-route
   ],
   dependencies: [
@@ -75,7 +82,8 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/account/config/device_sc
     LazySingleton(classType: WorkerQueManager),
 
     Singleton(classType: SyncManager),
-    // @stacked-service
+    LazySingleton(classType: LocalizationManagerService),
+// @stacked-service
   ],
   bottomsheets: [
     StackedBottomsheet(classType: NoticeSheet),

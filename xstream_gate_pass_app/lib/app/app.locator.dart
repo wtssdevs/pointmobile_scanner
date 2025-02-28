@@ -25,6 +25,7 @@ import '../core/services/services/scanning/scan_manager.dart';
 import '../core/services/shared/connection_service.dart';
 import '../core/services/shared/environment_service.dart';
 import '../core/services/shared/local_storage_service.dart';
+import '../core/services/shared/localization/localization_manager_service.dart';
 import '../core/services/shared/media_service.dart';
 import '../core/services/shared/overlays/overlay_service.dart';
 
@@ -76,4 +77,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => FileStoreManager());
   locator.registerLazySingleton(() => WorkerQueManager());
   locator.registerSingleton(SyncManager());
+  locator.registerLazySingleton(() => LocalizationManagerService());
 }

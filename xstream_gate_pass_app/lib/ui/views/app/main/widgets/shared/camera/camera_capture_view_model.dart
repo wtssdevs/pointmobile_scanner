@@ -102,7 +102,7 @@ class CameraCaptureViewModel extends BaseViewModel {
           //longitude: newLocation?.longitude,
           fileName: fileName ?? galleryFile.path,
           createdDateTime: Timestamp.now(),
-          refId: refId), //step
+          refId: refId.toString()), //step
     );
     await _workerQueManager.enqueSingle(
         BackgroundJobInfo(
@@ -111,7 +111,7 @@ class CameraCaptureViewModel extends BaseViewModel {
             lastTryTime: Timestamp.now(),
             creationTime: Timestamp.now(),
             nextTryTime: Timestamp.now(),
-            refTransactionId: referanceId,
+            refTransactionId: referanceId.toString(),
             stopId: referanceId,
             id: "",
             isAbandoned: false),

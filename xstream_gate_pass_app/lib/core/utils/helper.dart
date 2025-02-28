@@ -12,6 +12,12 @@ import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/merge_delta_reponse%20copy.dart';
 
 bool tokenHasExpired(String? token) {
+  try {
+    if (token == null) return true;
+    return JwtDecoder.isExpired(token);
+  } catch (e) {
+    return true;
+  }
   if (token == null) return true;
   return JwtDecoder.isExpired(token);
 }
@@ -416,5 +422,22 @@ extension FormatDatedExtension on DateTime? {
     }
 
     return "";
+  }
+}
+
+extension DateTimeWhatsAppFormat on DateTime {
+  String toWhatsAppTime() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateToCheck = DateTime(year, month, day);
+
+    if (dateToCheck == today) {
+      return "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}";
+    } else if (dateToCheck == yesterday) {
+      return "Yesterday ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}";
+    } else {
+      return "${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/${year} ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}";
+    }
   }
 }

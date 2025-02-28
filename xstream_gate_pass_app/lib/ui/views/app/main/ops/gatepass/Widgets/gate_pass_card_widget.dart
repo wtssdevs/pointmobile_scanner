@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
+
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/gate_pass_status_chip_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/labels/easy_label_text.dart';
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/labels/left_label_right_value_display.dart';
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/listicons/gatepass_list_icon.dart';
+import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
 
-class GatePassCard extends StatelessWidget {
+class GatePassCard extends StatelessWidget with AppViewBaseHelper {
   final GatePassAccess gatePass;
 
-  const GatePassCard({
+  GatePassCard({
     Key? key,
     required this.gatePass,
     required this.onTap,
@@ -33,12 +33,12 @@ class GatePassCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   EasyLabelText(
-                    label: 'Vehicle',
+                    label: translate('VehicleRegNumber'),
                     labelFontSize: 16,
                     value: gatePass.vehicleRegNumber ?? '',
                     textFontSize: 14,
                   ),
-                  _buildStatusChip(),
+                  GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
                 ],
               ),
               const SizedBox(height: 8),
@@ -49,16 +49,20 @@ class GatePassCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         EasyLabelText(
-                          label: 'SI Number',
+                          label: translate('SiNumber'),
                           value: gatePass.siNumber ?? '',
                         ),
                         EasyLabelText(
-                          label: 'TransactionNo',
+                          label: translate('TransactionNo'),
                           value: gatePass.transactionNo ?? '',
                         ),
                         EasyLabelText(
-                          label: 'Customer Ref',
+                          label: translate('CustomerRefNo'),
                           value: gatePass.customerRefNo ?? '',
+                        ),
+                        EasyLabelText(
+                          label: translate('TimeOut'),
+                          value: gatePass.timeIn.toFormattedString(),
                         ),
                       ],
                     ),
@@ -68,15 +72,15 @@ class GatePassCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         EasyLabelText(
-                          label: 'Transporter',
+                          label: translate('Transporter'),
                           value: gatePass.transporterName ?? '',
                         ),
                         EasyLabelText(
-                          label: 'Voyage',
+                          label: translate('VoyageNo'),
                           value: gatePass.voyageNo ?? '',
                         ),
                         EasyLabelText(
-                          label: 'Time At Gate',
+                          label: translate('TimeAtGate'),
                           value: gatePass.timeAtGate.toFormattedString(),
                         ),
                       ],
@@ -89,53 +93,5 @@ class GatePassCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildStatusChip() {
-    Color chipColor;
-    String statusText;
-
-    switch (gatePass.gatePassStatus) {
-      case GatePassStatus.pending:
-        chipColor = Colors.grey;
-        statusText = GatePassStatus.pending.displayName;
-        break;
-      case GatePassStatus.atGate:
-        chipColor = Colors.orange;
-        statusText = GatePassStatus.atGate.displayName;
-        break;
-      case GatePassStatus.inYard:
-        chipColor = Colors.green;
-        statusText = GatePassStatus.inYard.displayName;
-        break;
-      case GatePassStatus.leftTheYard:
-        chipColor = Colors.blue;
-        statusText = GatePassStatus.leftTheYard.displayName;
-        break;
-      default:
-        chipColor = Colors.red;
-        statusText = GatePassStatus.rejectedEntry.displayName;
-    }
-
-    return Chip(
-      avatar: GatePassListIcon(statusId: gatePass.gatePassStatus),
-      // CircleAvatar(
-      //   backgroundColor: chipColor,
-      //   child: Text(
-      //     statusText[0],
-      //     style: const TextStyle(color: Colors.white),
-      //   ),
-      // ),
-      backgroundColor: Colors.grey.withOpacity(0.3),
-      label: Text(
-        statusText,
-        //style: TextStyle(color: chipColor),
-      ),
-    );
-  }
-
-  String _formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) return 'N/A';
-    return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
   }
 }

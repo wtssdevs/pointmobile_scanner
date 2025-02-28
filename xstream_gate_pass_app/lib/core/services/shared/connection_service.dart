@@ -1,4 +1,5 @@
 import 'package:dart_ping/dart_ping.dart';
+import 'package:flutter/foundation.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -110,6 +111,11 @@ class ConnectionService implements InitializableDependency {
   Stream get connectionChange => connectionChangeController.stream;
 
   Future<bool> hasInternetInternetConnection() async {
+    if (kDebugMode && _environmentService.baseUrl == "https://localhost:44311/") {
+      //if we are debugging and connected to localhost we will return true
+      _hasConnection = true;
+      return true;
+    }
     if (_busyChecking) {
       return _hasConnection;
     }

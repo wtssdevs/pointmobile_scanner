@@ -15,7 +15,8 @@ class TenantLoginInfo {
     required this.id,
   });
 
-  factory TenantLoginInfo.fromJson(Map<String, dynamic> json) => TenantLoginInfo(
+  factory TenantLoginInfo.fromJson(Map<String, dynamic> json) =>
+      TenantLoginInfo(
         name: asT<String>(json['name']) ?? "",
         tenancyName: asT<String>(json['tenancyName']) ?? "",
         code: asT<String?>(json['code']) ?? "",

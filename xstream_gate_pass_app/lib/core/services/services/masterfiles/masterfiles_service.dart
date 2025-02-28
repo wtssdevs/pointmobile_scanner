@@ -53,7 +53,10 @@ class MasterFilesService {
           for (final dynamic item in apiResponse.result['customerslookup']) {
             if (item != null) {
               var newL = BaseLookup.fromJsonManualMap(item,
-                  displayNameMap: "name", nameMap: "name", codeMap: "altCode");
+                  idMap: "id",
+                  displayNameMap: "name",
+                  nameMap: "name",
+                  codeMap: "altCode");
 
               entityList.add(newL);
             }
@@ -189,7 +192,10 @@ class MasterFilesService {
 
     return recordSnapshot.map((snapshot) {
       return BaseLookup.fromJsonManualMap(snapshot.value,
-          displayNameMap: "name", nameMap: "name", codeMap: "code");
+          idMap: "id",
+          displayNameMap: "name",
+          nameMap: "name",
+          codeMap: "code");
     }).toList();
   }
 
@@ -222,7 +228,10 @@ class MasterFilesService {
 
     return recordSnapshot.map((snapshot) {
       return BaseLookup.fromJsonManualMap(snapshot.value,
-          displayNameMap: "name", nameMap: "name", codeMap: "altCode");
+          idMap: snapshot.key.toString(),
+          displayNameMap: "name",
+          nameMap: "name",
+          codeMap: "altCode");
     }).toList();
   }
 }

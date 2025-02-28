@@ -3,7 +3,9 @@ class AppConst {
 
   //Local Database
   static const String internalDatabaseName = "Internal.db";
-  static const String App_Gallery_Album = "XstreamGallery";
+  static const String App_Gallery_Album = "AppGallery";
+  static const String DB_LocalizeValues = "LocalizeKeyTextValues";
+
   static const String is_logged_in = "isLoggedIn";
   static const String auth_token = "authToken";
   static const String access_token = "accessToken";
@@ -36,6 +38,11 @@ class AppConst {
 
   static const String GetAllGatePass = "/api/services/app/MobileGatePassAccess/GetAllPaged";
 
+//STAFF*************
+  static const String GetAllStaffPaged = "/api/services/app/MobileGatePassAccess/GetAllStaffPaged";
+  static const String scanStaffIn = "/api/services/app/MobileGatePassAccess/ScanStaffIn";
+  static const String scanStaffOut = "/api/services/app/MobileGatePassAccess/ScanStaffOut";
+
   ///api/services/app/MobileGatePassAccess/GetAllPaged
 
   static const String CreateGatePass = "/api/services/app/GatePass/Create";
@@ -47,4 +54,6 @@ class AppConst {
 
   //INTERNET TIMEOUT
   static const String InternetConnectionStatus = "The Network connection was lost.";
+
+  static const String GetLocalizeValues = "/AbpUserConfiguration/GetAll/";
 }

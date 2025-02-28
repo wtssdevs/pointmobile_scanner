@@ -7,12 +7,15 @@ import 'package:xstream_gate_pass_app/app/app.router.dart';
 
 import 'package:xstream_gate_pass_app/core/models/account/UserCredential.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
 
 class LoginViewModel extends FormViewModel {
   final log = getLogger('LoginViewModel');
-  final AuthenticationService _authenticationService = locator<AuthenticationService>();
+  final AuthenticationService _authenticationService =
+      locator<AuthenticationService>();
   final NavigationService _navigationService = locator<NavigationService>();
   final DialogService _dialogService = locator<DialogService>();
+  final _localizationManager = locator<LocalizationManagerService>();
 
   @override
   void setFormStatus() {
@@ -24,7 +27,8 @@ class LoginViewModel extends FormViewModel {
   }
 
   void navigateToCreateAccount() {}
-  void validateModel(String? tenancyName, String? userNameOrEmailAddress, String? password) {
+  void validateModel(
+      String? tenancyName, String? userNameOrEmailAddress, String? password) {
     String valiMsg = "";
     if (tenancyName == null || tenancyName == "") {
       valiMsg = "Client code is requried";
@@ -39,21 +43,35 @@ class LoginViewModel extends FormViewModel {
     notifyListeners();
   }
 
-  Future signInRequest({required String tenancyName, required String userNameOrEmailAddress, required String password}) async {
+  Future signInRequest(
+      {required String tenancyName,
+      required String userNameOrEmailAddress,
+      required String password}) async {
     validateModel(tenancyName, userNameOrEmailAddress, password);
     if (!showValidationMessage) {
       var authResult = await _authenticationService.login(
-        userCredential: UserCredential(tenancyName: tenancyName, userNameOrEmailAddress: userNameOrEmailAddress, password: password, rememberClient: true, tenantId: null),
+        userCredential: UserCredential(
+            tenancyName: tenancyName,
+            userNameOrEmailAddress: userNameOrEmailAddress,
+            password: password,
+            rememberClient: true,
+            tenantId: null),
       );
 
       if (authResult != null) {
         if (authResult.accessToken!.isNotEmpty) {
+          await _localizationManager.getLocalizeValues();
           //get more loadin
           await _authenticationService.getUserLoginInfo(true);
 
           _navigationService.navigateTo(Routes.homeView);
         } else {
-          await _dialogService.showDialog(title: 'Login Failure', description: 'General login failure. Please try again later', buttonTitle: "Ok", cancelTitleColor: Colors.black, buttonTitleColor: Colors.black);
+          await _dialogService.showDialog(
+              title: 'Login Failure',
+              description: 'General login failure. Please try again later',
+              buttonTitle: "Ok",
+              cancelTitleColor: Colors.black,
+              buttonTitleColor: Colors.black);
         }
       }
     }

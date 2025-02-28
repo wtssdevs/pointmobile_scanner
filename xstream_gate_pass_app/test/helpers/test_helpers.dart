@@ -2,6 +2,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -10,13 +11,16 @@ import 'test_helpers.mocks.dart';
   MockSpec<NavigationService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<BottomSheetService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<DialogService>(onMissingStub: OnMissingStub.returnDefault),
-  // @stacked-mock-spec
+  MockSpec<LocalizationManagerService>(
+      onMissingStub: OnMissingStub.returnDefault),
+// @stacked-mock-spec
 ])
 void registerServices() {
   getAndRegisterNavigationService();
   getAndRegisterBottomSheetService();
   getAndRegisterDialogService();
-  // @stacked-mock-register
+  getAndRegisterLocalizationManagerService();
+// @stacked-mock-register
 }
 
 MockNavigationService getAndRegisterNavigationService() {
@@ -69,6 +73,12 @@ MockDialogService getAndRegisterDialogService() {
   return service;
 }
 
+MockLocalizationManagerService getAndRegisterLocalizationManagerService() {
+  _removeRegistrationIfExists<LocalizationManagerService>();
+  final service = MockLocalizationManagerService();
+  locator.registerSingleton<LocalizationManagerService>(service);
+  return service;
+}
 // @stacked-mock-create
 
 void _removeRegistrationIfExists<T extends Object>() {

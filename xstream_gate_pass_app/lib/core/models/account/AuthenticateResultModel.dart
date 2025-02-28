@@ -13,7 +13,15 @@ class AuthenticateResultModel {
   int? userId;
   int? tenantId;
 
-  AuthenticateResultModel({this.accessToken, this.encryptedAccessToken, this.password, this.userNameOrEmailAddress, this.expireInSeconds, this.expiryDate, this.userId, this.tenantId});
+  AuthenticateResultModel(
+      {this.accessToken,
+      this.encryptedAccessToken,
+      this.password,
+      this.userNameOrEmailAddress,
+      this.expireInSeconds,
+      this.expiryDate,
+      this.userId,
+      this.tenantId});
 
   AuthenticateResultModel.fromJson(Map<String, dynamic> json) {
     //var dd = DateTime.parse(json["expiryDate"]);
@@ -48,7 +56,8 @@ class AuthenticateResultModel {
   }
 
   encodeUserNameOrEmailAddress(String userNameOrEmailAddressToEncode) {
-    userNameOrEmailAddress = base64.encode(utf8.encode(userNameOrEmailAddressToEncode));
+    userNameOrEmailAddress =
+        base64.encode(utf8.encode(userNameOrEmailAddressToEncode));
   }
 
   String decodeUserNameOrEmailAddress() {
@@ -65,7 +74,11 @@ class AuthenticateResultModel {
     //String decoded = utf8.decode(base64.decode(encoded));     // username:password
   }
 
-  setUserCredentials({required String tenancyName, required String userNameOrEmailAddress, required String password, int? tenantId}) {
+  setUserCredentials(
+      {required String tenancyName,
+      required String userNameOrEmailAddress,
+      required String password,
+      int? tenantId}) {
     tenancyName = tenancyName;
     userNameOrEmailAddress = userNameOrEmailAddress;
     password = password;
@@ -76,6 +89,23 @@ class AuthenticateResultModel {
   }
 
   bool autTokenIsEmpty() {
-    return tenancyName == null || userNameOrEmailAddress == null || password == null;
+    //return accessToken == null && tenancyName == null && userNameOrEmailAddress == null && password == null;
+
+    if (accessToken == null) {
+      if (tenancyName == null &&
+          userNameOrEmailAddress == null &&
+          password == null) {
+        return true;
+      }
+      if (tenantId == null &&
+          userNameOrEmailAddress == null &&
+          password == null) {
+        return true;
+      }
+
+      return true;
+    }
+
+    return false;
   }
 }

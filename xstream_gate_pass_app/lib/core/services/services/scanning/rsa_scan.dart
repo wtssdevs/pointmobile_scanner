@@ -256,7 +256,10 @@ class RSAKeyParser {
       throw ArgumentError('Invalid key format');
     }
 
-    final keyText = rows.sublist(1, rows.length - 1).where((line) => line.trim().isNotEmpty).join('');
+    final keyText = rows
+        .sublist(1, rows.length - 1)
+        .where((line) => line.trim().isNotEmpty)
+        .join('');
 
     final keyBytes = base64.decode(keyText);
     final asn1Parser = ASN1Parser(keyBytes);

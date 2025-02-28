@@ -6,11 +6,17 @@ class EasyLabelText extends StatelessWidget {
   final String value;
   final double labelFontSize;
   final double textFontSize;
-  const EasyLabelText({Key? key, required this.label, required this.value, this.labelFontSize = 12, this.textFontSize = 10}) : super(key: key);
+  const EasyLabelText(
+      {Key? key,
+      required this.label,
+      required this.value,
+      this.labelFontSize = 11,
+      this.textFontSize = 10})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    EdgeInsets paddingValues = const EdgeInsets.only(left: 1, top: 2);
+    //EdgeInsets paddingValues = const EdgeInsets.only(left: 1, top: 2);
     //return Visibility(visible: value.isNotEmpty, child: Text('$label: ${value}'));
 
     //create rich text widget

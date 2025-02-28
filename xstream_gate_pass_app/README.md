@@ -34,6 +34,10 @@ adb 192.168.1.65:5555
 --Get IP and Port from MObile Device Wifi debugging settings
 adb connect 192.168.1.34:5555
 
+### ngrok
+command to run ngrok
+ngrok http 44311
+ngrok http --host-header=localhost https://localhost:44311
 
 ##Build Runner Commands
 ## This creates all the json files and DB schemeaflutte

@@ -8,9 +8,12 @@ class CurrentLoginInformation {
     required this.tenant,
   });
 
-  factory CurrentLoginInformation.fromJson(Map<String, dynamic> jsonRes) => CurrentLoginInformation(
+  factory CurrentLoginInformation.fromJson(Map<String, dynamic> jsonRes) =>
+      CurrentLoginInformation(
         user: UserLoginInfo.fromJson((jsonRes['user']) ?? UserLoginInfo()),
-        tenant: TenantLoginInfo.fromJson((jsonRes['tenant']) ?? TenantLoginInfo(code: "", id: 0, name: "", tenancyName: "", taxFactor: 0)),
+        tenant: TenantLoginInfo.fromJson((jsonRes['tenant']) ??
+            TenantLoginInfo(
+                code: "", id: 0, name: "", tenancyName: "", taxFactor: 0)),
       );
 
   UserLoginInfo user;

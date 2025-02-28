@@ -21,7 +21,8 @@ class MyHttpOverrides extends HttpOverrides {
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
       ..badCertificateCallback = ((X509Certificate cert, String host, int port) {
-        final isValidHost = ["xstream-tms.com", "localhost", "localhost:44311", "b71b-169-159-185-137.ngrok.io"].contains(host); // <-- allow only hosts in array
+        final isValidHost = ["xstream-tms.com", "localhost", "192.168.1.65:8080", "localhost:44311", "a50f-102-66-86-121.ngrok-free.app", "18.231.93.153", "18.229.146.63", "18.228.115.60", "54.94.248.37", "18.229.248.167"].contains(host); // <-- allow only hosts in array
+        print("Host validation result for $host: $isValidHost");
         return isValidHost;
       });
   }
@@ -52,7 +53,7 @@ Future main() async {
   );
 
   var envFileToLoad = ".env_dev";
-  //var envFileToLoad = ".env_ngrok_dev";
+  //var envFileToLoad = ".env_local_proxy_dev";
   //var envFileToLoad = ".env_qa";
   // var envFileToLoad = ".env_prod";
   await initialise(envFileToLoad);

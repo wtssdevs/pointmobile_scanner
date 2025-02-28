@@ -4,7 +4,9 @@ import 'package:xstream_gate_pass_app/ui/shared/widgets/box_text.dart';
 class LeftLabelWithRightTextWidget extends StatelessWidget {
   final String label;
   final String value;
-  const LeftLabelWithRightTextWidget({Key? key, required this.label, required this.value}) : super(key: key);
+  const LeftLabelWithRightTextWidget(
+      {Key? key, required this.label, required this.value})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,4 @@
+import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
 class UserLoginInfo {
@@ -6,6 +7,7 @@ class UserLoginInfo {
   String? fullName;
   String? emailAddress;
   int? id;
+  List<BaseLookup> userBranches;
 
   //settings for device per users
 
@@ -17,24 +19,38 @@ class UserLoginInfo {
     this.fullName,
     this.emailAddress,
     this.id,
+    this.userBranches = const [],
   });
+  factory UserLoginInfo.fromJson(Map<String, dynamic> json) {
+    var user = UserLoginInfo(
+      name: asT<String?>(json['name']) ?? null,
+      surname: asT<String?>(json['surname']) ?? null,
+      fullName: asT<String?>(json['fullName']) ?? null,
+      emailAddress: asT<String?>(json['emailAddress']) ?? null,
+      id: asT<int?>(json['id']) ?? null,
+    );
+    if (json['userBranches'] != null) {
+      var userBranches = <BaseLookup>[];
+      for (final dynamic item in json['userBranches']) {
+        if (item != null) {
+          var newL = BaseLookup.fromJsonManualMap(item, idMap: "branchId", displayNameMap: "branchName", nameMap: "branchName", codeMap: "branchCode");
+          userBranches.add(newL);
+        }
+      }
+      user.userBranches = userBranches;
+    }
 
-  factory UserLoginInfo.fromJson(Map<String, dynamic> json) => UserLoginInfo(
-        name: asT<String?>(json['name']) ?? null,
-        surname: asT<String?>(json['surname']) ?? null,
-        fullName: asT<String?>(json['fullName']) ?? null,
-        emailAddress: asT<String?>(json['emailAddress']) ?? null,
-        id: asT<int?>(json['id']) ?? null,
-      );
+    return user;
+  }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['name'] = this.name;
-    data['surname'] = this.surname;
-    data['fullName'] = this.fullName;
-    data['emailAddress'] = this.emailAddress;
-    data['id'] = this.id;
-
+    data['name'] = name;
+    data['surname'] = surname;
+    data['fullName'] = fullName;
+    data['emailAddress'] = emailAddress;
+    data['id'] = id;
+    data['userBranches'] = userBranches.map((e) => e.toJson()).toList();
     return data;
   }
 }

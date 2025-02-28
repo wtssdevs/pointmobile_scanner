@@ -5,6 +5,7 @@ import 'package:stacked/stacked.dart';
 import 'package:animations/animations.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/account/account_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/home_view_model.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/gate_access_menu_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/gatepass_view.dart';
 
 // ignore: must_be_immutable
@@ -18,7 +19,8 @@ class HomeView extends StatelessWidget {
       if (index >= 0) {
         switch (index) {
           case 0:
-            return const GatePassView();
+            //return const GatePassView();
+            return const GateAccessMenuView();
 
           case 1:
             return const AccountView();
@@ -29,7 +31,7 @@ class HomeView extends StatelessWidget {
 
     return ViewModelBuilder<HomeViewModel>.reactive(
       viewModelBuilder: () => HomeViewModel(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         SchedulerBinding.instance.addPostFrameCallback(
           (timeStamp) {
             model.handleStartUpLogic(tabIndex);
