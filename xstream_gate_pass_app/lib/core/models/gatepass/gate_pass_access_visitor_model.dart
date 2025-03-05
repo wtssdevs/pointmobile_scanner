@@ -36,6 +36,8 @@ class GatePassVisitorAccess {
   String? rejectReason;
   int branchId;
 
+  int? serviceTypeId;
+
   GatePassVisitorAccess({
     this.id,
     this.creationTime,
@@ -67,40 +69,29 @@ class GatePassVisitorAccess {
     this.vehicleEngineNumber,
     this.vehicleMake,
     this.rejectReason,
+    this.serviceTypeId,
     required this.branchId,
   });
 
-  bool get hasDriverInfo =>
-      driverName?.isNotEmpty == true && driverLicenceNo?.isNotEmpty == true;
-  bool get hasVehicleInfo =>
-      vehicleRegNumber?.isNotEmpty == true &&
-      vehicleRegisterNumber?.isNotEmpty == true;
+  bool get hasDriverInfo => driverName?.isNotEmpty == true && driverLicenceNo?.isNotEmpty == true;
+  bool get hasVehicleInfo => vehicleRegNumber?.isNotEmpty == true && vehicleRegisterNumber?.isNotEmpty == true;
 
   factory GatePassVisitorAccess.fromJson(Map<String, dynamic> json) {
     return GatePassVisitorAccess(
       id: json['id'],
-      creationTime: json['creationTime'] != null
-          ? DateTime.parse(json['creationTime'])
-          : null,
+      creationTime: json['creationTime'] != null ? DateTime.parse(json['creationTime']) : null,
       creatorUserId: asT<int>(json['creatorUserId']),
-      lastModificationTime: json['lastModificationTime'] != null
-          ? DateTime.parse(json['lastModificationTime'])
-          : null,
+      lastModificationTime: json['lastModificationTime'] != null ? DateTime.parse(json['lastModificationTime']) : null,
       lastModifierUserId: asT<int>(json['lastModifierUserId']),
       gatePassAccessId: json['gatePassAccessId'],
       isActive: json['isActive'] ?? false,
-      timeAtGate: json["timeAtGate"] != null
-          ? DateTime.parse(json["timeAtGate"])
-          : null,
+      timeAtGate: json["timeAtGate"] != null ? DateTime.parse(json["timeAtGate"]) : null,
       timeIn: json["timeIn"] != null ? DateTime.parse(json["timeIn"]) : null,
       timeOut: json["timeOut"] != null ? DateTime.parse(json["timeOut"]) : null,
       timeInYardDuration: asT<int>(json['timeInYardDuration']) ?? 0,
-      gatePassStatus:
-          GatePassStatus.values[asT<int>(json['gatePassStatus']) ?? 0],
-      gatePassDeliveryType:
-          DeliveryType.values[asT<int>(json['gatePassDeliveryType']) ?? 0],
-      gatePassBookingType: GatePassBookingType
-          .values[asT<int>(json['gatePassBookingType']) ?? 0],
+      gatePassStatus: GatePassStatus.values[asT<int>(json['gatePassStatus']) ?? 0],
+      gatePassDeliveryType: DeliveryType.values[asT<int>(json['gatePassDeliveryType']) ?? 0],
+      gatePassBookingType: GatePassBookingType.values[asT<int>(json['gatePassBookingType']) ?? 0],
       timeInYard: json['timeInYard'] ?? '',
       vehicleRegNumber: json['vehicleRegNumber'],
       transactionNo: json['transactionNo'],
@@ -109,21 +100,15 @@ class GatePassVisitorAccess {
       serviceType: json['serviceType'],
       driverLicenceNo: json['driverLicenceNo'],
       driversLicenceCodes: json['driversLicenceCodes'],
-      professionalDrivingPermitExpiryDate:
-          json['professionalDrivingPermitExpiryDate'] != null
-              ? DateTime.parse(json['professionalDrivingPermitExpiryDate'])
-              : null,
-      driverLicenceIssueDate: json['driverLicenceIssueDate'] != null
-          ? DateTime.parse(json['driverLicenceIssueDate'])
-          : null,
-      driverLicenceExpiryDate: json['driverLicenceExpiryDate'] != null
-          ? DateTime.parse(json['driverLicenceExpiryDate'])
-          : null,
+      professionalDrivingPermitExpiryDate: json['professionalDrivingPermitExpiryDate'] != null ? DateTime.parse(json['professionalDrivingPermitExpiryDate']) : null,
+      driverLicenceIssueDate: json['driverLicenceIssueDate'] != null ? DateTime.parse(json['driverLicenceIssueDate']) : null,
+      driverLicenceExpiryDate: json['driverLicenceExpiryDate'] != null ? DateTime.parse(json['driverLicenceExpiryDate']) : null,
       vehicleRegisterNumber: json['vehicleRegisterNumber'],
       vehicleVinNumber: json['vehicleVinNumber'],
       vehicleEngineNumber: json['vehicleEngineNumber'],
       vehicleMake: json['vehicleMake'],
       rejectReason: json['rejectReason'],
+      serviceTypeId: asT<int>(json['serviceTypeId']),
       branchId: asT<int>(json['branchId']) ?? 0,
     );
   }
@@ -152,8 +137,7 @@ class GatePassVisitorAccess {
       'driverIdNo': driverIdNo,
       'driverLicenceNo': driverLicenceNo,
       'driversLicenceCodes': driversLicenceCodes,
-      'professionalDrivingPermitExpiryDate':
-          professionalDrivingPermitExpiryDate?.toIso8601String(),
+      'professionalDrivingPermitExpiryDate': professionalDrivingPermitExpiryDate?.toIso8601String(),
       'driverLicenceIssueDate': driverLicenceIssueDate?.toIso8601String(),
       'driverLicenceExpiryDate': driverLicenceExpiryDate?.toIso8601String(),
       'vehicleRegisterNumber': vehicleRegisterNumber,
@@ -162,6 +146,7 @@ class GatePassVisitorAccess {
       'vehicleMake': vehicleMake,
       'rejectReason': rejectReason,
       'branchId': branchId,
+      'serviceTypeId': serviceTypeId,
     };
   }
 }

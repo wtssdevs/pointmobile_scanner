@@ -140,12 +140,22 @@ class GateAccessVisitorsListView extends StackedView<GateAccessVisitorsListViewM
                       color: Colors.white,
                     ),
                   ),
-                  title: Row(
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         entity.driverName ?? '',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
+                      entity.serviceType != null
+                          ? Text(
+                              '(${entity.serviceType})',
+                              style: TextStyle(
+                                color: Colors.blue[600],
+                                fontSize: 12,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
                     ],
                   ),
                   subtitle: Column(

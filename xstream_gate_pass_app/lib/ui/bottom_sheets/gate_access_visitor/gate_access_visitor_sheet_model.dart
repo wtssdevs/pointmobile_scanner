@@ -2,15 +2,18 @@
 
 import 'dart:async';
 import 'dart:math' as math; // Add proper import for math functions
+import 'package:flutter/widgets.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
-import 'package:xstream_gate_pass_app/core/models/scanning/staff_qrcode_model.dart';
+import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterfiles_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_drivers_license.dart';
@@ -23,11 +26,13 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
   final _connectionService = locator<ConnectionService>();
   final _scanningService = locator<ScanningService>();
   final _gatePassService = locator<GatePassService>();
-
+  final _masterfilesService = locator<MasterFilesService>();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   bool get hasConnection => _connectionService.hasConnection;
   StreamSubscription<RsaDriversLicense>? streamSubscription;
   StreamSubscription<LicenseDiskData>? streamSubscriptionForDisc;
 
+  List<SearchableDropdownMenuItem<int>> get serviceTypes => _masterfilesService.serviceTypes;
   //
 
   // Scanning configuration
@@ -107,7 +112,11 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       rebuildUi();
       return;
     }
-
+    if (_scannedVisitor.serviceTypeId == null) {
+      _errorMessage = "Please select a service type.";
+      rebuildUi();
+      return;
+    }
     _isScanning = true;
     _errorMessage = null;
     //_scannedVisitor = null;
@@ -271,6 +280,13 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       gatePassStatus: GatePassStatus.atGate,
       gatePassBookingType: GatePassBookingType.visitor,
     );
+    rebuildUi();
+  }
+
+  onServiceTypeChanged(int? val) {
+    _errorMessage = null;
+    
+    _scannedVisitor.serviceTypeId = val;
     rebuildUi();
   }
 }

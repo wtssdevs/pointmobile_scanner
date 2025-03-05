@@ -13,6 +13,7 @@ import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staf
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/staff_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
+import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterfiles_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
@@ -21,9 +22,9 @@ import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base
 class GateAccessVisitorsListViewModel extends BaseViewModel with AppViewBaseHelper {
   final log = getLogger('GateAccessVisitorsListViewModel');
   final _connectionService = locator<ConnectionService>();
-  final _scanningService = locator<ScanningService>();
-  final bottomsheetService = locator<BottomSheetService>();
 
+  final bottomsheetService = locator<BottomSheetService>();
+  final _masterfilesService = locator<MasterFilesService>();
   bool get hasConnection => _connectionService.hasConnection;
 
   final GatePassService _gatePassService = locator<GatePassService>();
@@ -40,7 +41,7 @@ class GateAccessVisitorsListViewModel extends BaseViewModel with AppViewBaseHelp
     pagingController.addPageRequestListener((pageKey) {
       fetchPage(pageKey);
     });
-
+    await _masterfilesService.loadServiceTypes();
     fetchPage(_nextPage);
   }
 

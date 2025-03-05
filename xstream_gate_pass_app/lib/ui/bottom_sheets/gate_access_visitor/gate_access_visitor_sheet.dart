@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
@@ -92,7 +93,7 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 side: const BorderSide(color: kcPrimaryColor),
               ),
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
             ),
           ),
           horizontalSpaceSmall,
@@ -126,7 +127,7 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
                     )
                   : Text(
                       viewModel.scanInMode ? 'Check In Visitor' : 'Check Out Visitor',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                     ),
             ),
           ),
@@ -149,6 +150,9 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
       );
     } else {
       // Show scan button for initial state
+
+      //show the start scanning button as disabled if the service type has not been selected
+
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
@@ -166,6 +170,7 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
                 'Start Scanning',
                 style: TextStyle(
                   fontSize: 16,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -535,14 +540,65 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // In/Out selection
-          Text(
-            'Is this visitor entering or exiting?',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[150],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info, color: Colors.grey[700]),
+                horizontalSpaceSmall,
+                Expanded(
+                  child: Text(
+                    "Is this visitor entering or exiting?",
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+          verticalSpaceTiny,
+
+          Visibility(
+            visible: viewModel.scanInMode == true,
+            child: Form(
+              key: viewModel.formKey,
+              child: SearchableDropdownFormField<int>(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                dialogOffset: 1,
+                dropDownMaxHeight: 400,
+                backgroundDecoration: (child) => Card(
+                  margin: EdgeInsets.zero,
+                  //color: Colors.lightBlue,
+                  elevation: 6,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: child,
+                  ),
+                ),
+                hintText: Text(viewModel.translate('ServiceTypes')),
+                margin: const EdgeInsets.all(2),
+                items: viewModel.serviceTypes,
+                validator: (val) {
+                  if (val == null) return 'Cant be empty';
+                  return null;
+                },
+                onSaved: (val) {
+                  viewModel.onServiceTypeChanged(val);
+                },
+                onChanged: (val) => viewModel.onServiceTypeChanged(val),
+              ),
+            ),
+          ),
+
           verticalSpaceMedium,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -568,8 +624,30 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
             ],
           ),
 
-          verticalSpaceLarge,
-
+          verticalSpaceMedium,
+          if (viewModel.errorMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red[700]),
+                  horizontalSpaceSmall,
+                  Expanded(
+                    child: Text(
+                      viewModel.errorMessage!,
+                      style: TextStyle(color: Colors.red[700]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            verticalSpaceSmall,
+          ],
           // Instructions
           Container(
             padding: const EdgeInsets.all(16),
