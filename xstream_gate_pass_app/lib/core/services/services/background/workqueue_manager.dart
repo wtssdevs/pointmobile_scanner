@@ -157,7 +157,7 @@ class WorkerQueManager {
           deleteJob = true;
           break;
         case BackgroundJobType.syncMasterfiles:
-          //await _masterFilesService.syncServerWithLocalAll();
+          await _masterFilesService.syncServerWithLocalAll();
           deleteJob = true;
           break;
         case BackgroundJobType.syncImages:

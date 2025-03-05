@@ -8,7 +8,9 @@ enum GatePassBookingType {
   none(0, "None"),
   breakBulk(1, "Break Bulk"),
   containers(2, "Containers"),
-  other(3, "Other");
+  other(3, "Other"),
+  staff(4, "Staff"),
+  visitor(5, "Visitor");
 
   final int value;
   final String text;

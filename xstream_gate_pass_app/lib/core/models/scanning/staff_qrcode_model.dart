@@ -5,7 +5,12 @@ class StaffQrCodeModel {
   String? vehicleRegNumber;
   int? branchId;
 
-  StaffQrCodeModel({this.code, this.fullName, this.driverLicenceNo, this.vehicleRegNumber, this.branchId});
+  StaffQrCodeModel(
+      {this.code,
+      this.fullName,
+      this.driverLicenceNo,
+      this.vehicleRegNumber,
+      this.branchId});
 
   StaffQrCodeModel.fromJson(Map<String, dynamic> json) {
     code = json['code'];

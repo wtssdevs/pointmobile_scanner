@@ -57,13 +57,18 @@ class GatePassStaffAccess {
       gatePassAccessId: json['gatePassAccessId'] ?? '',
       isActive: json['isActive'] ?? false,
       staffCode: json['staffCode'] ?? '',
-      timeAtGate: json["timeAtGate"] != null ? DateTime.parse(json["timeAtGate"]) : null,
+      timeAtGate: json["timeAtGate"] != null
+          ? DateTime.parse(json["timeAtGate"])
+          : null,
       timeIn: json["timeIn"] != null ? DateTime.parse(json["timeIn"]) : null,
       timeOut: json["timeOut"] != null ? DateTime.parse(json["timeOut"]) : null,
       timeInYardDuration: json['timeInYardDuration'],
-      gatePassStatus: GatePassStatus.values[asT<int>(json['gatePassStatus']) ?? 0],
-      gatePassDeliveryType: DeliveryType.values[asT<int>(json['gatePassDeliveryType']) ?? 0],
-      gatePassBookingType: GatePassBookingType.values[asT<int>(json['gatePassBookingType']) ?? 0],
+      gatePassStatus:
+          GatePassStatus.values[asT<int>(json['gatePassStatus']) ?? 0],
+      gatePassDeliveryType:
+          DeliveryType.values[asT<int>(json['gatePassDeliveryType']) ?? 0],
+      gatePassBookingType: GatePassBookingType
+          .values[asT<int>(json['gatePassBookingType']) ?? 0],
       timeInYard: json['timeInYard'] ?? '',
       vehicleRegNumber: json['vehicleRegNumber'] ?? '',
       transactionNo: json['transactionNo'] ?? '',

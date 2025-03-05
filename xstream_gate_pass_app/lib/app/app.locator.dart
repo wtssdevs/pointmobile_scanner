@@ -8,6 +8,7 @@
 
 import 'package:stacked_services/src/dialog/dialog_service.dart';
 import 'package:stacked_services/src/navigation/navigation_service.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked_shared/stacked_shared.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart';
 
@@ -36,8 +37,7 @@ Future<void> setupLocator({
   EnvironmentFilter? environmentFilter,
 }) async {
 // Register environments
-  locator.registerEnvironment(
-      environment: environment, environmentFilter: environmentFilter);
+  locator.registerEnvironment(environment: environment, environmentFilter: environmentFilter);
 
 // Register dependencies
   final localStorageService = LocalStorageService();
@@ -68,6 +68,7 @@ Future<void> setupLocator({
   locator.registerSingleton(apiManager);
 
   locator.registerLazySingleton(() => AuthenticationService());
+  locator.registerLazySingleton(() => BottomSheetService());
   locator.registerLazySingleton(() => ScanningService());
   locator.registerLazySingleton(() => GatePassService());
   locator.registerLazySingleton(() => MasterFilesService());

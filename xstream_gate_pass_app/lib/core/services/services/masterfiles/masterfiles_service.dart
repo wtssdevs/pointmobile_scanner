@@ -30,33 +30,27 @@ class MasterFilesService {
     }
   }
 
-  Future<void> syncServerWithLocalAll() async {
-    await syncServerWithLocalDetainOptionsSingle(
-        await getDetainOptionsFromServer());
-  }
-  // //*************************STOP STATUS LIST START *************************************** */
-
-  Future<List<BaseLookup>> getDetainOptionsFromServer() async {
+  Future<List<BaseLookup>> getAllServiceTypes() async {
     try {
       List<BaseLookup> entityList = <BaseLookup>[];
 
       //final Map<String, dynamic> data = <String, dynamic>{};
 
-      var baseResponse =
-          await _apiManager.post(AppConst.GetAllCustomers, showLoader: false);
+      var baseResponse = await _apiManager
+          .get(AppConst.GetAllServiceTypesCached, showLoader: false);
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
 
         if (apiResponse.success != null &&
             apiResponse.success! == true &&
-            apiResponse.result['customerslookup'] != null) {
-          for (final dynamic item in apiResponse.result['customerslookup']) {
+            apiResponse.result['items'] != null) {
+          for (final dynamic item in apiResponse.result['items']) {
             if (item != null) {
               var newL = BaseLookup.fromJsonManualMap(item,
                   idMap: "id",
                   displayNameMap: "name",
                   nameMap: "name",
-                  codeMap: "altCode");
+                  codeMap: "code");
 
               entityList.add(newL);
             }
@@ -74,29 +68,65 @@ class MasterFilesService {
     }
   }
 
+  // Future<List<BaseLookup>> getDetainOptionsFromServer() async {
+  //   try {
+  //     List<BaseLookup> entityList = <BaseLookup>[];
+
+  //     //final Map<String, dynamic> data = <String, dynamic>{};
+
+  //     var baseResponse = await _apiManager.post(AppConst.GetAllCustomers, showLoader: false);
+  //     if (baseResponse != null) {
+  //       var apiResponse = ApiResponse.fromJson(baseResponse);
+
+  //       if (apiResponse.success != null && apiResponse.success! == true && apiResponse.result['customerslookup'] != null) {
+  //         for (final dynamic item in apiResponse.result['customerslookup']) {
+  //           if (item != null) {
+  //             var newL = BaseLookup.fromJsonManualMap(item, idMap: "id", displayNameMap: "name", nameMap: "name", codeMap: "altCode");
+
+  //             entityList.add(newL);
+  //           }
+  //         }
+
+  //         return entityList;
+  //       }
+
+  //       return entityList;
+  //     }
+  //     return entityList;
+  //   } catch (e) {
+  //     log.e(e.toString());
+  //     rethrow;
+  //   }
+  // }
+
+  //Main Sync action for all remote to local db type by store
+  Future<void> syncServerWithLocalAll() async {
+    await syncServerWithLocalSingle(
+        AppConst.DB_ServiceTypes, await getAllServiceTypes());
+  }
+
   /// Sync local data with server and merge changes
-  Future<void> syncServerWithLocalDetainOptionsSingle(
-      List<BaseLookup>? server) async {
-    var local = await getAllLocalDetainOptions("");
+  Future<void> syncServerWithLocalSingle(
+      String store, List<BaseLookup>? server) async {
+    var local = await getAllLocalByStore(store, "");
 
-    if (server == null) {
-      server = await getDetainOptionsFromServer();
-    }
+    server ??= await getAllServiceTypes();
 
-    await syncServerWithLocalDetainOptions(local, server);
+    await syncServerWithLocalByStore(store, local, server);
   }
 
-  Future<void> syncServerWithLocalDetainOptions(
-      List<BaseLookup> local, List<BaseLookup> server) async {
+  Future<void> syncServerWithLocalByStore(
+      String store, List<BaseLookup> local, List<BaseLookup> server) async {
     var delta = getDeltaMerge<BaseLookup>(local, server);
-    await syncdataStopStatus(delta);
+    await syncdataStopStatus(store, delta);
   }
 
-  Future<void> syncdataStopStatus(MergeDeltaResponse<BaseLookup> delta) async {
+  Future<void> syncdataStopStatus(
+      String store, MergeDeltaResponse<BaseLookup> delta) async {
     // added;
     if (delta.added.isNotEmpty) {
       try {
-        await upsertManyDetainOption(delta.added);
+        await upsertManyLocalDB(store, delta.added);
       } catch (e) {
         log.e(e);
       }
@@ -104,33 +134,31 @@ class MasterFilesService {
 
     // deleted;
     if (delta.deleted.isNotEmpty) {
-      await deleteManyDetainOption(delta.deleted);
+      await deleteManyLocalDB(store, delta.deleted);
     }
 
     // changed;
     if (delta.changed.isNotEmpty) {
-      await upsertManyDetainOption(delta.changed);
+      await upsertManyLocalDB(store, delta.changed);
     }
   }
 
-  Future<void> insertDetainOption(BaseLookup entity) async {
-    var entityTable =
-        intMapStoreFactory.store("${AppConst.DB_Customers}_$userId");
+  Future<void> insertLocalDB(String store, BaseLookup entity) async {
+    var entityTable = intMapStoreFactory.store("${store}_$userId");
     await entityTable.record(entity.id!).put(_appDatabase.db!, entity.toJson());
   }
 
-  Future<void> updateDetainOption(BaseLookup entity) async {
-    var entityTable =
-        intMapStoreFactory.store("${AppConst.DB_Customers}_$userId");
+  Future<void> updateLocalDB(String store, BaseLookup entity) async {
+    var entityTable = intMapStoreFactory.store("${store}_$userId");
     await entityTable
         .record(entity.id!)
         .update(_appDatabase.db!, entity.toJson());
   }
 
   /// Save many records, create if needed.
-  Future<void> upsertManyDetainOption(List<BaseLookup> entities) async {
-    var entityTable =
-        intMapStoreFactory.store("${AppConst.DB_Customers}_$userId");
+  Future<void> upsertManyLocalDB(
+      String store, List<BaseLookup> entities) async {
+    var entityTable = intMapStoreFactory.store("${store}_$userId");
     for (var entity in entities) {
       var updated = await entityTable
           .record(entity.id!)
@@ -145,28 +173,27 @@ class MasterFilesService {
     }
   }
 
-  Future<void> deleteDetainOption(BaseLookup entity) async {
+  Future<void> deleteLocalDB(String store, BaseLookup entity) async {
     //final finder = Finder(filter: Filter.byKey(tripStop.id));
-    var entityTable =
-        intMapStoreFactory.store("${AppConst.DB_Customers}_$userId");
+    var entityTable = intMapStoreFactory.store("${store}_$userId");
     await entityTable.record(entity.id!).delete(_appDatabase.db!);
   }
 
-  Future<void> deleteManyDetainOption(List<BaseLookup> entities) async {
-    var entityTable =
-        intMapStoreFactory.store("${AppConst.DB_Customers}_$userId");
+  Future<void> deleteManyLocalDB(
+      String store, List<BaseLookup> entities) async {
+    var entityTable = intMapStoreFactory.store("${store}_$userId");
     for (var entity in entities) {
       await entityTable.record(entity.id!).delete(_appDatabase.db!);
     }
   }
 
-  Future<void> clearTableDetainOption() async {
-    var entityTable =
-        intMapStoreFactory.store("${AppConst.DB_Customers}_$userId");
+  Future<void> clearTable(String store) async {
+    var entityTable = intMapStoreFactory.store("${store}_$userId");
     await entityTable.drop(_appDatabase.db!);
   }
 
-  Future<List<BaseLookup>> getAllLocalDetainOptions(String searchArg) async {
+  Future<List<BaseLookup>> getAllLocalByStore(
+      String store, String searchArg) async {
     var finder = Finder(sortOrders: [SortOrder('orderBy', false, true)]);
 
     if (searchArg.isNotEmpty) {
@@ -180,8 +207,7 @@ class MasterFilesService {
       });
       finder.filter = filter;
     }
-    var entityTable =
-        intMapStoreFactory.store("${AppConst.DB_Customers}_$userId");
+    var entityTable = intMapStoreFactory.store("${store}_$userId");
     final recordSnapshot =
         await entityTable.find(_appDatabase.db!, finder: finder);
 
@@ -199,7 +225,8 @@ class MasterFilesService {
     }).toList();
   }
 
-  Future<List<BaseLookup>> getAllPaged(String searchArg) async {
+  Future<List<BaseLookup>> getAllPagedByStore(
+      String store, String searchArg) async {
     var finder = Finder(sortOrders: [SortOrder('orderBy', false, true)]);
 
     if (searchArg.isNotEmpty) {
@@ -213,8 +240,7 @@ class MasterFilesService {
       });
       finder.filter = filter;
     }
-    var entityTable =
-        intMapStoreFactory.store("${AppConst.DB_Customers}_$userId");
+    var entityTable = intMapStoreFactory.store("${store}_$userId");
 
     //  await entityTable.
 

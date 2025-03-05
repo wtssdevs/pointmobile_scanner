@@ -83,7 +83,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
     setModelUpdate(_gatePass);
     await loadFileStoreImages();
-    _customers = await _masterFilesService.getAllLocalDetainOptions("");
+    //_customers = await _masterFilesService.getAllLocalDetainOptions("");
 
     setCustomValidations();
     notifyListeners();

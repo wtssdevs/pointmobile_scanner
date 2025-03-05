@@ -6,11 +6,12 @@ import 'package:xstream_gate_pass_app/core/services/shared/localization/localiza
 
 mixin AppViewBaseHelper {
   final _localisationService = locator<LocalizationManagerService>();
- int _selectBranchId = 0;
- int get selectBranchId => _selectBranchId;
- set selectBranchId(int value) {
+  int _selectBranchId = 0;
+  int get selectBranchId => _selectBranchId;
+  set selectBranchId(int value) {
     _selectBranchId = value;
   }
+
   CurrentLoginInformation? get currentLoginInformation =>
       locator<LocalStorageService>().getUserLoginInfo;
   UserLoginInfo? get currentUser => currentLoginInformation?.user;

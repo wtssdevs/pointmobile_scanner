@@ -13,11 +13,16 @@ class AppPermissions {
   static const String visitors = "Visitors";
   static const String yardOperations = "YardOperations";
 
-  static const String mobileOperationsCreate = views + operations + gatePassAccess + mobileOperations + create;
+  static const String mobileOperationsCreate =
+      views + operations + gatePassAccess + mobileOperations + create;
 
-  static const String mobileOperationsPreBookings = views + operations + gatePassAccess + mobileOperations + preBookings;
-  static const String mobileOperationsStaff = views + operations + gatePassAccess + mobileOperations + staff;
+  static const String mobileOperationsPreBookings =
+      views + operations + gatePassAccess + mobileOperations + preBookings;
+  static const String mobileOperationsStaff =
+      views + operations + gatePassAccess + mobileOperations + staff;
 
-  static const String mobileOperationsVisitors = views + operations + gatePassAccess + mobileOperations + visitors;
-  static const String mobileOperationsYardOperations = views + operations + gatePassAccess + mobileOperations + yardOperations;
+  static const String mobileOperationsVisitors =
+      views + operations + gatePassAccess + mobileOperations + visitors;
+  static const String mobileOperationsYardOperations =
+      views + operations + gatePassAccess + mobileOperations + yardOperations;
 }

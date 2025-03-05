@@ -33,12 +33,35 @@ class UserLoginInfo {
       var userBranches = <BaseLookup>[];
       for (final dynamic item in json['userBranches']) {
         if (item != null) {
-          var newL = BaseLookup.fromJsonManualMap(item, idMap: "branchId", displayNameMap: "branchName", nameMap: "branchName", codeMap: "branchCode");
-          userBranches.add(newL);
+          var newL = BaseLookup.fromJsonManualMap(item,
+              idMap: "branchId",
+              displayNameMap: "branchName",
+              nameMap: "branchName",
+              codeMap: "branchCode");
+          if (newL.id != null &&
+              newL.id != 0 &&
+              newL.code != null &&
+              newL.name != '') {
+            //could map
+            userBranches.add(newL);
+          } else {
+            var newL = BaseLookup.fromJsonManualMap(item,
+                idMap: "id",
+                displayNameMap: "name",
+                nameMap: "name",
+                codeMap: "code");
+            if (newL.id != null &&
+                newL.id != 0 &&
+                newL.code != null &&
+                newL.name != '') {
+              userBranches.add(newL);
+            }
+          }
         }
       }
       user.userBranches = userBranches;
     }
+    //IF LOCAL DECODE MAPPING CHNAGE HERE
 
     return user;
   }

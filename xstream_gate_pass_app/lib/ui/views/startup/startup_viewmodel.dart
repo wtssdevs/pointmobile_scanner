@@ -16,7 +16,8 @@ import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base
 
 class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
   final log = getLogger('StartUpViewModel');
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final ApiManager _apiManager = locator<ApiManager>();
   final _navigationService = locator<NavigationService>();
   final _workerQueManager = locator<WorkerQueManager>();
@@ -45,7 +46,7 @@ class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
           }
           var local = await _localizationManager.getLocalizeValues();
           await _authenticationService.getUserLoginInfo(true);
-          //_workerQueManager.enqueForStartUp();
+          _workerQueManager.enqueForStartUp();
 
           // await Future.delayed(const Duration(milliseconds: 100));
           // whenever your initialization is completed, remove the splash screen:
@@ -55,8 +56,8 @@ class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
           var canRefresToken = await _authenticationService.refreshToken();
           if (canRefresToken) {
             await _authenticationService.getUserLoginInfo(true);
-            //_workerQueManager.enqueForStartUp();
-            //  await Future.delayed(const Duration(milliseconds: 200));
+            _workerQueManager.enqueForStartUp();
+            await Future.delayed(const Duration(milliseconds: 200));
             // whenever your initialization is completed, remove the splash screen:
             FlutterNativeSplash.remove();
             _navigationService.clearStackAndShow(Routes.homeView);

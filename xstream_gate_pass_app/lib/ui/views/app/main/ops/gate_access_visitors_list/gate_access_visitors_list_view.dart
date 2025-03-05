@@ -5,30 +5,26 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staff_model.dart';
-import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart';
+import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors_list/gate_access_visitors_list_viewmodel.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/finder_app_bar.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/empty_list_indicator.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/error_indicator.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'gate_access_staff_list_viewmodel.dart';
 
-class GateAccessStaffListView
-    extends StackedView<GateAccessStaffListViewModel> {
-  const GateAccessStaffListView({Key? key}) : super(key: key);
+class GateAccessVisitorsListView extends StackedView<GateAccessVisitorsListViewModel> {
+  const GateAccessVisitorsListView({Key? key}) : super(key: key);
 
   @override
   Widget builder(
     BuildContext context,
-    GateAccessStaffListViewModel viewModel,
+    GateAccessVisitorsListViewModel viewModel,
     Widget? child,
   ) {
-    double searchWidth =
-        getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet
-            ? MediaQuery.of(context).size.height * 0.8
-            : MediaQuery.of(context).size.height * 0.5;
+    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet ? MediaQuery.of(context).size.height * 0.8 : MediaQuery.of(context).size.height * 0.5;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -80,7 +76,7 @@ class GateAccessStaffListView
               FontAwesomeIcons.rightToBracket,
               color: Colors.red,
             ),
-            label: const Text("Scan Staff Out"), // <-- Text
+            label: const Text("Scan Out"), // <-- Text
           ),
         ),
         Container(
@@ -104,7 +100,7 @@ class GateAccessStaffListView
               FontAwesomeIcons.rightToBracket,
               color: Colors.green,
             ),
-            label: const Text("Scan Staff In"), // <-- Text
+            label: const Text("Scan In"), // <-- Text
           ),
         ),
       ],
@@ -117,27 +113,22 @@ class GateAccessStaffListView
           ),
           child: PagedListView.separated(
             pagingController: viewModel.pagingController,
-            builderDelegate: PagedChildBuilderDelegate<GatePassStaffAccess>(
+            builderDelegate: PagedChildBuilderDelegate<GatePassVisitorAccess>(
               itemBuilder: (context, entity, index) => Card(
                 elevation: 2,
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: entity.gatePassStatus.value ==
-                            GatePassStatus.inYard.value
-                        ? Colors.green.withOpacity(0.8)
-                        : Colors.red.withOpacity(0.8),
+                    backgroundColor: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.withOpacity(0.8) : Colors.red.withOpacity(0.8),
                     child: Icon(
-                      entity.gatePassStatus.value == GatePassStatus.inYard.value
-                          ? Icons.login
-                          : Icons.logout,
+                      entity.gatePassStatus.value == GatePassStatus.inYard.value ? Icons.login : Icons.logout,
                       color: Colors.white,
                     ),
                   ),
                   title: Row(
                     children: [
                       Text(
-                        entity.driverName,
+                        entity.driverName ?? '',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -160,36 +151,28 @@ class GateAccessStaffListView
                           fontSize: 13,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: entity.gatePassStatus.value ==
-                                  GatePassStatus.inYard.value
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.red.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          entity.gatePassStatus.displayName,
-                          style: TextStyle(
-                            color: entity.gatePassStatus.value ==
-                                    GatePassStatus.inYard.value
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
-                            fontSize: 12,
-                          ),
+                      Text(
+                        'Time Out: ${entity.timeOut?.toWhatsAppTime() ?? 'N/A'}',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
-                  trailing: QrImageView(
-                    data: entity
-                        .staffCode, // Or any other unique identifier you want to encode
-                    version: QrVersions.auto,
-                    padding: const EdgeInsets.all(2),
-                    constrainErrorBounds: true,
-                    size: 55.0,
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      entity.gatePassStatus.displayName,
+                      style: TextStyle(
+                        color: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.shade700 : Colors.red.shade700,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                   onTap: () {
                     // Handle tap event - could show more details or navigate to detail view
@@ -250,14 +233,13 @@ class GateAccessStaffListView
   }
 
   @override
-  void onViewModelReady(GateAccessStaffListViewModel viewModel) =>
-      SchedulerBinding.instance.addPostFrameCallback(
+  void onViewModelReady(GateAccessVisitorsListViewModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
         (timeStamp) => viewModel.runStartupLogic(),
       );
 
   @override
-  GateAccessStaffListViewModel viewModelBuilder(
+  GateAccessVisitorsListViewModel viewModelBuilder(
     BuildContext context,
   ) =>
-      GateAccessStaffListViewModel();
+      GateAccessVisitorsListViewModel();
 }

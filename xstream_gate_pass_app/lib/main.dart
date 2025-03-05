@@ -10,6 +10,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter_logs/flutter_logs.dart';
+import 'package:xstream_gate_pass_app/app/app.bottomsheets.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
@@ -20,8 +21,20 @@ class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback = ((X509Certificate cert, String host, int port) {
-        final isValidHost = ["xstream-tms.com", "localhost", "192.168.1.65:8080", "localhost:44311", "a50f-102-66-86-121.ngrok-free.app", "18.231.93.153", "18.229.146.63", "18.228.115.60", "54.94.248.37", "18.229.248.167"].contains(host); // <-- allow only hosts in array
+      ..badCertificateCallback =
+          ((X509Certificate cert, String host, int port) {
+        final isValidHost = [
+          "xstream-tms.com",
+          "localhost",
+          "192.168.1.65:8080",
+          "localhost:44311",
+          "a50f-102-66-86-121.ngrok-free.app",
+          "18.231.93.153",
+          "18.229.146.63",
+          "18.228.115.60",
+          "54.94.248.37",
+          "18.229.248.167"
+        ].contains(host); // <-- allow only hosts in array
         print("Host validation result for $host: $isValidHost");
         return isValidHost;
       });
@@ -40,7 +53,12 @@ Future main() async {
 
   //Initialize Logging
   await FlutterLogs.initLogs(
-    logLevelsEnabled: [LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR, LogLevel.SEVERE],
+    logLevelsEnabled: [
+      LogLevel.INFO,
+      LogLevel.WARNING,
+      LogLevel.ERROR,
+      LogLevel.SEVERE
+    ],
     timeStampFormat: TimeStampFormat.TIME_FORMAT_READABLE,
     directoryStructure: DirectoryStructure.FOR_DATE,
     logTypesEnabled: ["device", "network", "errors"],
@@ -60,7 +78,7 @@ Future main() async {
 
   await setupLocator();
   setupDialogUi();
-  //setupBottomSheetUi();
+  setupBottomSheetUi();
   locator<EnvironmentService>().setBasics();
   await locator<ConnectionService>().initialize();
 

@@ -100,6 +100,7 @@ dependencies:
                ref: master # branch name
 
      enhanced_paginated_view: ^2.0.3
+     searchable_paginated_dropdown: ^1.3.0
      infinite_scroll_pagination:
           git:
                url: https://github.com/EdsonBueno/infinite_scroll_pagination.git

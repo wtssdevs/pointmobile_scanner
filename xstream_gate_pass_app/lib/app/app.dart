@@ -36,6 +36,8 @@ import 'package:xstream_gate_pass_app/core/services/shared/localization/localiza
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/gate_access_menu_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/gate_access_pre_booking_find/gate_access_pre_booking_find_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_staff_list/gate_access_staff_list_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors_list/gate_access_visitors_list_view.dart';
+import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_visitor/gate_access_visitor_sheet.dart';
 // @stacked-import
 
 @StackedApp(
@@ -55,6 +57,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_staff_li
     MaterialRoute(page: GateAccessMenuView),
     MaterialRoute(page: GateAccessPreBookingFindView),
     MaterialRoute(page: GateAccessStaffListView),
+    MaterialRoute(page: GateAccessVisitorsListView),
 // @stacked-route
   ],
   dependencies: [
@@ -83,11 +86,13 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_staff_li
 
     Singleton(classType: SyncManager),
     LazySingleton(classType: LocalizationManagerService),
+    LazySingleton(classType: BottomSheetService),
 // @stacked-service
   ],
   bottomsheets: [
     StackedBottomsheet(classType: NoticeSheet),
-    // @stacked-bottom-sheet
+    StackedBottomsheet(classType: GateAccessVisitorSheet),
+// @stacked-bottom-sheet
   ],
   dialogs: [
     StackedDialog(classType: InfoAlertDialog),
