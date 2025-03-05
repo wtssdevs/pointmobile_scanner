@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:math' as math; // Add proper import for math functions
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
@@ -38,8 +39,13 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
   bool get scanInMode => _scanInMode;
 
   // Scanned data
-  GatePassVisitorAccess? _scannedVisitor;
-  GatePassVisitorAccess? get scannedVisitor => _scannedVisitor;
+  GatePassVisitorAccess _scannedVisitor = GatePassVisitorAccess(
+    isActive: true,
+    branchId: 0,
+    gatePassStatus: GatePassStatus.atGate,
+    gatePassBookingType: GatePassBookingType.visitor,
+  );
+  GatePassVisitorAccess get scannedVisitor => _scannedVisitor;
 
   // Scanning status
   bool _isScanning = false;
@@ -66,7 +72,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
   void setBarcodeScanType(BarcodeScanType type) {
     _barcodeScanType = type;
     _scanningService.setBarcodeScanType(type);
-    rebuildUi();
+    //rebuildUi();
   }
 
   void setScanInMode(bool inMode) {
@@ -104,7 +110,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
 
     _isScanning = true;
     _errorMessage = null;
-    _scannedVisitor = null;
+    //_scannedVisitor = null;
     rebuildUi();
 
     try {
@@ -130,13 +136,14 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
   }
 
   Future<void> processScanData(RsaDriversLicense? rsaDriversLicense, LicenseDiskData? vehicleLicenseData) async {
-    _isScanning = false;
+    //_isScanning = false;
 
     try {
       // Process the scanned data based on scan type
       if (_barcodeScanType == BarcodeScanType.driversCard && rsaDriversLicense != null) {
         // Process driver's license data
         _scannedVisitor = await processDriversLicenseData(rsaDriversLicense);
+        setBarcodeScanType(BarcodeScanType.vehicleDisc);
       } else if (_barcodeScanType == BarcodeScanType.vehicleDisc && vehicleLicenseData != null) {
         // Process vehicle license data
         _scannedVisitor = await processVehicleLicenseData(vehicleLicenseData);
@@ -169,18 +176,19 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
         professionalDrivingPermitExpiryDate: data.prdpExpiry,
       );
     } else {
-      _scannedVisitor!.driverName = '${data.firstNames} ${data.surname}';
-      _scannedVisitor!.driverIdNo = data.idNumber;
-      _scannedVisitor!.driverLicenceNo = data.licenseNumber;
-      _scannedVisitor!.driverLicenceIssueDate = data.issueDates?.firstOrNull;
-      _scannedVisitor!.driverLicenceExpiryDate = data.validTo;
-      _scannedVisitor!.driversLicenceCodes = data.vehicleCodes.join(',');
-      _scannedVisitor!.gatePassStatus = scanInMode ? GatePassStatus.atGate : GatePassStatus.inYard;
-      _scannedVisitor!.gatePassBookingType = GatePassBookingType.visitor;
-      _scannedVisitor!.professionalDrivingPermitExpiryDate = data.prdpExpiry;
+      _scannedVisitor.driverName = '${data.firstNames} ${data.surname}';
+      _scannedVisitor.driverIdNo = data.idNumber;
+      _scannedVisitor.driverLicenceNo = data.licenseNumber;
+      _scannedVisitor.driverLicenceIssueDate = data.issueDates?.firstOrNull;
+      _scannedVisitor.driverLicenceExpiryDate = data.validTo;
+      _scannedVisitor.driversLicenceCodes = data.vehicleCodes.join(',');
+      _scannedVisitor.gatePassStatus = scanInMode ? GatePassStatus.atGate : GatePassStatus.inYard;
+      _scannedVisitor.gatePassBookingType = GatePassBookingType.visitor;
+      _scannedVisitor.professionalDrivingPermitExpiryDate = data.prdpExpiry;
+      _scannedVisitor.branchId = branchId;
     }
 
-    return _scannedVisitor!;
+    return _scannedVisitor;
   }
 
   Future<GatePassVisitorAccess> processVehicleLicenseData(LicenseDiskData data) async {
@@ -203,51 +211,66 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       );
     } else {
       //Update
-      _scannedVisitor!.gatePassStatus = scanInMode ? GatePassStatus.atGate : GatePassStatus.inYard;
-      _scannedVisitor!.gatePassBookingType = GatePassBookingType.visitor;
-      _scannedVisitor!.vehicleEngineNumber = data.engineNumber;
-      _scannedVisitor!.vehicleMake = data.make;
-      _scannedVisitor!.vehicleRegNumber = data.licensePlateNo;
-      _scannedVisitor!.vehicleVinNumber = data.vin;
-      _scannedVisitor!.vehicleRegisterNumber = data.vehicleRegisterNo;
+      _scannedVisitor.gatePassStatus = scanInMode ? GatePassStatus.atGate : GatePassStatus.inYard;
+      _scannedVisitor.gatePassBookingType = GatePassBookingType.visitor;
+      _scannedVisitor.vehicleEngineNumber = data.engineNumber;
+      _scannedVisitor.vehicleMake = data.make;
+      _scannedVisitor.vehicleRegNumber = data.licensePlateNo;
+      _scannedVisitor.vehicleVinNumber = data.vin;
+      _scannedVisitor.vehicleRegisterNumber = data.vehicleRegisterNo;
+      _scannedVisitor.branchId = branchId;
     }
 
-    return _scannedVisitor!;
+    return _scannedVisitor;
   }
 
   Future<bool> submitVisitorEntry() async {
-    if (_scannedVisitor == null) return false;
+    if (_scannedVisitor.hasDriverInfo == false && _scannedVisitor.hasVehicleInfo == false) {
+      _errorMessage = "No driver or vehicle information found.";
+      rebuildUi();
+      return false;
+    }
 
     try {
       setBusy(true);
 
-      var branchId = currentUser?.userBranches[0].id ?? 0;
-      var code = _scannedVisitor!.driverLicenceNo ?? "";
-
       if (_scanInMode) {
         // Check in visitor
-        var response = await _gatePassService.scanStaffIn(StaffQrCodeModel(code: code, branchId: branchId));
+        var response = await _gatePassService.scanVisitorIn(_scannedVisitor);
 
-        return response != null;
+        return response;
       } else {
         // Check out visitor
-        var response = await _gatePassService.scanStaffOut(StaffQrCodeModel(code: code, branchId: branchId));
+        var response = await _gatePassService.scanVisitorOut(_scannedVisitor);
 
-        return response != null;
+        return response;
       }
     } catch (e) {
       log.e("Error submitting visitor: ${e.toString()}");
       _errorMessage = e.toString();
       return false;
     } finally {
+      EasyLoading.dismiss();
       setBusy(false);
     }
   }
 
   void resetScanner() {
-    _scannedVisitor = null;
     _errorMessage = null;
     _isScanning = false;
+    setBarcodeScanType(BarcodeScanType.driversCard);
+    runStartupLogic(_scanInMode);
+  }
+
+  runStartupLogic(bool data) async {
+    var branchId = currentUser?.userBranches[0].id ?? 0;
+    _scanInMode = data;
+    _scannedVisitor = GatePassVisitorAccess(
+      isActive: true,
+      branchId: branchId,
+      gatePassStatus: GatePassStatus.atGate,
+      gatePassBookingType: GatePassBookingType.visitor,
+    );
     rebuildUi();
   }
 }

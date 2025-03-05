@@ -23,78 +23,25 @@ class GateAccessVisitorsListViewModel extends BaseViewModel with AppViewBaseHelp
   final _connectionService = locator<ConnectionService>();
   final _scanningService = locator<ScanningService>();
   final bottomsheetService = locator<BottomSheetService>();
+
   bool get hasConnection => _connectionService.hasConnection;
-  StreamSubscription<String>? streamSubscription;
+
   final GatePassService _gatePassService = locator<GatePassService>();
   final TextEditingController filterController = TextEditingController();
   int _nextPage = 1;
   final pagingController = PagingController<int, GatePassVisitorAccess>(firstPageKey: 1, invisibleItemsThreshold: 3);
-
-  BarcodeScanType _barcodeScanType = BarcodeScanType.driversCard;
-  BarcodeScanType get barcodeScanType => _barcodeScanType;
 
   bool _scanInOrOut = false;
   bool get scanInOrOut => _scanInOrOut;
 
   PagedList<GatePassVisitorAccess> _pagedList = PagedList<GatePassVisitorAccess>(totalCount: 0, items: <GatePassVisitorAccess>[], pageNumber: 1, pageSize: 10, totalPages: 0);
 
-  void setBarcodeScanType(BarcodeScanType value) {
-    _barcodeScanType = value;
-    _scanningService.setBarcodeScanType(barcodeScanType);
-    rebuildUi();
-  }
-
   Future<void> runStartupLogic() async {
-    _scanningService.initialise(barcodeScanType: barcodeScanType);
     pagingController.addPageRequestListener((pageKey) {
       fetchPage(pageKey);
     });
 
     fetchPage(_nextPage);
-
-    await startconnectionListen();
-  }
-
-  Future<void> startconnectionListen() async {
-    streamSubscription = _scanningService.rawStringStream.asBroadcastStream().listen((data) async {
-      log.i("data: $data");
-      //test if data is GUID
-
-      //convert to correct format
-      //var loadCOn = LoadconQrCodeModel.fromJson(data);
-
-      //rebuildUi();
-    });
-  }
-
-  Future<void> scanStaffIn(String code) async {
-    var branchId = currentUser?.userBranches[0].id ?? 0;
-    //here we save back to server
-    var reponse = await _gatePassService.scanStaffIn(StaffQrCodeModel(code: code, branchId: branchId));
-    if (reponse != null) {
-      refreshList();
-      //Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
-    } else {
-      //error could not save
-      //Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
-    }
-
-    //rebuildUi();
-  }
-
-  Future<void> scanStaffOut(String code) async {
-    var branchId = currentUser?.userBranches[0].id ?? 0;
-    //here we save back to server
-    var reponse = await _gatePassService.scanStaffOut(StaffQrCodeModel(code: code, branchId: branchId));
-    if (reponse != null) {
-      refreshList();
-      //Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
-    } else {
-      //error could not save
-      //Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
-    }
-
-    //rebuildUi();
   }
 
   Future<void> fetchPage(int pageKey) async {
@@ -142,17 +89,13 @@ class GateAccessVisitorsListViewModel extends BaseViewModel with AppViewBaseHelp
     refreshList();
   }
 
-  void setScanStaffOut() {
-    rebuildUi();
+  Future<void> setScanStaffOut() async {
+    await bottomsheetService.showCustomSheet(variant: BottomSheetType.gateAccessVisitor, isScrollControlled: true, barrierDismissible: false, data: false);
+    refreshList();
   }
 
   Future<void> setScanStaffIn() async {
-    await bottomsheetService.showCustomSheet(
-      variant: BottomSheetType.gateAccessVisitor,
-      isScrollControlled: true,
-      barrierDismissible: false,
-    );
-
-    //rebuildUi();
+    await bottomsheetService.showCustomSheet(variant: BottomSheetType.gateAccessVisitor, isScrollControlled: true, barrierDismissible: false, data: true);
+    refreshList();
   }
 }

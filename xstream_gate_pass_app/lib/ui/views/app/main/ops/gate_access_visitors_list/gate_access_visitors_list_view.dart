@@ -11,6 +11,7 @@ import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors_list/gate_access_visitors_list_viewmodel.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/finder_app_bar.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/actions_cards/action_card_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/empty_list_indicator.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/error_indicator.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -55,54 +56,68 @@ class GateAccessVisitorsListView extends StackedView<GateAccessVisitorsListViewM
       resizeToAvoidBottomInset: true,
       persistentFooterAlignment: AlignmentDirectional.center,
       persistentFooterButtons: [
-        Container(
-          decoration: viewModel.scanInOrOut == false
-              ? BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
-                )
-              : null,
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              viewModel.setScanStaffOut();
-            },
-            icon: const FaIcon(
-              FontAwesomeIcons.rightToBracket,
-              color: Colors.red,
-            ),
-            label: const Text("Scan Out"), // <-- Text
-          ),
+        ActionCardWidget(
+          title: 'Check In',
+          isIn: true,
+          icon: Icons.login,
+          color: Colors.green,
+          onTap: viewModel.setScanStaffIn,
         ),
-        Container(
-          decoration: viewModel.scanInOrOut == true
-              ? BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
-                )
-              : null,
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              viewModel.setScanStaffIn();
-            },
-            icon: const FaIcon(
-              FontAwesomeIcons.rightToBracket,
-              color: Colors.green,
-            ),
-            label: const Text("Scan In"), // <-- Text
-          ),
+        ActionCardWidget(
+          title: 'Check Out',
+          isIn: true,
+          icon: Icons.logout,
+          color: Colors.redAccent,
+          onTap: viewModel.setScanStaffOut,
         ),
+        // Container(
+        //   decoration: viewModel.scanInOrOut == false
+        //       ? BoxDecoration(
+        //           boxShadow: [
+        //             BoxShadow(
+        //               color: Colors.red.withOpacity(0.5),
+        //               spreadRadius: 2,
+        //               blurRadius: 8,
+        //               offset: const Offset(0, 0),
+        //             ),
+        //           ],
+        //         )
+        //       : null,
+        //   child: ElevatedButton.icon(
+        //     onPressed: () async {
+        //       viewModel.setScanStaffOut();
+        //     },
+        //     icon: const FaIcon(
+        //       FontAwesomeIcons.rightToBracket,
+        //       color: Colors.red,
+        //     ),
+        //     label: const Text("Scan Out"), // <-- Text
+        //   ),
+        // ),
+        // Container(
+        //   decoration: viewModel.scanInOrOut == true
+        //       ? BoxDecoration(
+        //           boxShadow: [
+        //             BoxShadow(
+        //               color: Colors.green.withOpacity(0.5),
+        //               spreadRadius: 2,
+        //               blurRadius: 8,
+        //               offset: const Offset(0, 0),
+        //             ),
+        //           ],
+        //         )
+        //       : null,
+        //   child: ElevatedButton.icon(
+        //     onPressed: () async {
+        //       viewModel.setScanStaffIn();
+        //     },
+        //     icon: const FaIcon(
+        //       FontAwesomeIcons.rightToBracket,
+        //       color: Colors.green,
+        //     ),
+        //     label: const Text("Scan In"), // <-- Text
+        //   ),
+        // ),
       ],
       body: SafeArea(
         child: RefreshIndicator(
@@ -138,21 +153,14 @@ class GateAccessVisitorsListView extends StackedView<GateAccessVisitorsListViewM
                     children: [
                       const SizedBox(height: 4),
                       Text(
-                        'Time In: ${entity.timeIn?.toWhatsAppTime() ?? 'N/A'}',
+                        'Time In: ${entity.timeIn?.toSocialMediaTime() ?? 'N/A'}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 13,
                         ),
                       ),
                       Text(
-                        'Time Out: ${entity.timeOut?.toWhatsAppTime() ?? 'N/A'}',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 13,
-                        ),
-                      ),
-                      Text(
-                        'Time Out: ${entity.timeOut?.toWhatsAppTime() ?? 'N/A'}',
+                        'Time Out: ${entity.timeOut?.toSocialMediaTime() ?? 'N/A'}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 13,
@@ -167,7 +175,11 @@ class GateAccessVisitorsListView extends StackedView<GateAccessVisitorsListViewM
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      entity.gatePassStatus.displayName,
+                      entity.gatePassStatus.value == GatePassStatus.inYard.value
+                          ? "In"
+                          : entity.gatePassStatus.value == GatePassStatus.leftTheYard.value
+                              ? "Out"
+                              : "Unknown",
                       style: TextStyle(
                         color: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.shade700 : Colors.red.shade700,
                         fontSize: 12,

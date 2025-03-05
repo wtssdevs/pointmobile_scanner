@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
-
+import 'package:xstream_gate_pass_app/ui/widgets/common/barcode_scanner_animation/barcode_scanner_animation.dart';
 import 'gate_access_visitor_sheet_model.dart';
 
 class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
@@ -70,17 +71,17 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
 
   Widget _buildContent(BuildContext context, GateAccessVisitorSheetModel viewModel) {
     // Show scan result if we have one
-    if (viewModel.scannedVisitor != null) {
-      return _buildScanResultView(context, viewModel);
-    }
+    // if (viewModel.scannedVisitor != null) {
+    //   return _buildScanResultView(context, viewModel);
+    // }
 
     // Show scanning UI or initial scan setup
-    return viewModel.isScanning ? _buildScanningView(context, viewModel) : _buildScanSetupView(context, viewModel);
+    return viewModel.isScanning ? _buildScanResultView(context, viewModel) : _buildScanSetupView(context, viewModel);
   }
 
   Widget _buildFooter(BuildContext context, GateAccessVisitorSheetModel viewModel) {
     // Different footer based on current state
-    if (viewModel.scannedVisitor != null) {
+    if (viewModel.scannedVisitor.hasDriverInfo && viewModel.scannedVisitor.hasVehicleInfo) {
       // Show submit/cancel for scan results
       return Row(
         children: [
@@ -282,6 +283,42 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
     );
   }
 
+  Widget _buildInfoCard(
+    BuildContext context,
+    GateAccessVisitorSheetModel viewModel,
+    bool isIn,
+    IconData icon,
+    Color color,
+    //inoput a list of strings
+    List<Widget> infoList,
+  ) {
+    final isSelected = isIn;
+
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.95,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSelected ? color : Colors.grey[300]!,
+          width: isSelected ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? color : Colors.grey[700],
+            size: 32,
+          ),
+          verticalSpaceSmall,
+          ...infoList,
+        ],
+      ),
+    );
+  }
+
   Widget _buildScanResultView(BuildContext context, GateAccessVisitorSheetModel viewModel) {
     final visitor = viewModel.scannedVisitor!;
 
@@ -289,74 +326,6 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: kcPrimaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.green[600],
-                  size: 48,
-                ),
-                verticalSpaceSmall,
-                const Text(
-                  'Scan Successful',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: kcPrimaryColor,
-                  ),
-                ),
-                verticalSpaceTiny,
-                Text(
-                  'Please verify the information below',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          verticalSpaceMedium,
-
-          // Visitor Information
-          const Text(
-            'Visitor Information',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          verticalSpaceSmall,
-
-          _buildInfoItem('Driver Name', visitor.driverName ?? 'Not available'),
-          _buildInfoItem('ID Number', visitor.driverIdNo ?? 'Not available'),
-          _buildInfoItem('License Number', visitor.driverLicenceNo ?? 'Not available'),
-
-          verticalSpaceMedium,
-
-          // Vehicle Information
-          const Text(
-            'Vehicle Information',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          verticalSpaceSmall,
-
-          _buildInfoItem('Registration', visitor.vehicleRegNumber ?? 'Not available'),
-          _buildInfoItem('Make', visitor.vehicleMake ?? 'Not available'),
-
-          verticalSpaceMedium,
-
           // Action Information
           Container(
             padding: const EdgeInsets.all(12),
@@ -384,6 +353,92 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
               ],
             ),
           ),
+          verticalSpaceTiny,
+          visitor.hasDriverInfo && visitor.hasVehicleInfo
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: kcPrimaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green[600],
+                        size: 38,
+                      ),
+                      verticalSpaceSmall,
+                      const Text(
+                        'Scan Successful',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: kcPrimaryColor,
+                        ),
+                      ),
+                      verticalSpaceTiny,
+                      Text(
+                        'Please verify the information below',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+
+          verticalSpaceSmall,
+          !visitor.hasDriverInfo || !visitor.hasVehicleInfo ? _buildScanningView(context, viewModel) : const SizedBox.shrink(),
+          verticalSpaceSmall,
+          // Visitor Information
+          const Text(
+            'Visitor Drivers Lisence Card',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          verticalSpaceSmall,
+          _buildInfoCard(
+            context,
+            viewModel,
+            visitor.hasDriverInfo,
+            Icons.credit_card,
+            Colors.green,
+            [
+              _buildInfoItem('Driver Name', visitor.driverName ?? 'Not Scanned'),
+              _buildInfoItem('ID Number', visitor.driverIdNo ?? 'Not Scanned'),
+              _buildInfoItem('License No', visitor.driverLicenceNo ?? 'Not Scanned'),
+            ],
+          ),
+
+          verticalSpaceSmall,
+
+          // Vehicle Information
+          const Text(
+            'Vehicle Lisence Disc',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          verticalSpaceSmall,
+          _buildInfoCard(
+            context,
+            viewModel,
+            visitor.hasVehicleInfo,
+            Icons.directions_car,
+            Colors.green,
+            [
+              _buildInfoItem('Registration', visitor.vehicleRegNumber ?? 'Not Scanned'),
+              _buildInfoItem('Make', visitor.vehicleMake ?? 'Not Scanned'),
+            ],
+          ),
+          verticalSpaceTiny,
 
           if (viewModel.errorMessage != null) ...[
             verticalSpaceMedium,
@@ -420,7 +475,7 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 110,
+            width: 140,
             child: Text(
               '$label:',
               style: const TextStyle(
@@ -447,31 +502,24 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              shape: BoxShape.circle,
-            ),
-            child: const SizedBox(
-              height: 60,
-              width: 60,
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(kcPrimaryColor),
-              ),
-            ),
+          //create animated barcode scanning indicator
+          const SizedBox(
+            height: 60,
+            width: 100,
+            child: BarcodeScannerAnimation(),
           ),
-          verticalSpaceMedium,
+
+          verticalSpaceSmall,
           Text(
-            viewModel.barcodeScanType == BarcodeScanType.driversCard ? 'Scanning Driver\'s License...' : 'Scanning Vehicle License...',
+            viewModel.barcodeScanType == BarcodeScanType.driversCard ? 'Scan Driver\'s License Card...' : 'Scan Vehicle License Disc...',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          verticalSpaceSmall,
+          verticalSpaceTiny,
           Text(
-            'Please hold the barcode steady',
+            'Please hold the barcode scanner steady',
             style: TextStyle(
               color: Colors.grey[600],
             ),
@@ -486,40 +534,6 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Scan type selection
-          Text(
-            'What would you like to scan?',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
-            ),
-          ),
-          verticalSpaceMedium,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildScanTypeCard(
-                context,
-                viewModel,
-                'Driver\'s License',
-                BarcodeScanType.driversCard,
-                Icons.credit_card,
-                'Scan driver\'s license barcode',
-              ),
-              _buildScanTypeCard(
-                context,
-                viewModel,
-                'Vehicle License',
-                BarcodeScanType.vehicleDisc,
-                Icons.directions_car,
-                'Scan vehicle license disk',
-              ),
-            ],
-          ),
-
-          verticalSpaceLarge,
-
           // In/Out selection
           Text(
             'Is this visitor entering or exiting?',
@@ -548,7 +562,7 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
                 'Check Out',
                 false,
                 Icons.logout,
-                Colors.orange,
+                Colors.redAccent,
                 'Record visitor departure',
               ),
             ],
@@ -583,7 +597,7 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
                 ),
                 verticalSpaceSmall,
                 Text(
-                  viewModel.barcodeScanType == BarcodeScanType.driversCard ? '1. Position the driver\'s license barcode within the scanner frame\n2. Hold steady until scan completes\n3. Verify the captured information' : '1. Position the vehicle license disk barcode within the scanner frame\n2. Hold steady until scan completes\n3. Verify the captured information',
+                  '1. Position the driver\'s license barcode within the scanner frame\n2. Hold steady until scan completes\n3. Position the vehicle license disk barcode within the scanner frame\n4. Hold steady until scan completes\n5. Verify the captured information',
                   style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                 ),
               ],
@@ -594,6 +608,10 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
     );
   }
 
+  @override
+  void onViewModelReady(GateAccessVisitorSheetModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
+        (timeStamp) => viewModel.runStartupLogic(request.data),
+      );
   @override
   GateAccessVisitorSheetModel viewModelBuilder(BuildContext context) => GateAccessVisitorSheetModel();
 }

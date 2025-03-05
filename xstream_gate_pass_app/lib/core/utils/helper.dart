@@ -64,8 +64,7 @@ String? calculateAgeFormatted(DateTime? dateOfBirth) {
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     return TextEditingValue(
       text: newValue.text.toUpperCase(),
       selection: newValue.selection,
@@ -80,8 +79,7 @@ extension CustomString on String {
 extension CustomStringExtensions on String {
   /// Removes consecutive empty lines, replacing them with single newlines.
   /// Example: "Line1\n\n\nLine2" => "Line1\nLine2"
-  String get removeEmptyLines =>
-      replaceAll(RegExp(r'(?:[\t ]*(?:\r?\n|\r))+'), '\n');
+  String get removeEmptyLines => replaceAll(RegExp(r'(?:[\t ]*(?:\r?\n|\r))+'), '\n');
 
   /// Converts the string into a single line by replacing newline characters.
   /// Example: "Line1\nLine2" => "Line1Line2"
@@ -106,8 +104,7 @@ extension CustomStringExtensions on String {
 }
 
 MergeDeltaResponse<T> getDeltaMerge<T>(List<T> local, List<T> server) {
-  var delta = MergeDeltaResponse(
-      added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
+  var delta = MergeDeltaResponse(added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
 
   //map ids from array
   // old local
@@ -129,8 +126,7 @@ MergeDeltaResponse<T> getDeltaMerge<T>(List<T> local, List<T> server) {
           value.mergeUpdate(mapServer[key]! as BaseLookup);
         }
         //delta.changed.add(mapServer[key]!); // update local from server "Server WINS Conflict"
-        delta.changed
-            .add(value); // update local from server "Local WINS Conflict"
+        delta.changed.add(value); // update local from server "Local WINS Conflict"
       } else {
         delta.same.add(value);
       }
@@ -149,8 +145,7 @@ MergeDeltaResponse<T> getDeltaMerge<T>(List<T> local, List<T> server) {
 }
 
 MergeDeltaResponse<T> getDeltaMergLocalWins<T>(List<T> local, List<T> server) {
-  var delta = MergeDeltaResponse(
-      added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
+  var delta = MergeDeltaResponse(added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
 
   //map ids from array
   // old local
@@ -254,14 +249,11 @@ extension DoubleWhiteSpaceStringExtensions on String {
   }
 }
 
-Future<File?> saveSignatureImageWithRandomFileName(Uint8List imageAsBytes,
-    [bool addToGallery = true]) async {
+Future<File?> saveSignatureImageWithRandomFileName(Uint8List imageAsBytes, [bool addToGallery = true]) async {
   try {
     final Directory extDir = await getTemporaryDirectory();
-    final testDir = await Directory('${extDir.path}/TMS_Signatures')
-        .create(recursive: true);
-    final String filePath =
-        '${testDir.path}/Signature_${DateTime.now().millisecondsSinceEpoch}.png';
+    final testDir = await Directory('${extDir.path}/TMS_Signatures').create(recursive: true);
+    final String filePath = '${testDir.path}/Signature_${DateTime.now().millisecondsSinceEpoch}.png';
     File(filePath).writeAsBytesSync(imageAsBytes);
 
     final file = File(filePath);
@@ -300,8 +292,7 @@ extension FormatDatedExtension on DateTime? {
       if (this == null) {
         return "";
       }
-      String formattedDate =
-          DateFormat('yyyy/MM/dd HH:mm a').format(this!.toLocal());
+      String formattedDate = DateFormat('yyyy/MM/dd HH:mm a').format(this!.toLocal());
       return formattedDate;
     } catch (e) {
       return "";
@@ -314,8 +305,7 @@ extension FormatDatedExtension on DateTime? {
         return "";
       }
 
-      String formattedDate =
-          DateFormat('yyyy/MM/dd HH:mm:ss').format(this!.toLocal());
+      String formattedDate = DateFormat('yyyy/MM/dd HH:mm:ss').format(this!.toLocal());
       return formattedDate;
     } catch (e) {
       return "";
@@ -327,8 +317,7 @@ extension FormatDatedExtension on DateTime? {
       if (this == null) {
         return "";
       }
-      String formattedDate =
-          DateFormat('yyyy/MM/dd HH:mm:ss a').format(this!.toLocal());
+      String formattedDate = DateFormat('yyyy/MM/dd HH:mm:ss a').format(this!.toLocal());
       return formattedDate;
     } catch (e) {
       return "";
@@ -343,14 +332,12 @@ extension FormatDatedExtension on DateTime? {
     final double n1 = imageSize.height / imageSize.width;
     final double n2 = size.height / size.width;
     if (n1 > n2) {
-      final FittedSizes fittedSizes =
-          applyBoxFit(BoxFit.contain, imageSize, size);
+      final FittedSizes fittedSizes = applyBoxFit(BoxFit.contain, imageSize, size);
       //final Size sourceSize = fittedSizes.source;
       final Size destinationSize = fittedSizes.destination;
       return size.width / destinationSize.width;
     } else if (n1 / n2 < 1 / 4) {
-      final FittedSizes fittedSizes =
-          applyBoxFit(BoxFit.contain, imageSize, size);
+      final FittedSizes fittedSizes = applyBoxFit(BoxFit.contain, imageSize, size);
       //final Size sourceSize = fittedSizes.source;
       final Size destinationSize = fittedSizes.destination;
       return size.height / destinationSize.height;
@@ -437,6 +424,116 @@ extension FormatDatedExtension on DateTime? {
     return "";
   }
 }
+
+extension DateTimeSocialMediaFormat on DateTime {
+  String toSocialMediaTime() {
+    final now = DateTime.now().toLocal();
+    final difference = now.difference(this);
+
+    // Just now (within 1 minute)
+    if (difference.inSeconds < 60) {
+      return "Just now";
+    }
+
+    // Minutes ago (within 1 hour)
+    if (difference.inMinutes < 60) {
+      return "${difference.inMinutes} ${difference.inMinutes == 1 ? 'min' : 'mins'} ago";
+    }
+
+    // Hours ago (within 24 hours)
+    if (difference.inHours < 24) {
+      return "${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago";
+    }
+
+    // Yesterday
+    if (difference.inDays == 1) {
+      return "Yesterday";
+    }
+
+    // Within a week (show day name)
+    if (difference.inDays < 7) {
+      return _getDayName(weekday);
+    }
+
+    // Within a year (show month and day)
+    if (now.year == year) {
+      return "${_getMonthName(month)} ${day}";
+    }
+
+    // Older (show full date)
+    return "${day} ${_getMonthName(month)}, $year";
+  }
+
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return "Monday";
+      case 2:
+        return "Tuesday";
+      case 3:
+        return "Wednesday";
+      case 4:
+        return "Thursday";
+      case 5:
+        return "Friday";
+      case 6:
+        return "Saturday";
+      case 7:
+        return "Sunday";
+      default:
+        return "";
+    }
+  }
+
+  String _getMonthName(int month) {
+    switch (month) {
+      case 1:
+        return "Jan";
+      case 2:
+        return "Feb";
+      case 3:
+        return "Mar";
+      case 4:
+        return "Apr";
+      case 5:
+        return "May";
+      case 6:
+        return "Jun";
+      case 7:
+        return "Jul";
+      case 8:
+        return "Aug";
+      case 9:
+        return "Sep";
+      case 10:
+        return "Oct";
+      case 11:
+        return "Nov";
+      case 12:
+        return "Dec";
+      default:
+        return "";
+    }
+  }
+}
+
+// extension DateTimeWhatsAppFormat on DateTime {
+//   String toWhatsAppTime() {
+//     final now = DateTime.now().toLocal();
+//     final today = DateTime(now.year, now.month, now.day);
+//     final yesterday = today.subtract(const Duration(days: 1));
+//     final dateToCheck = DateTime(year, month, day);
+//     final localTime = toLocal(); // Convert to local time
+
+//     if (dateToCheck == today) {
+//       return "${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}";
+//     } else if (dateToCheck == yesterday) {
+//       return "Yesterday ${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}";
+//     } else {
+//       return "${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/${year} ${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}";
+//     }
+//   }
+// }
 
 extension DateTimeWhatsAppFormat on DateTime {
   String toWhatsAppTime() {

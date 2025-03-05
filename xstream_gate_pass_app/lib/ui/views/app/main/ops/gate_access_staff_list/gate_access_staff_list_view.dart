@@ -10,13 +10,13 @@ import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/finder_app_bar.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/actions_cards/action_card_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/empty_list_indicator.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/error_indicator.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'gate_access_staff_list_viewmodel.dart';
 
-class GateAccessStaffListView
-    extends StackedView<GateAccessStaffListViewModel> {
+class GateAccessStaffListView extends StackedView<GateAccessStaffListViewModel> {
   const GateAccessStaffListView({Key? key}) : super(key: key);
 
   @override
@@ -25,10 +25,7 @@ class GateAccessStaffListView
     GateAccessStaffListViewModel viewModel,
     Widget? child,
   ) {
-    double searchWidth =
-        getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet
-            ? MediaQuery.of(context).size.height * 0.8
-            : MediaQuery.of(context).size.height * 0.5;
+    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet ? MediaQuery.of(context).size.height * 0.8 : MediaQuery.of(context).size.height * 0.5;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -59,53 +56,19 @@ class GateAccessStaffListView
       resizeToAvoidBottomInset: true,
       persistentFooterAlignment: AlignmentDirectional.center,
       persistentFooterButtons: [
-        Container(
-          decoration: viewModel.scanInOrOut == false
-              ? BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
-                )
-              : null,
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              viewModel.setScanStaffOut();
-            },
-            icon: const FaIcon(
-              FontAwesomeIcons.rightToBracket,
-              color: Colors.red,
-            ),
-            label: const Text("Scan Staff Out"), // <-- Text
-          ),
+        ActionCardWidget(
+          title: 'Scan Staff In',
+          isIn: viewModel.scanInOrOut == true,
+          icon: Icons.login,
+          color: Colors.green,
+          onTap: viewModel.setScanStaffIn,
         ),
-        Container(
-          decoration: viewModel.scanInOrOut == true
-              ? BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
-                )
-              : null,
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              viewModel.setScanStaffIn();
-            },
-            icon: const FaIcon(
-              FontAwesomeIcons.rightToBracket,
-              color: Colors.green,
-            ),
-            label: const Text("Scan Staff In"), // <-- Text
-          ),
+        ActionCardWidget(
+          title: 'Scan Staff Out',
+          isIn: viewModel.scanInOrOut == false,
+          icon: Icons.logout,
+          color: Colors.red,
+          onTap: viewModel.setScanStaffOut,
         ),
       ],
       body: SafeArea(
@@ -123,14 +86,9 @@ class GateAccessStaffListView
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: entity.gatePassStatus.value ==
-                            GatePassStatus.inYard.value
-                        ? Colors.green.withOpacity(0.8)
-                        : Colors.red.withOpacity(0.8),
+                    backgroundColor: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.withOpacity(0.8) : Colors.red.withOpacity(0.8),
                     child: Icon(
-                      entity.gatePassStatus.value == GatePassStatus.inYard.value
-                          ? Icons.login
-                          : Icons.logout,
+                      entity.gatePassStatus.value == GatePassStatus.inYard.value ? Icons.login : Icons.logout,
                       color: Colors.white,
                     ),
                   ),
@@ -147,36 +105,29 @@ class GateAccessStaffListView
                     children: [
                       const SizedBox(height: 4),
                       Text(
-                        'Time In: ${entity.timeIn?.toWhatsAppTime() ?? 'N/A'}',
+                        'Time In: ${entity.timeIn?.toSocialMediaTime() ?? 'N/A'}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 13,
                         ),
                       ),
                       Text(
-                        'Time Out: ${entity.timeOut?.toWhatsAppTime() ?? 'N/A'}',
+                        'Time Out: ${entity.timeOut?.toSocialMediaTime() ?? 'N/A'}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 13,
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: entity.gatePassStatus.value ==
-                                  GatePassStatus.inYard.value
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.red.withOpacity(0.2),
+                          color: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           entity.gatePassStatus.displayName,
                           style: TextStyle(
-                            color: entity.gatePassStatus.value ==
-                                    GatePassStatus.inYard.value
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
+                            color: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.shade700 : Colors.red.shade700,
                             fontSize: 12,
                           ),
                         ),
@@ -184,8 +135,7 @@ class GateAccessStaffListView
                     ],
                   ),
                   trailing: QrImageView(
-                    data: entity
-                        .staffCode, // Or any other unique identifier you want to encode
+                    data: entity.staffCode, // Or any other unique identifier you want to encode
                     version: QrVersions.auto,
                     padding: const EdgeInsets.all(2),
                     constrainErrorBounds: true,
@@ -250,8 +200,7 @@ class GateAccessStaffListView
   }
 
   @override
-  void onViewModelReady(GateAccessStaffListViewModel viewModel) =>
-      SchedulerBinding.instance.addPostFrameCallback(
+  void onViewModelReady(GateAccessStaffListViewModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
         (timeStamp) => viewModel.runStartupLogic(),
       );
 

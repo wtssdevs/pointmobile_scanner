@@ -27,10 +27,26 @@ class GateAccessMenuViewModel extends BaseViewModel with AppViewBaseHelper {
       //     icon: Icons.logout,
       //     route: '/page2',
       //     requiredPermission: AppPermissions.mobileOperationsCreate),
-      MenuItem(title: translate('PreBookings'), icon: Icons.find_in_page, route: Routes.gateAccessPreBookingFindView, requiredPermission: AppPermissions.mobileOperationsPreBookings),
-      MenuItem(title: translate('Visitors'), icon: Icons.people, route: Routes.gateAccessVisitorsListView, requiredPermission: AppPermissions.mobileOperationsVisitors),
-      MenuItem(title: translate('Staff'), icon: Icons.book, route: Routes.gateAccessStaffListView, requiredPermission: AppPermissions.mobileOperationsStaff),
-      MenuItem(title: translate('YardOperations'), icon: Icons.storage, route: Routes.gatePassView, requiredPermission: AppPermissions.mobileOperationsYardOperations),
+      MenuItem(
+          title: translate('PreBookings'),
+          icon: Icons.find_in_page,
+          route: Routes.gateAccessPreBookingFindView,
+          requiredPermission: AppPermissions.mobileOperationsPreBookings),
+      MenuItem(
+          title: translate('Visitors'),
+          icon: Icons.people,
+          route: Routes.gateAccessVisitorsListView,
+          requiredPermission: AppPermissions.mobileOperationsVisitors),
+      MenuItem(
+          title: translate('Staff'),
+          icon: Icons.book,
+          route: Routes.gateAccessStaffListView,
+          requiredPermission: AppPermissions.mobileOperationsStaff),
+      MenuItem(
+          title: translate('YardOperations'),
+          icon: Icons.storage,
+          route: Routes.gatePassView,
+          requiredPermission: AppPermissions.mobileOperationsYardOperations),
     ];
     rebuildUi();
   }

@@ -209,13 +209,19 @@ class GatePassAccess {
 
   factory GatePassAccess.fromJson(Map<String, dynamic> json) => GatePassAccess(
         id: json["id"],
-        creationTime: json["creationTime"] != null ? DateTime.parse(json["creationTime"]) : null,
-        lastModificationTime: json["lastModificationTime"] != null ? DateTime.parse(json["lastModificationTime"]) : null,
+        creationTime: json["creationTime"] != null
+            ? DateTime.parse(json["creationTime"])
+            : null,
+        lastModificationTime: json["lastModificationTime"] != null
+            ? DateTime.parse(json["lastModificationTime"])
+            : null,
         creatorUserId: json["creatorUserId"],
         lastModifierUserId: json["lastModifierUserId"],
         isDeleted: json["isDeleted"],
         deleterUserId: json["deleterUserId"],
-        deletionTime: json["deletionTime"] != null ? DateTime.parse(json["deletionTime"]) : null,
+        deletionTime: json["deletionTime"] != null
+            ? DateTime.parse(json["deletionTime"])
+            : null,
         createdByUser: json["createdByUser"] ?? "",
         lastModifiedByUser: json["lastModifiedByUser"] ?? "",
         deletedByUser: json["deletedByUser"] ?? "",
@@ -225,13 +231,19 @@ class GatePassAccess {
         concurrencyStamp: json["concurrencyStamp"],
         isActive: json["isActive"],
         canRelease: json["canRelease"],
-        timeAtGate: json["timeAtGate"] != null ? DateTime.parse(json["timeAtGate"]) : null,
+        timeAtGate: json["timeAtGate"] != null
+            ? DateTime.parse(json["timeAtGate"])
+            : null,
         timeIn: json["timeIn"] != null ? DateTime.parse(json["timeIn"]) : null,
-        timeOut: json["timeOut"] != null ? DateTime.parse(json["timeOut"]) : null,
+        timeOut:
+            json["timeOut"] != null ? DateTime.parse(json["timeOut"]) : null,
         timeInYardDuration: json["timeInYardDuration"],
-        gatePassStatus: GatePassStatus.values[asT<int>(json['gatePassStatus']) ?? 0],
-        gatePassDeliveryType: DeliveryType.values[asT<int>(json['gatePassDeliveryType']) ?? 0],
-        gatePassBookingType: GatePassBookingType.values[asT<int>(json['gatePassBookingType']) ?? 0],
+        gatePassStatus:
+            GatePassStatus.values[asT<int>(json['gatePassStatus']) ?? 0],
+        gatePassDeliveryType:
+            DeliveryType.values[asT<int>(json['gatePassDeliveryType']) ?? 0],
+        gatePassBookingType: GatePassBookingType
+            .values[asT<int>(json['gatePassBookingType']) ?? 0],
         vehicleRegNumber: json["vehicleRegNumber"],
         //vehicleRegNumberValidation
         trailerRegNumberOne: json["trailerRegNumberOne"],
@@ -249,9 +261,16 @@ class GatePassAccess {
         driverIdNo: json["driverIdNo"],
         driverLicenceNo: json["driverLicenceNo"],
         driversLicenceCodes: json["driversLicenceCodes"],
-        professionalDrivingPermitExpiryDate: json["professionalDrivingPermitExpiryDate"] != null ? DateTime.parse(json["professionalDrivingPermitExpiryDate"]) : null,
-        driverLicenceIssueDate: json["driverLicenceIssueDate"] != null ? DateTime.parse(json["driverLicenceIssueDate"]) : null,
-        driverLicenceExpiryDate: json["driverLicenceExpiryDate"] != null ? DateTime.parse(json["driverLicenceExpiryDate"]) : null,
+        professionalDrivingPermitExpiryDate:
+            json["professionalDrivingPermitExpiryDate"] != null
+                ? DateTime.parse(json["professionalDrivingPermitExpiryDate"])
+                : null,
+        driverLicenceIssueDate: json["driverLicenceIssueDate"] != null
+            ? DateTime.parse(json["driverLicenceIssueDate"])
+            : null,
+        driverLicenceExpiryDate: json["driverLicenceExpiryDate"] != null
+            ? DateTime.parse(json["driverLicenceExpiryDate"])
+            : null,
         vehicleRegisterNumber: json["vehicleRegisterNumber"],
         vehicleVinNumber: json["vehicleVinNumber"],
         vehicleEngineNumber: json["vehicleEngineNumber"],
@@ -286,8 +305,10 @@ class GatePassAccess {
         containerCustomer: json["containerCustomer"],
         containerShippingLine: json["containerShippingLine"],
         containerDepot: json["containerDepot"],
-        containerDeliveryType: DeliveryType.values[asT<int?>(json['containerDeliveryType']) ?? 0],
-        gatePassContainerType: GatePassContainerType.values[asT<int?>(json['gatePassContainerType']) ?? 0],
+        containerDeliveryType:
+            DeliveryType.values[asT<int?>(json['containerDeliveryType']) ?? 0],
+        gatePassContainerType: GatePassContainerType
+            .values[asT<int?>(json['gatePassContainerType']) ?? 0],
       );
 
   Map<String, dynamic> toMap() => {
@@ -332,7 +353,8 @@ class GatePassAccess {
         "driverIdNo": driverIdNo,
         "driverLicenceNo": driverLicenceNo,
         "driversLicenceCodes": driversLicenceCodes,
-        "professionalDrivingPermitExpiryDate": professionalDrivingPermitExpiryDate?.toIso8601String(),
+        "professionalDrivingPermitExpiryDate":
+            professionalDrivingPermitExpiryDate?.toIso8601String(),
         "driverLicenceIssueDate": driverLicenceIssueDate?.toIso8601String(),
         "driverLicenceExpiryDate": driverLicenceExpiryDate?.toIso8601String(),
         "vehicleRegisterNumber": vehicleRegisterNumber,

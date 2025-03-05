@@ -12,8 +12,7 @@ class AppConst {
   static const String current_language = "current_language";
   static const String current_UserProfile = "current_UserProfile";
   static const String is_OTP_Pin_Request = "is_OTP_Pin_Request";
-  static const String has_disclosed_background_permission =
-      "has_disclosed_background_permission";
+  static const String has_disclosed_background_permission = "has_disclosed_background_permission";
   static const String recentSearches = "recent_Searches";
 
   static const String deviceConfig = "device_config";
@@ -36,41 +35,33 @@ class AppConst {
   //API Methods
 
   static const String FileUploading_Images = "/api/FileUpload/Uploads/1";
-  static const String GetAllCustomers =
-      "/api/services/app/Customer/GetAllCustomersLookup";
+  static const String GetAllCustomers = "/api/services/app/Customer/GetAllCustomersLookup";
 
-  static const String GetAllServiceTypesCached =
-      "/api/services/app/ServiceType/GetAllCached";
+  static const String GetAllServiceTypesCached = "/api/services/app/ServiceType/GetAllCached";
 
-  static const String GetAllGatePass =
-      "/api/services/app/MobileGatePassAccess/GetAllPaged";
+  static const String GetAllGatePass = "/api/services/app/MobileGatePassAccess/GetAllPaged";
 
-  static const String GetAllVisitorPaged =
-      "/api/services/app/MobileGatePassAccess/GetAllVisitorPaged";
+  static const String GetAllVisitorPaged = "/api/services/app/MobileGatePassAccess/GetAllVisitorPaged";
 
 //STAFF*************
-  static const String GetAllStaffPaged =
-      "/api/services/app/MobileGatePassAccess/GetAllStaffPaged";
-  static const String scanStaffIn =
-      "/api/services/app/MobileGatePassAccess/ScanStaffIn";
-  static const String scanStaffOut =
-      "/api/services/app/MobileGatePassAccess/ScanStaffOut";
+  static const String GetAllStaffPaged = "/api/services/app/MobileGatePassAccess/GetAllStaffPaged";
+  static const String scanStaffIn = "/api/services/app/MobileGatePassAccess/ScanStaffIn";
+  static const String scanStaffOut = "/api/services/app/MobileGatePassAccess/ScanStaffOut";
+
+  static const String scanVisitorIn = "/api/services/app/MobileGatePassAccess/ScanVisitorIn";
+  static const String scanVisitorOut = "/api/services/app/MobileGatePassAccess/ScanVisitorOut";
 
   ///api/services/app/MobileGatePassAccess/GetAllPaged
 
   static const String CreateGatePass = "/api/services/app/GatePass/Create";
 
   static const String UpdateGatePass = "/api/services/app/gatePass/Update";
-  static const String AuthorizeForEntryGatePass =
-      "/api/services/app/gatePass/AuthorizeForEntry";
-  static const String AuthorizeForExitGatePass =
-      "/api/services/app/gatePass/AuthorizeForExit";
-  static const String RejectEntryGatePass =
-      "/api/services/app/gatePass/RejectEntry";
+  static const String AuthorizeForEntryGatePass = "/api/services/app/gatePass/AuthorizeForEntry";
+  static const String AuthorizeForExitGatePass = "/api/services/app/gatePass/AuthorizeForExit";
+  static const String RejectEntryGatePass = "/api/services/app/gatePass/RejectEntry";
 
   //INTERNET TIMEOUT
-  static const String InternetConnectionStatus =
-      "The Network connection was lost.";
+  static const String InternetConnectionStatus = "The Network connection was lost.";
 
   static const String GetLocalizeValues = "/AbpUserConfiguration/GetAll/";
 }
