@@ -196,6 +196,23 @@ class GatePassService {
     }
   }
 
+  Future<GatePassVisitorAccess?> findPreBookedVisitor(GatePassVisitorAccess entity) async {
+    try {
+      var baseResponse = await _apiManager.post(AppConst.findPreBookedVisitor, showLoader: true, data: entity.toJson());
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success != null) {
+          return GatePassVisitorAccess.fromJson(apiResponse.result);
+        }
+      }
+      return null;
+    } catch (e) {
+      log.e(e.toString());
+    }
+
+    return null;
+  }
+
   Future<bool> scanVisitorOut(GatePassVisitorAccess entity) async {
     try {
       var baseResponse = await _apiManager.post(AppConst.scanVisitorOut, showLoader: true, data: entity.toJson());

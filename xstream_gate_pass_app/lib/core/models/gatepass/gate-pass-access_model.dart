@@ -1,16 +1,17 @@
 import 'dart:convert';
 
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
+import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
 
 import '../../utils/helper.dart';
 
 enum GatePassBookingType {
-  none(0, "None"),
+  none(0, "Other"),
   breakBulk(1, "Break Bulk"),
   containers(2, "Containers"),
-  other(3, "Other"),
-  staff(4, "Staff"),
-  visitor(5, "Visitor");
+
+  staff(3, "Staff"),
+  visitor(4, "Visitor");
 
   final int value;
   final String text;
@@ -46,6 +47,7 @@ class GatePassAccess {
   int? lastModifierUserId;
   bool isDeleted = false;
   int? deleterUserId;
+  int? serviceTypeId;
   DateTime? deletionTime;
   String? createdByUser;
   String? lastModifiedByUser;
@@ -149,6 +151,7 @@ class GatePassAccess {
     this.vehicleRegNumberValidation,
     this.trailerRegNumberOne,
     this.trailerRegNumberTwo,
+    this.serviceTypeId,
     this.logisticRefNumber,
     this.siNumber,
     this.customerRefNo,
@@ -209,19 +212,14 @@ class GatePassAccess {
 
   factory GatePassAccess.fromJson(Map<String, dynamic> json) => GatePassAccess(
         id: json["id"],
-        creationTime: json["creationTime"] != null
-            ? DateTime.parse(json["creationTime"])
-            : null,
-        lastModificationTime: json["lastModificationTime"] != null
-            ? DateTime.parse(json["lastModificationTime"])
-            : null,
+        creationTime: json["creationTime"] != null ? DateTime.parse(json["creationTime"]) : null,
+        lastModificationTime: json["lastModificationTime"] != null ? DateTime.parse(json["lastModificationTime"]) : null,
         creatorUserId: json["creatorUserId"],
         lastModifierUserId: json["lastModifierUserId"],
-        isDeleted: json["isDeleted"],
+        isDeleted: json["isDeleted"] ?? false,
         deleterUserId: json["deleterUserId"],
-        deletionTime: json["deletionTime"] != null
-            ? DateTime.parse(json["deletionTime"])
-            : null,
+        serviceTypeId: asT<int>(json['serviceTypeId']),
+        deletionTime: json["deletionTime"] != null ? DateTime.parse(json["deletionTime"]) : null,
         createdByUser: json["createdByUser"] ?? "",
         lastModifiedByUser: json["lastModifiedByUser"] ?? "",
         deletedByUser: json["deletedByUser"] ?? "",
@@ -229,21 +227,15 @@ class GatePassAccess {
         tenantId: json["tenantId"] ?? 0,
         extensionData: json["extensionData"],
         concurrencyStamp: json["concurrencyStamp"],
-        isActive: json["isActive"],
-        canRelease: json["canRelease"],
-        timeAtGate: json["timeAtGate"] != null
-            ? DateTime.parse(json["timeAtGate"])
-            : null,
+        isActive: json["isActive"] ?? false,
+        canRelease: json["canRelease"] ?? false,
+        timeAtGate: json["timeAtGate"] != null ? DateTime.parse(json["timeAtGate"]) : null,
         timeIn: json["timeIn"] != null ? DateTime.parse(json["timeIn"]) : null,
-        timeOut:
-            json["timeOut"] != null ? DateTime.parse(json["timeOut"]) : null,
+        timeOut: json["timeOut"] != null ? DateTime.parse(json["timeOut"]) : null,
         timeInYardDuration: json["timeInYardDuration"],
-        gatePassStatus:
-            GatePassStatus.values[asT<int>(json['gatePassStatus']) ?? 0],
-        gatePassDeliveryType:
-            DeliveryType.values[asT<int>(json['gatePassDeliveryType']) ?? 0],
-        gatePassBookingType: GatePassBookingType
-            .values[asT<int>(json['gatePassBookingType']) ?? 0],
+        gatePassStatus: GatePassStatus.values[asT<int>(json['gatePassStatus']) ?? 0],
+        gatePassDeliveryType: DeliveryType.values[asT<int>(json['gatePassDeliveryType']) ?? 0],
+        gatePassBookingType: GatePassBookingType.values[asT<int>(json['gatePassBookingType']) ?? 0],
         vehicleRegNumber: json["vehicleRegNumber"],
         //vehicleRegNumberValidation
         trailerRegNumberOne: json["trailerRegNumberOne"],
@@ -256,31 +248,24 @@ class GatePassAccess {
         voyageNo: json["voyageNo"],
         ticketNo: json["ticketNo"],
         refNo: json["refNo"],
-        isHazardous: json["isHazardous"],
+        isHazardous: json["isHazardous"] ?? false,
         driverName: json["driverName"],
         driverIdNo: json["driverIdNo"],
         driverLicenceNo: json["driverLicenceNo"],
         driversLicenceCodes: json["driversLicenceCodes"],
-        professionalDrivingPermitExpiryDate:
-            json["professionalDrivingPermitExpiryDate"] != null
-                ? DateTime.parse(json["professionalDrivingPermitExpiryDate"])
-                : null,
-        driverLicenceIssueDate: json["driverLicenceIssueDate"] != null
-            ? DateTime.parse(json["driverLicenceIssueDate"])
-            : null,
-        driverLicenceExpiryDate: json["driverLicenceExpiryDate"] != null
-            ? DateTime.parse(json["driverLicenceExpiryDate"])
-            : null,
+        professionalDrivingPermitExpiryDate: json["professionalDrivingPermitExpiryDate"] != null ? DateTime.parse(json["professionalDrivingPermitExpiryDate"]) : null,
+        driverLicenceIssueDate: json["driverLicenceIssueDate"] != null ? DateTime.parse(json["driverLicenceIssueDate"]) : null,
+        driverLicenceExpiryDate: json["driverLicenceExpiryDate"] != null ? DateTime.parse(json["driverLicenceExpiryDate"]) : null,
         vehicleRegisterNumber: json["vehicleRegisterNumber"],
         vehicleVinNumber: json["vehicleVinNumber"],
         vehicleEngineNumber: json["vehicleEngineNumber"],
         vehicleMake: json["vehicleMake"],
         vehicleCategory: json["vehicleCategory"],
-        vehicleTare: json["vehicleTare"],
+        vehicleTare: json["vehicleTare"] ?? 0,
         warehouseCode: json["warehouseCode"],
         comments: json["comments"],
         rejectReason: json["rejectReason"],
-        hasBeenPrinted: json["hasBeenPrinted"],
+        hasBeenPrinted: json["hasBeenPrinted"] ?? false,
         externalId: json["externalId"],
         grossWeightIn: json["grossWeightIn"] ?? 0,
         grossWeightOut: json["grossWeightOut"] ?? 0,
@@ -305,10 +290,8 @@ class GatePassAccess {
         containerCustomer: json["containerCustomer"],
         containerShippingLine: json["containerShippingLine"],
         containerDepot: json["containerDepot"],
-        containerDeliveryType:
-            DeliveryType.values[asT<int?>(json['containerDeliveryType']) ?? 0],
-        gatePassContainerType: GatePassContainerType
-            .values[asT<int?>(json['gatePassContainerType']) ?? 0],
+        containerDeliveryType: DeliveryType.values[asT<int?>(json['containerDeliveryType']) ?? 0],
+        gatePassContainerType: GatePassContainerType.values[asT<int?>(json['gatePassContainerType']) ?? 0],
       );
 
   Map<String, dynamic> toMap() => {
@@ -328,14 +311,15 @@ class GatePassAccess {
         "extensionData": extensionData,
         "concurrencyStamp": concurrencyStamp,
         "isActive": isActive,
+        "serviceTypeId": serviceTypeId,
         "canRelease": canRelease,
         "timeAtGate": timeAtGate?.toIso8601String(),
         "timeIn": timeIn?.toIso8601String(),
         "timeOut": timeOut?.toIso8601String(),
         "timeInYardDuration": timeInYardDuration,
-        "gatePassStatus": gatePassStatus,
-        "gatePassDeliveryType": gatePassDeliveryType,
-        "gatePassBookingType": gatePassBookingType,
+        "gatePassStatus": gatePassStatus.value,
+        "gatePassDeliveryType": gatePassDeliveryType.value,
+        "gatePassBookingType": gatePassBookingType.value,
         "vehicleRegNumber": vehicleRegNumber,
         "vehicleRegNumberValidation": vehicleRegNumberValidation,
         "trailerRegNumberOne": trailerRegNumberOne,
@@ -353,8 +337,7 @@ class GatePassAccess {
         "driverIdNo": driverIdNo,
         "driverLicenceNo": driverLicenceNo,
         "driversLicenceCodes": driversLicenceCodes,
-        "professionalDrivingPermitExpiryDate":
-            professionalDrivingPermitExpiryDate?.toIso8601String(),
+        "professionalDrivingPermitExpiryDate": professionalDrivingPermitExpiryDate?.toIso8601String(),
         "driverLicenceIssueDate": driverLicenceIssueDate?.toIso8601String(),
         "driverLicenceExpiryDate": driverLicenceExpiryDate?.toIso8601String(),
         "vehicleRegisterNumber": vehicleRegisterNumber,
@@ -362,22 +345,22 @@ class GatePassAccess {
         "vehicleEngineNumber": vehicleEngineNumber,
         "vehicleMake": vehicleMake,
         "vehicleCategory": vehicleCategory,
-        "vehicleTare": vehicleTare,
+        "vehicleTare": vehicleTare ?? 0,
         "warehouseCode": warehouseCode,
         "comments": comments,
         "rejectReason": rejectReason,
         "hasBeenPrinted": hasBeenPrinted,
         "externalId": externalId,
-        "grossWeightIn": grossWeightIn,
-        "grossWeightOut": grossWeightOut,
-        "tareWeightIn": tareWeightIn,
-        "tareWeightOut": tareWeightOut,
-        "netWeightIn": netWeightIn,
-        "netWeightOut": netWeightOut,
-        "varianceIn": varianceIn,
-        "varianceOut": varianceOut,
-        "productVariance": productVariance,
-        "totalProductGrossWeight": totalProductGrossWeight,
+        "grossWeightIn": grossWeightIn ?? 0,
+        "grossWeightOut": grossWeightOut ?? 0,
+        "tareWeightIn": tareWeightIn ?? 0,
+        "tareWeightOut": tareWeightOut ?? 0,
+        "netWeightIn": netWeightIn ?? 0,
+        "netWeightOut": netWeightOut ?? 0,
+        "varianceIn": varianceIn ?? 0,
+        "varianceOut": varianceOut ?? 0,
+        "productVariance": productVariance ?? 0,
+        "totalProductGrossWeight": totalProductGrossWeight ?? 0,
         "transporterId": transporterId,
         "customerId": customerId,
         "branchId": branchId,
@@ -394,4 +377,36 @@ class GatePassAccess {
         "containerDeliveryType": containerDeliveryType,
         "gatePassContainerType": gatePassContainerType,
       };
+
+  static fromGatePassVisitorAccess(GatePassVisitorAccess gatePassVisitorAccess) {
+    return GatePassAccess(
+      id: gatePassVisitorAccess.id!,
+      creationTime: gatePassVisitorAccess.creationTime,
+      creatorUserId: gatePassVisitorAccess.creatorUserId,
+      lastModificationTime: gatePassVisitorAccess.lastModificationTime,
+      lastModifierUserId: gatePassVisitorAccess.lastModifierUserId,
+      branchId: gatePassVisitorAccess.branchId,
+      isActive: gatePassVisitorAccess.isActive,
+      timeAtGate: gatePassVisitorAccess.timeAtGate,
+      timeIn: gatePassVisitorAccess.timeIn,
+      timeOut: gatePassVisitorAccess.timeOut,
+      timeInYardDuration: gatePassVisitorAccess.timeInYardDuration,
+      gatePassStatus: gatePassVisitorAccess.gatePassStatus,
+      gatePassDeliveryType: gatePassVisitorAccess.gatePassDeliveryType,
+      gatePassBookingType: gatePassVisitorAccess.gatePassBookingType,
+      vehicleRegNumber: gatePassVisitorAccess.vehicleRegNumber,
+      transactionNo: gatePassVisitorAccess.transactionNo,
+      driverIdNo: gatePassVisitorAccess.driverIdNo,
+      driverName: gatePassVisitorAccess.driverName,
+      driverLicenceNo: gatePassVisitorAccess.driverLicenceNo,
+      driversLicenceCodes: gatePassVisitorAccess.driversLicenceCodes,
+      professionalDrivingPermitExpiryDate: gatePassVisitorAccess.professionalDrivingPermitExpiryDate,
+      driverLicenceIssueDate: gatePassVisitorAccess.driverLicenceIssueDate,
+      driverLicenceExpiryDate: gatePassVisitorAccess.driverLicenceExpiryDate,
+      vehicleRegisterNumber: gatePassVisitorAccess.vehicleRegisterNumber,
+      vehicleVinNumber: gatePassVisitorAccess.vehicleVinNumber,
+      vehicleEngineNumber: gatePassVisitorAccess.vehicleEngineNumber,
+      vehicleMake: gatePassVisitorAccess.vehicleMake,
+    );
+  }
 }

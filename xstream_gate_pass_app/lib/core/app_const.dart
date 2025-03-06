@@ -51,14 +51,19 @@ class AppConst {
   static const String scanVisitorIn = "/api/services/app/MobileGatePassAccess/ScanVisitorIn";
   static const String scanVisitorOut = "/api/services/app/MobileGatePassAccess/ScanVisitorOut";
 
+  static const String findPreBookedVisitor = "/api/services/app/MobileGatePassAccess/FindPreBookedVisitor";
+  static const String scanPreBookedVisitorIn = "/api/services/app/MobileGatePassAccess/ScanPreBookedVisitorIn";
+  static const String scanPreBookedVisitorOut = "/api/services/app/MobileGatePassAccess/ScanPreBookedVisitorOut";
+
   ///api/services/app/MobileGatePassAccess/GetAllPaged
 
-  static const String CreateGatePass = "/api/services/app/GatePass/Create";
+  static const String CreateGatePass = "/api/services/app/GatePassAccess/Create";
 
-  static const String UpdateGatePass = "/api/services/app/gatePass/Update";
-  static const String AuthorizeForEntryGatePass = "/api/services/app/gatePass/AuthorizeForEntry";
-  static const String AuthorizeForExitGatePass = "/api/services/app/gatePass/AuthorizeForExit";
-  static const String RejectEntryGatePass = "/api/services/app/gatePass/RejectEntry";
+  static const String UpdateGatePass = "/api/services/app/GatePassAccess/Update";
+  static const String AuthorizeForEntryGatePass = "/api/services/app/GatePassAccess/AuthorizeForEntry";
+
+  static const String AuthorizeForExitGatePass = "/api/services/app/GatePassAccess/AuthorizeForExit";
+  static const String RejectEntryGatePass = "/api/services/app/GatePassAccess/RejectEntry";
 
   //INTERNET TIMEOUT
   static const String InternetConnectionStatus = "The Network connection was lost.";

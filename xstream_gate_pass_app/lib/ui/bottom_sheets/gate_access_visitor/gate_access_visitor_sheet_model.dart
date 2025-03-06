@@ -11,6 +11,7 @@ import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
+import 'package:xstream_gate_pass_app/core/enums/scan_action_types.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
 import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterfiles_service.dart';
@@ -40,8 +41,8 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
   BarcodeScanType get barcodeScanType => _barcodeScanType;
 
   // Scan mode (in or out)
-  bool _scanInMode = true;
-  bool get scanInMode => _scanInMode;
+  ScanActionType _scanInMode = ScanActionType.checkIn;
+  ScanActionType get scanInMode => _scanInMode;
 
   // Scanned data
   GatePassVisitorAccess _scannedVisitor = GatePassVisitorAccess(
@@ -80,7 +81,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
     //rebuildUi();
   }
 
-  void setScanInMode(bool inMode) {
+  void setScanInMode(ScanActionType inMode) {
     _scanInMode = inMode;
     rebuildUi();
   }
@@ -112,14 +113,14 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       rebuildUi();
       return;
     }
-    if (_scannedVisitor.serviceTypeId == null) {
+    if (_scannedVisitor.serviceTypeId == null && _scanInMode == ScanActionType.checkIn) {
       _errorMessage = "Please select a service type.";
       rebuildUi();
       return;
     }
     _isScanning = true;
     _errorMessage = null;
-    //_scannedVisitor = null;
+
     rebuildUi();
 
     try {
@@ -180,7 +181,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
         driverLicenceIssueDate: data.issueDates?.firstOrNull,
         driverLicenceExpiryDate: data.validTo,
         driversLicenceCodes: data.vehicleCodes.join(','),
-        gatePassStatus: scanInMode ? GatePassStatus.atGate : GatePassStatus.inYard,
+        gatePassStatus: _scanInMode == ScanActionType.checkIn ? GatePassStatus.atGate : GatePassStatus.inYard,
         gatePassBookingType: GatePassBookingType.visitor,
         professionalDrivingPermitExpiryDate: data.prdpExpiry,
       );
@@ -191,7 +192,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       _scannedVisitor.driverLicenceIssueDate = data.issueDates?.firstOrNull;
       _scannedVisitor.driverLicenceExpiryDate = data.validTo;
       _scannedVisitor.driversLicenceCodes = data.vehicleCodes.join(',');
-      _scannedVisitor.gatePassStatus = scanInMode ? GatePassStatus.atGate : GatePassStatus.inYard;
+      _scannedVisitor.gatePassStatus = _scanInMode == ScanActionType.checkIn ? GatePassStatus.atGate : GatePassStatus.inYard;
       _scannedVisitor.gatePassBookingType = GatePassBookingType.visitor;
       _scannedVisitor.professionalDrivingPermitExpiryDate = data.prdpExpiry;
       _scannedVisitor.branchId = branchId;
@@ -210,7 +211,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       _scannedVisitor = GatePassVisitorAccess(
         isActive: true,
         branchId: branchId,
-        gatePassStatus: scanInMode ? GatePassStatus.atGate : GatePassStatus.inYard,
+        gatePassStatus: _scanInMode == ScanActionType.checkIn ? GatePassStatus.atGate : GatePassStatus.inYard,
         gatePassBookingType: GatePassBookingType.visitor,
         vehicleEngineNumber: data.engineNumber,
         vehicleMake: data.make,
@@ -220,7 +221,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       );
     } else {
       //Update
-      _scannedVisitor.gatePassStatus = scanInMode ? GatePassStatus.atGate : GatePassStatus.inYard;
+      _scannedVisitor.gatePassStatus = _scanInMode == ScanActionType.checkIn ? GatePassStatus.atGate : GatePassStatus.inYard;
       _scannedVisitor.gatePassBookingType = GatePassBookingType.visitor;
       _scannedVisitor.vehicleEngineNumber = data.engineNumber;
       _scannedVisitor.vehicleMake = data.make;
@@ -243,17 +244,27 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
     try {
       setBusy(true);
 
-      if (_scanInMode) {
+      if (_scanInMode == ScanActionType.checkIn) {
         // Check in visitor
         var response = await _gatePassService.scanVisitorIn(_scannedVisitor);
 
         return response;
-      } else {
+      } else if (_scanInMode == ScanActionType.checkOut) {
         // Check out visitor
         var response = await _gatePassService.scanVisitorOut(_scannedVisitor);
 
         return response;
+      } else if (_scanInMode == ScanActionType.preCheckIn) {
+        // Check out visitor
+        var response = await _gatePassService.findPreBookedVisitor(_scannedVisitor);
+        if (response != null) {
+          _scannedVisitor = response;
+
+          return true;
+        }
+        return false;
       }
+      return false;
     } catch (e) {
       log.e("Error submitting visitor: ${e.toString()}");
       _errorMessage = e.toString();
@@ -271,21 +282,29 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
     runStartupLogic(_scanInMode);
   }
 
-  runStartupLogic(bool data) async {
+  runStartupLogic(ScanActionType data) async {
     var branchId = currentUser?.userBranches[0].id ?? 0;
+    setBarcodeScanType(BarcodeScanType.driversCard);
     _scanInMode = data;
+
     _scannedVisitor = GatePassVisitorAccess(
       isActive: true,
       branchId: branchId,
       gatePassStatus: GatePassStatus.atGate,
       gatePassBookingType: GatePassBookingType.visitor,
     );
-    rebuildUi();
+    if (ScanActionType.preCheckIn == data) {
+      _isScanning = true;
+      setBarcodeScanType(BarcodeScanType.driversCard);
+      await startScanning();
+    } else {
+      rebuildUi();
+    }
   }
 
   onServiceTypeChanged(int? val) {
     _errorMessage = null;
-    
+
     _scannedVisitor.serviceTypeId = val;
     rebuildUi();
   }

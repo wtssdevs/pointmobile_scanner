@@ -6,9 +6,9 @@
 
 // ignore_for_file: public_member_api_docs, implementation_imports, depend_on_referenced_packages
 
+import 'package:stacked_services/src/bottom_sheet/bottom_sheet_service.dart';
 import 'package:stacked_services/src/dialog/dialog_service.dart';
 import 'package:stacked_services/src/navigation/navigation_service.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked_shared/stacked_shared.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart';
 
@@ -69,7 +69,6 @@ Future<void> setupLocator({
   locator.registerSingleton(apiManager);
 
   locator.registerLazySingleton(() => AuthenticationService());
-  locator.registerLazySingleton(() => BottomSheetService());
   locator.registerLazySingleton(() => ScanningService());
   locator.registerLazySingleton(() => GatePassService());
   locator.registerLazySingleton(() => MasterFilesService());
@@ -80,4 +79,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => WorkerQueManager());
   locator.registerSingleton(SyncManager());
   locator.registerLazySingleton(() => LocalizationManagerService());
+  locator.registerLazySingleton(() => BottomSheetService());
 }

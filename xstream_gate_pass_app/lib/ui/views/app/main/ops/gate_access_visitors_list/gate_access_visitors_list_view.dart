@@ -4,11 +4,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
+import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staff_model.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
+import 'package:xstream_gate_pass_app/core/utils/app_permissions.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/nav_action_button.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/visitor_status_Icon.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors_list/gate_access_visitors_list_viewmodel.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/finder_app_bar.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/actions_cards/action_card_widget.dart';
@@ -56,68 +60,31 @@ class GateAccessVisitorsListView extends StackedView<GateAccessVisitorsListViewM
       resizeToAvoidBottomInset: true,
       persistentFooterAlignment: AlignmentDirectional.center,
       persistentFooterButtons: [
-        ActionCardWidget(
-          title: 'Check In',
-          isIn: true,
-          icon: Icons.login,
-          color: Colors.green,
-          onTap: viewModel.setScanStaffIn,
+        Row(
+          children: [
+            NavActionButton(
+              label: "Check In",
+              icon: FontAwesomeIcons.arrowRightToBracket,
+              color: Colors.green,
+              onTap: viewModel.setScanIn,
+              isVisible: viewModel.hasPermission(AppPermissions.mobileOperationsVisitorsCheckIn),
+            ),
+            NavActionButton(
+              label: "Pre Check In",
+              icon: FontAwesomeIcons.arrowRightToBracket,
+              color: Colors.green,
+              onTap: viewModel.setScanPreBookIn,
+              isVisible: viewModel.hasPermission(AppPermissions.mobileOperationsVisitorsPreBookCheckIn),
+            ),
+            NavActionButton(
+              label: "Check Out",
+              icon: FontAwesomeIcons.arrowRightFromBracket,
+              color: Colors.redAccent,
+              onTap: viewModel.setScanOut,
+              isVisible: viewModel.hasPermission(AppPermissions.mobileOperationsVisitorsCheckOut),
+            ),
+          ],
         ),
-        ActionCardWidget(
-          title: 'Check Out',
-          isIn: true,
-          icon: Icons.logout,
-          color: Colors.redAccent,
-          onTap: viewModel.setScanStaffOut,
-        ),
-        // Container(
-        //   decoration: viewModel.scanInOrOut == false
-        //       ? BoxDecoration(
-        //           boxShadow: [
-        //             BoxShadow(
-        //               color: Colors.red.withOpacity(0.5),
-        //               spreadRadius: 2,
-        //               blurRadius: 8,
-        //               offset: const Offset(0, 0),
-        //             ),
-        //           ],
-        //         )
-        //       : null,
-        //   child: ElevatedButton.icon(
-        //     onPressed: () async {
-        //       viewModel.setScanStaffOut();
-        //     },
-        //     icon: const FaIcon(
-        //       FontAwesomeIcons.rightToBracket,
-        //       color: Colors.red,
-        //     ),
-        //     label: const Text("Scan Out"), // <-- Text
-        //   ),
-        // ),
-        // Container(
-        //   decoration: viewModel.scanInOrOut == true
-        //       ? BoxDecoration(
-        //           boxShadow: [
-        //             BoxShadow(
-        //               color: Colors.green.withOpacity(0.5),
-        //               spreadRadius: 2,
-        //               blurRadius: 8,
-        //               offset: const Offset(0, 0),
-        //             ),
-        //           ],
-        //         )
-        //       : null,
-        //   child: ElevatedButton.icon(
-        //     onPressed: () async {
-        //       viewModel.setScanStaffIn();
-        //     },
-        //     icon: const FaIcon(
-        //       FontAwesomeIcons.rightToBracket,
-        //       color: Colors.green,
-        //     ),
-        //     label: const Text("Scan In"), // <-- Text
-        //   ),
-        // ),
       ],
       body: SafeArea(
         child: RefreshIndicator(
@@ -147,21 +114,20 @@ class GateAccessVisitorsListView extends StackedView<GateAccessVisitorsListViewM
                         entity.driverName ?? '',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      entity.serviceType != null
-                          ? Text(
-                              '(${entity.serviceType})',
-                              style: TextStyle(
-                                color: Colors.blue[600],
-                                fontSize: 12,
-                              ),
-                            )
-                          : const SizedBox.shrink(),
                     ],
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 4),
+                      Text(
+                        entity.vehicleRegNumber ?? 'N/A',
+                        style: TextStyle(
+                          color: Colors.grey[800],
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       Text(
                         'Time In: ${entity.timeIn?.toSocialMediaTime() ?? 'N/A'}',
                         style: TextStyle(
@@ -178,25 +144,22 @@ class GateAccessVisitorsListView extends StackedView<GateAccessVisitorsListViewM
                       ),
                     ],
                   ),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      entity.gatePassStatus.value == GatePassStatus.inYard.value
-                          ? "In"
-                          : entity.gatePassStatus.value == GatePassStatus.leftTheYard.value
-                              ? "Out"
-                              : "Unknown",
-                      style: TextStyle(
-                        color: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.shade700 : Colors.red.shade700,
-                        fontSize: 12,
-                      ),
-                    ),
+                  trailing: Column(
+                    children: [
+                      VisitorStatusIcon(gatePassStatus: entity.gatePassStatus),
+                      entity.serviceType != null
+                          ? Text(
+                              '(${entity.serviceType})',
+                              style: const TextStyle(
+                                color: Colors.blue,
+                                fontSize: 12,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ],
                   ),
-                  onTap: () {
+                  onTap: () async {
+                    await viewModel.goToDetail(GatePassAccess.fromGatePassVisitorAccess(entity));
                     // Handle tap event - could show more details or navigate to detail view
                   },
                 ),

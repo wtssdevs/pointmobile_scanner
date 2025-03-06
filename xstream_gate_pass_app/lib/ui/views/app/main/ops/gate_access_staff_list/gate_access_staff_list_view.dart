@@ -9,6 +9,7 @@ import 'package:xstream_gate_pass_app/core/services/services/account/access_toke
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/visitor_status_Icon.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/finder_app_bar.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/actions_cards/action_card_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/empty_list_indicator.dart';
@@ -58,14 +59,14 @@ class GateAccessStaffListView extends StackedView<GateAccessStaffListViewModel> 
       persistentFooterButtons: [
         ActionCardWidget(
           title: 'Scan Staff In',
-          isIn: viewModel.scanInOrOut == true,
+          isSelected: viewModel.scanInOrOut == true,
           icon: Icons.login,
           color: Colors.green,
           onTap: viewModel.setScanStaffIn,
         ),
         ActionCardWidget(
           title: 'Scan Staff Out',
-          isIn: viewModel.scanInOrOut == false,
+          isSelected: viewModel.scanInOrOut == false,
           icon: Icons.logout,
           color: Colors.red,
           onTap: viewModel.setScanStaffOut,
@@ -92,12 +93,25 @@ class GateAccessStaffListView extends StackedView<GateAccessStaffListViewModel> 
                       color: Colors.white,
                     ),
                   ),
-                  title: Row(
+                  title: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         entity.driverName,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
+                      if (entity.vehicleRegNumber != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          entity.vehicleRegNumber ?? "",
+                          style: TextStyle(
+                            color: Colors.grey[800],
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ]
                     ],
                   ),
                   subtitle: Column(
@@ -118,20 +132,7 @@ class GateAccessStaffListView extends StackedView<GateAccessStaffListViewModel> 
                           fontSize: 13,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          entity.gatePassStatus.displayName,
-                          style: TextStyle(
-                            color: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.shade700 : Colors.red.shade700,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
+                      VisitorStatusIcon(gatePassStatus: entity.gatePassStatus),
                     ],
                   ),
                   trailing: QrImageView(

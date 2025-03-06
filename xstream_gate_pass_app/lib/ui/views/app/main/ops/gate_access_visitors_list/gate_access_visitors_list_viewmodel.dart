@@ -7,7 +7,11 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.bottomsheets.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
+import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
+import 'package:xstream_gate_pass_app/core/enums/scan_action_types.dart';
+import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staff_model.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
@@ -22,7 +26,7 @@ import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base
 class GateAccessVisitorsListViewModel extends BaseViewModel with AppViewBaseHelper {
   final log = getLogger('GateAccessVisitorsListViewModel');
   final _connectionService = locator<ConnectionService>();
-
+  final _navigationService = locator<NavigationService>();
   final bottomsheetService = locator<BottomSheetService>();
   final _masterfilesService = locator<MasterFilesService>();
   bool get hasConnection => _connectionService.hasConnection;
@@ -34,6 +38,19 @@ class GateAccessVisitorsListViewModel extends BaseViewModel with AppViewBaseHelp
 
   bool _scanInOrOut = false;
   bool get scanInOrOut => _scanInOrOut;
+
+  int _currentTabIndex = 0;
+  int get currentTabIndex => _currentTabIndex;
+
+  bool _reverse = false;
+  bool get reverse => _reverse;
+
+  void setTabIndex(int value) {
+    if (value < _currentTabIndex) {
+      _reverse = true;
+    }
+    _currentTabIndex = value;
+  }
 
   PagedList<GatePassVisitorAccess> _pagedList = PagedList<GatePassVisitorAccess>(totalCount: 0, items: <GatePassVisitorAccess>[], pageNumber: 1, pageSize: 10, totalPages: 0);
 
@@ -90,13 +107,34 @@ class GateAccessVisitorsListViewModel extends BaseViewModel with AppViewBaseHelp
     refreshList();
   }
 
-  Future<void> setScanStaffOut() async {
-    await bottomsheetService.showCustomSheet(variant: BottomSheetType.gateAccessVisitor, isScrollControlled: true, barrierDismissible: false, data: false);
+  Future<void> setScanOut() async {
+    await bottomsheetService.showCustomSheet<GatePassVisitorAccess?, ScanActionType>(variant: BottomSheetType.gateAccessVisitor, isScrollControlled: true, barrierDismissible: false, data: ScanActionType.checkOut);
     refreshList();
   }
 
-  Future<void> setScanStaffIn() async {
-    await bottomsheetService.showCustomSheet(variant: BottomSheetType.gateAccessVisitor, isScrollControlled: true, barrierDismissible: false, data: true);
+  Future<void> setScanIn() async {
+    await bottomsheetService.showCustomSheet<GatePassVisitorAccess?, ScanActionType>(variant: BottomSheetType.gateAccessVisitor, isScrollControlled: true, barrierDismissible: false, data: ScanActionType.checkIn);
+    refreshList();
+  }
+
+  Future<void> setScanPreBookIn() async {
+    var visitor = await bottomsheetService.showCustomSheet<GatePassVisitorAccess, ScanActionType>(variant: BottomSheetType.gateAccessVisitor, isScrollControlled: true, barrierDismissible: false, data: ScanActionType.preCheckIn);
+    if (visitor != null && visitor.data != null && visitor.data!.gatePassStatus == GatePassStatus.atGate) {
+      //we need to pass data and open full view to authorise visitor for entry.
+      //map GatePassVisitorAccess to GatePassAccess
+      var gatePassAccess = GatePassAccess.fromGatePassVisitorAccess(visitor.data!);
+      await goToDetail(gatePassAccess);
+    }
+  }
+
+  Future goToDetail(GatePassAccess entity) async {
+    await _navigationService.navigateTo(
+      Routes.gatePassEditView,
+      arguments: GatePassEditViewArguments(
+        gatePass: entity,
+      ),
+    );
+
     refreshList();
   }
 }

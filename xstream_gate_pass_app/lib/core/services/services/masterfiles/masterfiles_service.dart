@@ -19,7 +19,8 @@ class MasterFilesService {
   final log = getLogger('MasterFilesService');
   final ApiManager _apiManager = locator<ApiManager>();
   final _appDatabase = locator<AppDatabase>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   int? userId = 0;
   List<SearchableDropdownMenuItem<int>> _serviceTypes = [];
   List<SearchableDropdownMenuItem<int>> get serviceTypes => _serviceTypes;
@@ -34,7 +35,8 @@ class MasterFilesService {
 
   Future<void> loadServiceTypes() async {
     if (_serviceTypes.isEmpty) {
-      var localServiceTypes = await getAllLocalByStore(AppConst.DB_ServiceTypes, "");
+      var localServiceTypes =
+          await getAllLocalByStore(AppConst.DB_ServiceTypes, "");
       _serviceTypes = localServiceTypes
           .map(
             (e) => SearchableDropdownMenuItem(
@@ -53,14 +55,21 @@ class MasterFilesService {
 
       //final Map<String, dynamic> data = <String, dynamic>{};
 
-      var baseResponse = await _apiManager.get(AppConst.GetAllServiceTypesCached, showLoader: false);
+      var baseResponse = await _apiManager
+          .get(AppConst.GetAllServiceTypesCached, showLoader: false);
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
 
-        if (apiResponse.success != null && apiResponse.success! == true && apiResponse.result['items'] != null) {
+        if (apiResponse.success != null &&
+            apiResponse.success! == true &&
+            apiResponse.result['items'] != null) {
           for (final dynamic item in apiResponse.result['items']) {
             if (item != null) {
-              var newL = BaseLookup.fromJsonManualMap(item, idMap: "id", displayNameMap: "name", nameMap: "name", codeMap: "code");
+              var newL = BaseLookup.fromJsonManualMap(item,
+                  idMap: "id",
+                  displayNameMap: "name",
+                  nameMap: "name",
+                  codeMap: "code");
 
               entityList.add(newL);
             }
@@ -111,11 +120,13 @@ class MasterFilesService {
 
   //Main Sync action for all remote to local db type by store
   Future<void> syncServerWithLocalAll() async {
-    await syncServerWithLocalSingle(AppConst.DB_ServiceTypes, await getAllServiceTypes());
+    await syncServerWithLocalSingle(
+        AppConst.DB_ServiceTypes, await getAllServiceTypes());
   }
 
   /// Sync local data with server and merge changes
-  Future<void> syncServerWithLocalSingle(String store, List<BaseLookup>? server) async {
+  Future<void> syncServerWithLocalSingle(
+      String store, List<BaseLookup>? server) async {
     var local = await getAllLocalByStore(store, "");
 
     server ??= await getAllServiceTypes();
@@ -123,12 +134,14 @@ class MasterFilesService {
     await syncServerWithLocalByStore(store, local, server);
   }
 
-  Future<void> syncServerWithLocalByStore(String store, List<BaseLookup> local, List<BaseLookup> server) async {
+  Future<void> syncServerWithLocalByStore(
+      String store, List<BaseLookup> local, List<BaseLookup> server) async {
     var delta = getDeltaMerge<BaseLookup>(local, server);
     await syncdataStopStatus(store, delta);
   }
 
-  Future<void> syncdataStopStatus(String store, MergeDeltaResponse<BaseLookup> delta) async {
+  Future<void> syncdataStopStatus(
+      String store, MergeDeltaResponse<BaseLookup> delta) async {
     // added;
     if (delta.added.isNotEmpty) {
       try {
@@ -156,18 +169,25 @@ class MasterFilesService {
 
   Future<void> updateLocalDB(String store, BaseLookup entity) async {
     var entityTable = intMapStoreFactory.store("${store}_$userId");
-    await entityTable.record(entity.id!).update(_appDatabase.db!, entity.toJson());
+    await entityTable
+        .record(entity.id!)
+        .update(_appDatabase.db!, entity.toJson());
   }
 
   /// Save many records, create if needed.
-  Future<void> upsertManyLocalDB(String store, List<BaseLookup> entities) async {
+  Future<void> upsertManyLocalDB(
+      String store, List<BaseLookup> entities) async {
     var entityTable = intMapStoreFactory.store("${store}_$userId");
     for (var entity in entities) {
-      var updated = await entityTable.record(entity.id!).update(_appDatabase.db!, entity.toJson());
+      var updated = await entityTable
+          .record(entity.id!)
+          .update(_appDatabase.db!, entity.toJson());
 
       if (updated == null) {
 //insert new
-        await entityTable.record(entity.id!).add(_appDatabase.db!, entity.toJson());
+        await entityTable
+            .record(entity.id!)
+            .add(_appDatabase.db!, entity.toJson());
       }
     }
   }
@@ -178,7 +198,8 @@ class MasterFilesService {
     await entityTable.record(entity.id!).delete(_appDatabase.db!);
   }
 
-  Future<void> deleteManyLocalDB(String store, List<BaseLookup> entities) async {
+  Future<void> deleteManyLocalDB(
+      String store, List<BaseLookup> entities) async {
     var entityTable = intMapStoreFactory.store("${store}_$userId");
     for (var entity in entities) {
       await entityTable.record(entity.id!).delete(_appDatabase.db!);
@@ -190,7 +211,8 @@ class MasterFilesService {
     await entityTable.drop(_appDatabase.db!);
   }
 
-  Future<List<BaseLookup>> getAllLocalByStore(String store, String searchArg) async {
+  Future<List<BaseLookup>> getAllLocalByStore(
+      String store, String searchArg) async {
     var finder = Finder(sortOrders: [SortOrder('orderBy', false, true)]);
 
     if (searchArg.isNotEmpty) {
@@ -199,12 +221,14 @@ class MasterFilesService {
       var edgeCaseSearchArg = " $searchArg";
       var filter = Filter.custom((snapshot) {
         var value = snapshot["name"] as String;
-        return value.toLowerCase().startsWith(searchArg) || value.toLowerCase().contains(edgeCaseSearchArg);
+        return value.toLowerCase().startsWith(searchArg) ||
+            value.toLowerCase().contains(edgeCaseSearchArg);
       });
       finder.filter = filter;
     }
     var entityTable = intMapStoreFactory.store("${store}_$userId");
-    final recordSnapshot = await entityTable.find(_appDatabase.db!, finder: finder);
+    final recordSnapshot =
+        await entityTable.find(_appDatabase.db!, finder: finder);
 
     if (recordSnapshot.isEmpty) {
       List<BaseLookup> emptyList = [];
@@ -212,11 +236,16 @@ class MasterFilesService {
     }
 
     return recordSnapshot.map((snapshot) {
-      return BaseLookup.fromJsonManualMap(snapshot.value, idMap: "id", displayNameMap: "name", nameMap: "name", codeMap: "code");
+      return BaseLookup.fromJsonManualMap(snapshot.value,
+          idMap: "id",
+          displayNameMap: "name",
+          nameMap: "name",
+          codeMap: "code");
     }).toList();
   }
 
-  Future<List<BaseLookup>> getAllPagedByStore(String store, String searchArg) async {
+  Future<List<BaseLookup>> getAllPagedByStore(
+      String store, String searchArg) async {
     var finder = Finder(sortOrders: [SortOrder('orderBy', false, true)]);
 
     if (searchArg.isNotEmpty) {
@@ -225,7 +254,8 @@ class MasterFilesService {
       var edgeCaseSearchArg = " $searchArg";
       var filter = Filter.custom((snapshot) {
         var value = snapshot["name"] as String;
-        return value.toLowerCase().startsWith(searchArg) || value.toLowerCase().contains(edgeCaseSearchArg);
+        return value.toLowerCase().startsWith(searchArg) ||
+            value.toLowerCase().contains(edgeCaseSearchArg);
       });
       finder.filter = filter;
     }
@@ -233,7 +263,8 @@ class MasterFilesService {
 
     //  await entityTable.
 
-    final recordSnapshot = await entityTable.find(_appDatabase.db!, finder: finder);
+    final recordSnapshot =
+        await entityTable.find(_appDatabase.db!, finder: finder);
 
     if (recordSnapshot.isEmpty) {
       List<BaseLookup> emptyList = [];
@@ -241,7 +272,11 @@ class MasterFilesService {
     }
 
     return recordSnapshot.map((snapshot) {
-      return BaseLookup.fromJsonManualMap(snapshot.value, idMap: snapshot.key.toString(), displayNameMap: "name", nameMap: "name", codeMap: "altCode");
+      return BaseLookup.fromJsonManualMap(snapshot.value,
+          idMap: snapshot.key.toString(),
+          displayNameMap: "name",
+          nameMap: "name",
+          codeMap: "altCode");
     }).toList();
   }
 }

@@ -99,12 +99,12 @@ class ScanningService {
           barcodeChangeController.add(_rsaDriversLicense!);
         }
       } else {
-        Fluttertoast.showToast(msg: "Barcode READ FAIL!", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.CENTER, timeInSecForIosWeb: 1, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 16.0);
+        Fluttertoast.showToast(msg: "Barcode READ FAIL!", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_RIGHT, timeInSecForIosWeb: 1, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 16.0);
       }
     } catch (e) {
       if (e is FormatException) {
         log.i("Invalid South African driver's license barcode data length: ${call.arguments.length}.");
-        Fluttertoast.showToast(msg: "Invalid South African driver's license barcode data", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.CENTER, timeInSecForIosWeb: 1, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 16.0);
+        Fluttertoast.showToast(msg: "Barcode READ FAIL!", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_RIGHT, timeInSecForIosWeb: 1, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 16.0);
       }
     }
   }
@@ -159,8 +159,8 @@ class ScanningService {
   }
 
   void onDecodeVehicleDisc(MethodCall call) {
-    final List lDecodeResult = call.arguments;
-    var as = call.arguments as Object?;
+    //final List lDecodeResult = call.arguments;
+    //var as = call.arguments as Object?;
     var scanData = Uint8List.fromList(call.arguments);
     var textScanData = utf8.decode(scanData);
     if (textScanData != "READ_FAIL") {

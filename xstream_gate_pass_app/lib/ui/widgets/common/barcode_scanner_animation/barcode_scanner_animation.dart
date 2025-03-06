@@ -6,10 +6,12 @@ class BarcodeScannerAnimation extends StatefulWidget {
   const BarcodeScannerAnimation({Key? key}) : super(key: key);
 
   @override
-  State<BarcodeScannerAnimation> createState() => _BarcodeScannerAnimationState();
+  State<BarcodeScannerAnimation> createState() =>
+      _BarcodeScannerAnimationState();
 }
 
-class _BarcodeScannerAnimationState extends State<BarcodeScannerAnimation> with SingleTickerProviderStateMixin {
+class _BarcodeScannerAnimationState extends State<BarcodeScannerAnimation>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -21,7 +23,8 @@ class _BarcodeScannerAnimationState extends State<BarcodeScannerAnimation> with 
       duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
 
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+    _animation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
   }
 
   @override

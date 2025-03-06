@@ -44,11 +44,15 @@ class _GateAccessMenuViewState extends State<GateAccessMenuView>
           ),
           itemCount: model.menuItems.length,
           itemBuilder: (context, index) {
-            return MenuCard(
-                item: model.menuItems[index],
-                onTap: () {
-                  model.navigateToView(model.menuItems[index].route);
-                });
+            var menuItem = model.menuItems[index];
+            return Visibility(
+              visible: model.hasPermission(menuItem.requiredPermission),
+              child: MenuCard(
+                  item: menuItem,
+                  onTap: () {
+                    model.navigateToView(menuItem.route);
+                  }),
+            );
           },
         ),
       ),

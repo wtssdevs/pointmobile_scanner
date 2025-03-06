@@ -38,6 +38,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/gate_access_pre_booking_
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_staff_list/gate_access_staff_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors_list/gate_access_visitors_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_visitor/gate_access_visitor_sheet.dart';
+import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_pre_booking/gate_access_pre_booking_sheet.dart';
 // @stacked-import
 
 @StackedApp(
@@ -92,6 +93,7 @@ import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_visitor/gate_
   bottomsheets: [
     StackedBottomsheet(classType: NoticeSheet),
     StackedBottomsheet(classType: GateAccessVisitorSheet),
+    StackedBottomsheet(classType: GateAccessPreBookingSheet),
 // @stacked-bottom-sheet
   ],
   dialogs: [

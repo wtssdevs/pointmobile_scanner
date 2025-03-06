@@ -97,6 +97,40 @@ class RsaDriversLicense implements RsaIdDocument {
     required this.imageData,
   });
 
+  Uint8List? extractImageData(Uint8List bytes) {
+    // Replace the TODO and section3 variable with this code:
+
+// Extract the length of Section 3 (image data)
+// Using lower 12 bits from bytes 8-9 in the header
+    int section3Length = ((bytes[8] & 0x0F) << 8) | bytes[9];
+
+// Calculate start position of Section 3
+    int section3Start = 10 + bytes[5] + bytes[7];
+
+// Extract the image data
+    Uint8List? section3 = section3Length > 0 ? bytes.sublist(section3Start, section3Start + section3Length) : null;
+
+// Parse the image data if present
+    Uint8List? imageData = null;
+    if (section3 != null && section3.length >= 7) {
+      // Check for 'WI' marker which indicates image data
+      if (section3[0] == 0x57 && section3[1] == 0x49) {
+        // Image format info is in the next few bytes
+        // Height: bytes 3-4 (00 fa = 250 pixels)
+        // Width: bytes 5-6 (00 c8 = 200 pixels)
+        int height = (section3[3] << 8) | section3[4];
+        int width = (section3[5] << 8) | section3[6];
+
+        // The actual image data starts after byte 12
+        if (section3.length > 12) {
+          imageData = section3.sublist(12);
+        }
+      }
+    }
+
+    return imageData;
+  }
+
   /// Returns a `DriversLicense` instance from the bytes read from the
   /// barcode of the DriversLicense.
   ///
@@ -114,8 +148,8 @@ class RsaDriversLicense implements RsaIdDocument {
     try {
       // Check if we have 721 bytes (sometimes scanners add an extra byte)
       if (bytes.length == 721) {
-        // Skip the first byte which is likely a header/prefix
-        bytes = bytes.sublist(1, 721);
+        // Skip the last byte which is likely added by the scanner as a newline character or terminator
+        bytes = bytes.sublist(0, 720);
       } else if (bytes.length != 720) {
         throw FormatException('Invalid South African driver\'s license barcode data length: ${bytes.length}.');
       }

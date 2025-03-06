@@ -5,7 +5,7 @@ class ActionCardWidget extends StatelessWidget {
   const ActionCardWidget({
     super.key,
     required this.title,
-    required this.isIn,
+    required this.isSelected,
     required this.icon,
     required this.color,
     this.description,
@@ -13,7 +13,7 @@ class ActionCardWidget extends StatelessWidget {
   });
 
   final String title;
-  final bool isIn;
+  final bool isSelected;
   final IconData icon;
   final Color color;
   final String? description;
@@ -21,48 +21,49 @@ class ActionCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSelected = isIn;
-
-    return GestureDetector(
-      onTap: onTap != null ? () => onTap!() : null,
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.4,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? color : Colors.grey[300]!,
-            width: isSelected ? 2 : 1,
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: GestureDetector(
+        onTap: onTap != null ? () => onTap!() : null,
+        child: Container(
+          //width: MediaQuery.of(context).size.width * 0.4,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? color : Colors.grey[300]!,
+              width: isSelected ? 2 : 1,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? color : Colors.grey[700],
-              size: 32,
-            ),
-            verticalSpaceSmall,
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isSelected ? color : Colors.black,
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? color : Colors.grey[700],
+                size: 32,
               ),
-            ),
-            if (description != null) ...[
               verticalSpaceTiny,
               Text(
-                description!,
-                textAlign: TextAlign.center,
+                title,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? color : Colors.black,
                 ),
               ),
+              if (description != null) ...[
+                Text(
+                  description!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
