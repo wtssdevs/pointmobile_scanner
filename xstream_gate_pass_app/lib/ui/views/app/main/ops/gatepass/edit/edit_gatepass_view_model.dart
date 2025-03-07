@@ -49,6 +49,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   final _masterFilesService = locator<MasterFilesService>();
   StreamSubscription<RsaDriversLicense>? streamSubscription;
+
   List<FileStore> _fileStoreItems = <FileStore>[];
   List<FileStore> get fileStoreItems => _fileStoreItems;
   final _connectionService = locator<ConnectionService>();
@@ -61,23 +62,11 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   List<BaseLookup> get customers => _customers;
 
   void startconnectionListen() {
-    streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) {
-      // log.i('Barcode Model Recieved? $data');
-      _rsaDriversLicense = data;
-      gatePass.driverName = "${_rsaDriversLicense?.firstNames} ${_rsaDriversLicense?.surname}";
-      gatePass.driverIdNo = _rsaDriversLicense?.idNumber;
-      gatePass.driverLicenceNo = "${_rsaDriversLicense?.licenseNumber} (${_rsaDriversLicense?.vehicleCodes.join(",")})";
-      //gatePass.driv = _rsaDriversLicense?.gender;
-
-      setModelUpdate(_gatePass);
-      notifyListeners();
-    });
+    setModelUpdate(_gatePass);
+    notifyListeners();
   }
 
   Future<void> runStartupLogic() async {
-    //_scanningService.initialise();
-    //startconnectionListen();
-
     setModelUpdate(_gatePass);
     await loadFileStoreImages();
     //_customers = await _masterFilesService.getAllLocalDetainOptions("");

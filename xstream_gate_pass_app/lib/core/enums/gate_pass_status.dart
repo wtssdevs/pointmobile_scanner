@@ -8,7 +8,8 @@ enum GatePassStatus {
   rejectedEntry(4, "Rejected Entry", "Rejected", Colors.red);
 
   // can use named parameters if you want
-  const GatePassStatus(this.value, this.displayName, this.visitorName, this.color);
+  const GatePassStatus(
+      this.value, this.displayName, this.visitorName, this.color);
   final int value;
   final String displayName;
   final String visitorName;

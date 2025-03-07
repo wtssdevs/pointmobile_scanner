@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
+import 'package:xstream_gate_pass_app/ui/bottom_sheets/widgets/default_build_header.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 
@@ -33,27 +36,64 @@ class GateAccessPreBookingSheet extends StackedView<GateAccessPreBookingSheetMod
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            request.title ?? 'Hello Stacked Sheet!!',
-            style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
-          ),
-          if (request.description != null) ...[
-            verticalSpaceTiny,
-            Text(
-              request.description!,
-              style: const TextStyle(fontSize: 14, color: kcMediumGrey),
-              maxLines: 3,
-              softWrap: true,
+          BaseSheetHeader(
+            onTap: () => completer?.call(
+              SheetResponse<GatePassVisitorAccess>(
+                confirmed: false,
+              ),
             ),
-          ],
-          verticalSpaceLarge,
+            title: 'Find Pre-Booked Load',
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                // Instructions
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.info_outline, color: kcPrimaryColor),
+                          horizontalSpaceSmall,
+                          Text(
+                            'Instructions',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: kcPrimaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      verticalSpaceSmall,
+                      Text(
+                        '1. Position the driver\'s license barcode within the scanner frame\n2. Hold steady until scan completes\n3. Position the vehicle license disk barcode within the scanner frame\n4. Hold steady until scan completes\n5. Verify the captured information',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          //_buildFooter(context, viewModel),
         ],
       ),
     );
   }
 
+  @override
+  void onViewModelReady(GateAccessPreBookingSheetModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
+        (timeStamp) => viewModel.runStartupLogic(request.data),
+      );
   @override
   GateAccessPreBookingSheetModel viewModelBuilder(BuildContext context) => GateAccessPreBookingSheetModel();
 }

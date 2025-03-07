@@ -206,6 +206,9 @@ class GatePassAccess {
     this.gatePassContainerType,
   });
 
+  bool get hasDriverInfo => driverName != null && driverIdNo != null && driverLicenceNo != null;
+  bool get hasVehicleInfo => vehicleRegNumber != null && vehicleMake != null && vehicleVinNumber != null;
+
   //factory GatePassAccess.fromJson(String str) => GatePassAccess.fromMap(json.decode(str));
 
   String toJson() => json.encode(toMap());

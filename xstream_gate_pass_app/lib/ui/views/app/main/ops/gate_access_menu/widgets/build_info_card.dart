@@ -25,13 +25,6 @@ class BuildInfoCard extends StatelessWidget {
     final isSelected = isIn;
     return Column(
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         verticalSpaceSmall,
         Container(
           width: width, // MediaQuery.of(context).size.width * 0.95,
@@ -46,10 +39,22 @@ class BuildInfoCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(
-                icon,
-                color: isSelected ? color : Colors.grey[700],
-                size: 32,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Icon(
+                    icon,
+                    color: isSelected ? color : Colors.grey[700],
+                    size: 32,
+                  ),
+                ],
               ),
               verticalSpaceSmall,
               ...infoList,

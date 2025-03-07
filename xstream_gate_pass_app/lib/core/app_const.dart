@@ -43,6 +43,10 @@ class AppConst {
 
   static const String GetAllVisitorPaged = "/api/services/app/MobileGatePassAccess/GetAllVisitorPaged";
 
+// PRE BOOKINGS **********
+
+  static const String findPreBookedLoad = "/api/services/app/MobileGatePassAccess/FindPreBookedLoad";
+
 //STAFF*************
   static const String GetAllStaffPaged = "/api/services/app/MobileGatePassAccess/GetAllStaffPaged";
   static const String scanStaffIn = "/api/services/app/MobileGatePassAccess/ScanStaffIn";
@@ -50,13 +54,14 @@ class AppConst {
 
   static const String scanVisitorIn = "/api/services/app/MobileGatePassAccess/ScanVisitorIn";
   static const String scanVisitorOut = "/api/services/app/MobileGatePassAccess/ScanVisitorOut";
-
+// VISITORS **********************
   static const String findPreBookedVisitor = "/api/services/app/MobileGatePassAccess/FindPreBookedVisitor";
   static const String scanPreBookedVisitorIn = "/api/services/app/MobileGatePassAccess/ScanPreBookedVisitorIn";
   static const String scanPreBookedVisitorOut = "/api/services/app/MobileGatePassAccess/ScanPreBookedVisitorOut";
 
   ///api/services/app/MobileGatePassAccess/GetAllPaged
 
+  ///GATE PASS **********************
   static const String CreateGatePass = "/api/services/app/GatePassAccess/Create";
 
   static const String UpdateGatePass = "/api/services/app/GatePassAccess/Update";

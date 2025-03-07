@@ -34,7 +34,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/ca
 import 'package:xstream_gate_pass_app/ui/views/app/main/account/config/device_scan_settings/device_scan_settings_view.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/gate_access_menu_view.dart';
-import 'package:xstream_gate_pass_app/ui/views/app/main/gate_access_pre_booking_find/gate_access_pre_booking_find_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/gate_access_pre_booking/gate_access_pre_booking_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_staff_list/gate_access_staff_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors_list/gate_access_visitors_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_visitor/gate_access_visitor_sheet.dart';
@@ -56,7 +56,7 @@ import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_pre_booking/g
     MaterialRoute(page: CamBarcodeReader),
     MaterialRoute(page: DeviceScanSettingsView),
     MaterialRoute(page: GateAccessMenuView),
-    MaterialRoute(page: GateAccessPreBookingFindView),
+    MaterialRoute(page: GateAccessPreBookingView),
     MaterialRoute(page: GateAccessStaffListView),
     MaterialRoute(page: GateAccessVisitorsListView),
 // @stacked-route

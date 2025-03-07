@@ -1,29 +1,33 @@
 class LoadconQrCodeModel {
-  String? voyageNo;
-  String? containerNumber;
   String? transactionNo;
-  String? vehicleRegNumber;
+  String? referenceNo;
+  String? customerRefNo;
+  String? bookingOrderNumber;
+  String? vehicleRegistrationNumber;
+  int? branchId;
 
-  LoadconQrCodeModel({
-    this.voyageNo,
-    this.containerNumber,
-    this.transactionNo,
-    this.vehicleRegNumber,
-  });
+  LoadconQrCodeModel({this.transactionNo, this.referenceNo, this.customerRefNo, this.bookingOrderNumber, this.vehicleRegistrationNumber, this.branchId});
+  bool isModelEmpty() {
+    return transactionNo == null || referenceNo == null || customerRefNo == null || bookingOrderNumber == null || vehicleRegistrationNumber == null;
+  }
 
   LoadconQrCodeModel.fromJson(Map<String, dynamic> json) {
-    voyageNo = json['voyageNo'];
-    containerNumber = json['containerNumber'];
-    transactionNo = json['transactionNo'];
-    vehicleRegNumber = json['vehicleRegNumber'];
+    transactionNo = json['TransactionNo'];
+    referenceNo = json['ReferenceNo'];
+    customerRefNo = json['CustomerRefNo'];
+    bookingOrderNumber = json['BookingOrderNumber'];
+    vehicleRegistrationNumber = json['VehicleRegistrationNumber'];
+    branchId = json['BranchId'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['voyageNo'] = this.voyageNo;
-    data['containerNumber'] = this.containerNumber;
-    data['transactionNo'] = this.transactionNo;
-    data['vehicleRegNumber'] = this.vehicleRegNumber;
+    data['TransactionNo'] = this.transactionNo;
+    data['ReferenceNo'] = this.referenceNo;
+    data['CustomerRefNo'] = this.customerRefNo;
+    data['BookingOrderNumber'] = this.bookingOrderNumber;
+    data['VehicleRegistrationNumber'] = this.vehicleRegistrationNumber;
+    data['BranchId'] = this.branchId;
     return data;
   }
 }

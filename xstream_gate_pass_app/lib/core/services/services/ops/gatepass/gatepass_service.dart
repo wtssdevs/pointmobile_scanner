@@ -5,6 +5,7 @@ import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staff_model.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
+import 'package:xstream_gate_pass_app/core/models/scanning/loadcon_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/staff_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
@@ -203,6 +204,23 @@ class GatePassService {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
           return GatePassVisitorAccess.fromJson(apiResponse.result);
+        }
+      }
+      return null;
+    } catch (e) {
+      log.e(e.toString());
+    }
+
+    return null;
+  }
+
+  Future<GatePassAccess?> findPreBookedLoad(LoadconQrCodeModel entity) async {
+    try {
+      var baseResponse = await _apiManager.post(AppConst.findPreBookedLoad, showLoader: true, data: entity.toJson());
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success != null) {
+          return GatePassAccess.fromJson(apiResponse.result);
         }
       }
       return null;

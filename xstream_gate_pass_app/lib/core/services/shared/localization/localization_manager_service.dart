@@ -15,14 +15,16 @@ class LocalizationManagerService {
   final log = getLogger('LocalizationManager');
   final ApiManager _apiManager = locator<ApiManager>();
   final _appDatabase = locator<AppDatabase>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   int? userId = 0;
   StoreRef? _dbStore;
   List<LocalizationValue> _localizationValues = [];
   List<LocalizationValue> get localizationValues => _localizationValues;
 //TODO save this in local db
   LocalizationConfiguration? _localizationConfiguration;
-  LocalizationConfiguration? get localizationConfiguration => _localizationConfiguration;
+  LocalizationConfiguration? get localizationConfiguration =>
+      _localizationConfiguration;
 
   LocalizationManagerService() {
     setTableRef();
@@ -34,7 +36,8 @@ class LocalizationManagerService {
     }
 
     if (_dbStore == null) {
-      _dbStore = stringMapStoreFactory.store("${AppConst.DB_LocalizeValues}_$userId");
+      _dbStore =
+          stringMapStoreFactory.store("${AppConst.DB_LocalizeValues}_$userId");
     }
   }
 
@@ -43,14 +46,18 @@ class LocalizationManagerService {
   }
 
   Future<void> update(LocalizationValue entity) async {
-    await _dbStore!.record(entity.key).update(_appDatabase.db!, entity.toJson());
+    await _dbStore!
+        .record(entity.key)
+        .update(_appDatabase.db!, entity.toJson());
   }
 
   /// Save many records, create if needed.
   Future<void> upsertMany(List<LocalizationValue> entities) async {
     await _appDatabase.db!.transaction((txn) async {
       for (var entity in entities) {
-        await _dbStore!.record(entity.key).put(txn, entity.toJson(), merge: true);
+        await _dbStore!
+            .record(entity.key)
+            .put(txn, entity.toJson(), merge: true);
       }
     });
   }
@@ -86,12 +93,14 @@ class LocalizationManagerService {
       var edgeCaseSearchArg = " $searchArg";
       var filter = Filter.custom((snapshot) {
         var value = snapshot["name"] as String;
-        return value.toLowerCase().startsWith(searchArg) || value.toLowerCase().contains(edgeCaseSearchArg);
+        return value.toLowerCase().startsWith(searchArg) ||
+            value.toLowerCase().contains(edgeCaseSearchArg);
       });
       finder.filter = filter;
     }
 
-    final recordSnapshot = await _dbStore!.find(_appDatabase.db!, finder: finder);
+    final recordSnapshot =
+        await _dbStore!.find(_appDatabase.db!, finder: finder);
 
     if (recordSnapshot.isEmpty) {
       List<LocalizationValue> emptyList = [];
@@ -109,13 +118,15 @@ class LocalizationManagerService {
   Future<List<LocalizationValue>> getLocalizeValues() async {
     List<LocalizationValue> outPut = <LocalizationValue>[];
     try {
-      var baseResponse = await _apiManager.get(AppConst.GetLocalizeValues, showLoader: false);
+      var baseResponse =
+          await _apiManager.get(AppConst.GetLocalizeValues, showLoader: false);
 
 //test
       if (baseResponse != null && baseResponse['result'] != null) {
         //LocalizationConfiguration
 
-        var localizationConfig = LocalizationConfiguration.fromJson(baseResponse['result']);
+        var localizationConfig =
+            LocalizationConfiguration.fromJson(baseResponse['result']);
         _localizationConfiguration = localizationConfig;
         var data = localizationConfig.localization.values["XAC"];
         if (data != null) {
@@ -155,7 +166,8 @@ class LocalizationManagerService {
       getAllLocal('');
     }
 
-    var localizationValue = localizationValues.firstWhereOrNull((element) => element.key.toLowerCase() == key.toLowerCase());
+    var localizationValue = localizationValues.firstWhereOrNull(
+        (element) => element.key.toLowerCase() == key.toLowerCase());
     if (localizationValue != null) {
       return localizationValue.value;
     }

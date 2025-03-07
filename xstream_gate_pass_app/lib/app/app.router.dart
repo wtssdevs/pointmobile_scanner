@@ -20,7 +20,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/account/account_view.dar
     as _i8;
 import 'package:xstream_gate_pass_app/ui/views/app/main/account/config/device_scan_settings/device_scan_settings_view.dart'
     as _i13;
-import 'package:xstream_gate_pass_app/ui/views/app/main/gate_access_pre_booking_find/gate_access_pre_booking_find_view.dart'
+import 'package:xstream_gate_pass_app/ui/views/app/main/gate_access_pre_booking/gate_access_pre_booking_view.dart'
     as _i15;
 import 'package:xstream_gate_pass_app/ui/views/app/main/home_view.dart' as _i3;
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/gate_access_menu_view.dart'
@@ -73,8 +73,7 @@ class Routes {
 
   static const gateAccessMenuView = '/gate-access-menu-view';
 
-  static const gateAccessPreBookingFindView =
-      '/gate-access-pre-booking-find-view';
+  static const gateAccessPreBookingView = '/gate-access-pre-booking-view';
 
   static const gateAccessStaffListView = '/gate-access-staff-list-view';
 
@@ -94,7 +93,7 @@ class Routes {
     camBarcodeReader,
     deviceScanSettingsView,
     gateAccessMenuView,
-    gateAccessPreBookingFindView,
+    gateAccessPreBookingView,
     gateAccessStaffListView,
     gateAccessVisitorsListView,
   };
@@ -155,8 +154,8 @@ class StackedRouter extends _i1.RouterBase {
       page: _i14.GateAccessMenuView,
     ),
     _i1.RouteDef(
-      Routes.gateAccessPreBookingFindView,
-      page: _i15.GateAccessPreBookingFindView,
+      Routes.gateAccessPreBookingView,
+      page: _i15.GateAccessPreBookingView,
     ),
     _i1.RouteDef(
       Routes.gateAccessStaffListView,
@@ -263,9 +262,9 @@ class StackedRouter extends _i1.RouterBase {
         settings: data,
       );
     },
-    _i15.GateAccessPreBookingFindView: (data) {
+    _i15.GateAccessPreBookingView: (data) {
       return _i18.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i15.GateAccessPreBookingFindView(),
+        builder: (context) => const _i15.GateAccessPreBookingView(),
         settings: data,
       );
     },
@@ -635,14 +634,14 @@ extension NavigatorStateExtension on _i23.NavigationService {
         transition: transition);
   }
 
-  Future<dynamic> navigateToGateAccessPreBookingFindView([
+  Future<dynamic> navigateToGateAccessPreBookingView([
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
     Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
         transition,
   ]) async {
-    return navigateTo<dynamic>(Routes.gateAccessPreBookingFindView,
+    return navigateTo<dynamic>(Routes.gateAccessPreBookingView,
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,
@@ -879,14 +878,14 @@ extension NavigatorStateExtension on _i23.NavigationService {
         transition: transition);
   }
 
-  Future<dynamic> replaceWithGateAccessPreBookingFindView([
+  Future<dynamic> replaceWithGateAccessPreBookingView([
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
     Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
         transition,
   ]) async {
-    return replaceWith<dynamic>(Routes.gateAccessPreBookingFindView,
+    return replaceWith<dynamic>(Routes.gateAccessPreBookingView,
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,

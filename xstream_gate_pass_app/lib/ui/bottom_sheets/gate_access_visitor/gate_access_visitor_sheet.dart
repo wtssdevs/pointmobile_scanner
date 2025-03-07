@@ -7,6 +7,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/scan_action_types.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
+import 'package:xstream_gate_pass_app/ui/bottom_sheets/widgets/default_build_header.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_Info_item.dart';
@@ -41,40 +42,20 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(context, viewModel),
+          BaseSheetHeader(
+            onTap: () => completer?.call(
+              SheetResponse<GatePassVisitorAccess>(
+                confirmed: false,
+              ),
+            ),
+            title: 'Gate Pass Scanner',
+          ),
           Expanded(
             child: _buildContent(context, viewModel),
           ),
           _buildFooter(context, viewModel),
         ],
       ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, GateAccessVisitorSheetModel viewModel) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Gate Pass Scanner',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: kcPrimaryColor),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => completer?.call(
-                SheetResponse<GatePassVisitorAccess>(
-                  confirmed: false,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const Divider(),
-        verticalSpaceSmall,
-      ],
     );
   }
 
@@ -117,7 +98,7 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
                       final success = await viewModel.submitVisitorEntry();
                       if (success) {
                         completer?.call(
-                          SheetResponse(
+                          SheetResponse<GatePassVisitorAccess>(
                             confirmed: true,
                             data: viewModel.scannedVisitor,
                           ),

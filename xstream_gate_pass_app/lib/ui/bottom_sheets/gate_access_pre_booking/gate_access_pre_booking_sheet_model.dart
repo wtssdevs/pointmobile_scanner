@@ -1,3 +1,5 @@
 import 'package:stacked/stacked.dart';
 
-class GateAccessPreBookingSheetModel extends BaseViewModel {}
+class GateAccessPreBookingSheetModel extends BaseViewModel {
+  runStartupLogic(data) {}
+}

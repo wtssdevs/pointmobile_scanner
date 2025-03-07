@@ -17,7 +17,8 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception
 import 'package:qr_flutter/qr_flutter.dart';
 import 'gate_access_staff_list_viewmodel.dart';
 
-class GateAccessStaffListView extends StackedView<GateAccessStaffListViewModel> {
+class GateAccessStaffListView
+    extends StackedView<GateAccessStaffListViewModel> {
   const GateAccessStaffListView({Key? key}) : super(key: key);
 
   @override
@@ -26,7 +27,10 @@ class GateAccessStaffListView extends StackedView<GateAccessStaffListViewModel> 
     GateAccessStaffListViewModel viewModel,
     Widget? child,
   ) {
-    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet ? MediaQuery.of(context).size.height * 0.8 : MediaQuery.of(context).size.height * 0.5;
+    double searchWidth =
+        getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet
+            ? MediaQuery.of(context).size.height * 0.8
+            : MediaQuery.of(context).size.height * 0.5;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -87,9 +91,14 @@ class GateAccessStaffListView extends StackedView<GateAccessStaffListViewModel> 
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.withOpacity(0.8) : Colors.red.withOpacity(0.8),
+                    backgroundColor: entity.gatePassStatus.value ==
+                            GatePassStatus.inYard.value
+                        ? Colors.green.withOpacity(0.8)
+                        : Colors.red.withOpacity(0.8),
                     child: Icon(
-                      entity.gatePassStatus.value == GatePassStatus.inYard.value ? Icons.login : Icons.logout,
+                      entity.gatePassStatus.value == GatePassStatus.inYard.value
+                          ? Icons.login
+                          : Icons.logout,
                       color: Colors.white,
                     ),
                   ),
@@ -136,7 +145,8 @@ class GateAccessStaffListView extends StackedView<GateAccessStaffListViewModel> 
                     ],
                   ),
                   trailing: QrImageView(
-                    data: entity.staffCode, // Or any other unique identifier you want to encode
+                    data: entity
+                        .staffCode, // Or any other unique identifier you want to encode
                     version: QrVersions.auto,
                     padding: const EdgeInsets.all(2),
                     constrainErrorBounds: true,
@@ -201,7 +211,8 @@ class GateAccessStaffListView extends StackedView<GateAccessStaffListViewModel> 
   }
 
   @override
-  void onViewModelReady(GateAccessStaffListViewModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
+  void onViewModelReady(GateAccessStaffListViewModel viewModel) =>
+      SchedulerBinding.instance.addPostFrameCallback(
         (timeStamp) => viewModel.runStartupLogic(),
       );
 
