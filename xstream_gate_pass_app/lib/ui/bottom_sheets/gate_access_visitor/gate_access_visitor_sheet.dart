@@ -12,6 +12,7 @@ import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_Info_item.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_info_card.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_scanning_view.dart';
 import 'package:xstream_gate_pass_app/ui/widgets/common/barcode_scanner_animation/barcode_scanner_animation.dart';
 import 'gate_access_visitor_sheet_model.dart';
 
@@ -371,13 +372,14 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
               : const SizedBox.shrink(),
 
           verticalSpaceSmall,
-          !visitor.hasDriverInfo || !visitor.hasVehicleInfo ? _buildScanningView(context, viewModel) : const SizedBox.shrink(),
+          !visitor.hasDriverInfo || !visitor.hasVehicleInfo ? BuildScanningView(barcodeScanType: viewModel.barcodeScanType) : const SizedBox.shrink(),
           verticalSpaceSmall,
 
           BuildInfoCard(
             width: MediaQuery.of(context).size.width * 0.95,
             title: "Visitor Drivers Lisence Card",
-            isIn: visitor.hasDriverInfo,
+            isSelected: viewModel.barcodeScanType == BarcodeScanType.driversCard,
+            hasInfo: visitor.hasDriverInfo,
             icon: Icons.credit_card,
             color: Colors.green,
             infoList: [
@@ -391,7 +393,8 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
           BuildInfoCard(
             width: MediaQuery.of(context).size.width * 0.95,
             title: "Vehicle Lisence Disc",
-            isIn: visitor.hasVehicleInfo,
+            isSelected: viewModel.barcodeScanType == BarcodeScanType.vehicleDisc,
+            hasInfo: visitor.hasVehicleInfo,
             icon: Icons.directions_car,
             color: Colors.green,
             infoList: [
@@ -424,38 +427,6 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
               ),
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScanningView(BuildContext context, GateAccessVisitorSheetModel viewModel) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          //create animated barcode scanning indicator
-          const SizedBox(
-            height: 60,
-            width: 100,
-            child: BarcodeScannerAnimation(),
-          ),
-
-          verticalSpaceSmall,
-          Text(
-            viewModel.barcodeScanType == BarcodeScanType.driversCard ? 'Scan Driver\'s License Card...' : 'Scan Vehicle License Disc...',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          verticalSpaceTiny,
-          Text(
-            'Please hold the barcode scanner steady',
-            style: TextStyle(
-              color: Colors.grey[600],
-            ),
-          ),
         ],
       ),
     );

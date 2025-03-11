@@ -7,6 +7,8 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';
+import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
+import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 
@@ -21,9 +23,11 @@ import 'package:xstream_gate_pass_app/ui/shared/widgets/modal_lookup/modal_sheet
 import 'package:xstream_gate_pass_app/ui/shared/widgets/text_fields/input_field.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_Info_item.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_info_card.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_scanning_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/visitor_status_Icon.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/gate_pass_status_chip_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_gatepass_view_model.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/listicons/gatepass_list_icon.dart';
 
 class GatePassEditView extends StatelessWidget {
   final GatePassAccess gatePass;
@@ -108,23 +112,48 @@ class GatePassEditView extends StatelessWidget {
       return true;
     }
 
-    var isValid = false;
-    switch (model.gatePass.gatePassStatus) {
-      case GatePassStatus.atGate: //GatePassStatus.atGate.value:
-      case 2: //GatePassStatus.atGate.value:
-      case 3: //GatePassStatus.atGate.value:
-      case 4: //GatePassStatus.atGate.value:
-        isValid = await validateByFormKey(formKeyAtGate, context, model);
-        if (isValid) {
-          //model.authorizeEntry();
-        } else {
-          Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
-        }
-        break;
-      default:
+    if (model.gatePass.vehicleRegNumber == null) {
+      model.setValidationMessage("Vehicle Reg Number is required");
+    } else {
+      model.clearValidationMessage("Vehicle Reg Number is required");
     }
 
-    return isValid;
+    if (model.gatePass.driverName == null) {
+      model.setValidationMessage("Driver Name is required");
+    } else {
+      model.clearValidationMessage("Driver Name is required");
+    }
+    if (model.gatePass.driverIdNo == null) {
+      model.setValidationMessage("Driver ID Number is required");
+    } else {
+      model.clearValidationMessage("Driver ID Number is required");
+    }
+
+    if (model.showValidation) {
+      model.rebuildUi();
+      Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+      return false;
+    }
+
+    return !model.showValidation;
+
+    // var isValid = false;
+    // switch (model.gatePass.gatePassStatus) {
+    //   case GatePassStatus.atGate: //GatePassStatus.atGate.value:
+    //   case 2: //GatePassStatus.atGate.value:
+    //   case 3: //GatePassStatus.atGate.value:
+    //   case 4: //GatePassStatus.atGate.value:
+    //     isValid = await validateByFormKey(formKeyAtGate, context, model);
+    //     if (isValid) {
+    //       //model.authorizeEntry();
+    //     } else {
+    //       Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+    //     }
+    //     break;
+    //   default:
+    // }
+
+    //  return isValid;
   }
 
   void updateModelData(GatePassEditViewModel model) {
@@ -154,8 +183,8 @@ class GatePassEditView extends StatelessWidget {
         model.onDispose();
       },
       builder: (context, model, child) => PopScope(
-        onPopInvokedWithResult: (r, d) {
-          //return true;
+        onPopInvokedWithResult: (r, d) async {
+          model.routePop();
         },
         child: DefaultTabController(
           length: 2,
@@ -164,69 +193,77 @@ class GatePassEditView extends StatelessWidget {
               Visibility(
                 visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.inYard.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value,
                 // (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.atGate.index) || (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.inYard.index),
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    // call method
-                    //validate UI first
-                    var isValid = await validateForm(model, context);
-                    if (isValid == true) {
-                      model.rejectEntry();
-                    }
-                  },
-                  icon: const FaIcon(
-                    FontAwesomeIcons.ban,
-                    color: Colors.red,
-                  ),
-                  label: const Text('Reject Entry'), // <-- Text
-                ),
+                child: model.isBusy
+                    ? const SizedBox.shrink()
+                    : ElevatedButton.icon(
+                        onPressed: () async {
+                          // call method
+                          //validate UI first
+                          var isValid = await validateForm(model, context);
+                          if (isValid == true) {
+                            model.rejectEntry();
+                          }
+                        },
+                        icon: const FaIcon(
+                          FontAwesomeIcons.ban,
+                          color: Colors.red,
+                        ),
+                        label: const Text('Reject Entry'), // <-- Text
+                      ),
               ),
               Visibility(
                 visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    // valiate first
-                    var isValid = await validateForm(model, context);
-                    if (isValid == true) {
-                      model.authorizeEntry();
-                    }
-                  },
-                  icon: const FaIcon(
-                    FontAwesomeIcons.rightToBracket,
-                    color: Colors.blue,
-                  ),
-                  label: const Text("Authorize Entry"), // <-- Text
-                ),
+                child: model.isBusy
+                    ? const SizedBox.shrink()
+                    : ElevatedButton.icon(
+                        onPressed: () async {
+                          // valiate first
+                          var isValid = await validateForm(model, context);
+                          if (isValid == true) {
+                            model.authorizeEntry();
+                          }
+                        },
+                        icon: const FaIcon(
+                          FontAwesomeIcons.rightToBracket,
+                          color: Colors.blue,
+                        ),
+                        label: const Text("Authorize Entry"), // <-- Text
+                      ),
               ),
               Visibility(
                 visible: model.gatePass.gatePassStatus.value == GatePassStatus.inYard.index, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    // valiate first
-                    var isValid = await validateForm(model, context);
-                    if (isValid == true) {
-                      model.authorizeExit();
-                    }
-                  },
-                  icon: const FaIcon(
-                    FontAwesomeIcons.rightFromBracket,
-                    color: Colors.green,
-                  ),
-                  label: const Text("Authorize Exit"), // <-- Text
-                ),
+                child: model.isBusy
+                    ? const SizedBox.shrink()
+                    : ElevatedButton.icon(
+                        onPressed: () async {
+                          // valiate first
+                          var isValid = await validateForm(model, context);
+                          if (isValid == true) {
+                            model.authorizeExit();
+                          }
+                        },
+                        icon: const FaIcon(
+                          FontAwesomeIcons.rightFromBracket,
+                          color: Colors.green,
+                        ),
+                        label: const Text("Authorize Exit"), // <-- Text
+                      ),
               ),
             ],
             appBar: AppBar(
               elevation: 6,
 
-              //title: const BoxText.headingThree("GatePass"),
               title: ListTile(
                 dense: true,
-                contentPadding: const EdgeInsets.only(left: 2.0),
+                horizontalTitleGap: 0.0,
+
+                contentPadding: const EdgeInsets.only(left: 0.0, right: 0.0, top: 0, bottom: 0),
                 //leading:
-                //  GatePassListIcon(statusId: model.gatePass.gatePassStatus),
-                title: GateStatusChip(gatePassStatus: gatePass.gatePassStatus), // BoxText.label(model.gatePass.gatePassStatus.displayName.toUpperCase(), color: Colors.white),
+                title: BoxText.label(model.gatePass.transactionNo ?? "", color: Colors.black),
+                subtitle: BoxText.label(model.gatePass.voyageNo ?? "", color: Colors.black),
+                trailing: GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
               ),
-              titleSpacing: 2.0,
+              titleSpacing: 0.0,
               centerTitle: true,
 
               //actions: [
@@ -300,7 +337,11 @@ class GatePassEditView extends StatelessWidget {
                                 BuildInfoCard(
                                   width: MediaQuery.of(context).size.width * 0.95,
                                   title: "Visitor Drivers Lisence Card",
-                                  isIn: false,
+                                  isSelected: model.barcodeScanType == BarcodeScanType.driversCard,
+                                  onTap: () {
+                                    model.setBarcodeScanType(BarcodeScanType.driversCard);
+                                  },
+                                  hasInfo: model.gatePass.hasDriverInfo,
                                   icon: Icons.credit_card,
                                   color: Colors.blue,
                                   infoList: [
@@ -313,7 +354,11 @@ class GatePassEditView extends StatelessWidget {
                                 BuildInfoCard(
                                   width: MediaQuery.of(context).size.width * 0.95,
                                   title: "Vehicle Lisence Disc",
-                                  isIn: false,
+                                  isSelected: model.barcodeScanType == BarcodeScanType.vehicleDisc,
+                                  onTap: () {
+                                    model.setBarcodeScanType(BarcodeScanType.vehicleDisc);
+                                  },
+                                  hasInfo: model.gatePass.hasVehicleInfo,
                                   icon: Icons.directions_car,
                                   color: Colors.green,
                                   infoList: [
@@ -325,7 +370,8 @@ class GatePassEditView extends StatelessWidget {
                                 BuildInfoCard(
                                   width: MediaQuery.of(context).size.width * 0.95,
                                   title: "Times",
-                                  isIn: false,
+                                  isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,
+                                  hasInfo: true,
                                   icon: Icons.timelapse_sharp,
                                   color: Colors.amber[300]!,
                                   infoList: [
@@ -355,11 +401,17 @@ class GatePassEditView extends StatelessWidget {
                                     validationMessages: model.validationMessages,
                                   ),
                                 ],
+                                verticalSpaceTiny,
+                                !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
                                 verticalSpaceSmall,
                                 BuildInfoCard(
                                   width: MediaQuery.of(context).size.width * 0.95,
                                   title: "Drivers Lisence Card",
-                                  isIn: false,
+                                  isSelected: model.barcodeScanType == BarcodeScanType.driversCard,
+                                  onTap: () {
+                                    model.setBarcodeScanType(BarcodeScanType.driversCard);
+                                  },
+                                  hasInfo: model.gatePass.hasDriverInfo,
                                   icon: Icons.credit_card,
                                   color: Colors.blue,
                                   infoList: [
@@ -373,7 +425,11 @@ class GatePassEditView extends StatelessWidget {
                                 BuildInfoCard(
                                   width: MediaQuery.of(context).size.width * 0.95,
                                   title: "Vehicle Lisence Disc",
-                                  isIn: false,
+                                  isSelected: model.barcodeScanType == BarcodeScanType.vehicleDisc,
+                                  onTap: () {
+                                    model.setBarcodeScanType(BarcodeScanType.vehicleDisc);
+                                  },
+                                  hasInfo: model.gatePass.hasVehicleInfo,
                                   icon: Icons.directions_car,
                                   color: Colors.green,
                                   infoList: [
@@ -386,7 +442,8 @@ class GatePassEditView extends StatelessWidget {
                                 BuildInfoCard(
                                   width: MediaQuery.of(context).size.width * 0.95,
                                   title: "Times",
-                                  isIn: false,
+                                  isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,
+                                  hasInfo: true,
                                   icon: Icons.timelapse_sharp,
                                   color: Colors.amber[300]!,
                                   infoList: [

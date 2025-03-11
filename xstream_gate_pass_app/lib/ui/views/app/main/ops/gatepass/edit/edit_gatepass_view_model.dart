@@ -10,6 +10,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
+import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
@@ -24,6 +25,7 @@ import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterf
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_drivers_license.dart';
+import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_license_disk.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
@@ -46,33 +48,111 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   final _fileStoreRepository = locator<FileStoreRepository>();
   final _mediaService = locator<MediaService>();
   final _workerQueManager = locator<WorkerQueManager>();
-
+  final _connectionService = locator<ConnectionService>();
   final _masterFilesService = locator<MasterFilesService>();
+
   StreamSubscription<RsaDriversLicense>? streamSubscription;
+  StreamSubscription<LicenseDiskData>? streamSubscriptionForDisc;
 
   List<FileStore> _fileStoreItems = <FileStore>[];
   List<FileStore> get fileStoreItems => _fileStoreItems;
-  final _connectionService = locator<ConnectionService>();
+
   bool get hasConnection => _connectionService.hasConnection;
   List<SearchableDropdownMenuItem<int>> get serviceTypes => _masterFilesService.serviceTypes;
-  RsaDriversLicense? _rsaDriversLicense;
-  RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
+
+  BarcodeScanType _barcodeScanType = BarcodeScanType.driversCard;
+  BarcodeScanType get barcodeScanType => _barcodeScanType;
+  void setBarcodeScanType(BarcodeScanType type) {
+    _barcodeScanType = type;
+    _scanningService.setBarcodeScanType(type);
+    rebuildUi();
+  }
 
   List<BaseLookup> _customers = <BaseLookup>[];
   List<BaseLookup> get customers => _customers;
+  Future<void> initialize() async {
+    // Initialize scanner with the selected barcode type
+    _scanningService.initialise(barcodeScanType: _barcodeScanType);
+    await startScanListener();
+  }
 
-  void startconnectionListen() {
-    setModelUpdate(_gatePass);
-    notifyListeners();
+  Future<void> dispose() async {
+    streamSubscription?.cancel();
+    streamSubscriptionForDisc?.cancel();
+    _scanningService.onExit(); // Properly disable scanner when done
+
+    //super.dispose();
+  }
+
+  Future<void> onDispose() async {
+    await dispose();
   }
 
   Future<void> runStartupLogic() async {
-    setModelUpdate(_gatePass);
     await loadFileStoreImages();
+    notifyListeners();
     //_customers = await _masterFilesService.getAllLocalDetainOptions("");
 
     //setCustomValidations();
-    notifyListeners();
+    setBarcodeScanType(BarcodeScanType.driversCard);
+    await initialize();
+  }
+
+  Future<void> startScanListener() async {
+    setModelUpdate(_gatePass);
+
+    // Cancel any existing subscription
+    streamSubscription?.cancel();
+    streamSubscriptionForDisc?.cancel();
+
+    // Also listen to license disk data for vehicle scans
+    streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) async {
+      log.i("Drivers Card data received");
+      // Process the driversCard  data here
+      // This would populate a GatePassVisitorAccess from the driversCard data
+      processScanData(data, null);
+    });
+    // Also listen to license disk data for vehicle scans
+    streamSubscriptionForDisc = _scanningService.licenseDiskDataStream.asBroadcastStream().listen((licenseDiskData) async {
+      log.i("Drivers Card data received");
+      // Process the license disk data here
+      // This would populate a GatePassVisitorAccess from the license disk data
+      processScanData(null, licenseDiskData);
+    });
+  }
+
+  Future<void> processScanData(RsaDriversLicense? rsaDriversLicense, LicenseDiskData? vehicleLicenseData) async {
+    //_isScanning = false;
+    clearAllValidationMessage();
+    try {
+      // Process the scanned data based on scan type
+      if (_barcodeScanType == BarcodeScanType.driversCard && rsaDriversLicense != null) {
+        // Process driver's license data
+
+        gatePass.driverName = '${rsaDriversLicense.firstNames} ${rsaDriversLicense.surname}';
+        gatePass.driverIdNo = rsaDriversLicense.idNumber;
+        gatePass.driverLicenceNo = rsaDriversLicense.licenseNumber;
+        gatePass.driverLicenceIssueDate = rsaDriversLicense.issueDates?.firstOrNull;
+        gatePass.driverLicenceExpiryDate = rsaDriversLicense.validTo;
+        gatePass.driversLicenceCodes = rsaDriversLicense.vehicleCodes.join(',');
+        gatePass.professionalDrivingPermitExpiryDate = rsaDriversLicense.prdpExpiry;
+
+        setBarcodeScanType(BarcodeScanType.vehicleDisc);
+      } else if (_barcodeScanType == BarcodeScanType.vehicleDisc && vehicleLicenseData != null) {
+        // Process vehicle license data
+
+        gatePass.vehicleEngineNumber = vehicleLicenseData.engineNumber;
+        gatePass.vehicleMake = vehicleLicenseData.make;
+        gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
+        gatePass.vehicleVinNumber = vehicleLicenseData.vin;
+        gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
+      }
+      setModelUpdate(_gatePass);
+      rebuildUi();
+    } catch (e) {
+      setValidationMessage("Failed to process scan data: ${e.toString()}");
+      rebuildUi();
+    }
   }
 
   handleBackButton() async {
@@ -102,14 +182,6 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
     //updateHasEdit(true);
     notifyListeners();
-  }
-
-  Future<void> onDispose() async {
-    if (streamSubscription != null) {
-      await streamSubscription?.cancel();
-    }
-
-    _scanningService.onExit();
   }
 
   void onFilterValueChanged(String value) {}
@@ -190,17 +262,19 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         mainButtonTitle: "Ok",
       );
     }
+    setBusy(true);
+
     //here we save back to server
     var reponse = await _gatePassService.authorizeForEntry(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
 
-      Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Authorize for Entry was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
     } else {
       //error could not save
       Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
     }
-
+    setBusy(false);
     //update Screen UI state with model changes
     setModelUpdate(_gatePass);
     rebuildUi();
@@ -216,10 +290,12 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         mainButtonTitle: "Ok",
       );
     }
+    setBusy(true);
     //here we save back to server
     var reponse = await _gatePassService.authorizeExit(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
+      setBusy(false);
       Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
     } else {
       //error could not save
@@ -349,5 +425,9 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 //    gatePass.cu = selectedItem.code;
 
     notifyListeners();
+  }
+
+  void routePop() {
+    _scanningService.setBarcodeScanType(BarcodeScanType.loadConQrCode);
   }
 }

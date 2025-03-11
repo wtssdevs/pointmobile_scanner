@@ -10,6 +10,11 @@ abstract class BaseFormViewModel extends BaseViewModel {
   /// Stores the mapping of the form key to the value entered by the user
   Map<String, dynamic> formValueMap = Map<String, dynamic>();
 
+  void clearAllValidationMessage() {
+    _validationMessages.clear();
+    _showValidation = _validationMessages.isNotEmpty;
+  }
+
   void setValidationMessage(String value) {
     var hasMsg = _validationMessages.any((e) => e == value);
     if (hasMsg == false) {

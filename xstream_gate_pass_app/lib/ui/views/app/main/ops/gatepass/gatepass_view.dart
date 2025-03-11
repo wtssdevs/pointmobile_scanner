@@ -19,13 +19,9 @@ class GatePassView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double searchWidth =
-        getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet
-            ? MediaQuery.of(context).size.height * 0.8
-            : MediaQuery.of(context).size.height * 0.5;
+    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet ? MediaQuery.of(context).size.height * 0.8 : MediaQuery.of(context).size.height * 0.5;
     return ViewModelBuilder<GatePassViewModel>.reactive(
-      onViewModelReady: (model) =>
-          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      onViewModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.runStartupLogic();
       }),
       onDispose: (model) {
@@ -86,16 +82,16 @@ class GatePassView extends StatelessWidget {
           // ),
         ),
         resizeToAvoidBottomInset: true,
-        floatingActionButton: Visibility(
-          visible: model.hasPermission(AppPermissions.mobileOperationsCreate),
-          child: FloatingActionButton(
-            //backgroundColor: Colors.white,
-            onPressed: () async {
-              model.onAddNewGatePass();
-            },
-            child: const FaIcon(FontAwesomeIcons.listCheck),
-          ),
-        ),
+        // floatingActionButton: Visibility(
+        //   visible: model.hasPermission(AppPermissions.mobileOperationsCreate),
+        //   child: FloatingActionButton(
+        //     //backgroundColor: Colors.white,
+        //     onPressed: () async {
+        //       model.onAddNewGatePass();
+        //     },
+        //     child: const FaIcon(FontAwesomeIcons.listCheck),
+        //   ),
+        // ),
         body: SafeArea(
           child: RefreshIndicator(
             backgroundColor: Colors.blue,

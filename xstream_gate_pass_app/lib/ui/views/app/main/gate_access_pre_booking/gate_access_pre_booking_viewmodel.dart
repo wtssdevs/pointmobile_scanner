@@ -45,7 +45,9 @@ class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper
   Future<void> startconnectionListen() async {
     streamSubscription = _scanningService.rawStringStream.asBroadcastStream().listen((data) async {
       log.i("data: $data");
-      initiateQrScan(data);
+      if (isBusy == false) {
+        initiateQrScan(data);
+      }
     });
   }
 
@@ -68,6 +70,7 @@ class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper
   }
 
   Future<void> initiateQrScan(String rawData) async {
+    //setBusy(true);
     try {
       //convert to correct format
       //rawData = {"TransactionNo":"PO565871","ReferenceNo":"W013244162","CustomerRefNo":"W013244162","BookingOrderNumber":"SO2619","VehicleRegistrationNumber":"LFB235MP"}
@@ -82,10 +85,11 @@ class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper
 
       _scannedQrData = loadCOn;
       validationErrors = []; // Clear previous errors
-      rebuildUi();
+      //rebuildUi();
       await findPreBookingByQrData();
     } catch (e) {
       validationErrors = ['Failed to scan QR code: ${e.toString()}'];
+      setBusy(false);
       rebuildUi();
     }
   }
@@ -102,11 +106,11 @@ class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper
       }
 
       // Show loading indicator
-      setBusy(true);
+      //setBusy(true);
       var branchId = currentUser?.userBranches[0].id ?? 0;
       scannedQrData!.branchId = branchId;
       var reponse = await _gatePassService.findPreBookedLoad(scannedQrData!);
-      setBusy(false);
+      //setBusy(false);
       bool success = true; // Change to test different scenarios
       if (reponse == null) {
         success = false;
@@ -126,10 +130,12 @@ class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper
         //if wecome back to here we reset the model to null
         _scannedQrData = null;
         validationErrors = []; // Clear previous errors
-        setBusy(false);
+        //setBusy(false);
+        // _scanningService.setBarcodeScanType(BarcodeScanType.loadConQrCode);
         rebuildUi();
       } else {
         // Handle case where pre-booking not found
+        setBusy(false);
         validationErrors.add('No pre-booking found with the scanned QR code data: $scannedQrData');
       }
     } catch (e) {

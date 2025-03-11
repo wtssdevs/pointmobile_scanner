@@ -143,7 +143,8 @@ class GateAccessPreBookingView extends StackedView<GateAccessPreBookingViewModel
                               BuildInfoCard(
                                 width: MediaQuery.of(context).size.width * 0.95,
                                 title: "Scanned Data",
-                                isIn: false,
+                                isSelected: false,
+                                hasInfo: viewModel.scannedQrData?.isModelEmpty() == false,
                                 icon: Icons.directions_car,
                                 color: Colors.green,
                                 infoList: [
@@ -160,7 +161,8 @@ class GateAccessPreBookingView extends StackedView<GateAccessPreBookingViewModel
                       : BuildInfoCard(
                           width: MediaQuery.of(context).size.width * 0.95,
                           title: "QR Code Scanner",
-                          isIn: true,
+                          isSelected: true,
+                          hasInfo: false,
                           icon: Icons.qr_code_scanner,
                           color: Colors.red,
                           infoList: const [

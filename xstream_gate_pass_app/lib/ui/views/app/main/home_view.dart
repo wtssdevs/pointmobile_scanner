@@ -49,7 +49,7 @@ class HomeView extends StatelessWidget {
             onTap: model.setTabIndex,
             items: const [
               BottomNavigationBarItem(
-                label: "GatePass",
+                label: "GatePass Access",
                 icon: FaIcon(FontAwesomeIcons.buildingLock),
                 activeIcon: FaIcon(FontAwesomeIcons.buildingLock),
               ),

@@ -8,6 +8,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
+import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
@@ -30,15 +31,9 @@ class GatePassViewModel extends BaseViewModel with AppViewBaseHelper {
   final _navigationService = locator<NavigationService>();
   final _scanningService = locator<ScanningService>();
   int _nextPage = 1;
-  final pagingController = PagingController<int, GatePassAccess>(
-      firstPageKey: 1, invisibleItemsThreshold: 3);
+  final pagingController = PagingController<int, GatePassAccess>(firstPageKey: 1, invisibleItemsThreshold: 3);
 
-  PagedList<GatePassAccess> _pagedList = PagedList<GatePassAccess>(
-      totalCount: 0,
-      items: <GatePassAccess>[],
-      pageNumber: 1,
-      pageSize: 10,
-      totalPages: 0);
+  PagedList<GatePassAccess> _pagedList = PagedList<GatePassAccess>(totalCount: 0, items: <GatePassAccess>[], pageNumber: 1, pageSize: 10, totalPages: 0);
 
   final TextEditingController filterController = TextEditingController();
   StreamSubscription<RsaDriversLicense>? streamSubscription;
@@ -55,8 +50,7 @@ class GatePassViewModel extends BaseViewModel with AppViewBaseHelper {
   }
 
   void startconnectionListen() {
-    streamSubscription =
-        _scanningService.licenseStream.asBroadcastStream().listen((data) {
+    streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) {
       log.i('Barcode Model Recieved? $data');
       _rsaDriversLicense = data;
       notifyListeners();
@@ -118,8 +112,7 @@ class GatePassViewModel extends BaseViewModel with AppViewBaseHelper {
       _filterParams.pageNumber = _nextPage;
       _filterParams.pageSize = _pagedList.pageSize;
       _pagedList = await _gatePassService.getPagedFilteredList(filterParams);
-      final previouslyFetchedItemsCount =
-          pagingController.itemList?.length ?? 0;
+      final previouslyFetchedItemsCount = pagingController.itemList?.length ?? 0;
 
       final isLastPage = _pagedList.isLastPage(previouslyFetchedItemsCount);
 
@@ -146,16 +139,12 @@ class GatePassViewModel extends BaseViewModel with AppViewBaseHelper {
       //   filterValue = filterController.text;
       // }
 
-      var pagedList = await _gatePassService.getPagedList(
-          pageKey, _pagedList.pageSize, filterValue);
+      var pagedList = await _gatePassService.getPagedList(pageKey, _pagedList.pageSize, filterValue);
 
-      if (pagedList.items.isNotEmpty &&
-          pagingController.itemList != null &&
-          pagingController.itemList!.isNotEmpty) {
+      if (pagedList.items.isNotEmpty && pagingController.itemList != null && pagingController.itemList!.isNotEmpty) {
         //find all items in the pagingController list that are int pagedlist items and update/replace them with the new pagedlist items
         for (var item in pagedList.items) {
-          var index = pagingController.itemList
-              ?.firstWhereOrNull((element) => element.id == item.id);
+          var index = pagingController.itemList?.firstWhereOrNull((element) => element.id == item.id);
           if (index != null) {
             index = item;
           }

@@ -10,6 +10,7 @@ import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
+import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/scan_action_types.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
@@ -33,8 +34,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
   StreamSubscription<RsaDriversLicense>? streamSubscription;
   StreamSubscription<LicenseDiskData>? streamSubscriptionForDisc;
 
-  List<SearchableDropdownMenuItem<int>> get serviceTypes =>
-      _masterfilesService.serviceTypes;
+  List<SearchableDropdownMenuItem<int>> get serviceTypes => _masterfilesService.serviceTypes;
   //
 
   // Scanning configuration
@@ -93,17 +93,14 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
     streamSubscriptionForDisc?.cancel();
 
     // Also listen to license disk data for vehicle scans
-    streamSubscription =
-        _scanningService.licenseStream.asBroadcastStream().listen((data) async {
+    streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) async {
       log.i("Drivers Card data received");
       // Process the driversCard  data here
       // This would populate a GatePassVisitorAccess from the driversCard data
       processScanData(data, null);
     });
     // Also listen to license disk data for vehicle scans
-    streamSubscriptionForDisc = _scanningService.licenseDiskDataStream
-        .asBroadcastStream()
-        .listen((licenseDiskData) async {
+    streamSubscriptionForDisc = _scanningService.licenseDiskDataStream.asBroadcastStream().listen((licenseDiskData) async {
       log.i("Drivers Card data received");
       // Process the license disk data here
       // This would populate a GatePassVisitorAccess from the license disk data
@@ -117,8 +114,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       rebuildUi();
       return;
     }
-    if (_scannedVisitor.serviceTypeId == null &&
-        _scanInMode == ScanActionType.checkIn) {
+    if (_scannedVisitor.serviceTypeId == null && _scanInMode == ScanActionType.checkIn) {
       _errorMessage = "Please select a service type.";
       rebuildUi();
       return;
@@ -150,19 +146,16 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
     }
   }
 
-  Future<void> processScanData(RsaDriversLicense? rsaDriversLicense,
-      LicenseDiskData? vehicleLicenseData) async {
+  Future<void> processScanData(RsaDriversLicense? rsaDriversLicense, LicenseDiskData? vehicleLicenseData) async {
     //_isScanning = false;
 
     try {
       // Process the scanned data based on scan type
-      if (_barcodeScanType == BarcodeScanType.driversCard &&
-          rsaDriversLicense != null) {
+      if (_barcodeScanType == BarcodeScanType.driversCard && rsaDriversLicense != null) {
         // Process driver's license data
         _scannedVisitor = await processDriversLicenseData(rsaDriversLicense);
         setBarcodeScanType(BarcodeScanType.vehicleDisc);
-      } else if (_barcodeScanType == BarcodeScanType.vehicleDisc &&
-          vehicleLicenseData != null) {
+      } else if (_barcodeScanType == BarcodeScanType.vehicleDisc && vehicleLicenseData != null) {
         // Process vehicle license data
         _scannedVisitor = await processVehicleLicenseData(vehicleLicenseData);
       }
@@ -174,8 +167,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
     }
   }
 
-  Future<GatePassVisitorAccess> processDriversLicenseData(
-      RsaDriversLicense data) async {
+  Future<GatePassVisitorAccess> processDriversLicenseData(RsaDriversLicense data) async {
     //Map scanned data to the GatePassVisitorAccess model
     //update fields based on scanned data
     var branchId = currentUser?.userBranches[0].id ?? 0;
@@ -190,9 +182,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
         driverLicenceIssueDate: data.issueDates?.firstOrNull,
         driverLicenceExpiryDate: data.validTo,
         driversLicenceCodes: data.vehicleCodes.join(','),
-        gatePassStatus: _scanInMode == ScanActionType.checkIn
-            ? GatePassStatus.atGate
-            : GatePassStatus.inYard,
+        gatePassStatus: _scanInMode == ScanActionType.checkIn ? GatePassStatus.atGate : GatePassStatus.inYard,
         gatePassBookingType: GatePassBookingType.visitor,
         professionalDrivingPermitExpiryDate: data.prdpExpiry,
       );
@@ -203,9 +193,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       _scannedVisitor.driverLicenceIssueDate = data.issueDates?.firstOrNull;
       _scannedVisitor.driverLicenceExpiryDate = data.validTo;
       _scannedVisitor.driversLicenceCodes = data.vehicleCodes.join(',');
-      _scannedVisitor.gatePassStatus = _scanInMode == ScanActionType.checkIn
-          ? GatePassStatus.atGate
-          : GatePassStatus.inYard;
+      _scannedVisitor.gatePassStatus = _scanInMode == ScanActionType.checkIn ? GatePassStatus.atGate : GatePassStatus.inYard;
       _scannedVisitor.gatePassBookingType = GatePassBookingType.visitor;
       _scannedVisitor.professionalDrivingPermitExpiryDate = data.prdpExpiry;
       _scannedVisitor.branchId = branchId;
@@ -214,8 +202,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
     return _scannedVisitor;
   }
 
-  Future<GatePassVisitorAccess> processVehicleLicenseData(
-      LicenseDiskData data) async {
+  Future<GatePassVisitorAccess> processVehicleLicenseData(LicenseDiskData data) async {
     // In a real implementation, this would parse the vehicle license data
     // For demonstration, we're creating a sample visitor
 
@@ -225,9 +212,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       _scannedVisitor = GatePassVisitorAccess(
         isActive: true,
         branchId: branchId,
-        gatePassStatus: _scanInMode == ScanActionType.checkIn
-            ? GatePassStatus.atGate
-            : GatePassStatus.inYard,
+        gatePassStatus: _scanInMode == ScanActionType.checkIn ? GatePassStatus.atGate : GatePassStatus.inYard,
         gatePassBookingType: GatePassBookingType.visitor,
         vehicleEngineNumber: data.engineNumber,
         vehicleMake: data.make,
@@ -237,9 +222,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       );
     } else {
       //Update
-      _scannedVisitor.gatePassStatus = _scanInMode == ScanActionType.checkIn
-          ? GatePassStatus.atGate
-          : GatePassStatus.inYard;
+      _scannedVisitor.gatePassStatus = _scanInMode == ScanActionType.checkIn ? GatePassStatus.atGate : GatePassStatus.inYard;
       _scannedVisitor.gatePassBookingType = GatePassBookingType.visitor;
       _scannedVisitor.vehicleEngineNumber = data.engineNumber;
       _scannedVisitor.vehicleMake = data.make;
@@ -253,8 +236,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
   }
 
   Future<bool> submitVisitorEntry() async {
-    if (_scannedVisitor.hasDriverInfo == false &&
-        _scannedVisitor.hasVehicleInfo == false) {
+    if (_scannedVisitor.hasDriverInfo == false && _scannedVisitor.hasVehicleInfo == false) {
       _errorMessage = "No driver or vehicle information found.";
       rebuildUi();
       return false;
@@ -275,8 +257,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
         return response;
       } else if (_scanInMode == ScanActionType.preCheckIn) {
         // Check out visitor
-        var response =
-            await _gatePassService.findPreBookedVisitor(_scannedVisitor);
+        var response = await _gatePassService.findPreBookedVisitor(_scannedVisitor);
         if (response != null) {
           _scannedVisitor = response;
 
