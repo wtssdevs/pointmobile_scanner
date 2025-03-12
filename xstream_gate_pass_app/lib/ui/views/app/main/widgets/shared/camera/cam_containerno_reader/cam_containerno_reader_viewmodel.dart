@@ -126,6 +126,48 @@ class CamContainernoReaderViewModel extends BaseViewModel {
         }
       }
 
+      if (containerCandidates.isNotEmpty) {
+        // Find ISO type
+        final isoPattern = RegExp(r'([24][A-Z0-9]{3})');
+        final isoMatches = isoPattern.allMatches(cleanText);
+        String? isoType;
+
+        // If no ISO type found in context window, search entire text
+        // If no ISO type found in context window, search entire text
+        if (isoType == null) {
+          final allIsoMatches = isoPattern.allMatches(cleanText);
+          for (final isoMatch in allIsoMatches) {
+            if (isoType != null) {
+              break;
+            }
+
+            final potentialIsoType = isoMatch.group(1) ?? '';
+
+            if (potentialIsoType.isNumeric) {
+              continue;
+            }
+
+            var found2 = _isoTypeService.isoTypesMap[potentialIsoType];
+            if (found2 != null) {
+              isoType = potentialIsoType;
+              break;
+            }
+            var found = _isoCodes.firstWhereOrNull((element) => element == potentialIsoType);
+            if (found != null) {
+              isoType = potentialIsoType;
+              break;
+            }
+          }
+        }
+        // If we have a container but no ISO type
+        if (containerCandidates.isNotEmpty && isoType != null) {
+          return ContainerInfo(
+            containerNumber: containerCandidates[0].containerNumber,
+            isoType: isoType,
+          );
+        }
+      }
+
       // Check for potential ISO types (4 chars starting with 2 or 4)
       if (tokens[i].length == 4 && (tokens[i].startsWith('2') || tokens[i].startsWith('4')) && _isAlphanumericString(tokens[i])) {
         String potentialIsoType = tokens[i];
@@ -170,7 +212,38 @@ class CamContainernoReaderViewModel extends BaseViewModel {
         );
       }
     }
+    // Find ISO type
+    final isoPattern = RegExp(r'([24][A-Z0-9]{3})');
+    final isoMatches = isoPattern.allMatches(cleanText);
+    String? isoType;
 
+    // If no ISO type found in context window, search entire text
+    // If no ISO type found in context window, search entire text
+    if (isoType == null) {
+      final allIsoMatches = isoPattern.allMatches(cleanText);
+      for (final isoMatch in allIsoMatches) {
+        if (isoType != null) {
+          break;
+        }
+
+        final potentialIsoType = isoMatch.group(1) ?? '';
+
+        if (potentialIsoType.isNumeric) {
+          continue;
+        }
+
+        var found2 = _isoTypeService.isoTypesMap[potentialIsoType];
+        if (found2 != null) {
+          isoType = potentialIsoType;
+          break;
+        }
+        var found = _isoCodes.firstWhereOrNull((element) => element == potentialIsoType);
+        if (found != null) {
+          isoType = potentialIsoType;
+          break;
+        }
+      }
+    }
     // If we have a container but no ISO type
     if (containerCandidates.isNotEmpty) {
       return ContainerInfo(
@@ -215,7 +288,7 @@ class CamContainernoReaderViewModel extends BaseViewModel {
     final providedCheckDigit = int.tryParse(containerNumber[10]);
     if (providedCheckDigit == null) return false;
 
-    final calculatedCheckDigit = _isoTypeService.iso6346CheckDigit(prefix);
+    final calculatedCheckDigit = _isoTypeService.iso6346CheckDigit(containerNumber);
     return providedCheckDigit == calculatedCheckDigit;
   }
 
