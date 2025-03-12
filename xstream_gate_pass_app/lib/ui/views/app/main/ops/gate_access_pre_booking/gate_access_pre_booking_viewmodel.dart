@@ -15,7 +15,8 @@ import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manag
 
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
 
-class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper {
+class GateAccessPreBookingViewModel extends BaseViewModel
+    with AppViewBaseHelper {
   final log = getLogger('GateAccessPreBookingViewModel');
   final _scanningService = locator<ScanningService>();
   StreamSubscription<String>? streamSubscription;
@@ -43,7 +44,9 @@ class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper
   }
 
   Future<void> startconnectionListen() async {
-    streamSubscription = _scanningService.rawStringStream.asBroadcastStream().listen((data) async {
+    streamSubscription = _scanningService.rawStringStream
+        .asBroadcastStream()
+        .listen((data) async {
       log.i("data: $data");
       if (isBusy == false) {
         initiateQrScan(data);
@@ -136,7 +139,8 @@ class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper
       } else {
         // Handle case where pre-booking not found
         setBusy(false);
-        validationErrors.add('No pre-booking found with the scanned QR code data: $scannedQrData');
+        validationErrors.add(
+            'No pre-booking found with the scanned QR code data: $scannedQrData');
       }
     } catch (e) {
       validationErrors.add('Error searching for pre-booking: ${e.toString()}');

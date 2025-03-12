@@ -7,6 +7,7 @@ import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staf
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/loadcon_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/staff_qrcode_model.dart';
+import 'package:xstream_gate_pass_app/core/models/scanning/stockpile_loading_slip_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
@@ -315,6 +316,19 @@ class GatePassService {
       log.e(e.toString());
       return null;
     }
+  }
+
+  Future<bool> setCmsGatePassEvent(StockpileLoadingSlipQrCodeModel entity) async {
+    var baseResponse = await _apiManager.post(AppConst.setCmsGatePassEvent, showLoader: true, data: entity.toJson());
+    if (baseResponse != null) {
+      var apiResponse = ApiResponse.fromJson(baseResponse);
+      if (apiResponse.success != null) {
+        return apiResponse.success!;
+      }
+
+      return false;
+    }
+    return false;
   }
 
   Future<GatePassAccess?> authorizeForEntry(GatePassAccess entity) async {

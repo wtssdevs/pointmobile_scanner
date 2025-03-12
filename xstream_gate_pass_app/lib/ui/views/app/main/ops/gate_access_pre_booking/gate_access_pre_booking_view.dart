@@ -5,12 +5,13 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
-import 'package:xstream_gate_pass_app/ui/views/app/main/gate_access_pre_booking/gate_access_pre_booking_viewmodel.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_pre_booking/gate_access_pre_booking_viewmodel.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_Info_item.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_info_card.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/finder_app_bar.dart';
 
-class GateAccessPreBookingView extends StackedView<GateAccessPreBookingViewModel> {
+class GateAccessPreBookingView
+    extends StackedView<GateAccessPreBookingViewModel> {
   const GateAccessPreBookingView({Key? key}) : super(key: key);
 
   @override
@@ -19,17 +20,23 @@ class GateAccessPreBookingView extends StackedView<GateAccessPreBookingViewModel
     GateAccessPreBookingViewModel viewModel,
     Widget? child,
   ) {
-    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet ? MediaQuery.of(context).size.height * 0.8 : MediaQuery.of(context).size.height * 0.5;
+    double searchWidth =
+        getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet
+            ? MediaQuery.of(context).size.height * 0.8
+            : MediaQuery.of(context).size.height * 0.5;
     return Scaffold(
       appBar: AppBar(
-        title: Text("${viewModel.translate('Find')} ${viewModel.translate('PreBookings')}"),
+        title: Text(
+            "${viewModel.translate('Find')} ${viewModel.translate('PreBookings')}"),
       ),
       backgroundColor: Theme.of(context).colorScheme.surface,
       resizeToAvoidBottomInset: true,
       persistentFooterAlignment: AlignmentDirectional.center,
       persistentFooterButtons: [
         ElevatedButton.icon(
-          onPressed: viewModel.scannedQrData == null ? null : () => viewModel.findPreBookingByQrData(),
+          onPressed: viewModel.scannedQrData == null
+              ? null
+              : () => viewModel.findPreBookingByQrData(),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green[600],
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -144,15 +151,37 @@ class GateAccessPreBookingView extends StackedView<GateAccessPreBookingViewModel
                                 width: MediaQuery.of(context).size.width * 0.95,
                                 title: "Scanned Data",
                                 isSelected: false,
-                                hasInfo: viewModel.scannedQrData?.isModelEmpty() == false,
+                                hasInfo:
+                                    viewModel.scannedQrData?.isModelEmpty() ==
+                                        false,
                                 icon: Icons.directions_car,
                                 color: Colors.green,
                                 infoList: [
-                                  BuildInfoItem(label: 'Transaction No', value: viewModel.scannedQrData?.transactionNo ?? 'Not Scanned'),
-                                  BuildInfoItem(label: 'Vehicle Reg Number', value: viewModel.scannedQrData?.vehicleRegistrationNumber ?? 'Not Scanned'),
-                                  BuildInfoItem(label: 'Reference No', value: viewModel.scannedQrData?.referenceNo ?? 'Not Scanned'),
-                                  BuildInfoItem(label: 'Customer Ref No', value: viewModel.scannedQrData?.customerRefNo ?? 'Not Scanned'),
-                                  BuildInfoItem(label: 'Booking Order No', value: viewModel.scannedQrData?.bookingOrderNumber ?? 'Not Scanned'),
+                                  BuildInfoItem(
+                                      label: 'Transaction No',
+                                      value: viewModel
+                                              .scannedQrData?.transactionNo ??
+                                          'Not Scanned'),
+                                  BuildInfoItem(
+                                      label: 'Vehicle Reg Number',
+                                      value: viewModel.scannedQrData
+                                              ?.vehicleRegistrationNumber ??
+                                          'Not Scanned'),
+                                  BuildInfoItem(
+                                      label: 'Reference No',
+                                      value: viewModel
+                                              .scannedQrData?.referenceNo ??
+                                          'Not Scanned'),
+                                  BuildInfoItem(
+                                      label: 'Customer Ref No',
+                                      value: viewModel
+                                              .scannedQrData?.customerRefNo ??
+                                          'Not Scanned'),
+                                  BuildInfoItem(
+                                      label: 'Booking Order No',
+                                      value: viewModel.scannedQrData
+                                              ?.bookingOrderNumber ??
+                                          'Not Scanned'),
                                 ],
                               ),
                             ],
@@ -245,7 +274,8 @@ class GateAccessPreBookingView extends StackedView<GateAccessPreBookingViewModel
   }
 
   @override
-  void onViewModelReady(GateAccessPreBookingViewModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
+  void onViewModelReady(GateAccessPreBookingViewModel viewModel) =>
+      SchedulerBinding.instance.addPostFrameCallback(
         (timeStamp) => viewModel.runStartupLogic(),
       );
 

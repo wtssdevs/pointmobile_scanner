@@ -33,7 +33,7 @@ class BuildInfoCard extends StatelessWidget {
           verticalSpaceSmall,
           Container(
             width: width, // MediaQuery.of(context).size.width * 0.95,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
               borderRadius: BorderRadius.circular(8),

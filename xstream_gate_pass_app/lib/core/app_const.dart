@@ -58,6 +58,7 @@ class AppConst {
   static const String findPreBookedVisitor = "/api/services/app/MobileGatePassAccess/FindPreBookedVisitor";
   static const String scanPreBookedVisitorIn = "/api/services/app/MobileGatePassAccess/ScanPreBookedVisitorIn";
   static const String scanPreBookedVisitorOut = "/api/services/app/MobileGatePassAccess/ScanPreBookedVisitorOut";
+  static const String setCmsGatePassEvent = "/api/services/app/MobileGatePassAccess/SetCmsGatePassEvent";
 
   ///api/services/app/MobileGatePassAccess/GetAllPaged
 

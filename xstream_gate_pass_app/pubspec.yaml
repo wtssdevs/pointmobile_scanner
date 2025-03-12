@@ -93,6 +93,7 @@ dependencies:
      json_annotation: ^4.9.0
      cupertino_icons: ^1.0.8
      google_mlkit_barcode_scanning: ^0.13.0
+     google_mlkit_text_recognition: ^0.14.0
      clipboard_watcher: ^0.3.0
      flutter_barcode_listener:
           git:

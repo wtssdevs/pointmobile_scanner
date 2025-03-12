@@ -20,7 +20,10 @@ class BaseSheetHeader extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: kcPrimaryColor),
+              style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: kcPrimaryColor),
             ),
             IconButton(
               icon: const Icon(Icons.close),

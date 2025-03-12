@@ -15,6 +15,7 @@ class AppPermissions {
   static const String preBookings = "PreBookings";
   static const String visitors = "Visitors";
   static const String yardOperations = "YardOperations";
+  static const String gateAccess = "GateAccess";
 
   static const String mobileOperationsCreate =
       views + operations + gatePassAccess + mobileOperations + create;
@@ -49,4 +50,7 @@ class AppPermissions {
 
   static const String mobileOperationsYardOperations =
       views + operations + gatePassAccess + mobileOperations + yardOperations;
+
+  static const String mobileOperationsGateAccess =
+      views + operations + gatePassAccess + mobileOperations + gateAccess;
 }

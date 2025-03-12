@@ -10,7 +10,8 @@ import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 
 import 'gate_access_pre_booking_sheet_model.dart';
 
-class GateAccessPreBookingSheet extends StackedView<GateAccessPreBookingSheetModel> {
+class GateAccessPreBookingSheet
+    extends StackedView<GateAccessPreBookingSheetModel> {
   final Function(SheetResponse response)? completer;
   final SheetRequest request;
   const GateAccessPreBookingSheet({
@@ -91,9 +92,11 @@ class GateAccessPreBookingSheet extends StackedView<GateAccessPreBookingSheetMod
   }
 
   @override
-  void onViewModelReady(GateAccessPreBookingSheetModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
+  void onViewModelReady(GateAccessPreBookingSheetModel viewModel) =>
+      SchedulerBinding.instance.addPostFrameCallback(
         (timeStamp) => viewModel.runStartupLogic(request.data),
       );
   @override
-  GateAccessPreBookingSheetModel viewModelBuilder(BuildContext context) => GateAccessPreBookingSheetModel();
+  GateAccessPreBookingSheetModel viewModelBuilder(BuildContext context) =>
+      GateAccessPreBookingSheetModel();
 }

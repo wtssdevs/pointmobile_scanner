@@ -60,12 +60,15 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
     );
   }
 
-  Widget _buildContent(BuildContext context, GateAccessVisitorSheetModel viewModel) {
+  Widget _buildContent(
+      BuildContext context, GateAccessVisitorSheetModel viewModel) {
     // Show scanning UI or initial scan setup
     switch (viewModel.scanInMode) {
       case ScanActionType.checkIn:
       case ScanActionType.checkOut:
-        return viewModel.isScanning ? _buildScanResultView(context, viewModel) : _buildScanSetupView(context, viewModel);
+        return viewModel.isScanning
+            ? _buildScanResultView(context, viewModel)
+            : _buildScanSetupView(context, viewModel);
       case ScanActionType.preCheckIn:
         return _buildScanResultView(context, viewModel);
 
@@ -74,9 +77,11 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
     }
   }
 
-  Widget _buildFooter(BuildContext context, GateAccessVisitorSheetModel viewModel) {
+  Widget _buildFooter(
+      BuildContext context, GateAccessVisitorSheetModel viewModel) {
     // Different footer based on current state
-    if (viewModel.scannedVisitor.hasDriverInfo && viewModel.scannedVisitor.hasVehicleInfo) {
+    if (viewModel.scannedVisitor.hasDriverInfo &&
+        viewModel.scannedVisitor.hasVehicleInfo) {
       // Show submit/cancel for scan results
       return Row(
         children: [
@@ -125,7 +130,8 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
                           : viewModel.scanInMode == ScanActionType.preCheckIn
                               ? 'Validate Visitor'
                               : 'Check Out Visitor',
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.white),
                     ),
             ),
           ),
@@ -163,7 +169,8 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: !viewModel.hasConnection ? null : () => viewModel.startScanning(),
+          onPressed:
+              !viewModel.hasConnection ? null : () => viewModel.startScanning(),
           style: ElevatedButton.styleFrom(
             backgroundColor: kcPrimaryColor,
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -204,7 +211,8 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
         width: MediaQuery.of(context).size.width * 0.4,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? kcPrimaryColor.withOpacity(0.1) : Colors.grey[100],
+          color:
+              isSelected ? kcPrimaryColor.withOpacity(0.1) : Colors.grey[100],
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? kcPrimaryColor : Colors.grey[300]!,
@@ -253,7 +261,8 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
     //final isSelected = viewModel.scanInMode == ScanActionType.checkIn;
 
     return GestureDetector(
-      onTap: () => viewModel.setScanInMode(isSelected ? ScanActionType.checkIn : ScanActionType.checkOut),
+      onTap: () => viewModel.setScanInMode(
+          isSelected ? ScanActionType.checkIn : ScanActionType.checkOut),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.4,
         padding: const EdgeInsets.all(16),
@@ -295,7 +304,8 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
     );
   }
 
-  Widget _buildScanResultView(BuildContext context, GateAccessVisitorSheetModel viewModel) {
+  Widget _buildScanResultView(
+      BuildContext context, GateAccessVisitorSheetModel viewModel) {
     final visitor = viewModel.scannedVisitor;
 
     return SingleChildScrollView(
@@ -306,17 +316,25 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: viewModel.scanInMode == ScanActionType.checkIn ? Colors.green[50] : Colors.orange[50],
+              color: viewModel.scanInMode == ScanActionType.checkIn
+                  ? Colors.green[50]
+                  : Colors.orange[50],
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: viewModel.scanInMode == ScanActionType.checkIn ? Colors.green[200]! : Colors.orange[200]!,
+                color: viewModel.scanInMode == ScanActionType.checkIn
+                    ? Colors.green[200]!
+                    : Colors.orange[200]!,
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  viewModel.scanInMode == ScanActionType.checkIn ? Icons.login : Icons.logout,
-                  color: viewModel.scanInMode == ScanActionType.checkIn ? Colors.green[700] : Colors.orange[700],
+                  viewModel.scanInMode == ScanActionType.checkIn
+                      ? Icons.login
+                      : Icons.logout,
+                  color: viewModel.scanInMode == ScanActionType.checkIn
+                      ? Colors.green[700]
+                      : Colors.orange[700],
                 ),
                 horizontalSpaceSmall,
                 Text(
@@ -327,7 +345,9 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
                           : 'This visitor will be checked out',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: viewModel.scanInMode == ScanActionType.checkIn ? Colors.green[700] : Colors.orange[700],
+                    color: viewModel.scanInMode == ScanActionType.checkIn
+                        ? Colors.green[700]
+                        : Colors.orange[700],
                   ),
                 ),
               ],
@@ -372,20 +392,29 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
               : const SizedBox.shrink(),
 
           verticalSpaceSmall,
-          !visitor.hasDriverInfo || !visitor.hasVehicleInfo ? BuildScanningView(barcodeScanType: viewModel.barcodeScanType) : const SizedBox.shrink(),
+          !visitor.hasDriverInfo || !visitor.hasVehicleInfo
+              ? BuildScanningView(barcodeScanType: viewModel.barcodeScanType)
+              : const SizedBox.shrink(),
           verticalSpaceSmall,
 
           BuildInfoCard(
             width: MediaQuery.of(context).size.width * 0.95,
             title: "Visitor Drivers Lisence Card",
-            isSelected: viewModel.barcodeScanType == BarcodeScanType.driversCard,
+            isSelected:
+                viewModel.barcodeScanType == BarcodeScanType.driversCard,
             hasInfo: visitor.hasDriverInfo,
             icon: Icons.credit_card,
             color: Colors.green,
             infoList: [
-              BuildInfoItem(label: 'Driver Name', value: visitor.driverName ?? 'Not Scanned'),
-              BuildInfoItem(label: 'ID Number', value: visitor.driverIdNo ?? 'Not Scanned'),
-              BuildInfoItem(label: 'License No', value: visitor.driverLicenceNo ?? 'Not Scanned'),
+              BuildInfoItem(
+                  label: 'Driver Name',
+                  value: visitor.driverName ?? 'Not Scanned'),
+              BuildInfoItem(
+                  label: 'ID Number',
+                  value: visitor.driverIdNo ?? 'Not Scanned'),
+              BuildInfoItem(
+                  label: 'License No',
+                  value: visitor.driverLicenceNo ?? 'Not Scanned'),
             ],
           ),
 
@@ -393,13 +422,17 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
           BuildInfoCard(
             width: MediaQuery.of(context).size.width * 0.95,
             title: "Vehicle Lisence Disc",
-            isSelected: viewModel.barcodeScanType == BarcodeScanType.vehicleDisc,
+            isSelected:
+                viewModel.barcodeScanType == BarcodeScanType.vehicleDisc,
             hasInfo: visitor.hasVehicleInfo,
             icon: Icons.directions_car,
             color: Colors.green,
             infoList: [
-              BuildInfoItem(label: 'Registration', value: visitor.vehicleRegNumber ?? 'Not Scanned'),
-              BuildInfoItem(label: 'Make', value: visitor.vehicleMake ?? 'Not Scanned'),
+              BuildInfoItem(
+                  label: 'Registration',
+                  value: visitor.vehicleRegNumber ?? 'Not Scanned'),
+              BuildInfoItem(
+                  label: 'Make', value: visitor.vehicleMake ?? 'Not Scanned'),
             ],
           ),
           verticalSpaceTiny,
@@ -432,7 +465,8 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
     );
   }
 
-  Widget _buildScanSetupView(BuildContext context, GateAccessVisitorSheetModel viewModel) {
+  Widget _buildScanSetupView(
+      BuildContext context, GateAccessVisitorSheetModel viewModel) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,9 +619,11 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
   }
 
   @override
-  void onViewModelReady(GateAccessVisitorSheetModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
+  void onViewModelReady(GateAccessVisitorSheetModel viewModel) =>
+      SchedulerBinding.instance.addPostFrameCallback(
         (timeStamp) => viewModel.runStartupLogic(request.data),
       );
   @override
-  GateAccessVisitorSheetModel viewModelBuilder(BuildContext context) => GateAccessVisitorSheetModel();
+  GateAccessVisitorSheetModel viewModelBuilder(BuildContext context) =>
+      GateAccessVisitorSheetModel();
 }

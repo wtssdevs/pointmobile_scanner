@@ -33,31 +33,39 @@ class GatePassEditView extends StatelessWidget {
   final GatePassAccess gatePass;
   GatePassEditView({Key? key, required this.gatePass}) : super(key: key);
 
-  final TextEditingController vehicleRegNumberTextController = TextEditingController();
+  final TextEditingController vehicleRegNumberTextController =
+      TextEditingController();
   final FocusNode vehicleRegNumberTextFocusNode = FocusNode();
 
-  final TextEditingController vehicleRegNumberValiTextController = TextEditingController();
+  final TextEditingController vehicleRegNumberValiTextController =
+      TextEditingController();
   final FocusNode vehicleRegNumberValiTextFocusNode = FocusNode();
 
-  final TextEditingController trailerNo1TextController = TextEditingController();
+  final TextEditingController trailerNo1TextController =
+      TextEditingController();
   final FocusNode trailerNo1TextFocusNode = FocusNode();
 
-  final TextEditingController trailerNo2TextController = TextEditingController();
+  final TextEditingController trailerNo2TextController =
+      TextEditingController();
   final FocusNode trailerNo2TextFocusNode = FocusNode();
 
   final TextEditingController driverIDTextController = TextEditingController();
   final FocusNode driverIDTextFocusNode = FocusNode();
 
-  final TextEditingController driverLisenceNoTextController = TextEditingController();
+  final TextEditingController driverLisenceNoTextController =
+      TextEditingController();
   final FocusNode driverLisenceNoTextFocusNode = FocusNode();
 
-  final TextEditingController driverNameTextController = TextEditingController();
+  final TextEditingController driverNameTextController =
+      TextEditingController();
   final FocusNode driverdriverNameTextFocusNode = FocusNode();
 
-  final TextEditingController driverGenderTextController = TextEditingController();
+  final TextEditingController driverGenderTextController =
+      TextEditingController();
   final FocusNode driverdriverGenderTextFocusNode = FocusNode();
 
-  final TextEditingController driverLicenseTypeTextController = TextEditingController();
+  final TextEditingController driverLicenseTypeTextController =
+      TextEditingController();
   final FocusNode driverLicenseTypeTextFocusNode = FocusNode();
 
   final formKeyAtGate = GlobalKey<FormState>();
@@ -71,7 +79,8 @@ class GatePassEditView extends StatelessWidget {
     driverLisenceNoTextController.text = data.driverLicenceNo ?? "";
   }
 
-  Future<bool> validateByFormKey(GlobalKey<FormState> formKey, BuildContext context, GatePassEditViewModel model) async {
+  Future<bool> validateByFormKey(GlobalKey<FormState> formKey,
+      BuildContext context, GatePassEditViewModel model) async {
     var isvalid = formKey.currentState!.validate();
     if (isvalid && model.showValidation == false) {
       formKey.currentState!.save();
@@ -82,7 +91,8 @@ class GatePassEditView extends StatelessWidget {
     }
   }
 
-  Future<bool> validateForm(GatePassEditViewModel model, BuildContext context) async {
+  Future<bool> validateForm(
+      GatePassEditViewModel model, BuildContext context) async {
     //validate per status
 
     if (model.gatePass.gatePassBookingType == GatePassBookingType.visitor) {
@@ -105,7 +115,15 @@ class GatePassEditView extends StatelessWidget {
 
       if (model.showValidation) {
         model.rebuildUi();
-        Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+        Fluttertoast.showToast(
+            msg:
+                "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM_LEFT,
+            timeInSecForIosWeb: 8,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 14.0);
         return false;
       }
 
@@ -131,7 +149,15 @@ class GatePassEditView extends StatelessWidget {
 
     if (model.showValidation) {
       model.rebuildUi();
-      Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+      Fluttertoast.showToast(
+          msg:
+              "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0);
       return false;
     }
 
@@ -172,7 +198,8 @@ class GatePassEditView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<GatePassEditViewModel>.reactive(
-      onViewModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      onViewModelReady: (model) =>
+          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.listenToModelSet(onModelSet);
         model.runStartupLogic();
         if (gatePass.id == 0) {
@@ -191,7 +218,12 @@ class GatePassEditView extends StatelessWidget {
           child: Scaffold(
             persistentFooterButtons: [
               Visibility(
-                visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.inYard.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value,
+                visible: model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.atGate.value ||
+                    model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.inYard.value ||
+                    model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.pending.value,
                 // (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.atGate.index) || (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.inYard.index),
                 child: model.isBusy
                     ? const SizedBox.shrink()
@@ -212,7 +244,11 @@ class GatePassEditView extends StatelessWidget {
                       ),
               ),
               Visibility(
-                visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
+                visible: model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.atGate.value ||
+                    model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.pending
+                            .value, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
                 child: model.isBusy
                     ? const SizedBox.shrink()
                     : ElevatedButton.icon(
@@ -231,7 +267,9 @@ class GatePassEditView extends StatelessWidget {
                       ),
               ),
               Visibility(
-                visible: model.gatePass.gatePassStatus.value == GatePassStatus.inYard.index, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
+                visible: model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.inYard
+                        .index, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
                 child: model.isBusy
                     ? const SizedBox.shrink()
                     : ElevatedButton.icon(
@@ -257,11 +295,15 @@ class GatePassEditView extends StatelessWidget {
                 dense: true,
                 horizontalTitleGap: 0.0,
 
-                contentPadding: const EdgeInsets.only(left: 0.0, right: 0.0, top: 0, bottom: 0),
+                contentPadding: const EdgeInsets.only(
+                    left: 0.0, right: 0.0, top: 0, bottom: 0),
                 //leading:
-                title: BoxText.label(model.gatePass.transactionNo ?? "", color: Colors.black),
-                subtitle: BoxText.label(model.gatePass.voyageNo ?? "", color: Colors.black),
-                trailing: GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
+                title: BoxText.label(model.gatePass.transactionNo ?? "",
+                    color: Colors.black),
+                subtitle: BoxText.label(model.gatePass.voyageNo ?? "",
+                    color: Colors.black),
+                trailing:
+                    GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
               ),
               titleSpacing: 0.0,
               centerTitle: true,
@@ -324,60 +366,101 @@ class GatePassEditView extends StatelessWidget {
                 children: [
                   //GATE ACCESS
                   SingleChildScrollView(
-                      child: model.gatePass.gatePassBookingType == GatePassBookingType.visitor || model.gatePass.gatePassBookingType == GatePassBookingType.staff
+                      child: model.gatePass.gatePassBookingType ==
+                                  GatePassBookingType.visitor ||
+                              model.gatePass.gatePassBookingType ==
+                                  GatePassBookingType.staff
                           ? Column(
                               children: [
                                 if (model.showValidation) ...[
                                   verticalSpaceSmall,
                                   BuildErrorsView(
-                                    validationMessages: model.validationMessages,
+                                    validationMessages:
+                                        model.validationMessages,
                                   ),
                                 ],
                                 verticalSpaceSmall,
                                 BuildInfoCard(
-                                  width: MediaQuery.of(context).size.width * 0.95,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.95,
                                   title: "Visitor Drivers Lisence Card",
-                                  isSelected: model.barcodeScanType == BarcodeScanType.driversCard,
+                                  isSelected: model.barcodeScanType ==
+                                      BarcodeScanType.driversCard,
                                   onTap: () {
-                                    model.setBarcodeScanType(BarcodeScanType.driversCard);
+                                    model.setBarcodeScanType(
+                                        BarcodeScanType.driversCard);
                                   },
                                   hasInfo: model.gatePass.hasDriverInfo,
                                   icon: Icons.credit_card,
                                   color: Colors.blue,
                                   infoList: [
-                                    BuildInfoItem(label: 'Driver Name', value: model.gatePass.driverName ?? 'Not Scanned'),
-                                    BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Not Scanned'),
-                                    BuildInfoItem(label: 'License No', value: model.gatePass.driverLicenceNo ?? 'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'Driver Name',
+                                        value: model.gatePass.driverName ??
+                                            'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'ID Number',
+                                        value: model.gatePass.driverIdNo ??
+                                            'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'License No',
+                                        value: model.gatePass.driverLicenceNo ??
+                                            'Not Scanned'),
                                   ],
                                 ),
                                 verticalSpaceSmall,
                                 BuildInfoCard(
-                                  width: MediaQuery.of(context).size.width * 0.95,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.95,
                                   title: "Vehicle Lisence Disc",
-                                  isSelected: model.barcodeScanType == BarcodeScanType.vehicleDisc,
+                                  isSelected: model.barcodeScanType ==
+                                      BarcodeScanType.vehicleDisc,
                                   onTap: () {
-                                    model.setBarcodeScanType(BarcodeScanType.vehicleDisc);
+                                    model.setBarcodeScanType(
+                                        BarcodeScanType.vehicleDisc);
                                   },
                                   hasInfo: model.gatePass.hasVehicleInfo,
                                   icon: Icons.directions_car,
                                   color: Colors.green,
                                   infoList: [
-                                    BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
-                                    BuildInfoItem(label: 'Make', value: model.gatePass.vehicleMake ?? 'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'Registration',
+                                        value:
+                                            model.gatePass.vehicleRegNumber ??
+                                                'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'Make',
+                                        value: model.gatePass.vehicleMake ??
+                                            'Not Scanned'),
                                   ],
                                 ),
                                 verticalSpaceSmall,
                                 BuildInfoCard(
-                                  width: MediaQuery.of(context).size.width * 0.95,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.95,
                                   title: "Times",
-                                  isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,
+                                  isSelected:
+                                      model.gatePass.timeAtGate != null &&
+                                          model.gatePass.timeIn != null,
                                   hasInfo: true,
                                   icon: Icons.timelapse_sharp,
                                   color: Colors.amber[300]!,
                                   infoList: [
-                                    BuildInfoItem(label: 'Time At Gate', value: model.gatePass.timeAtGate?.toSocialMediaTime() ?? ''),
-                                    BuildInfoItem(label: 'Time In', value: model.gatePass.timeIn?.toSocialMediaTime() ?? ''),
-                                    BuildInfoItem(label: 'Time Out', value: model.gatePass.timeOut?.toSocialMediaTime() ?? ''),
+                                    BuildInfoItem(
+                                        label: 'Time At Gate',
+                                        value: model.gatePass.timeAtGate
+                                                ?.toSocialMediaTime() ??
+                                            ''),
+                                    BuildInfoItem(
+                                        label: 'Time In',
+                                        value: model.gatePass.timeIn
+                                                ?.toSocialMediaTime() ??
+                                            ''),
+                                    BuildInfoItem(
+                                        label: 'Time Out',
+                                        value: model.gatePass.timeOut
+                                                ?.toSocialMediaTime() ??
+                                            ''),
                                   ],
                                 ),
                                 model.gatePass.serviceTypeId != null
@@ -398,58 +481,110 @@ class GatePassEditView extends StatelessWidget {
                                 if (model.showValidation) ...[
                                   verticalSpaceSmall,
                                   BuildErrorsView(
-                                    validationMessages: model.validationMessages,
+                                    validationMessages:
+                                        model.validationMessages,
                                   ),
                                 ],
                                 verticalSpaceTiny,
-                                !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
+                                !model.gatePass.hasDriverInfo ||
+                                        !model.gatePass.hasVehicleInfo
+                                    ? BuildScanningView(
+                                        barcodeScanType: model.barcodeScanType)
+                                    : const SizedBox.shrink(),
                                 verticalSpaceSmall,
                                 BuildInfoCard(
-                                  width: MediaQuery.of(context).size.width * 0.95,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.95,
                                   title: "Drivers Lisence Card",
-                                  isSelected: model.barcodeScanType == BarcodeScanType.driversCard,
+                                  isSelected: model.barcodeScanType ==
+                                      BarcodeScanType.driversCard,
                                   onTap: () {
-                                    model.setBarcodeScanType(BarcodeScanType.driversCard);
+                                    model.setBarcodeScanType(
+                                        BarcodeScanType.driversCard);
                                   },
                                   hasInfo: model.gatePass.hasDriverInfo,
                                   icon: Icons.credit_card,
                                   color: Colors.blue,
                                   infoList: [
-                                    BuildInfoItem(label: 'Driver Name', value: model.gatePass.driverName ?? 'Not Scanned'),
-                                    BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Not Scanned'),
-                                    BuildInfoItem(label: 'License No', value: model.gatePass.driverLicenceNo ?? 'Not Scanned'),
-                                    BuildInfoItem(label: 'License Expiry', value: model.gatePass.driverLicenceExpiryDate?.toLocal().toFormattedString() ?? 'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'Driver Name',
+                                        value: model.gatePass.driverName ??
+                                            'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'ID Number',
+                                        value: model.gatePass.driverIdNo ??
+                                            'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'License No',
+                                        value: model.gatePass.driverLicenceNo ??
+                                            'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'License Expiry',
+                                        value: model.gatePass
+                                                .driverLicenceExpiryDate
+                                                ?.toLocal()
+                                                .toFormattedString() ??
+                                            'Not Scanned'),
                                   ],
                                 ),
                                 verticalSpaceSmall,
                                 BuildInfoCard(
-                                  width: MediaQuery.of(context).size.width * 0.95,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.95,
                                   title: "Vehicle Lisence Disc",
-                                  isSelected: model.barcodeScanType == BarcodeScanType.vehicleDisc,
+                                  isSelected: model.barcodeScanType ==
+                                      BarcodeScanType.vehicleDisc,
                                   onTap: () {
-                                    model.setBarcodeScanType(BarcodeScanType.vehicleDisc);
+                                    model.setBarcodeScanType(
+                                        BarcodeScanType.vehicleDisc);
                                   },
                                   hasInfo: model.gatePass.hasVehicleInfo,
                                   icon: Icons.directions_car,
                                   color: Colors.green,
                                   infoList: [
-                                    BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
-                                    BuildInfoItem(label: 'Make', value: model.gatePass.vehicleMake ?? 'Not Scanned'),
-                                    BuildInfoItem(label: 'Model', value: model.gatePass.vehicleVinNumber ?? 'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'Registration',
+                                        value:
+                                            model.gatePass.vehicleRegNumber ??
+                                                'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'Make',
+                                        value: model.gatePass.vehicleMake ??
+                                            'Not Scanned'),
+                                    BuildInfoItem(
+                                        label: 'Model',
+                                        value:
+                                            model.gatePass.vehicleVinNumber ??
+                                                'Not Scanned'),
                                   ],
                                 ),
                                 verticalSpaceSmall,
                                 BuildInfoCard(
-                                  width: MediaQuery.of(context).size.width * 0.95,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.95,
                                   title: "Times",
-                                  isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,
+                                  isSelected:
+                                      model.gatePass.timeAtGate != null &&
+                                          model.gatePass.timeIn != null,
                                   hasInfo: true,
                                   icon: Icons.timelapse_sharp,
                                   color: Colors.amber[300]!,
                                   infoList: [
-                                    BuildInfoItem(label: 'Time At Gate', value: model.gatePass.timeAtGate?.toSocialMediaTime() ?? ''),
-                                    BuildInfoItem(label: 'Time In', value: model.gatePass.timeIn?.toSocialMediaTime() ?? ''),
-                                    BuildInfoItem(label: 'Time Out', value: model.gatePass.timeOut?.toSocialMediaTime() ?? ''),
+                                    BuildInfoItem(
+                                        label: 'Time At Gate',
+                                        value: model.gatePass.timeAtGate
+                                                ?.toSocialMediaTime() ??
+                                            ''),
+                                    BuildInfoItem(
+                                        label: 'Time In',
+                                        value: model.gatePass.timeIn
+                                                ?.toSocialMediaTime() ??
+                                            ''),
+                                    BuildInfoItem(
+                                        label: 'Time Out',
+                                        value: model.gatePass.timeOut
+                                                ?.toSocialMediaTime() ??
+                                            ''),
                                   ],
                                 ),
                                 model.gatePass.serviceTypeId != null
@@ -981,13 +1116,15 @@ class GatePassEditView extends StatelessWidget {
                         SpeedDialChild(
                           child: const Icon(Icons.barcode_reader),
                           label: 'Barcode Scanner',
-                          onTap: () => model.goToCamView(FileStoreType.documentScan),
+                          onTap: () =>
+                              model.goToCamView(FileStoreType.documentScan),
                         ),
                       ],
                     ),
                     body: GridView.builder(
                       padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         mainAxisSpacing: 1,
                         crossAxisSpacing: 1,
@@ -1024,7 +1161,13 @@ class GatePassEditView extends StatelessWidget {
                                     alignment: Alignment.bottomRight,
                                     child: Row(
                                       children: [
-                                        if (fileItem.filestoreType == FileStoreType.customerSignature.index) const FaIcon(FontAwesomeIcons.signature, size: 16, color: Colors.black),
+                                        if (fileItem.filestoreType ==
+                                            FileStoreType
+                                                .customerSignature.index)
+                                          const FaIcon(
+                                              FontAwesomeIcons.signature,
+                                              size: 16,
+                                              color: Colors.black),
                                         fileItem.upLoaded
                                             ? const Icon(
                                                 Icons.checklist,

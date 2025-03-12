@@ -24,7 +24,9 @@ class BuildScanningView extends StatelessWidget {
 
             verticalSpaceSmall,
             Text(
-              barcodeScanType == BarcodeScanType.driversCard ? 'Scan Driver\'s License Card...' : 'Scan Vehicle License Disc...',
+              barcodeScanType == BarcodeScanType.driversCard
+                  ? 'Scan Driver\'s License Card...'
+                  : 'Scan Vehicle License Disc...',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
