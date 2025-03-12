@@ -43,7 +43,11 @@ class GateAccessYardOpsViewModel extends BaseViewModel with AppViewBaseHelper {
   StockpileLoadingSlipQrCodeModel? _stockPileQrData = null;
   StockpileLoadingSlipQrCodeModel? get stockPileQrData => _stockPileQrData;
 
-  bool get validate => _stockPileQrData == _loadingSlipQrData && _loadingSlipQrData?.loadingStockpileType == LoadingStockpileType.loadingSlip && _stockPileQrData?.loadingStockpileType == LoadingStockpileType.stockPile;
+  bool get validate =>
+      _stockPileQrData == _loadingSlipQrData &&
+      _loadingSlipQrData?.loadingStockpileType ==
+          LoadingStockpileType.loadingSlip &&
+      _stockPileQrData?.loadingStockpileType == LoadingStockpileType.stockPile;
 
   List<String> validationErrors = [];
 
@@ -54,7 +58,9 @@ class GateAccessYardOpsViewModel extends BaseViewModel with AppViewBaseHelper {
   }
 
   Future<void> startconnectionListen() async {
-    streamSubscription = _scanningService.rawStringStream.asBroadcastStream().listen((data) async {
+    streamSubscription = _scanningService.rawStringStream
+        .asBroadcastStream()
+        .listen((data) async {
       log.i("data: $data");
       if (isBusyProcessingScan == false) {
         initiateQrScan(data);
@@ -69,7 +75,8 @@ class GateAccessYardOpsViewModel extends BaseViewModel with AppViewBaseHelper {
       loadingSlipQrData!.stockpileAction = action;
       var branchId = currentUser?.userBranches[0].id ?? 0;
       loadingSlipQrData!.branchId = branchId;
-      var reponse = await _gatePassService.setCmsGatePassEvent(loadingSlipQrData!);
+      var reponse =
+          await _gatePassService.setCmsGatePassEvent(loadingSlipQrData!);
 
       if (reponse == true) {
         await _dialogService.showDialog(
@@ -105,8 +112,11 @@ class GateAccessYardOpsViewModel extends BaseViewModel with AppViewBaseHelper {
           return;
         }
 
-        if (_loadingSlipQrData?.loadingStockpileType != LoadingStockpileType.loadingSlip) {
-          validationErrors = ['Invalid QR code data, not a loading slip QR Code'];
+        if (_loadingSlipQrData?.loadingStockpileType !=
+            LoadingStockpileType.loadingSlip) {
+          validationErrors = [
+            'Invalid QR code data, not a loading slip QR Code'
+          ];
           _loadingSlipQrData?.clearInfo();
           setIsBusyProcessingScan(false, rebuildThisUi: true);
           return;
@@ -121,7 +131,8 @@ class GateAccessYardOpsViewModel extends BaseViewModel with AppViewBaseHelper {
           setIsBusyProcessingScan(false, rebuildThisUi: true);
           return;
         }
-        if (_stockPileQrData?.loadingStockpileType != LoadingStockpileType.stockPile) {
+        if (_stockPileQrData?.loadingStockpileType !=
+            LoadingStockpileType.stockPile) {
           validationErrors = ['Invalid QR code data, not a stock pile QR Code'];
           _stockPileQrData?.clearInfo();
           setIsBusyProcessingScan(false, rebuildThisUi: true);
@@ -129,7 +140,8 @@ class GateAccessYardOpsViewModel extends BaseViewModel with AppViewBaseHelper {
         }
       }
 
-      if (_loadingSlipQrData?.hasAllInfo() == false || _stockPileQrData?.hasAllInfo() == false) {
+      if (_loadingSlipQrData?.hasAllInfo() == false ||
+          _stockPileQrData?.hasAllInfo() == false) {
         validationErrors = ['Invalid QR code data'];
         setIsBusyProcessingScan(false, rebuildThisUi: true);
         return;
@@ -189,7 +201,8 @@ class GateAccessYardOpsViewModel extends BaseViewModel with AppViewBaseHelper {
     //need confirm dialog here
     var confirmed = await _dialogService.showConfirmationDialog(
       title: "Confirmation",
-      description: "Are you sure you want to set the status to Left Stock Pile?",
+      description:
+          "Are you sure you want to set the status to Left Stock Pile?",
     );
 
     if (confirmed != null && confirmed.confirmed == true) {

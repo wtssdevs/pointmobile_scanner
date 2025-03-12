@@ -306,7 +306,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
   runStartupLogic(ScanActionType data) async {
     var branchId = currentUser?.userBranches[0].id ?? 0;
     setBarcodeScanType(BarcodeScanType.driversCard);
-    
+
     _scanInMode = data;
 
     _scannedVisitor = GatePassVisitorAccess(

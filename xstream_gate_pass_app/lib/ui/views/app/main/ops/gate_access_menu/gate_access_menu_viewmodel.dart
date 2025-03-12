@@ -18,11 +18,31 @@ class GateAccessMenuViewModel extends BaseViewModel with AppViewBaseHelper {
 
   Future<void> initialise() async {
     menuItems = [
-      MenuItem(title: translate('PreBookings'), icon: Icons.find_in_page, route: Routes.gateAccessPreBookingView, requiredPermission: AppPermissions.mobileOperationsPreBookings),
-      MenuItem(title: translate('Visitors'), icon: Icons.people, route: Routes.gateAccessVisitorsListView, requiredPermission: AppPermissions.mobileOperationsVisitors),
-      MenuItem(title: translate('Staff'), icon: Icons.book, route: Routes.gateAccessStaffListView, requiredPermission: AppPermissions.mobileOperationsStaff),
-      MenuItem(title: translate('YardOperations'), icon: Icons.qr_code_2_rounded, route: Routes.gateAccessYardOpsView, requiredPermission: AppPermissions.mobileOperationsYardOperations),
-      MenuItem(title: translate('GateAccess'), icon: FontAwesomeIcons.roadBridge, route: Routes.gatePassView, requiredPermission: AppPermissions.mobileOperationsGateAccess),
+      MenuItem(
+          title: translate('PreBookings'),
+          icon: Icons.find_in_page,
+          route: Routes.gateAccessPreBookingView,
+          requiredPermission: AppPermissions.mobileOperationsPreBookings),
+      MenuItem(
+          title: translate('Visitors'),
+          icon: Icons.people,
+          route: Routes.gateAccessVisitorsListView,
+          requiredPermission: AppPermissions.mobileOperationsVisitors),
+      MenuItem(
+          title: translate('Staff'),
+          icon: Icons.book,
+          route: Routes.gateAccessStaffListView,
+          requiredPermission: AppPermissions.mobileOperationsStaff),
+      MenuItem(
+          title: translate('YardOperations'),
+          icon: Icons.qr_code_2_rounded,
+          route: Routes.gateAccessYardOpsView,
+          requiredPermission: AppPermissions.mobileOperationsYardOperations),
+      MenuItem(
+          title: translate('GateAccess'),
+          icon: FontAwesomeIcons.roadBridge,
+          route: Routes.gatePassView,
+          requiredPermission: AppPermissions.mobileOperationsGateAccess),
     ];
     rebuildUi();
   }

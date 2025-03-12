@@ -20,7 +20,8 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text("${viewModel.translate('Yard')} ${viewModel.translate('Operations')}"),
+        title: Text(
+            "${viewModel.translate('Yard')} ${viewModel.translate('Operations')}"),
       ),
       resizeToAvoidBottomInset: true,
       persistentFooterButtons: [
@@ -33,7 +34,9 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
               icon: FontAwesomeIcons.truckRampBox,
               color: Colors.blue,
               onTap: viewModel.setAtStockPile,
-              isVisible: viewModel.loadingSlipQrData?.hasAllInfo() == true && viewModel.stockPileQrData?.hasAllInfo() == true && viewModel.validate,
+              isVisible: viewModel.loadingSlipQrData?.hasAllInfo() == true &&
+                  viewModel.stockPileQrData?.hasAllInfo() == true &&
+                  viewModel.validate,
             ),
             NavActionButton(
               label: "Left Stock Pile",
@@ -41,7 +44,9 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
               icon: FontAwesomeIcons.truckMoving,
               color: Colors.green,
               onTap: viewModel.setLeftStockPile,
-              isVisible: viewModel.loadingSlipQrData?.hasAllInfo() == true && viewModel.stockPileQrData?.hasAllInfo() == true && viewModel.validate,
+              isVisible: viewModel.loadingSlipQrData?.hasAllInfo() == true &&
+                  viewModel.stockPileQrData?.hasAllInfo() == true &&
+                  viewModel.validate,
             ),
           ],
         ),
@@ -51,7 +56,8 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (viewModel.loadingSlipQrData?.hasAllInfo() == false && viewModel.stockPileQrData?.hasAllInfo() == false)
+            if (viewModel.loadingSlipQrData?.hasAllInfo() == false &&
+                viewModel.stockPileQrData?.hasAllInfo() == false)
               Card(
                 color: Colors.blue[50],
                 child: Padding(
@@ -71,7 +77,8 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
                 ),
               ),
 // Match status indicator
-            if (viewModel.loadingSlipQrData?.hasAllInfo() == true && viewModel.stockPileQrData?.hasAllInfo() == true)
+            if (viewModel.loadingSlipQrData?.hasAllInfo() == true &&
+                viewModel.stockPileQrData?.hasAllInfo() == true)
               Card(
                 color: viewModel.validate ? Colors.green[50] : Colors.red[50],
                 child: Padding(
@@ -89,17 +96,31 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              viewModel.validate ? 'Stock Pile Match Confirmed' : 'Stock Pile Mismatch!',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: viewModel.validate ? Colors.green[800] : Colors.red[800],
+                              viewModel.validate
+                                  ? 'Stock Pile Match Confirmed'
+                                  : 'Stock Pile Mismatch!',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    color: viewModel.validate
+                                        ? Colors.green[800]
+                                        : Colors.red[800],
                                     fontWeight: FontWeight.bold,
                                   ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              viewModel.validate ? 'Truck is at the correct Stock Pile area' : 'Truck is at the wrong Stock Pile area',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: viewModel.validate ? Colors.green[800] : Colors.red[800],
+                              viewModel.validate
+                                  ? 'Truck is at the correct Stock Pile area'
+                                  : 'Truck is at the wrong Stock Pile area',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: viewModel.validate
+                                        ? Colors.green[800]
+                                        : Colors.red[800],
                                   ),
                             ),
                           ],
@@ -182,11 +203,13 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
                 ),
                 BuildInfoItem(
                   label: viewModel.translate('CustomerRefNo'),
-                  value: viewModel.loadingSlipQrData?.customerRefNo ?? 'Not Scanned',
+                  value: viewModel.loadingSlipQrData?.customerRefNo ??
+                      'Not Scanned',
                 ),
                 BuildInfoItem(
                   label: viewModel.translate('LoadItemCode'),
-                  value: viewModel.loadingSlipQrData?.loadItemCode ?? 'Not Scanned',
+                  value: viewModel.loadingSlipQrData?.loadItemCode ??
+                      'Not Scanned',
                 ),
               ],
             ),
@@ -211,11 +234,13 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
                 ),
                 BuildInfoItem(
                   label: viewModel.translate('CustomerRefNo'),
-                  value: viewModel.stockPileQrData?.customerRefNo ?? 'Not Scanned',
+                  value:
+                      viewModel.stockPileQrData?.customerRefNo ?? 'Not Scanned',
                 ),
                 BuildInfoItem(
                   label: viewModel.translate('LoadItemCode'),
-                  value: viewModel.stockPileQrData?.loadItemCode ?? 'Not Scanned',
+                  value:
+                      viewModel.stockPileQrData?.loadItemCode ?? 'Not Scanned',
                 ),
               ],
             ),
@@ -233,7 +258,8 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
   }
 
   @override
-  void onViewModelReady(GateAccessYardOpsViewModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
+  void onViewModelReady(GateAccessYardOpsViewModel viewModel) =>
+      SchedulerBinding.instance.addPostFrameCallback(
         (timeStamp) => viewModel.runStartupLogic(),
       );
 

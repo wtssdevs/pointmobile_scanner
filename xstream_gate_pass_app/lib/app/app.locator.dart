@@ -29,6 +29,7 @@ import '../core/services/shared/local_storage_service.dart';
 import '../core/services/shared/localization/localization_manager_service.dart';
 import '../core/services/shared/media_service.dart';
 import '../core/services/shared/overlays/overlay_service.dart';
+import '../services/iso_type_service.dart';
 
 final locator = StackedLocator.instance;
 
@@ -80,4 +81,5 @@ Future<void> setupLocator({
   locator.registerSingleton(SyncManager());
   locator.registerLazySingleton(() => LocalizationManagerService());
   locator.registerLazySingleton(() => BottomSheetService());
+  locator.registerLazySingleton(() => IsoTypeService());
 }

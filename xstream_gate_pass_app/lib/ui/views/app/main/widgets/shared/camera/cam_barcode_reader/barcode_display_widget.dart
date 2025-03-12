@@ -42,7 +42,7 @@ class BarcodeDisplayWidgetState extends State<BarcodeDisplayWidget> {
                 setState(() {});
               },
               title: const Text(
-                "Enable barcode scan",
+                "Enable Container scan",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),

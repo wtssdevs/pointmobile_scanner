@@ -11,10 +11,13 @@ import 'package:logger/src/logger.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i4;
 import 'package:stacked_services/stacked_services.dart' as _i3;
+import 'package:xstream_gate_pass_app/core/models/basefiles/containers/container_iso_types_model.dart'
+    as _i11;
 import 'package:xstream_gate_pass_app/core/models/localization/localization_value.dart'
     as _i9;
 import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart'
     as _i8;
+import 'package:xstream_gate_pass_app/services/iso_type_service.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -873,4 +876,87 @@ class MockLocalizationManagerService extends _i1.Mock
           ),
         ),
       ) as String);
+}
+
+/// A class which mocks [IsoTypeService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockIsoTypeService extends _i1.Mock implements _i10.IsoTypeService {
+  @override
+  _i6.Future<void> initialize() => (super.noSuchMethod(
+        Invocation.method(
+          #initialize,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> loadIsoTypes() => (super.noSuchMethod(
+        Invocation.method(
+          #loadIsoTypes,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
+  List<_i11.IsoType> getAllIsoTypes() => (super.noSuchMethod(
+        Invocation.method(
+          #getAllIsoTypes,
+          [],
+        ),
+        returnValue: <_i11.IsoType>[],
+        returnValueForMissingStub: <_i11.IsoType>[],
+      ) as List<_i11.IsoType>);
+
+  @override
+  _i11.IsoType? findByCode(String? code) => (super.noSuchMethod(
+        Invocation.method(
+          #findByCode,
+          [code],
+        ),
+        returnValueForMissingStub: null,
+      ) as _i11.IsoType?);
+
+  @override
+  String? getDescriptionForCode(String? code) => (super.noSuchMethod(
+        Invocation.method(
+          #getDescriptionForCode,
+          [code],
+        ),
+        returnValueForMissingStub: null,
+      ) as String?);
+
+  @override
+  List<_i11.IsoType> findBySize(String? size) => (super.noSuchMethod(
+        Invocation.method(
+          #findBySize,
+          [size],
+        ),
+        returnValue: <_i11.IsoType>[],
+        returnValueForMissingStub: <_i11.IsoType>[],
+      ) as List<_i11.IsoType>);
+
+  @override
+  List<_i11.IsoType> findByType(String? type) => (super.noSuchMethod(
+        Invocation.method(
+          #findByType,
+          [type],
+        ),
+        returnValue: <_i11.IsoType>[],
+        returnValueForMissingStub: <_i11.IsoType>[],
+      ) as List<_i11.IsoType>);
+
+  @override
+  Set<String> getAllCodes() => (super.noSuchMethod(
+        Invocation.method(
+          #getAllCodes,
+          [],
+        ),
+        returnValue: <String>{},
+        returnValueForMissingStub: <String>{},
+      ) as Set<String>);
 }

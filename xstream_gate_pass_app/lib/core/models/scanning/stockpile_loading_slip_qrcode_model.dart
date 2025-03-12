@@ -69,27 +69,36 @@ class StockpileLoadingSlipQrCodeModel {
       voyageNo: map['VoyageNo'],
       customerRefNo: map['CustomerRefNo'],
       loadItemCode: map['LoadItemCode'],
-      cmsGatePassId: map['CmsGatePassId'] != null ? int.tryParse(map['CmsGatePassId'].toString()) : null,
-      loadingStockpileType: LoadingStockpileType.values[asT<int?>(map['LoadingStockpileType']) ?? 0],
+      cmsGatePassId: map['CmsGatePassId'] != null
+          ? int.tryParse(map['CmsGatePassId'].toString())
+          : null,
+      loadingStockpileType: LoadingStockpileType
+          .values[asT<int?>(map['LoadingStockpileType']) ?? 0],
     );
   }
 
   //String toJson() => json.encode(toMap());
 
-  factory StockpileLoadingSlipQrCodeModel.fromJson(String source) => StockpileLoadingSlipQrCodeModel.fromMap(json.decode(source));
+  factory StockpileLoadingSlipQrCodeModel.fromJson(String source) =>
+      StockpileLoadingSlipQrCodeModel.fromMap(json.decode(source));
 
   @override
-  String toString() => 'StockpileLoadingSlipQrCodeModel(VoyageNo: $voyageNo, CustomerRefNo: $customerRefNo, LoadItemCode: $loadItemCode)';
+  String toString() =>
+      'StockpileLoadingSlipQrCodeModel(VoyageNo: $voyageNo, CustomerRefNo: $customerRefNo, LoadItemCode: $loadItemCode)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is StockpileLoadingSlipQrCodeModel && other.voyageNo == voyageNo && other.customerRefNo == customerRefNo && other.loadItemCode == loadItemCode;
+    return other is StockpileLoadingSlipQrCodeModel &&
+        other.voyageNo == voyageNo &&
+        other.customerRefNo == customerRefNo &&
+        other.loadItemCode == loadItemCode;
   }
 
   @override
-  int get hashCode => voyageNo.hashCode ^ customerRefNo.hashCode ^ loadItemCode.hashCode;
+  int get hashCode =>
+      voyageNo.hashCode ^ customerRefNo.hashCode ^ loadItemCode.hashCode;
 
   void clearInfo() {
     voyageNo = null;

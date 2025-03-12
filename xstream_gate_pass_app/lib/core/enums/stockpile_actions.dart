@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 enum StockpileActions {
-  atStockPile(0, 1, "At Stock Pile", "AtStockPile", Icon(Icons.warehouse), Colors.amber),
-  leftStockPile(1, 512, "Left Stock Pile", "LeftStockPile", Icon(Icons.local_shipping), Colors.green);
+  atStockPile(0, 1, "At Stock Pile", "AtStockPile", Icon(Icons.warehouse),
+      Colors.amber),
+  leftStockPile(1, 512, "Left Stock Pile", "LeftStockPile",
+      Icon(Icons.local_shipping), Colors.green);
 
   // can use named parameters if you want
-  const StockpileActions(this.value, this.gatePassEventActionValue, this.displayName, this.visitorName, this.icon, this.color);
+  const StockpileActions(this.value, this.gatePassEventActionValue,
+      this.displayName, this.visitorName, this.icon, this.color);
   final int value;
   final int gatePassEventActionValue;
   final String displayName;
@@ -40,10 +43,5 @@ extension StockpileActionsExtension on StockpileActions {
 //     Transfer = 128,
 //     RejectedExit = 256,
 //     Depart = 512,
-
-   
-
-
-
 
 // }

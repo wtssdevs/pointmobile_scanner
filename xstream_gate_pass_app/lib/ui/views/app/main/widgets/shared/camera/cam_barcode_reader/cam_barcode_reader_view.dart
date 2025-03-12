@@ -72,7 +72,7 @@ class _CamBarcodeReaderState extends State<CamBarcodeReader>
           androidOptions: const AndroidAnalysisOptions.nv21(
             width: 512,
           ),
-          maxFramesPerSecond: 3,
+          maxFramesPerSecond: 5,
           autoStart: false,
         ),
         // 3.
@@ -89,12 +89,12 @@ class _CamBarcodeReaderState extends State<CamBarcodeReader>
 
         // 4.
         builder: (cameraModeState, preview) {
-          return BarcodePreviewOverlay(
-            state: cameraModeState,
-            barcodes: _barcodes,
-            analysisImage: _image,
-            preview: preview,
-          );
+          // return BarcodePreviewOverlay(
+          //   state: cameraModeState,
+          //   barcodes: _barcodes,
+          //   analysisImage: _image,
+          //   preview: preview,
+          // );
           return BarcodeDisplayWidget(
             barcodesStream: _barcodesStream,
             scrollController: _scrollController,

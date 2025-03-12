@@ -6,9 +6,19 @@ class LoadconQrCodeModel {
   String? vehicleRegistrationNumber;
   int? branchId;
 
-  LoadconQrCodeModel({this.transactionNo, this.referenceNo, this.customerRefNo, this.bookingOrderNumber, this.vehicleRegistrationNumber, this.branchId});
+  LoadconQrCodeModel(
+      {this.transactionNo,
+      this.referenceNo,
+      this.customerRefNo,
+      this.bookingOrderNumber,
+      this.vehicleRegistrationNumber,
+      this.branchId});
   bool isModelEmpty() {
-    return transactionNo == null || referenceNo == null || customerRefNo == null || bookingOrderNumber == null || vehicleRegistrationNumber == null;
+    return transactionNo == null ||
+        referenceNo == null ||
+        customerRefNo == null ||
+        bookingOrderNumber == null ||
+        vehicleRegistrationNumber == null;
   }
 
   LoadconQrCodeModel.fromJson(Map<String, dynamic> json) {

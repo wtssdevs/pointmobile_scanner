@@ -81,7 +81,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Future<void> dispose() async {
     streamSubscription?.cancel();
     streamSubscriptionForDisc?.cancel();
-  //  _scanningService.onExit(); // Properly disable scanner when done
+    //  _scanningService.onExit(); // Properly disable scanner when done
 
     //super.dispose();
   }
@@ -416,6 +416,19 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Future<void> loadFileStoreImages() async {
     if (gatePass.id != null && gatePass.id != 0) {
       // _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, 100);
+    }
+  }
+
+  Future<void> goToCamCaptureContainerNoText(
+      FileStoreType fileStoreType) async {
+    if (gatePass.id != null && gatePass.id != 0) {
+      // await _navigationService.navigateTo(
+      //   Routes.cameraCaptureView,
+      //   arguments: CameraCaptureViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
+      // );
+      await _navigationService.navigateToCamContainernoReaderView();
+
+      notifyListeners();
     }
   }
 

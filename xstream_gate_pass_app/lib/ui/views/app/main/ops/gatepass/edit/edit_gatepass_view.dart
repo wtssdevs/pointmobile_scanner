@@ -1093,7 +1093,7 @@ class GatePassEditView extends StatelessWidget {
                   // IMAGES
                   Scaffold(
                     floatingActionButton: SpeedDial(
-                      visible: model.gatePass.id.isEmptyOrNull,
+                      visible: !model.gatePass.id.isEmptyOrNull,
                       icon: Icons.add_a_photo,
                       spaceBetweenChildren: 6,
                       activeIcon: Icons.close,
@@ -1102,6 +1102,12 @@ class GatePassEditView extends StatelessWidget {
                           child: const Icon(Icons.camera_alt_outlined),
                           label: 'Take Photo',
                           onTap: () => model.goToCamView(FileStoreType.image),
+                        ),
+                        SpeedDialChild(
+                          child: const FaIcon(FontAwesomeIcons.truckRampBox),
+                          label: 'Capture Container No',
+                          onTap: () => model.goToCamCaptureContainerNoText(
+                              FileStoreType.image),
                         ),
                         // SpeedDialChild(
                         //   child: const Icon(Icons.document_scanner_outlined),

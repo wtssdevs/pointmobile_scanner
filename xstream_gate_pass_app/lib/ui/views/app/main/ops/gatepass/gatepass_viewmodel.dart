@@ -175,7 +175,7 @@ class GatePassViewModel extends BaseViewModel with AppViewBaseHelper {
       await streamSubscription?.cancel();
     }
 
-   // _scanningService.onExit();
+    // _scanningService.onExit();
   }
 
   void onFilterValueChanged(String? value) {

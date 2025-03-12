@@ -40,6 +40,8 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_visitor/gate_access_visitor_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_pre_booking/gate_access_pre_booking_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops/gate_access_yard_ops_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_containerno_reader/cam_containerno_reader_view.dart';
+import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -61,6 +63,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops
     MaterialRoute(page: GateAccessStaffListView),
     MaterialRoute(page: GateAccessVisitorsListView),
     MaterialRoute(page: GateAccessYardOpsView),
+    MaterialRoute(page: CamContainernoReaderView),
 // @stacked-route
   ],
   dependencies: [
@@ -90,6 +93,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops
     Singleton(classType: SyncManager),
     LazySingleton(classType: LocalizationManagerService),
     LazySingleton(classType: BottomSheetService),
+    LazySingleton(classType: IsoTypeService),
 // @stacked-service
   ],
   bottomsheets: [

@@ -10,7 +10,7 @@ class CamBarcodeReaderViewModel extends BaseViewModel {
   final _barcodeScanner = BarcodeScanner(
     formats: [
       BarcodeFormat.pdf417,
-      //BarcodeFormat.qrCode,
+      BarcodeFormat.qrCode,
       //BarcodeFormat.dataMatrix,
       //BarcodeFormat.code128,
       //BarcodeFormat.code39,

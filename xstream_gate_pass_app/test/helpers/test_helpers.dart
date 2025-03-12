@@ -3,6 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
+import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -13,6 +14,7 @@ import 'test_helpers.mocks.dart';
   MockSpec<DialogService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<LocalizationManagerService>(
       onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<IsoTypeService>(onMissingStub: OnMissingStub.returnDefault),
 // @stacked-mock-spec
 ])
 void registerServices() {
@@ -20,6 +22,7 @@ void registerServices() {
   getAndRegisterBottomSheetService();
   getAndRegisterDialogService();
   getAndRegisterLocalizationManagerService();
+  getAndRegisterIsoTypeService();
 // @stacked-mock-register
 }
 
@@ -77,6 +80,13 @@ MockLocalizationManagerService getAndRegisterLocalizationManagerService() {
   _removeRegistrationIfExists<LocalizationManagerService>();
   final service = MockLocalizationManagerService();
   locator.registerSingleton<LocalizationManagerService>(service);
+  return service;
+}
+
+MockIsoTypeService getAndRegisterIsoTypeService() {
+  _removeRegistrationIfExists<IsoTypeService>();
+  final service = MockIsoTypeService();
+  locator.registerSingleton<IsoTypeService>(service);
   return service;
 }
 // @stacked-mock-create
