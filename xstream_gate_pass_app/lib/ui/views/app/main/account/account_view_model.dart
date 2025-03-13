@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
 
@@ -90,7 +91,7 @@ class AccountViewModel extends BaseViewModel {
 
   Future<bool> confirmLogout() async {
     var confirm = await _dialogService.showCustomDialog(
-        variant: DialogType.basic,
+        variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Confirm Logout.",
         description: 'Are you sure you want to exit the application',

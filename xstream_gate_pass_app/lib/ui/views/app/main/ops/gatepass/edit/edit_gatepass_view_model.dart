@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
@@ -16,6 +17,7 @@ import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
+import 'package:xstream_gate_pass_app/core/models/basefiles/containers/container_info_extratced_model.dart';
 import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
@@ -40,8 +42,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Function? _onModelSet;
 
   final log = getLogger('GatePassEditViewModel');
-  final LocalStorageService _localStorageService =
-      locator<LocalStorageService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
   final GatePassService _gatePassService = locator<GatePassService>();
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
@@ -59,8 +60,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   List<FileStore> get fileStoreItems => _fileStoreItems;
 
   bool get hasConnection => _connectionService.hasConnection;
-  List<SearchableDropdownMenuItem<int>> get serviceTypes =>
-      _masterFilesService.serviceTypes;
+  List<SearchableDropdownMenuItem<int>> get serviceTypes => _masterFilesService.serviceTypes;
 
   BarcodeScanType _barcodeScanType = BarcodeScanType.driversCard;
   BarcodeScanType get barcodeScanType => _barcodeScanType;
@@ -108,17 +108,14 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     streamSubscriptionForDisc?.cancel();
 
     // Also listen to license disk data for vehicle scans
-    streamSubscription =
-        _scanningService.licenseStream.asBroadcastStream().listen((data) async {
+    streamSubscription = _scanningService.licenseStream.asBroadcastStream().listen((data) async {
       log.i("Drivers Card data received");
       // Process the driversCard  data here
       // This would populate a GatePassVisitorAccess from the driversCard data
       processScanData(data, null);
     });
     // Also listen to license disk data for vehicle scans
-    streamSubscriptionForDisc = _scanningService.licenseDiskDataStream
-        .asBroadcastStream()
-        .listen((licenseDiskData) async {
+    streamSubscriptionForDisc = _scanningService.licenseDiskDataStream.asBroadcastStream().listen((licenseDiskData) async {
       log.i("Drivers Card data received");
       // Process the license disk data here
       // This would populate a GatePassVisitorAccess from the license disk data
@@ -126,30 +123,24 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     });
   }
 
-  Future<void> processScanData(RsaDriversLicense? rsaDriversLicense,
-      LicenseDiskData? vehicleLicenseData) async {
+  Future<void> processScanData(RsaDriversLicense? rsaDriversLicense, LicenseDiskData? vehicleLicenseData) async {
     //_isScanning = false;
     clearAllValidationMessage();
     try {
       // Process the scanned data based on scan type
-      if (_barcodeScanType == BarcodeScanType.driversCard &&
-          rsaDriversLicense != null) {
+      if (_barcodeScanType == BarcodeScanType.driversCard && rsaDriversLicense != null) {
         // Process driver's license data
 
-        gatePass.driverName =
-            '${rsaDriversLicense.firstNames} ${rsaDriversLicense.surname}';
+        gatePass.driverName = '${rsaDriversLicense.firstNames} ${rsaDriversLicense.surname}';
         gatePass.driverIdNo = rsaDriversLicense.idNumber;
         gatePass.driverLicenceNo = rsaDriversLicense.licenseNumber;
-        gatePass.driverLicenceIssueDate =
-            rsaDriversLicense.issueDates?.firstOrNull;
+        gatePass.driverLicenceIssueDate = rsaDriversLicense.issueDates?.firstOrNull;
         gatePass.driverLicenceExpiryDate = rsaDriversLicense.validTo;
         gatePass.driversLicenceCodes = rsaDriversLicense.vehicleCodes.join(',');
-        gatePass.professionalDrivingPermitExpiryDate =
-            rsaDriversLicense.prdpExpiry;
+        gatePass.professionalDrivingPermitExpiryDate = rsaDriversLicense.prdpExpiry;
 
         setBarcodeScanType(BarcodeScanType.vehicleDisc);
-      } else if (_barcodeScanType == BarcodeScanType.vehicleDisc &&
-          vehicleLicenseData != null) {
+      } else if (_barcodeScanType == BarcodeScanType.vehicleDisc && vehicleLicenseData != null) {
         // Process vehicle license data
 
         gatePass.vehicleEngineNumber = vehicleLicenseData.engineNumber;
@@ -235,11 +226,10 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Future<void> saveOnly() async {
     if (!_connectionService.hasConnection) {
       await _dialogService.showCustomDialog(
-        variant: DialogType.basic,
+        variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description:
-            'Could not Save,Please check you internet connection and try again',
+        description: 'Could not Save,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
@@ -253,24 +243,10 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
     if (reponse != null) {
       _gatePass = reponse;
-      Fluttertoast.showToast(
-          msg: "Save was successful! ",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
     } else {
       //error could not save
-      Fluttertoast.showToast(
-          msg: "Save Failed!,Please try again or contact your system admin. ",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
     }
 
     //update Screen UI state with model changes
@@ -281,39 +257,37 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Future<void> authorizeEntry() async {
     if (!_connectionService.hasConnection) {
       await _dialogService.showCustomDialog(
-        variant: DialogType.basic,
+        variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description:
-            'Could not authorize for entry,Please check you internet connection and try again',
+        description: 'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
     setBusy(true);
+
+    //confirmation before we authorize
+    var confirm = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.warning,
+      title: "Confirm Entry",
+      description: 'Are you sure you want to authorize this Gate Pass?',
+      mainButtonTitle: "Confirm",
+      secondaryButtonTitle: "Cancel",
+    );
+    if (confirm != null && confirm.confirmed == false) {
+      return;
+    }
 
     //here we save back to server
     var reponse = await _gatePassService.authorizeForEntry(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
 
-      Fluttertoast.showToast(
-          msg: "Authorize for Entry was successful! ",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Authorize for Entry was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
     } else {
       //error could not save
-      Fluttertoast.showToast(
-          msg: "Save Failed!,Please try again or contact your system admin. ",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
     }
     setBusy(false);
     //update Screen UI state with model changes
@@ -324,38 +298,37 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Future<void> authorizeExit() async {
     if (!_connectionService.hasConnection) {
       await _dialogService.showCustomDialog(
-        variant: DialogType.basic,
+        variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description:
-            'Could not authorize for entry,Please check you internet connection and try again',
+        description: 'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
+
+    //confirmation before we authorize
+    var confirm = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.warning,
+      title: "Confirm Exit",
+      description: 'Are you sure you want to authorize this Gate Pass?',
+      mainButtonTitle: "Confirm",
+      secondaryButtonTitle: "Cancel",
+    );
+    if (confirm != null && confirm.confirmed == false) {
+      return;
+    }
+
     setBusy(true);
     //here we save back to server
     var reponse = await _gatePassService.authorizeExit(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
       setBusy(false);
-      Fluttertoast.showToast(
-          msg: "Save was successful! ",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
     } else {
       //error could not save
-      Fluttertoast.showToast(
-          msg: "Save Failed!,Please try again or contact your system admin. ",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
     }
 
     //update Screen UI state with model changes
@@ -366,36 +339,35 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Future<void> rejectEntry() async {
     if (!_connectionService.hasConnection) {
       await _dialogService.showCustomDialog(
-        variant: DialogType.basic,
+        variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description:
-            'Could not authorize for entry,Please check you internet connection and try again',
+        description: 'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
+
+//confirmation before we reject
+    var confirm = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.warning,
+      title: "Confirm Rejection",
+      description: 'Are you sure you want to reject this Gate Pass?',
+      mainButtonTitle: "Confirm",
+      secondaryButtonTitle: "Cancel",
+    );
+    if (confirm != null && confirm.confirmed == false) {
+      return;
+    }
+
     //here we save back to server
     var reponse = await _gatePassService.rejectForEntry(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
-      Fluttertoast.showToast(
-          msg: "Save was successful! ",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
     } else {
       //error could not save
-      Fluttertoast.showToast(
-          msg: "Save Failed!,Please try again or contact your system admin. ",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
     }
 
     //update Screen UI state with model changes
@@ -415,31 +387,29 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   Future<void> loadFileStoreImages() async {
     if (gatePass.id != null && gatePass.id != 0) {
-      // _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, 100);
+      _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gateBookingImage, 100);
     }
   }
 
-  Future<void> goToCamCaptureContainerNoText(
-      FileStoreType fileStoreType) async {
+  Future<void> goToCamCaptureContainerNoText() async {
     if (gatePass.id != null && gatePass.id != 0) {
-      // await _navigationService.navigateTo(
-      //   Routes.cameraCaptureView,
-      //   arguments: CameraCaptureViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
-      // );
-      await _navigationService.navigateToCamContainernoReaderView();
-
-      notifyListeners();
+      var contInfo = await _navigationService.navigateToCamContainernoReaderView() as ContainerInfo?;
+      if (contInfo != null) {
+        gatePass.containerNumber = contInfo.containerNumber;
+        gatePass.containerSize = contInfo.isoType.substring(0, 2);
+        gatePass.containerType = contInfo.isoType.substring(2, 4);
+        rebuildUi();
+      }
     }
   }
 
   Future<void> goToCamView(FileStoreType fileStoreType) async {
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
-      // await _navigationService.navigateTo(
-      //   Routes.cameraCaptureView,
-      //   arguments: CameraCaptureViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
-      // );
-      await _navigationService.navigateToCamBarcodeReader();
+      await _navigationService.navigateTo(
+        Routes.cameraCaptureView,
+        arguments: CameraCaptureViewArguments(refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
+      );
 
       await loadFileStoreImages();
 
@@ -447,44 +417,20 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     }
   }
 
-  Future<void> saveImageToLocalDb(
-      {required File galleryFile, required String tempFilePath}) async {
+  Future<void> saveImageToLocalDb({required File galleryFile, required String tempFilePath}) async {
     await _fileStoreRepository.insert(
-      FileStore(
-          desc: "",
-          referanceId: 0,
-          filestoreType: FileStoreType.image.index,
-          path: galleryFile.path,
-          tempPath: tempFilePath,
-          fileName: galleryFile.path,
-          createdDateTime: Timestamp.now(),
-          refId: gatePass.id!),
+      FileStore(desc: "", referanceId: 0, filestoreType: FileStoreType.image.value, path: galleryFile.path, tempPath: tempFilePath, fileName: galleryFile.path, createdDateTime: Timestamp.now(), refId: gatePass.id!),
     );
   }
 
   Future<void> deleteImage(FileStore fileItem) async {
-    var confirm = await _dialogService.showCustomDialog(
-        variant: DialogType.basic,
-        data: BasicDialogStatus.warning,
-        title: "Delete Image?.",
-        description: 'Are you sure you want to Delete this image?',
-        mainButtonTitle: "Confirm",
-        takesInput: false,
-        secondaryButtonTitle: "Cancel");
+    var confirm = await _dialogService.showCustomDialog(variant: DialogType.infoAlert, data: BasicDialogStatus.warning, title: "Delete Image?.", description: 'Are you sure you want to Delete this image?', mainButtonTitle: "Confirm", takesInput: false, secondaryButtonTitle: "Cancel");
 
     if (confirm != null && confirm.confirmed) {
       await _fileStoreRepository.delete(fileItem);
 
       //server side delete of image
-      await _workerQueManager.enqueSingle(BackgroundJobInfo(
-          refTransactionId: gatePass.id,
-          jobType: BackgroundJobType.syncImages.index,
-          jobArgs: fileItem.fileName,
-          lastTryTime: Timestamp.now(),
-          creationTime: Timestamp.now(),
-          nextTryTime: Timestamp.now(),
-          id: "",
-          isAbandoned: false));
+      await _workerQueManager.enqueSingle(BackgroundJobInfo(refTransactionId: gatePass.id, jobType: BackgroundJobType.syncImages.index, jobArgs: fileItem.fileName, lastTryTime: Timestamp.now(), creationTime: Timestamp.now(), nextTryTime: Timestamp.now(), id: "", isAbandoned: false));
     }
     await loadFileStoreImages();
     notifyListeners();

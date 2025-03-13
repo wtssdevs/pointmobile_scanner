@@ -1,5 +1,3 @@
-enum DialogType { basic }
-
 enum GatePassBookingType {
   none(0, "Other"),
   breakBulk(1, "Break Bulk"),

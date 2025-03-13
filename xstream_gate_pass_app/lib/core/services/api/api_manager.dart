@@ -252,7 +252,7 @@ class ApiManager {
               description = errorResponse.error!.validationErrors!.join(",\n");
             }
             _dialogService.showDialog(
-              //variant: DialogType.basic,
+              //variant: DialogType.DialogType.infoAlert,
               //data: BasicDialogStatus.error,
               title: title,
               description: description,
@@ -400,7 +400,7 @@ class ApiManager {
           filename: fileStore.fileName,
         )
       });
-      var documentTypeID = 7; //default
+      
 
       //[5] SEND TO SERVER
       final DioClient.Response response = await _dio.post(
@@ -408,15 +408,10 @@ class ApiManager {
         data: formData,
         options: DioClient.Options(
           headers: {
-            "uploadType": "2", //TMSConsts.UploadType.Files:
-            "uploadMethod":
-                "0", //TMSConsts.UploadMethod.LoadAssignmentDocuments:
-            //FileStoreType
+            "fileStoreType": "${fileStore.filestoreType}",            
             "fileStoreTypeId": "15", //    GatePassDocuments = 15,
-            "referenceId": "${fileStore.refId}",
-            "documentFileName": "${fileStore.fileName}",
-            "documentTypeID":
-                documentTypeID, //7 = PICTURES ,6 = PROOF OF DELIVERY
+            "transactionRefId": "${fileStore.refId}",
+            "overrideExisting": "false",            
             "name": "${fileStore.fileName}",
             "antiForgeryToken": "",
           },

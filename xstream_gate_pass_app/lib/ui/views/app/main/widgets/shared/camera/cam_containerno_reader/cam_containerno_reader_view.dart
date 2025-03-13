@@ -15,12 +15,14 @@ class CamContainernoReaderView extends StatefulWidget {
   State<CamContainernoReaderView> createState() => _CamContainernoReaderState();
 }
 
-class _CamContainernoReaderState extends State<CamContainernoReaderView> with TickerProviderStateMixin {
+class _CamContainernoReaderState extends State<CamContainernoReaderView>
+    with TickerProviderStateMixin {
   final _buffer = <ContainerInfo>[];
   List<ContainerInfo> _containerInfos = [];
   AnalysisImage? _image;
   final _barcodesController = BehaviorSubject<List<ContainerInfo>>();
-  late final Stream<List<ContainerInfo>> _barcodesStream = _barcodesController.stream;
+  late final Stream<List<ContainerInfo>> _barcodesStream =
+      _barcodesController.stream;
   final _scrollController = ScrollController();
 
   // Add this to store the analysis controller
@@ -52,7 +54,9 @@ class _CamContainernoReaderState extends State<CamContainernoReaderView> with Ti
         // );
 
         // Stop analysis if we have 10 or more container numbers
-        if (_buffer.length >= 10 && _analysisController != null && _analysisController!.enabled) {
+        if (_buffer.length >= 10 &&
+            _analysisController != null &&
+            _analysisController!.enabled) {
           _analysisController!.stop();
           print("Stopping analysis after detecting 10 containers");
           setState(() {});
@@ -67,7 +71,8 @@ class _CamContainernoReaderState extends State<CamContainernoReaderView> with Ti
   Widget build(BuildContext context) {
     return ViewModelBuilder<CamContainernoReaderViewModel>.reactive(
       viewModelBuilder: () => CamContainernoReaderViewModel(),
-      onViewModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      onViewModelReady: (model) =>
+          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.runStartupLogic();
       }),
       onDispose: (model) {
@@ -84,9 +89,12 @@ class _CamContainernoReaderState extends State<CamContainernoReaderView> with Ti
         ),
         onImageForAnalysis: (img) async {
           var result = await model.processImageForContainer(img);
-          if (result != null) {
-            if (result.containerNumber.isNotEmpty) {
-              _addContainerInfo(result);
+          if (result != null && result.length > 0) {
+            //add all to the local list here
+            for (var container in result) {
+              if (container.containerNumber.isNotEmpty) {
+                _addContainerInfo(container);
+              }
             }
           }
         },
@@ -99,6 +107,9 @@ class _CamContainernoReaderState extends State<CamContainernoReaderView> with Ti
             barcodesStream: _barcodesStream,
             scrollController: _scrollController,
             analysisController: cameraModeState.analysisController!,
+            onContainerSelected: (container) {
+              model.onContainerSelected(container);
+            },
           );
         },
       )),

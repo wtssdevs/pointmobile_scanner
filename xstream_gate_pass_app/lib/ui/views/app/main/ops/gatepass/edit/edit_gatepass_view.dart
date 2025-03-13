@@ -15,6 +15,7 @@ import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
 
 import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
@@ -197,6 +198,7 @@ class GatePassEditView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var width = MediaQuery.of(context).size.width * 0.95;
     return ViewModelBuilder<GatePassEditViewModel>.reactive(
       onViewModelReady: (model) =>
           SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
@@ -224,15 +226,16 @@ class GatePassEditView extends StatelessWidget {
                         GatePassStatus.inYard.value ||
                     model.gatePass.gatePassStatus.value ==
                         GatePassStatus.pending.value,
-                // (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.atGate.index) || (model.gatePass.gatePassQuestions?.hasDeliveryDocuments == false && model.gatePass.gatePassStatus == GatePassStatus.inYard.index),
                 child: model.isBusy
                     ? const SizedBox.shrink()
                     : ElevatedButton.icon(
                         onPressed: () async {
                           // call method
                           //validate UI first
-                          var isValid = await validateForm(model, context);
-                          if (isValid == true) {
+                          //id is GUID as string ,so need to ehck for empty guid
+                          if (model.gatePass.id !=
+                                  Guid.defaultValue.toString() &&
+                              model.gatePass.id != "") {
                             model.rejectEntry();
                           }
                         },
@@ -365,731 +368,770 @@ class GatePassEditView extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   //GATE ACCESS
-                  SingleChildScrollView(
-                      child: model.gatePass.gatePassBookingType ==
-                                  GatePassBookingType.visitor ||
-                              model.gatePass.gatePassBookingType ==
-                                  GatePassBookingType.staff
-                          ? Column(
-                              children: [
-                                if (model.showValidation) ...[
+                  Scaffold(
+                    floatingActionButton: FloatingActionButton(
+                      onPressed: () => model.goToCamCaptureContainerNoText(),
+                      child: const Icon(Icons.camera),
+                    ),
+                    body: SingleChildScrollView(
+                        child: model.gatePass.gatePassBookingType ==
+                                    GatePassBookingType.visitor ||
+                                model.gatePass.gatePassBookingType ==
+                                    GatePassBookingType.staff
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (model.showValidation) ...[
+                                    verticalSpaceSmall,
+                                    BuildErrorsView(
+                                      validationMessages:
+                                          model.validationMessages,
+                                    ),
+                                  ],
                                   verticalSpaceSmall,
-                                  BuildErrorsView(
-                                    validationMessages:
-                                        model.validationMessages,
+                                  BuildInfoCard(
+                                    width: width,
+                                    title: "Visitor Drivers Lisence Card",
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.driversCard,
+                                    onTap: () {
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.driversCard);
+                                    },
+                                    hasInfo: model.gatePass.hasDriverInfo,
+                                    icon: Icons.credit_card,
+                                    color: Colors.blue,
+                                    infoList: [
+                                      BuildInfoItem(
+                                          label: 'Driver Name',
+                                          value: model.gatePass.driverName ??
+                                              'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'ID Number',
+                                          value: model.gatePass.driverIdNo ??
+                                              'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'License No',
+                                          value:
+                                              model.gatePass.driverLicenceNo ??
+                                                  'Not Scanned'),
+                                    ],
                                   ),
-                                ],
-                                verticalSpaceSmall,
-                                BuildInfoCard(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.95,
-                                  title: "Visitor Drivers Lisence Card",
-                                  isSelected: model.barcodeScanType ==
-                                      BarcodeScanType.driversCard,
-                                  onTap: () {
-                                    model.setBarcodeScanType(
-                                        BarcodeScanType.driversCard);
-                                  },
-                                  hasInfo: model.gatePass.hasDriverInfo,
-                                  icon: Icons.credit_card,
-                                  color: Colors.blue,
-                                  infoList: [
-                                    BuildInfoItem(
-                                        label: 'Driver Name',
-                                        value: model.gatePass.driverName ??
-                                            'Not Scanned'),
-                                    BuildInfoItem(
-                                        label: 'ID Number',
-                                        value: model.gatePass.driverIdNo ??
-                                            'Not Scanned'),
-                                    BuildInfoItem(
-                                        label: 'License No',
-                                        value: model.gatePass.driverLicenceNo ??
-                                            'Not Scanned'),
-                                  ],
-                                ),
-                                verticalSpaceSmall,
-                                BuildInfoCard(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.95,
-                                  title: "Vehicle Lisence Disc",
-                                  isSelected: model.barcodeScanType ==
-                                      BarcodeScanType.vehicleDisc,
-                                  onTap: () {
-                                    model.setBarcodeScanType(
-                                        BarcodeScanType.vehicleDisc);
-                                  },
-                                  hasInfo: model.gatePass.hasVehicleInfo,
-                                  icon: Icons.directions_car,
-                                  color: Colors.green,
-                                  infoList: [
-                                    BuildInfoItem(
-                                        label: 'Registration',
-                                        value:
-                                            model.gatePass.vehicleRegNumber ??
-                                                'Not Scanned'),
-                                    BuildInfoItem(
-                                        label: 'Make',
-                                        value: model.gatePass.vehicleMake ??
-                                            'Not Scanned'),
-                                  ],
-                                ),
-                                verticalSpaceSmall,
-                                BuildInfoCard(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.95,
-                                  title: "Times",
-                                  isSelected:
-                                      model.gatePass.timeAtGate != null &&
-                                          model.gatePass.timeIn != null,
-                                  hasInfo: true,
-                                  icon: Icons.timelapse_sharp,
-                                  color: Colors.amber[300]!,
-                                  infoList: [
-                                    BuildInfoItem(
-                                        label: 'Time At Gate',
-                                        value: model.gatePass.timeAtGate
-                                                ?.toSocialMediaTime() ??
-                                            ''),
-                                    BuildInfoItem(
-                                        label: 'Time In',
-                                        value: model.gatePass.timeIn
-                                                ?.toSocialMediaTime() ??
-                                            ''),
-                                    BuildInfoItem(
-                                        label: 'Time Out',
-                                        value: model.gatePass.timeOut
-                                                ?.toSocialMediaTime() ??
-                                            ''),
-                                  ],
-                                ),
-                                model.gatePass.serviceTypeId != null
-                                    ? Text(
-                                        '(${model.serviceTypes.firstWhere((element) => element.value == model.gatePass.serviceTypeId).label})',
-                                        style: const TextStyle(
-                                          color: Colors.blue,
-                                          fontSize: 12,
-                                        ),
-                                      )
-                                    : const SizedBox.shrink(),
-                              ],
-                            )
-                          :
-                          //Else all the normal Gate Pass Access views
-                          Column(
-                              children: [
-                                if (model.showValidation) ...[
                                   verticalSpaceSmall,
-                                  BuildErrorsView(
-                                    validationMessages:
-                                        model.validationMessages,
+                                  BuildInfoCard(
+                                    width: width,
+                                    title: "Vehicle Lisence Disc",
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.vehicleDisc,
+                                    onTap: () {
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.vehicleDisc);
+                                    },
+                                    hasInfo: model.gatePass.hasVehicleInfo,
+                                    icon: Icons.directions_car,
+                                    color: Colors.green,
+                                    infoList: [
+                                      BuildInfoItem(
+                                          label: 'Registration',
+                                          value:
+                                              model.gatePass.vehicleRegNumber ??
+                                                  'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'Make',
+                                          value: model.gatePass.vehicleMake ??
+                                              'Not Scanned'),
+                                    ],
                                   ),
+                                  verticalSpaceSmall,
+                                  BuildInfoCard(
+                                    width: width,
+                                    title: "Times",
+                                    isSelected:
+                                        model.gatePass.timeAtGate != null &&
+                                            model.gatePass.timeIn != null,
+                                    hasInfo: true,
+                                    icon: Icons.timelapse_sharp,
+                                    color: Colors.amber[300]!,
+                                    infoList: [
+                                      BuildInfoItem(
+                                          label: 'Time At Gate',
+                                          value: model.gatePass.timeAtGate
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                      BuildInfoItem(
+                                          label: 'Time In',
+                                          value: model.gatePass.timeIn
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                      BuildInfoItem(
+                                          label: 'Time Out',
+                                          value: model.gatePass.timeOut
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                    ],
+                                  ),
+                                  model.gatePass.serviceTypeId != null
+                                      ? Text(
+                                          '(${model.serviceTypes.firstWhere((element) => element.value == model.gatePass.serviceTypeId).label})',
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+                                            fontSize: 12,
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
                                 ],
-                                verticalSpaceTiny,
-                                !model.gatePass.hasDriverInfo ||
-                                        !model.gatePass.hasVehicleInfo
-                                    ? BuildScanningView(
-                                        barcodeScanType: model.barcodeScanType)
-                                    : const SizedBox.shrink(),
-                                verticalSpaceSmall,
-                                BuildInfoCard(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.95,
-                                  title: "Drivers Lisence Card",
-                                  isSelected: model.barcodeScanType ==
-                                      BarcodeScanType.driversCard,
-                                  onTap: () {
-                                    model.setBarcodeScanType(
-                                        BarcodeScanType.driversCard);
-                                  },
-                                  hasInfo: model.gatePass.hasDriverInfo,
-                                  icon: Icons.credit_card,
-                                  color: Colors.blue,
-                                  infoList: [
-                                    BuildInfoItem(
-                                        label: 'Driver Name',
-                                        value: model.gatePass.driverName ??
-                                            'Not Scanned'),
-                                    BuildInfoItem(
-                                        label: 'ID Number',
-                                        value: model.gatePass.driverIdNo ??
-                                            'Not Scanned'),
-                                    BuildInfoItem(
-                                        label: 'License No',
-                                        value: model.gatePass.driverLicenceNo ??
-                                            'Not Scanned'),
-                                    BuildInfoItem(
-                                        label: 'License Expiry',
-                                        value: model.gatePass
-                                                .driverLicenceExpiryDate
-                                                ?.toLocal()
-                                                .toFormattedString() ??
-                                            'Not Scanned'),
+                              )
+                            :
+                            //Else all the normal Gate Pass Access views
+                            Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (model.showValidation) ...[
+                                    verticalSpaceSmall,
+                                    BuildErrorsView(
+                                      validationMessages:
+                                          model.validationMessages,
+                                    ),
                                   ],
-                                ),
-                                verticalSpaceSmall,
-                                BuildInfoCard(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.95,
-                                  title: "Vehicle Lisence Disc",
-                                  isSelected: model.barcodeScanType ==
-                                      BarcodeScanType.vehicleDisc,
-                                  onTap: () {
-                                    model.setBarcodeScanType(
-                                        BarcodeScanType.vehicleDisc);
-                                  },
-                                  hasInfo: model.gatePass.hasVehicleInfo,
-                                  icon: Icons.directions_car,
-                                  color: Colors.green,
-                                  infoList: [
-                                    BuildInfoItem(
-                                        label: 'Registration',
-                                        value:
-                                            model.gatePass.vehicleRegNumber ??
-                                                'Not Scanned'),
-                                    BuildInfoItem(
-                                        label: 'Make',
-                                        value: model.gatePass.vehicleMake ??
-                                            'Not Scanned'),
-                                    BuildInfoItem(
-                                        label: 'Model',
-                                        value:
-                                            model.gatePass.vehicleVinNumber ??
-                                                'Not Scanned'),
+                                  verticalSpaceTiny,
+                                  !model.gatePass.hasDriverInfo ||
+                                          !model.gatePass.hasVehicleInfo
+                                      ? BuildScanningView(
+                                          barcodeScanType:
+                                              model.barcodeScanType)
+                                      : const SizedBox.shrink(),
+                                  verticalSpaceSmall,
+                                  BuildInfoCard(
+                                    width: width,
+                                    title: "Drivers Lisence Card",
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.driversCard,
+                                    onTap: () {
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.driversCard);
+                                    },
+                                    hasInfo: model.gatePass.hasDriverInfo,
+                                    icon: Icons.credit_card,
+                                    color: Colors.blue,
+                                    infoList: [
+                                      BuildInfoItem(
+                                          label: 'Driver Name',
+                                          value: model.gatePass.driverName ??
+                                              'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'ID Number',
+                                          value: model.gatePass.driverIdNo ??
+                                              'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'License No',
+                                          value:
+                                              model.gatePass.driverLicenceNo ??
+                                                  'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'License Expiry',
+                                          value: model.gatePass
+                                                  .driverLicenceExpiryDate
+                                                  ?.toLocal()
+                                                  .toFormattedString() ??
+                                              'Not Scanned'),
+                                    ],
+                                  ),
+                                  verticalSpaceSmall,
+                                  BuildInfoCard(
+                                    width: width,
+                                    title: "Vehicle Lisence Disc",
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.vehicleDisc,
+                                    onTap: () {
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.vehicleDisc);
+                                    },
+                                    hasInfo: model.gatePass.hasVehicleInfo,
+                                    icon: Icons.directions_car,
+                                    color: Colors.green,
+                                    infoList: [
+                                      BuildInfoItem(
+                                          label: 'Registration',
+                                          value:
+                                              model.gatePass.vehicleRegNumber ??
+                                                  'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'Make',
+                                          value: model.gatePass.vehicleMake ??
+                                              'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'Model',
+                                          value:
+                                              model.gatePass.vehicleVinNumber ??
+                                                  'Not Scanned'),
+                                    ],
+                                  ),
+                                  verticalSpaceSmall,
+                                  if (model.gatePass.gatePassBookingType ==
+                                      GatePassBookingType.containers) ...[
+                                    BuildInfoCard(
+                                      width: width,
+                                      title: "Container Info",
+                                      isSelected:
+                                          model.gatePass.timeAtGate != null &&
+                                              model.gatePass.timeIn != null,
+                                      hasInfo: model.gatePass.containerNumber !=
+                                          null,
+                                      icon: Icons.confirmation_num,
+                                      color: Colors.blueGrey[300]!,
+                                      infoList: [
+                                        BuildInfoItem(
+                                            label: 'Container No',
+                                            value: model
+                                                    .gatePass.containerNumber ??
+                                                ''),
+                                        BuildInfoItem(
+                                            label: 'Size',
+                                            value:
+                                                model.gatePass.containerSize ??
+                                                    ''),
+                                        BuildInfoItem(
+                                            label: 'Type',
+                                            value:
+                                                model.gatePass.containerType ??
+                                                    ''),
+                                        //BuildInfoItem(label: 'ISO Type', value: model.gatePass.containerIsoType ?? ''),
+                                      ],
+                                    ),
+                                    verticalSpaceSmall,
                                   ],
-                                ),
-                                verticalSpaceSmall,
-                                BuildInfoCard(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.95,
-                                  title: "Times",
-                                  isSelected:
-                                      model.gatePass.timeAtGate != null &&
-                                          model.gatePass.timeIn != null,
-                                  hasInfo: true,
-                                  icon: Icons.timelapse_sharp,
-                                  color: Colors.amber[300]!,
-                                  infoList: [
-                                    BuildInfoItem(
-                                        label: 'Time At Gate',
-                                        value: model.gatePass.timeAtGate
-                                                ?.toSocialMediaTime() ??
-                                            ''),
-                                    BuildInfoItem(
-                                        label: 'Time In',
-                                        value: model.gatePass.timeIn
-                                                ?.toSocialMediaTime() ??
-                                            ''),
-                                    BuildInfoItem(
-                                        label: 'Time Out',
-                                        value: model.gatePass.timeOut
-                                                ?.toSocialMediaTime() ??
-                                            ''),
-                                  ],
-                                ),
-                                model.gatePass.serviceTypeId != null
-                                    ? Text(
-                                        '(${model.serviceTypes.firstWhere((element) => element.value == model.gatePass.serviceTypeId).label})',
-                                        style: const TextStyle(
-                                          color: Colors.blue,
-                                          fontSize: 12,
-                                        ),
-                                      )
-                                    : const SizedBox.shrink(),
-                              ],
-                            )
+                                  BuildInfoCard(
+                                    width: width,
+                                    title: "Times",
+                                    isSelected:
+                                        model.gatePass.timeAtGate != null &&
+                                            model.gatePass.timeIn != null,
+                                    hasInfo: true,
+                                    icon: Icons.timelapse_sharp,
+                                    color: Colors.amber[300]!,
+                                    infoList: [
+                                      BuildInfoItem(
+                                          label: 'Time At Gate',
+                                          value: model.gatePass.timeAtGate
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                      BuildInfoItem(
+                                          label: 'Time In',
+                                          value: model.gatePass.timeIn
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                      BuildInfoItem(
+                                          label: 'Time Out',
+                                          value: model.gatePass.timeOut
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                    ],
+                                  ),
+                                  model.gatePass.serviceTypeId != null
+                                      ? Text(
+                                          '(${model.serviceTypes.firstWhere((element) => element.value == model.gatePass.serviceTypeId).label})',
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+                                            fontSize: 12,
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
+                                ],
+                              )
 
-                      // Form(
-                      //     key: formKeyAtGate,
-                      //     child: Column(
-                      //       children: [
-                      //         Row(
-                      //           children: [
-                      //             Expanded(
-                      //               child: RadioListTile(
-                      //                 contentPadding: const EdgeInsets.all(2),
-                      //                 value: DeliveryType.dispatch,
-                      //                 groupValue:
-                      //                     model.gatePass.gatePassDeliveryType,
-                      //                 dense: true,
-                      //                 title: BoxText.label(
-                      //                   DeliveryType.dispatch.text
-                      //                       .toUpperCase(),
-                      //                   color: Colors.black,
-                      //                   fontSize: 12,
-                      //                 ),
-                      //                 onChanged: (v) {
-                      //                   model.gatePass.gatePassDeliveryType =
-                      //                       DeliveryType.dispatch;
-                      //                   model.modelNotifyListeners();
-                      //                 },
-                      //                 activeColor: Colors.green,
-                      //                 selected: false,
-                      //               ),
-                      //             ),
-                      //             Expanded(
-                      //               child: RadioListTile(
-                      //                 contentPadding: const EdgeInsets.all(2),
-                      //                 value: DeliveryType.receive,
-                      //                 groupValue:
-                      //                     model.gatePass.gatePassDeliveryType,
-                      //                 dense: true,
-                      //                 title: BoxText.label(
-                      //                   DeliveryType.receive.text
-                      //                       .toUpperCase(),
-                      //                   color: Colors.black,
-                      //                   fontSize: 12,
-                      //                 ),
-                      //                 onChanged: (v) {
-                      //                   model.gatePass.gatePassDeliveryType =
-                      //                       DeliveryType.receive;
-                      //                   model.modelNotifyListeners();
-                      //                 },
-                      //                 activeColor: Colors.green,
-                      //                 selected: false,
-                      //               ),
-                      //             ),
-                      //           ],
-                      //         ),
-                      //         InputField(
-                      //           placeholder: "Type The Vehicle Reg Number...",
-                      //           padding: const EdgeInsets.only(
-                      //               left: 4, right: 4, top: 5),
-                      //           controller: vehicleRegNumberTextController,
-                      //           icon: FaIcon(
-                      //             FontAwesomeIcons.truck,
-                      //             color: model.gatePass.vehicleRegNumber ==
-                      //                     vehicleRegNumberValiTextController
-                      //                         .text
-                      //                 ? Colors.green
-                      //                 : Colors.red,
-                      //           ),
-                      //           fieldFocusNode: vehicleRegNumberTextFocusNode,
-                      //           nextFocusNode: trailerNo1TextFocusNode,
-                      //           textInputAction: TextInputAction.next,
-                      //           textInputType: TextInputType.text,
-                      //           isReadOnly: model.gatePass.externalId != null,
-                      //           formatter: [
-                      //             UpperCaseTextFormatter(),
-                      //           ],
-                      //           onChanged: (value) {
-                      //             updateModelData(model);
-                      //           },
-                      //           enterPressed: () {
-                      //             //used to close the keyboard on last text inputfield
-                      //             // FocusScope.of(context).unfocus();
-                      //           },
-                      //           validator: (value) {
-                      //             var valMsg =
-                      //                 "Vehicle Reg Number is required!";
+                        // Form(
+                        //     key: formKeyAtGate,
+                        //     child: Column(
+                        //       children: [
+                        //         Row(
+                        //           children: [
+                        //             Expanded(
+                        //               child: RadioListTile(
+                        //                 contentPadding: const EdgeInsets.all(2),
+                        //                 value: DeliveryType.dispatch,
+                        //                 groupValue:
+                        //                     model.gatePass.gatePassDeliveryType,
+                        //                 dense: true,
+                        //                 title: BoxText.label(
+                        //                   DeliveryType.dispatch.text
+                        //                       .toUpperCase(),
+                        //                   color: Colors.black,
+                        //                   fontSize: 12,
+                        //                 ),
+                        //                 onChanged: (v) {
+                        //                   model.gatePass.gatePassDeliveryType =
+                        //                       DeliveryType.dispatch;
+                        //                   model.modelNotifyListeners();
+                        //                 },
+                        //                 activeColor: Colors.green,
+                        //                 selected: false,
+                        //               ),
+                        //             ),
+                        //             Expanded(
+                        //               child: RadioListTile(
+                        //                 contentPadding: const EdgeInsets.all(2),
+                        //                 value: DeliveryType.receive,
+                        //                 groupValue:
+                        //                     model.gatePass.gatePassDeliveryType,
+                        //                 dense: true,
+                        //                 title: BoxText.label(
+                        //                   DeliveryType.receive.text
+                        //                       .toUpperCase(),
+                        //                   color: Colors.black,
+                        //                   fontSize: 12,
+                        //                 ),
+                        //                 onChanged: (v) {
+                        //                   model.gatePass.gatePassDeliveryType =
+                        //                       DeliveryType.receive;
+                        //                   model.modelNotifyListeners();
+                        //                 },
+                        //                 activeColor: Colors.green,
+                        //                 selected: false,
+                        //               ),
+                        //             ),
+                        //           ],
+                        //         ),
+                        //         InputField(
+                        //           placeholder: "Type The Vehicle Reg Number...",
+                        //           padding: const EdgeInsets.only(
+                        //               left: 4, right: 4, top: 5),
+                        //           controller: vehicleRegNumberTextController,
+                        //           icon: FaIcon(
+                        //             FontAwesomeIcons.truck,
+                        //             color: model.gatePass.vehicleRegNumber ==
+                        //                     vehicleRegNumberValiTextController
+                        //                         .text
+                        //                 ? Colors.green
+                        //                 : Colors.red,
+                        //           ),
+                        //           fieldFocusNode: vehicleRegNumberTextFocusNode,
+                        //           nextFocusNode: trailerNo1TextFocusNode,
+                        //           textInputAction: TextInputAction.next,
+                        //           textInputType: TextInputType.text,
+                        //           isReadOnly: model.gatePass.externalId != null,
+                        //           formatter: [
+                        //             UpperCaseTextFormatter(),
+                        //           ],
+                        //           onChanged: (value) {
+                        //             updateModelData(model);
+                        //           },
+                        //           enterPressed: () {
+                        //             //used to close the keyboard on last text inputfield
+                        //             // FocusScope.of(context).unfocus();
+                        //           },
+                        //           validator: (value) {
+                        //             var valMsg =
+                        //                 "Vehicle Reg Number is required!";
 
-                      //             if (value == null || value.isEmpty) {
-                      //               model.setValidationMessage(valMsg);
-                      //               return valMsg;
-                      //             }
-                      //             model.clearValidationMessage(valMsg);
-                      //             return null;
-                      //           },
-                      //         ),
-                      //         InputField(
-                      //           placeholder: "Scan Vehicle Lisence Disc",
-                      //           padding: const EdgeInsets.only(
-                      //               left: 4, right: 4, top: 5),
-                      //           controller:
-                      //               vehicleRegNumberValiTextController,
-                      //           icon: FaIcon(
-                      //             FontAwesomeIcons.truck,
-                      //             color: model
-                      //                         .gatePass
-                      //                         .vehicleRegNumberValidation
-                      //                         ?.isNotEmpty ??
-                      //                     false
-                      //                 ? Colors.green
-                      //                 : Colors.red,
-                      //           ),
-                      //           fieldFocusNode: vehicleRegNumberTextFocusNode,
-                      //           nextFocusNode: trailerNo1TextFocusNode,
-                      //           textInputAction: TextInputAction.next,
-                      //           textInputType: TextInputType.text,
-                      //           formatter: [
-                      //             UpperCaseTextFormatter(),
-                      //           ],
-                      //           onChanged: (value) {
-                      //             updateModelData(model);
-                      //           },
-                      //           enterPressed: () {
-                      //             //used to close the keyboard on last text inputfield
-                      //             // FocusScope.of(context).unfocus();
-                      //           },
-                      //           validator: (value) {
-                      //             var valMsg =
-                      //                 "Vehicle Reg Number is required!";
+                        //             if (value == null || value.isEmpty) {
+                        //               model.setValidationMessage(valMsg);
+                        //               return valMsg;
+                        //             }
+                        //             model.clearValidationMessage(valMsg);
+                        //             return null;
+                        //           },
+                        //         ),
+                        //         InputField(
+                        //           placeholder: "Scan Vehicle Lisence Disc",
+                        //           padding: const EdgeInsets.only(
+                        //               left: 4, right: 4, top: 5),
+                        //           controller:
+                        //               vehicleRegNumberValiTextController,
+                        //           icon: FaIcon(
+                        //             FontAwesomeIcons.truck,
+                        //             color: model
+                        //                         .gatePass
+                        //                         .vehicleRegNumberValidation
+                        //                         ?.isNotEmpty ??
+                        //                     false
+                        //                 ? Colors.green
+                        //                 : Colors.red,
+                        //           ),
+                        //           fieldFocusNode: vehicleRegNumberTextFocusNode,
+                        //           nextFocusNode: trailerNo1TextFocusNode,
+                        //           textInputAction: TextInputAction.next,
+                        //           textInputType: TextInputType.text,
+                        //           formatter: [
+                        //             UpperCaseTextFormatter(),
+                        //           ],
+                        //           onChanged: (value) {
+                        //             updateModelData(model);
+                        //           },
+                        //           enterPressed: () {
+                        //             //used to close the keyboard on last text inputfield
+                        //             // FocusScope.of(context).unfocus();
+                        //           },
+                        //           validator: (value) {
+                        //             var valMsg =
+                        //                 "Vehicle Reg Number is required!";
 
-                      //             if (value == null || value.isEmpty) {
-                      //               model.setValidationMessage(valMsg);
-                      //               return valMsg;
-                      //             }
-                      //             model.clearValidationMessage(valMsg);
-                      //             return null;
-                      //           },
-                      //         ),
-                      //         InputField(
-                      //           placeholder: "Type The Trailer No 1...",
-                      //           padding: const EdgeInsets.only(
-                      //               left: 4, right: 4, top: 0),
-                      //           controller: trailerNo1TextController,
-                      //           icon: FaIcon(
-                      //             FontAwesomeIcons.trailer,
-                      //             color: model.gatePass.trailerRegNumberOne !=
-                      //                         null &&
-                      //                     model.gatePass.trailerRegNumberOne!
-                      //                         .isNotEmpty
-                      //                 ? Colors.green
-                      //                 : Colors.red,
-                      //           ),
-                      //           fieldFocusNode: trailerNo1TextFocusNode,
-                      //           nextFocusNode: trailerNo2TextFocusNode,
-                      //           textInputAction: TextInputAction.next,
-                      //           textInputType: TextInputType.text,
-                      //           formatter: [
-                      //             UpperCaseTextFormatter(),
-                      //           ],
-                      //           onChanged: (value) {
-                      //             updateModelData(model);
-                      //           },
-                      //           enterPressed: () {
-                      //             //used to close the keyboard on last text inputfield
-                      //             //FocusScope.of(context).unfocus();
-                      //           },
-                      //           validator: (value) {
-                      //             // var valMsg = "Trailer No 1 Number is required!";
+                        //             if (value == null || value.isEmpty) {
+                        //               model.setValidationMessage(valMsg);
+                        //               return valMsg;
+                        //             }
+                        //             model.clearValidationMessage(valMsg);
+                        //             return null;
+                        //           },
+                        //         ),
+                        //         InputField(
+                        //           placeholder: "Type The Trailer No 1...",
+                        //           padding: const EdgeInsets.only(
+                        //               left: 4, right: 4, top: 0),
+                        //           controller: trailerNo1TextController,
+                        //           icon: FaIcon(
+                        //             FontAwesomeIcons.trailer,
+                        //             color: model.gatePass.trailerRegNumberOne !=
+                        //                         null &&
+                        //                     model.gatePass.trailerRegNumberOne!
+                        //                         .isNotEmpty
+                        //                 ? Colors.green
+                        //                 : Colors.red,
+                        //           ),
+                        //           fieldFocusNode: trailerNo1TextFocusNode,
+                        //           nextFocusNode: trailerNo2TextFocusNode,
+                        //           textInputAction: TextInputAction.next,
+                        //           textInputType: TextInputType.text,
+                        //           formatter: [
+                        //             UpperCaseTextFormatter(),
+                        //           ],
+                        //           onChanged: (value) {
+                        //             updateModelData(model);
+                        //           },
+                        //           enterPressed: () {
+                        //             //used to close the keyboard on last text inputfield
+                        //             //FocusScope.of(context).unfocus();
+                        //           },
+                        //           validator: (value) {
+                        //             // var valMsg = "Trailer No 1 Number is required!";
 
-                      //             // if (value == null || value.isEmpty) {
-                      //             //   model.setValidationMessage(valMsg);
-                      //             //   return valMsg;
-                      //             // }
-                      //             // model.clearValidationMessage(valMsg);
-                      //             return null;
-                      //           },
-                      //         ),
-                      //         InputField(
-                      //           placeholder: "Type The Trailer No 2...",
-                      //           padding: const EdgeInsets.only(
-                      //               left: 4, right: 4, top: 0),
-                      //           controller: trailerNo1TextController,
-                      //           icon: FaIcon(
-                      //             FontAwesomeIcons.trailer,
-                      //             color: model.gatePass.trailerRegNumberOne !=
-                      //                         null &&
-                      //                     model.gatePass.trailerRegNumberOne!
-                      //                         .isNotEmpty
-                      //                 ? Colors.green
-                      //                 : Colors.red,
-                      //           ),
-                      //           fieldFocusNode: trailerNo2TextFocusNode,
-                      //           nextFocusNode: null,
-                      //           textInputAction: TextInputAction.next,
-                      //           textInputType: TextInputType.text,
-                      //           formatter: [
-                      //             UpperCaseTextFormatter(),
-                      //           ],
-                      //           onChanged: (value) {
-                      //             updateModelData(model);
-                      //           },
-                      //           enterPressed: () {
-                      //             //used to close the keyboard on last text inputfield
-                      //             FocusScope.of(context).unfocus();
-                      //           },
-                      //           validator: (value) {
-                      //             // var valMsg = "Trailer No 1 Number is required!";
+                        //             // if (value == null || value.isEmpty) {
+                        //             //   model.setValidationMessage(valMsg);
+                        //             //   return valMsg;
+                        //             // }
+                        //             // model.clearValidationMessage(valMsg);
+                        //             return null;
+                        //           },
+                        //         ),
+                        //         InputField(
+                        //           placeholder: "Type The Trailer No 2...",
+                        //           padding: const EdgeInsets.only(
+                        //               left: 4, right: 4, top: 0),
+                        //           controller: trailerNo1TextController,
+                        //           icon: FaIcon(
+                        //             FontAwesomeIcons.trailer,
+                        //             color: model.gatePass.trailerRegNumberOne !=
+                        //                         null &&
+                        //                     model.gatePass.trailerRegNumberOne!
+                        //                         .isNotEmpty
+                        //                 ? Colors.green
+                        //                 : Colors.red,
+                        //           ),
+                        //           fieldFocusNode: trailerNo2TextFocusNode,
+                        //           nextFocusNode: null,
+                        //           textInputAction: TextInputAction.next,
+                        //           textInputType: TextInputType.text,
+                        //           formatter: [
+                        //             UpperCaseTextFormatter(),
+                        //           ],
+                        //           onChanged: (value) {
+                        //             updateModelData(model);
+                        //           },
+                        //           enterPressed: () {
+                        //             //used to close the keyboard on last text inputfield
+                        //             FocusScope.of(context).unfocus();
+                        //           },
+                        //           validator: (value) {
+                        //             // var valMsg = "Trailer No 1 Number is required!";
 
-                      //             // if (value == null || value.isEmpty) {
-                      //             //   model.setValidationMessage(valMsg);
-                      //             //   return valMsg;
-                      //             // }
-                      //             // model.clearValidationMessage(valMsg);
-                      //             return null;
-                      //           },
-                      //         ),
-                      //         Padding(
-                      //           padding:
-                      //               const EdgeInsets.only(left: 8, top: 8),
-                      //           child: BoxText.label(
-                      //             "Customer",
-                      //             color: Colors.black,
-                      //           ),
-                      //         ),
-                      //         ModalSheetSelection<BaseLookup>(
-                      //           key: const Key("Customer"),
-                      //           dropDownList: model.customers,
-                      //           dropDownIcon: const Icon(
-                      //             Icons.arrow_drop_down,
-                      //             color: Colors.grey,
-                      //             size: 23,
-                      //           ),
-                      //           onDropDownItemClick: (selectedItem) {
-                      //             model.setCustomer(selectedItem);
-                      //           },
-                      //           onTapped: (isValid) {
-                      //             var valMsg = "Customer is required!";
-                      //             if (isValid = false) {
-                      //               model.setValidationMessage(valMsg);
-                      //               return valMsg;
-                      //             } else {
-                      //               model.clearValidationMessage(valMsg);
-                      //             }
-                      //           },
-                      //           selectedItem: model.getCustomer(),
-                      //         ),
-                      //         InputField(
-                      //           placeholder: "Driver Name",
-                      //           padding: const EdgeInsets.only(
-                      //               left: 4, right: 4, top: 4),
-                      //           controller: driverNameTextController,
-                      //           icon: FaIcon(
-                      //             FontAwesomeIcons.idCard,
-                      //             color: model.gatePass.driverName != null &&
-                      //                     model
-                      //                         .gatePass.driverName!.isNotEmpty
-                      //                 ? Colors.green
-                      //                 : Colors.red,
-                      //           ),
-                      //           fieldFocusNode: driverdriverNameTextFocusNode,
-                      //           nextFocusNode: null,
-                      //           textInputAction: TextInputAction.next,
-                      //           textInputType: TextInputType.text,
-                      //           onChanged: (value) {
-                      //             updateModelData(model);
-                      //           },
-                      //           enterPressed: () {
-                      //             //used to close the keyboard on last text inputfield
-                      //             FocusScope.of(context).unfocus();
-                      //           },
-                      //           validator: (value) {
-                      //             // var valMsg = "Trailer No 1 Number is required!";
+                        //             // if (value == null || value.isEmpty) {
+                        //             //   model.setValidationMessage(valMsg);
+                        //             //   return valMsg;
+                        //             // }
+                        //             // model.clearValidationMessage(valMsg);
+                        //             return null;
+                        //           },
+                        //         ),
+                        //         Padding(
+                        //           padding:
+                        //               const EdgeInsets.only(left: 8, top: 8),
+                        //           child: BoxText.label(
+                        //             "Customer",
+                        //             color: Colors.black,
+                        //           ),
+                        //         ),
+                        //         ModalSheetSelection<BaseLookup>(
+                        //           key: const Key("Customer"),
+                        //           dropDownList: model.customers,
+                        //           dropDownIcon: const Icon(
+                        //             Icons.arrow_drop_down,
+                        //             color: Colors.grey,
+                        //             size: 23,
+                        //           ),
+                        //           onDropDownItemClick: (selectedItem) {
+                        //             model.setCustomer(selectedItem);
+                        //           },
+                        //           onTapped: (isValid) {
+                        //             var valMsg = "Customer is required!";
+                        //             if (isValid = false) {
+                        //               model.setValidationMessage(valMsg);
+                        //               return valMsg;
+                        //             } else {
+                        //               model.clearValidationMessage(valMsg);
+                        //             }
+                        //           },
+                        //           selectedItem: model.getCustomer(),
+                        //         ),
+                        //         InputField(
+                        //           placeholder: "Driver Name",
+                        //           padding: const EdgeInsets.only(
+                        //               left: 4, right: 4, top: 4),
+                        //           controller: driverNameTextController,
+                        //           icon: FaIcon(
+                        //             FontAwesomeIcons.idCard,
+                        //             color: model.gatePass.driverName != null &&
+                        //                     model
+                        //                         .gatePass.driverName!.isNotEmpty
+                        //                 ? Colors.green
+                        //                 : Colors.red,
+                        //           ),
+                        //           fieldFocusNode: driverdriverNameTextFocusNode,
+                        //           nextFocusNode: null,
+                        //           textInputAction: TextInputAction.next,
+                        //           textInputType: TextInputType.text,
+                        //           onChanged: (value) {
+                        //             updateModelData(model);
+                        //           },
+                        //           enterPressed: () {
+                        //             //used to close the keyboard on last text inputfield
+                        //             FocusScope.of(context).unfocus();
+                        //           },
+                        //           validator: (value) {
+                        //             // var valMsg = "Trailer No 1 Number is required!";
 
-                      //             // if (value == null || value.isEmpty) {
-                      //             //   model.setValidationMessage(valMsg);
-                      //             //   return valMsg;
-                      //             // }
-                      //             // model.clearValidationMessage(valMsg);
-                      //             return null;
-                      //           },
-                      //         ),
-                      //         InputField(
-                      //           placeholder: "Driver ID",
-                      //           padding: const EdgeInsets.only(
-                      //               left: 4, right: 4, top: 0),
-                      //           controller: driverIDTextController,
-                      //           icon: FaIcon(
-                      //             FontAwesomeIcons.idCard,
-                      //             color: model.gatePass.driverIdNo != null &&
-                      //                     model
-                      //                         .gatePass.driverIdNo!.isNotEmpty
-                      //                 ? Colors.green
-                      //                 : Colors.red,
-                      //           ),
-                      //           fieldFocusNode: driverIDTextFocusNode,
-                      //           nextFocusNode: null,
-                      //           textInputAction: TextInputAction.next,
-                      //           textInputType: TextInputType.text,
-                      //           onChanged: (value) {
-                      //             updateModelData(model);
-                      //           },
-                      //           enterPressed: () {
-                      //             //used to close the keyboard on last text inputfield
-                      //             FocusScope.of(context).unfocus();
-                      //           },
-                      //           validator: (value) {
-                      //             // var valMsg = "Trailer No 1 Number is required!";
+                        //             // if (value == null || value.isEmpty) {
+                        //             //   model.setValidationMessage(valMsg);
+                        //             //   return valMsg;
+                        //             // }
+                        //             // model.clearValidationMessage(valMsg);
+                        //             return null;
+                        //           },
+                        //         ),
+                        //         InputField(
+                        //           placeholder: "Driver ID",
+                        //           padding: const EdgeInsets.only(
+                        //               left: 4, right: 4, top: 0),
+                        //           controller: driverIDTextController,
+                        //           icon: FaIcon(
+                        //             FontAwesomeIcons.idCard,
+                        //             color: model.gatePass.driverIdNo != null &&
+                        //                     model
+                        //                         .gatePass.driverIdNo!.isNotEmpty
+                        //                 ? Colors.green
+                        //                 : Colors.red,
+                        //           ),
+                        //           fieldFocusNode: driverIDTextFocusNode,
+                        //           nextFocusNode: null,
+                        //           textInputAction: TextInputAction.next,
+                        //           textInputType: TextInputType.text,
+                        //           onChanged: (value) {
+                        //             updateModelData(model);
+                        //           },
+                        //           enterPressed: () {
+                        //             //used to close the keyboard on last text inputfield
+                        //             FocusScope.of(context).unfocus();
+                        //           },
+                        //           validator: (value) {
+                        //             // var valMsg = "Trailer No 1 Number is required!";
 
-                      //             // if (value == null || value.isEmpty) {
-                      //             //   model.setValidationMessage(valMsg);
-                      //             //   return valMsg;
-                      //             // }
-                      //             // model.clearValidationMessage(valMsg);
-                      //             return null;
-                      //           },
-                      //         ),
-                      //         InputField(
-                      //           placeholder: "Driver License No",
-                      //           padding: const EdgeInsets.only(
-                      //               left: 4, right: 4, top: 0),
-                      //           controller: driverLisenceNoTextController,
-                      //           icon: FaIcon(
-                      //             FontAwesomeIcons.idCard,
-                      //             color: model.gatePass.driverLicenceNo !=
-                      //                         null &&
-                      //                     model.gatePass.driverLicenceNo!
-                      //                         .isNotEmpty
-                      //                 ? Colors.green
-                      //                 : Colors.red,
-                      //           ),
-                      //           fieldFocusNode: driverLisenceNoTextFocusNode,
-                      //           nextFocusNode: null,
-                      //           textInputAction: TextInputAction.next,
-                      //           textInputType: TextInputType.text,
-                      //           onChanged: (value) {
-                      //             updateModelData(model);
-                      //           },
-                      //           enterPressed: () {
-                      //             //used to close the keyboard on last text inputfield
-                      //             FocusScope.of(context).unfocus();
-                      //           },
-                      //           validator: (value) {
-                      //             // var valMsg = "Trailer No 1 Number is required!";
+                        //             // if (value == null || value.isEmpty) {
+                        //             //   model.setValidationMessage(valMsg);
+                        //             //   return valMsg;
+                        //             // }
+                        //             // model.clearValidationMessage(valMsg);
+                        //             return null;
+                        //           },
+                        //         ),
+                        //         InputField(
+                        //           placeholder: "Driver License No",
+                        //           padding: const EdgeInsets.only(
+                        //               left: 4, right: 4, top: 0),
+                        //           controller: driverLisenceNoTextController,
+                        //           icon: FaIcon(
+                        //             FontAwesomeIcons.idCard,
+                        //             color: model.gatePass.driverLicenceNo !=
+                        //                         null &&
+                        //                     model.gatePass.driverLicenceNo!
+                        //                         .isNotEmpty
+                        //                 ? Colors.green
+                        //                 : Colors.red,
+                        //           ),
+                        //           fieldFocusNode: driverLisenceNoTextFocusNode,
+                        //           nextFocusNode: null,
+                        //           textInputAction: TextInputAction.next,
+                        //           textInputType: TextInputType.text,
+                        //           onChanged: (value) {
+                        //             updateModelData(model);
+                        //           },
+                        //           enterPressed: () {
+                        //             //used to close the keyboard on last text inputfield
+                        //             FocusScope.of(context).unfocus();
+                        //           },
+                        //           validator: (value) {
+                        //             // var valMsg = "Trailer No 1 Number is required!";
 
-                      //             // if (value == null || value.isEmpty) {
-                      //             //   model.setValidationMessage(valMsg);
-                      //             //   return valMsg;
-                      //             // }
-                      //             // model.clearValidationMessage(valMsg);
-                      //             return null;
-                      //           },
-                      //         ),
-                      //         ListTile(
-                      //           dense: true,
-                      //           contentPadding: const EdgeInsets.only(
-                      //               left: 9.0, right: 9),
-                      //           //  leading: GatePassListIcon(statusId: model.gatePass.gatePassStatus),
-                      //           trailing: GateStatusChip(
-                      //               gatePassStatus:
-                      //                   model.gatePass.gatePassStatus),
-                      //           title: BoxText.label(
-                      //             "Status",
-                      //             color: Colors.black,
-                      //           ),
-                      //         ),
-                      //         ListTile(
-                      //           dense: true,
-                      //           contentPadding:
-                      //               const EdgeInsets.only(left: 9.0),
-                      //           subtitle: BoxText.caption(model
-                      //               .gatePass.timeAtGate
-                      //               .toFormattedString()),
-                      //           title: BoxText.label(
-                      //             "Time At Gate",
-                      //             color: Colors.black,
-                      //           ),
-                      //         ),
-                      //         ListTile(
-                      //           dense: true,
-                      //           contentPadding:
-                      //               const EdgeInsets.only(left: 9.0),
-                      //           subtitle: BoxText.caption(
-                      //               model.gatePass.timeIn?.toString() ?? ""),
-                      //           title: BoxText.label(
-                      //             "Time In",
-                      //             color: Colors.black,
-                      //           ),
-                      //         ),
-                      //         ListTile(
-                      //           dense: true,
-                      //           contentPadding:
-                      //               const EdgeInsets.only(left: 9.0),
-                      //           subtitle: BoxText.caption(
-                      //               model.gatePass.timeOut?.toString() ?? ""),
-                      //           title: BoxText.label(
-                      //             "Time Out",
-                      //             color: Colors.black,
-                      //           ),
-                      //         ),
-                      //         // ListRadioBoolWithLabel(
-                      //         //   label: "Documents Received ?",
-                      //         //   value: model.gatePass.gatePassQuestions
-                      //         //           ?.hasDeliveryDocuments ??
-                      //         //       false,
-                      //         //   onValueChanged: (Object? newValue) {
-                      //         //     if (newValue is bool?) {
-                      //         //       model.setDocRecievedChange(newValue);
-                      //         //     }
-                      //         //   },
-                      //         // ),
-                      //         // ListRadioBoolWithLabel(
-                      //         //   label: "Containerised (Y/N)?",
-                      //         //   value: model.gatePass.gatePassQuestions
-                      //         //           ?.isContainerised ??
-                      //         //       false,
-                      //         //   onValueChanged: (Object? val) {
-                      //         //     if (val is bool?) {
-                      //         //       model.gatePass.gatePassQuestions
-                      //         //           ?.isContainerised = val ?? false;
-                      //         //       model.modelNotifyListeners();
-                      //         //     }
-                      //         //   },
-                      //         // ),
-                      //         // ListRadioBoolWithLabel(
-                      //         //   label:
-                      //         //       "Any visible damages/quality defects on the items/pallets/packaging (Y/N)?",
-                      //         //   value: model.gatePass.gatePassQuestions
-                      //         //           ?.hasDamagesDefects ??
-                      //         //       false,
-                      //         //   onValueChanged: (Object? val) {
-                      //         //     if (val is bool?) {
-                      //         //       model.gatePass.gatePassQuestions
-                      //         //           ?.hasDamagesDefects = val ?? false;
-                      //         //       model.modelNotifyListeners();
-                      //         //     }
-                      //         //   },
-                      //         // ),
-                      //         // ListRadioBoolWithLabel(
-                      //         //   label:
-                      //         //       "Does the qty delivered match the docs? (Y/N)?",
-                      //         //   value: model.gatePass.gatePassQuestions
-                      //         //           ?.qtyMatchedDocs ??
-                      //         //       false,
-                      //         //   onValueChanged: (Object? val) {
-                      //         //     if (val is bool?) {
-                      //         //       model.gatePass.gatePassQuestions
-                      //         //           ?.qtyMatchedDocs = val ?? false;
-                      //         //       model.modelNotifyListeners();
-                      //         //     }
-                      //         //   },
-                      //         // ),
-                      //         // ListRadioBoolWithLabel(
-                      //         //   label: "Do the item numbers match the docs (Y/N)?",
-                      //         //   value: model.gatePass.gatePassQuestions
-                      //         //           ?.itemCodesMatchDocs ??
-                      //         //       false,
-                      //         //   onValueChanged: (Object? val) {
-                      //         //     if (val is bool?) {
-                      //         //       model.gatePass.gatePassQuestions
-                      //         //           ?.itemCodesMatchDocs = val ?? false;
-                      //         //       model.modelNotifyListeners();
-                      //         //     }
-                      //         //   },
-                      //         // ),
-                      //         // ListRadioBoolWithLabel(
-                      //         //   label: "Was the delivery expected (Y/N)?",
-                      //         //   value: model.gatePass.gatePassQuestions
-                      //         //           ?.expectedDelivery ??
-                      //         //       false,
-                      //         //   onValueChanged: (Object? val) {
-                      //         //     if (val is bool?) {
-                      //         //       model.gatePass.gatePassQuestions
-                      //         //           ?.expectedDelivery = val ?? false;
-                      //         //       model.modelNotifyListeners();
-                      //         //     }
-                      //         //   },
-                      //         // ),
-                      //         // ListRadioBoolWithLabel(
-                      //         //   label:
-                      //         //       "Does the driver agree with the info captured (Y/N)?",
-                      //         //   value:
-                      //         //       model.gatePass.gatePassQuestions?.driverAgree ??
-                      //         //           false,
-                      //         //   onValueChanged: (Object? val) {
-                      //         //     if (val is bool?) {
-                      //         //       model.gatePass.gatePassQuestions?.driverAgree =
-                      //         //           val ?? false;
-                      //         //       model.modelNotifyListeners();
-                      //         //     }
-                      //         //   },
-                      //         // ),
-                      //       ],
-                      //     ),
-                      //   ),
-                      ),
+                        //             // if (value == null || value.isEmpty) {
+                        //             //   model.setValidationMessage(valMsg);
+                        //             //   return valMsg;
+                        //             // }
+                        //             // model.clearValidationMessage(valMsg);
+                        //             return null;
+                        //           },
+                        //         ),
+                        //         ListTile(
+                        //           dense: true,
+                        //           contentPadding: const EdgeInsets.only(
+                        //               left: 9.0, right: 9),
+                        //           //  leading: GatePassListIcon(statusId: model.gatePass.gatePassStatus),
+                        //           trailing: GateStatusChip(
+                        //               gatePassStatus:
+                        //                   model.gatePass.gatePassStatus),
+                        //           title: BoxText.label(
+                        //             "Status",
+                        //             color: Colors.black,
+                        //           ),
+                        //         ),
+                        //         ListTile(
+                        //           dense: true,
+                        //           contentPadding:
+                        //               const EdgeInsets.only(left: 9.0),
+                        //           subtitle: BoxText.caption(model
+                        //               .gatePass.timeAtGate
+                        //               .toFormattedString()),
+                        //           title: BoxText.label(
+                        //             "Time At Gate",
+                        //             color: Colors.black,
+                        //           ),
+                        //         ),
+                        //         ListTile(
+                        //           dense: true,
+                        //           contentPadding:
+                        //               const EdgeInsets.only(left: 9.0),
+                        //           subtitle: BoxText.caption(
+                        //               model.gatePass.timeIn?.toString() ?? ""),
+                        //           title: BoxText.label(
+                        //             "Time In",
+                        //             color: Colors.black,
+                        //           ),
+                        //         ),
+                        //         ListTile(
+                        //           dense: true,
+                        //           contentPadding:
+                        //               const EdgeInsets.only(left: 9.0),
+                        //           subtitle: BoxText.caption(
+                        //               model.gatePass.timeOut?.toString() ?? ""),
+                        //           title: BoxText.label(
+                        //             "Time Out",
+                        //             color: Colors.black,
+                        //           ),
+                        //         ),
+                        //         // ListRadioBoolWithLabel(
+                        //         //   label: "Documents Received ?",
+                        //         //   value: model.gatePass.gatePassQuestions
+                        //         //           ?.hasDeliveryDocuments ??
+                        //         //       false,
+                        //         //   onValueChanged: (Object? newValue) {
+                        //         //     if (newValue is bool?) {
+                        //         //       model.setDocRecievedChange(newValue);
+                        //         //     }
+                        //         //   },
+                        //         // ),
+                        //         // ListRadioBoolWithLabel(
+                        //         //   label: "Containerised (Y/N)?",
+                        //         //   value: model.gatePass.gatePassQuestions
+                        //         //           ?.isContainerised ??
+                        //         //       false,
+                        //         //   onValueChanged: (Object? val) {
+                        //         //     if (val is bool?) {
+                        //         //       model.gatePass.gatePassQuestions
+                        //         //           ?.isContainerised = val ?? false;
+                        //         //       model.modelNotifyListeners();
+                        //         //     }
+                        //         //   },
+                        //         // ),
+                        //         // ListRadioBoolWithLabel(
+                        //         //   label:
+                        //         //       "Any visible damages/quality defects on the items/pallets/packaging (Y/N)?",
+                        //         //   value: model.gatePass.gatePassQuestions
+                        //         //           ?.hasDamagesDefects ??
+                        //         //       false,
+                        //         //   onValueChanged: (Object? val) {
+                        //         //     if (val is bool?) {
+                        //         //       model.gatePass.gatePassQuestions
+                        //         //           ?.hasDamagesDefects = val ?? false;
+                        //         //       model.modelNotifyListeners();
+                        //         //     }
+                        //         //   },
+                        //         // ),
+                        //         // ListRadioBoolWithLabel(
+                        //         //   label:
+                        //         //       "Does the qty delivered match the docs? (Y/N)?",
+                        //         //   value: model.gatePass.gatePassQuestions
+                        //         //           ?.qtyMatchedDocs ??
+                        //         //       false,
+                        //         //   onValueChanged: (Object? val) {
+                        //         //     if (val is bool?) {
+                        //         //       model.gatePass.gatePassQuestions
+                        //         //           ?.qtyMatchedDocs = val ?? false;
+                        //         //       model.modelNotifyListeners();
+                        //         //     }
+                        //         //   },
+                        //         // ),
+                        //         // ListRadioBoolWithLabel(
+                        //         //   label: "Do the item numbers match the docs (Y/N)?",
+                        //         //   value: model.gatePass.gatePassQuestions
+                        //         //           ?.itemCodesMatchDocs ??
+                        //         //       false,
+                        //         //   onValueChanged: (Object? val) {
+                        //         //     if (val is bool?) {
+                        //         //       model.gatePass.gatePassQuestions
+                        //         //           ?.itemCodesMatchDocs = val ?? false;
+                        //         //       model.modelNotifyListeners();
+                        //         //     }
+                        //         //   },
+                        //         // ),
+                        //         // ListRadioBoolWithLabel(
+                        //         //   label: "Was the delivery expected (Y/N)?",
+                        //         //   value: model.gatePass.gatePassQuestions
+                        //         //           ?.expectedDelivery ??
+                        //         //       false,
+                        //         //   onValueChanged: (Object? val) {
+                        //         //     if (val is bool?) {
+                        //         //       model.gatePass.gatePassQuestions
+                        //         //           ?.expectedDelivery = val ?? false;
+                        //         //       model.modelNotifyListeners();
+                        //         //     }
+                        //         //   },
+                        //         // ),
+                        //         // ListRadioBoolWithLabel(
+                        //         //   label:
+                        //         //       "Does the driver agree with the info captured (Y/N)?",
+                        //         //   value:
+                        //         //       model.gatePass.gatePassQuestions?.driverAgree ??
+                        //         //           false,
+                        //         //   onValueChanged: (Object? val) {
+                        //         //     if (val is bool?) {
+                        //         //       model.gatePass.gatePassQuestions?.driverAgree =
+                        //         //           val ?? false;
+                        //         //       model.modelNotifyListeners();
+                        //         //     }
+                        //         //   },
+                        //         // ),
+                        //       ],
+                        //     ),
+                        //   ),
+                        ),
+                  ),
                   // IMAGES
                   Scaffold(
                     floatingActionButton: SpeedDial(
@@ -1101,13 +1143,8 @@ class GatePassEditView extends StatelessWidget {
                         SpeedDialChild(
                           child: const Icon(Icons.camera_alt_outlined),
                           label: 'Take Photo',
-                          onTap: () => model.goToCamView(FileStoreType.image),
-                        ),
-                        SpeedDialChild(
-                          child: const FaIcon(FontAwesomeIcons.truckRampBox),
-                          label: 'Capture Container No',
-                          onTap: () => model.goToCamCaptureContainerNoText(
-                              FileStoreType.image),
+                          onTap: () =>
+                              model.goToCamView(FileStoreType.gateBookingImage),
                         ),
                         // SpeedDialChild(
                         //   child: const Icon(Icons.document_scanner_outlined),
@@ -1119,12 +1156,12 @@ class GatePassEditView extends StatelessWidget {
                           label: 'Image Picker',
                           onTap: () => model.openImagePicker(),
                         ),
-                        SpeedDialChild(
-                          child: const Icon(Icons.barcode_reader),
-                          label: 'Barcode Scanner',
-                          onTap: () =>
-                              model.goToCamView(FileStoreType.documentScan),
-                        ),
+                        // SpeedDialChild(
+                        //   child: const Icon(Icons.barcode_reader),
+                        //   label: 'Barcode Scanner',
+                        //   onTap: () =>
+                        //       model.goToCamView(FileStoreType.documentScan),
+                        // ),
                       ],
                     ),
                     body: GridView.builder(
@@ -1167,13 +1204,6 @@ class GatePassEditView extends StatelessWidget {
                                     alignment: Alignment.bottomRight,
                                     child: Row(
                                       children: [
-                                        if (fileItem.filestoreType ==
-                                            FileStoreType
-                                                .customerSignature.index)
-                                          const FaIcon(
-                                              FontAwesomeIcons.signature,
-                                              size: 16,
-                                              color: Colors.black),
                                         fileItem.upLoaded
                                             ? const Icon(
                                                 Icons.checklist,

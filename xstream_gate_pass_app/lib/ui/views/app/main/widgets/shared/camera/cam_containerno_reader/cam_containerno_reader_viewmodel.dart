@@ -3,6 +3,7 @@ import 'package:dart_helper_utils/dart_helper_utils.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/models/basefiles/containers/container_info_extratced_model.dart';
@@ -29,19 +30,23 @@ class _PotentialIsoType {
 class CamContainernoReaderViewModel extends BaseViewModel {
   final log = getLogger('CamContainernoReaderViewModel');
   final _isoTypeService = locator<IsoTypeService>();
+  final _navigationService = locator<NavigationService>();
 
   final _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
   bool _canProcess = true;
   bool _isBusy = false;
   CustomPaint? _customPaint;
   String? _text;
+  List<String> _extractedTexts = [];
+  List<String> get extractedTexts => _extractedTexts;
   List<ContainerInfo> _containerInfos = [];
 
   // Add ISO type reference data
   List<IsoType> get _isoTypes => _isoTypeService.getAllIsoTypes;
   // Get valid ISO codes for validation
   Set<String> get _validIsoCodes => _isoTypeService.getAllCodes();
-  List<String> get _isoCodes => _isoTypeService.getAllIsoTypes.map((e) => e.code).toList();
+  List<String> get _isoCodes =>
+      _isoTypeService.getAllIsoTypes.map((e) => e.code).toList();
 
   // Load ISO type data from the JSON file
   // Load ISO types from JSON file
@@ -56,12 +61,20 @@ class CamContainernoReaderViewModel extends BaseViewModel {
     if (text.isEmpty || text.length < 10) return null;
 
     // Clean and normalize the text
-    final cleanText = text.toUpperCase().replaceAll('\n', ' ').replaceAll('\r', ' ').replaceAll(',', ' ').replaceAll('.', ' ').replaceAll('/', ' ').trim();
+    final cleanText = text
+        .toUpperCase()
+        .replaceAll('\n', ' ')
+        .replaceAll('\r', ' ')
+        .replaceAll(',', ' ')
+        .replaceAll('.', ' ')
+        .replaceAll('/', ' ')
+        .trim();
 
     log.i("Cleaned text: $cleanText");
 
     // Split into tokens and clean up any empty tokens
-    List<String> tokens = cleanText.split(' ').where((token) => token.isNotEmpty).toList();
+    List<String> tokens =
+        cleanText.split(' ').where((token) => token.isNotEmpty).toList();
 
     // First pass: Find potential container numbers and ISO types
     List<_PotentialContainer> containerCandidates = [];
@@ -69,7 +82,9 @@ class CamContainernoReaderViewModel extends BaseViewModel {
 
     for (int i = 0; i < tokens.length; i++) {
       // Check for potential container prefix (4 letters)
-      if (i < tokens.length - 1 && _isAlphaString(tokens[i]) && tokens[i].length == 4) {
+      if (i < tokens.length - 1 &&
+          _isAlphaString(tokens[i]) &&
+          tokens[i].length == 4) {
         // Check if next token(s) could be the numeric part
         String potentialPrefix = tokens[i];
         String numericPart = "";
@@ -86,14 +101,17 @@ class CamContainernoReaderViewModel extends BaseViewModel {
             } else if (tokens[j].length == 6) {
               // Numeric part without check digit, look ahead for check digit
               numericPart = tokens[j];
-              if (j + 1 < tokens.length && tokens[j + 1].length == 1 && _isNumericString(tokens[j + 1])) {
+              if (j + 1 < tokens.length &&
+                  tokens[j + 1].length == 1 &&
+                  _isNumericString(tokens[j + 1])) {
                 checkDigit = int.tryParse(tokens[j + 1]) ?? -1;
               }
               break;
             } else if (tokens[j].length == 5 && j + 1 < tokens.length) {
               // Potential 5+1 pattern
               numericPart = tokens[j];
-              if (tokens[j + 1].length == 1 && _isNumericString(tokens[j + 1])) {
+              if (tokens[j + 1].length == 1 &&
+                  _isNumericString(tokens[j + 1])) {
                 checkDigit = int.tryParse(tokens[j + 1]) ?? -1;
                 // Add a '1' to make it 6 digits (for SEGU case)
                 numericPart = "1" + numericPart;
@@ -109,11 +127,13 @@ class CamContainernoReaderViewModel extends BaseViewModel {
           if (numericPart.length == 7) {
             containerNumber = potentialPrefix + numericPart;
           } else if (numericPart.length == 6 && checkDigit != -1) {
-            containerNumber = potentialPrefix + numericPart + checkDigit.toString();
+            containerNumber =
+                potentialPrefix + numericPart + checkDigit.toString();
           } else if (numericPart.length == 6) {
             // Calculate check digit
             containerNumber = potentialPrefix + numericPart;
-            int calculatedCheckDigit = _isoTypeService.iso6346CheckDigit(containerNumber);
+            int calculatedCheckDigit =
+                _isoTypeService.iso6346CheckDigit(containerNumber);
             containerNumber = containerNumber + calculatedCheckDigit.toString();
           } else {
             continue; // Invalid format
@@ -121,7 +141,8 @@ class CamContainernoReaderViewModel extends BaseViewModel {
 
           // Simple validation to avoid noise
           if (_isValidContainerNumber(containerNumber)) {
-            containerCandidates.add(_PotentialContainer(containerNumber: containerNumber, position: i));
+            containerCandidates.add(_PotentialContainer(
+                containerNumber: containerNumber, position: i));
           }
         }
       }
@@ -152,7 +173,8 @@ class CamContainernoReaderViewModel extends BaseViewModel {
               isoType = potentialIsoType;
               break;
             }
-            var found = _isoCodes.firstWhereOrNull((element) => element == potentialIsoType);
+            var found = _isoCodes
+                .firstWhereOrNull((element) => element == potentialIsoType);
             if (found != null) {
               isoType = potentialIsoType;
               break;
@@ -169,10 +191,13 @@ class CamContainernoReaderViewModel extends BaseViewModel {
       }
 
       // Check for potential ISO types (4 chars starting with 2 or 4)
-      if (tokens[i].length == 4 && (tokens[i].startsWith('2') || tokens[i].startsWith('4')) && _isAlphanumericString(tokens[i])) {
+      if (tokens[i].length == 4 &&
+          (tokens[i].startsWith('2') || tokens[i].startsWith('4')) &&
+          _isAlphanumericString(tokens[i])) {
         String potentialIsoType = tokens[i];
         if (_validIsoCodes.contains(potentialIsoType)) {
-          isoCandidates.add(_PotentialIsoType(isoType: potentialIsoType, position: i));
+          isoCandidates
+              .add(_PotentialIsoType(isoType: potentialIsoType, position: i));
         }
       }
     }
@@ -237,7 +262,8 @@ class CamContainernoReaderViewModel extends BaseViewModel {
           isoType = potentialIsoType;
           break;
         }
-        var found = _isoCodes.firstWhereOrNull((element) => element == potentialIsoType);
+        var found = _isoCodes
+            .firstWhereOrNull((element) => element == potentialIsoType);
         if (found != null) {
           isoType = potentialIsoType;
           break;
@@ -288,19 +314,62 @@ class CamContainernoReaderViewModel extends BaseViewModel {
     final providedCheckDigit = int.tryParse(containerNumber[10]);
     if (providedCheckDigit == null) return false;
 
-    final calculatedCheckDigit = _isoTypeService.iso6346CheckDigit(containerNumber);
+    final calculatedCheckDigit =
+        _isoTypeService.iso6346CheckDigit(containerNumber);
     return providedCheckDigit == calculatedCheckDigit;
   }
 
 // Method to process the image and extract container info
-  Future<ContainerInfo?> processImageForContainer(AnalysisImage analysisImage) async {
+
+  void addText(String text) {
+    //add only if not yet in the list
+    //and only buffer 10
+    //
+    if (_extractedTexts.length < 10) {
+      _extractedTexts.add(text);
+    }
+  }
+
+  // Future<ContainerInfo?> processImageForContainer(AnalysisImage analysisImage) async {
+  //   final recognizedText = await processImage(analysisImage);
+  //   if (recognizedText == null || recognizedText.text.isEmpty) {
+  //     _isBusy = false;
+  //     return null;
+  //   }
+  //   //if buffer full ,then we start to parse text only if we have a new text
+  //   if (_extractedTexts.length < 10 || !_extractedTexts.contains(recognizedText.text)) {
+  //     addText(recognizedText.text);
+  //   }
+
+  //   return startExtractContainerNo(recognizedText);
+  // }
+
+  Future<List<ContainerInfo>>? processImageForContainer(
+      AnalysisImage analysisImage) async {
     final recognizedText = await processImage(analysisImage);
     if (recognizedText == null || recognizedText.text.isEmpty) {
       _isBusy = false;
-      return null;
+      return [];
+    }
+    //if buffer full ,then we start to parse text only if we have a new text
+    if (_extractedTexts.length < 10) {
+      addText(recognizedText.text);
+      return [];
+      //break
     }
 
-    var contInfo = await extractContainerNo(recognizedText.text);
+    for (var recognizedText in _extractedTexts) {
+      var cont = await startExtractContainerNo(recognizedText);
+      if (cont != null) {
+        _containerInfos.add(cont);
+      }
+    }
+    _extractedTexts.clear();
+    return _containerInfos;
+  }
+
+  Future<ContainerInfo?> startExtractContainerNo(String recognizedText) async {
+    var contInfo = await extractContainerNo(recognizedText);
     if (contInfo != null && contInfo.isoType.isNotEmpty) {
       // _canProcess = false;
       _containerInfos.add(contInfo);
@@ -337,5 +406,10 @@ class CamContainernoReaderViewModel extends BaseViewModel {
     _canProcess = false;
     await _isoTypeService.initialize();
     _canProcess = true;
+  }
+
+  void onContainerSelected(ContainerInfo container) {
+    //this is the container data to use and send back
+    _navigationService.back<ContainerInfo>(result: container);
   }
 }

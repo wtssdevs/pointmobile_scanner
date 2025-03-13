@@ -16,8 +16,7 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 class FileStoreRepository {
   final log = getLogger('FileStoreRepository');
   final _appDatabase = locator<AppDatabase>();
-  final LocalStorageService _localStorageService =
-      locator<LocalStorageService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
 
   int? userId = 0;
   StoreRef? _store;
@@ -27,9 +26,7 @@ class FileStoreRepository {
   }
   void setTableRef() {
     if (userId == 0) {
-      if (_localStorageService.getAuthToken == null &&
-          _localStorageService.getUserInfo != null &&
-          _localStorageService.getUserInfo!.id != null) {
+      if (_localStorageService.getAuthToken == null && _localStorageService.getUserInfo != null && _localStorageService.getUserInfo!.id != null) {
 //try get from userinfo
         userId = _localStorageService.getUserInfo!.id;
       } else {
@@ -101,21 +98,15 @@ class FileStoreRepository {
     var now = new DateTime.now();
     var nowLess14Days = now.subtract(Duration(days: 14));
 
-    var toClear = list
-        .where((e) => e.createdDateTime.toDateTime().isBefore(nowLess14Days))
-        .toList();
+    var toClear = list.where((e) => e.createdDateTime.toDateTime().isBefore(nowLess14Days)).toList();
 
     if (toClear.isNotEmpty) {
       await deleteMany(toClear);
     }
   }
 
-  Future<List<FileStore>> getByIsUploaded(bool upLoaded,
-      [int? limit = 10]) async {
-    var finder = Finder(
-        sortOrders: [SortOrder(Field.key, false)],
-        filter: Filter.equals('upLoaded', upLoaded),
-        limit: limit);
+  Future<List<FileStore>> getByIsUploaded(bool upLoaded, [int? limit = 10]) async {
+    var finder = Finder(sortOrders: [SortOrder(Field.key, false)], filter: Filter.equals('upLoaded', upLoaded), limit: limit);
 
     final recordSnapshot = await _store!.find(_appDatabase.db!, finder: finder);
 
@@ -134,49 +125,39 @@ class FileStoreRepository {
       Filter.equals('refId', fileStore.refId),
       Filter.equals('filestoreType', fileStore.filestoreType),
     ]);
-    var finder = Finder(
-        sortOrders: [SortOrder(Field.key, false)], filter: filter, limit: 1);
+    var finder = Finder(sortOrders: [SortOrder(Field.key, false)], filter: filter, limit: 1);
 
-    final recordSnapshot =
-        await _store!.findFirst(_appDatabase.db!, finder: finder);
+    final recordSnapshot = await _store!.findFirst(_appDatabase.db!, finder: finder);
 
     if (recordSnapshot == null) {
       return null;
     }
 
-    var outPutFileStore =
-        FileStore.fromJson(recordSnapshot.value as Map<String, dynamic>);
+    var outPutFileStore = FileStore.fromJson(recordSnapshot.value as Map<String, dynamic>);
 
     return outPutFileStore;
   }
 
   Future<FileStore?> getByRefId(String id) async {
-    var finder = Finder(
-        sortOrders: [SortOrder(Field.key, false)],
-        filter: Filter.equals('id', id));
+    var finder = Finder(sortOrders: [SortOrder(Field.key, false)], filter: Filter.equals('id', id));
 
-    final recordSnapshot =
-        await _store!.findFirst(_appDatabase.db!, finder: finder);
+    final recordSnapshot = await _store!.findFirst(_appDatabase.db!, finder: finder);
 
     if (recordSnapshot == null) {
       return null;
     }
 
-    var outPutFileStore =
-        FileStore.fromJson(recordSnapshot.value as Map<String, dynamic>);
+    var outPutFileStore = FileStore.fromJson(recordSnapshot.value as Map<String, dynamic>);
 
     return outPutFileStore;
   }
 
-  Future<List<FileStore>> getAll(int refId, [int? limit = 10]) async {
+  Future<List<FileStore>> getAll(String refId, FileStoreType fileStoreType, [int? limit = 10]) async {
     var filter = Filter.and([
       Filter.equals('refId', refId),
-      Filter.equals('filestoreType', FileStoreType.image.index),
+      Filter.equals('filestoreType', fileStoreType.value),
     ]);
-    var finder = Finder(
-        sortOrders: [SortOrder(Field.key, false)],
-        filter: filter,
-        limit: limit);
+    var finder = Finder(sortOrders: [SortOrder(Field.key, false)], filter: filter, limit: limit);
 
     final recordSnapshot = await _store!.find(_appDatabase.db!, finder: finder);
 
@@ -190,16 +171,12 @@ class FileStoreRepository {
     }).toList();
   }
 
-  Future<List<FileStore>> getAllByRefIdType(int refId, int fileStoreType,
-      [int? limit = 10]) async {
+  Future<List<FileStore>> getAllByRefIdType(int refId, int fileStoreType, [int? limit = 10]) async {
     var filter = Filter.and([
       Filter.equals('refId', refId),
       Filter.equals('filestoreType', fileStoreType),
     ]);
-    var finder = Finder(
-        sortOrders: [SortOrder(Field.key, false)],
-        filter: filter,
-        limit: limit);
+    var finder = Finder(sortOrders: [SortOrder(Field.key, false)], filter: filter, limit: limit);
 
     final recordSnapshot = await _store!.find(_appDatabase.db!, finder: finder);
 
@@ -218,17 +195,14 @@ class FileStoreRepository {
       Filter.equals('refId', refId),
       Filter.equals('filestoreType', fileStoreType),
     ]);
-    var finder =
-        Finder(sortOrders: [SortOrder(Field.key, false)], filter: filter);
+    var finder = Finder(sortOrders: [SortOrder(Field.key, false)], filter: filter);
 
-    final recordSnapshot =
-        await _store!.findFirst(_appDatabase.db!, finder: finder);
+    final recordSnapshot = await _store!.findFirst(_appDatabase.db!, finder: finder);
     if (recordSnapshot == null) {
       return null;
     }
 
-    var outPutFileStore =
-        FileStore.fromJson(recordSnapshot.value as Map<String, dynamic>);
+    var outPutFileStore = FileStore.fromJson(recordSnapshot.value as Map<String, dynamic>);
     var file = File(outPutFileStore.path);
 
     return file;
@@ -239,17 +213,14 @@ class FileStoreRepository {
       Filter.equals('refId', refId),
       Filter.equals('filestoreType', fileStoreType),
     ]);
-    var finder =
-        Finder(sortOrders: [SortOrder(Field.key, false)], filter: filter);
+    var finder = Finder(sortOrders: [SortOrder(Field.key, false)], filter: filter);
 
-    final recordSnapshot =
-        await _store!.findFirst(_appDatabase.db!, finder: finder);
+    final recordSnapshot = await _store!.findFirst(_appDatabase.db!, finder: finder);
     if (recordSnapshot == null) {
       return null;
     }
 
-    var outPutFileStore =
-        FileStore.fromJson(recordSnapshot.value as Map<String, dynamic>);
+    var outPutFileStore = FileStore.fromJson(recordSnapshot.value as Map<String, dynamic>);
 
     return outPutFileStore;
   }

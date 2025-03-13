@@ -405,7 +405,7 @@ class CameraCaptureViewArguments {
 
   final _i22.Key? key;
 
-  final int refId;
+  final String refId;
 
   final int referanceId;
 
@@ -584,7 +584,7 @@ extension NavigatorStateExtension on _i25.NavigationService {
 
   Future<dynamic> navigateToCameraCaptureView({
     _i22.Key? key,
-    required int refId,
+    required String refId,
     required int referanceId,
     required _i24.FileStoreType fileStoreType,
     int? routerId,
@@ -856,7 +856,7 @@ extension NavigatorStateExtension on _i25.NavigationService {
 
   Future<dynamic> replaceWithCameraCaptureView({
     _i22.Key? key,
-    required int refId,
+    required String refId,
     required int referanceId,
     required _i24.FileStoreType fileStoreType,
     int? routerId,

@@ -13,7 +13,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/ca
 
 class CameraCaptureView extends StatefulWidget {
   final FileStoreType fileStoreType;
-  final int refId;
+  final String refId;
   final int referanceId;
 
   const CameraCaptureView(

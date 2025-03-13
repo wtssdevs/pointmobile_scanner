@@ -80,7 +80,7 @@ class ContainerWidgetState extends State<ContainerDisplayWidget> {
 
             // Container list
             Container(
-              height: 200, // Increased height for better visibility
+              height: 160, // Increased height for better visibility
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: StreamBuilder<List<ContainerInfo>>(
                 stream: widget.barcodesStream,
@@ -98,7 +98,8 @@ class ContainerWidgetState extends State<ContainerDisplayWidget> {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     controller: widget.scrollController,
                     itemCount: snapshot.data!.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 2),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 2),
                     itemBuilder: (context, index) {
                       var item = snapshot.data![index];
                       return ListTile(
@@ -132,7 +133,7 @@ class ContainerWidgetState extends State<ContainerDisplayWidget> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  OutlinedButton(
+                  ElevatedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                     ),
@@ -169,7 +170,9 @@ class ContainerWidgetState extends State<ContainerDisplayWidget> {
   Widget _buildContainerItem(ContainerInfo container, int index) {
     return Card(
       elevation: _selectedIndex == index ? 4 : 1,
-      color: _selectedIndex == index ? Theme.of(context).primaryColor.withOpacity(0.1) : null,
+      color: _selectedIndex == index
+          ? Theme.of(context).primaryColor.withOpacity(0.1)
+          : null,
       child: InkWell(
         onTap: () {
           setState(() {
@@ -202,7 +205,8 @@ class ContainerWidgetState extends State<ContainerDisplayWidget> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),

@@ -19,7 +19,8 @@ class IsoTypeService {
     _allIsoCodes = _isoTypesByCode.keys.toSet();
     //need to create dicronary from _isoTypeService.getAllIsoTypes
 
-    isoTypesMap = _isoTypes.asMap().map((key, value) => MapEntry(value.code, value));
+    isoTypesMap =
+        _isoTypes.asMap().map((key, value) => MapEntry(value.code, value));
   }
 
   int iso6346CheckDigit(String csc) {
@@ -57,94 +58,432 @@ class IsoTypeService {
   Future<void> loadIsoTypes() async {
     try {
       List<IsoType> isoTypesList = [
-        IsoType(code: "20G0", description: "General Purpose Container", size: "20", type: "GP"),
-        IsoType(code: "20G1", description: "General Purpose Container", size: "20", type: "GP"),
-        IsoType(code: "20H0", description: "Insulated Container", size: "20", type: "HR"),
-        IsoType(code: "20P1", description: "Flat (Fixed Ends)", size: "20", type: "PF"),
-        IsoType(code: "20T0", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20T1", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20T2", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20T3", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20T4", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20T5", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20T6", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20T7", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20T8", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20TG", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "20TN", description: "Tank Container", size: "20", type: "TD"),
-        IsoType(code: "22B0", description: "Bulk Container", size: "22", type: "BU"),
-        IsoType(code: "22G0", description: "General Purpose Container", size: "22", type: "GP"),
-        IsoType(code: "22G1", description: "General Purpose Container", size: "22", type: "GP"),
-        IsoType(code: "22H0", description: "Insulated Container", size: "22", type: "HR"),
-        IsoType(code: "22P3", description: "Flat (Collapsible)", size: "22", type: "PC"),
-        IsoType(code: "22P8", description: "Flat (Coll. Flush Folding)", size: "22", type: "PC"),
-        IsoType(code: "22P9", description: "Flat (Collapsible)", size: "22", type: "PC"),
-        IsoType(code: "22P1", description: "Flat (Fixed Ends)", size: "22", type: "PF"),
-        IsoType(code: "22P7", description: "Flat (Genset Carrier)", size: "22", type: "PF"),
-        IsoType(code: "22R9", description: "Reefer Container (No Food)", size: "22", type: "RC"),
-        IsoType(code: "22R7", description: "Built-in Gen. for Power Supply of Reefer", size: "22", type: "RS"),
-        IsoType(code: "22R1", description: "Reefer Container", size: "22", type: "RT"),
-        IsoType(code: "22S1", description: "Named Cargo Container", size: "22", type: "SN"),
-        IsoType(code: "22T0", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22T1", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22T2", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22T3", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22T4", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22T5", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22T6", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22T7", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22T8", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22TG", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22TN", description: "Tank Container", size: "22", type: "TD"),
-        IsoType(code: "22U6", description: "Hardtop Container", size: "22", type: "UP"),
-        IsoType(code: "22U1", description: "Open Top Container", size: "22", type: "UT"),
-        IsoType(code: "22V0", description: "Ventilated Container", size: "22", type: "VH"),
-        IsoType(code: "22V2", description: "Ventilated Container", size: "22", type: "VH"),
-        IsoType(code: "22V3", description: "Ventilated Container", size: "22", type: "VH"),
-        IsoType(code: "25G0", description: "GP-Container Over-Height", size: "25", type: "GP"),
-        IsoType(code: "26G0", description: "GP-Container Over-Height", size: "26", type: "GP"),
-        IsoType(code: "26H0", description: "Insulated Container", size: "26", type: "HR"),
-        IsoType(code: "28T8", description: "Tank for Gas", size: "28", type: "TG"),
-        IsoType(code: "28U1", description: "Open Top (Half Height)", size: "28", type: "UT"),
-        IsoType(code: "28V0", description: "VE-Half-Height = 1448 mm Height", size: "28", type: "VH"),
+        IsoType(
+            code: "20G0",
+            description: "General Purpose Container",
+            size: "20",
+            type: "GP"),
+        IsoType(
+            code: "20G1",
+            description: "General Purpose Container",
+            size: "20",
+            type: "GP"),
+        IsoType(
+            code: "20H0",
+            description: "Insulated Container",
+            size: "20",
+            type: "HR"),
+        IsoType(
+            code: "20P1",
+            description: "Flat (Fixed Ends)",
+            size: "20",
+            type: "PF"),
+        IsoType(
+            code: "20T0",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20T1",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20T2",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20T3",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20T4",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20T5",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20T6",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20T7",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20T8",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20TG",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "20TN",
+            description: "Tank Container",
+            size: "20",
+            type: "TD"),
+        IsoType(
+            code: "22B0",
+            description: "Bulk Container",
+            size: "22",
+            type: "BU"),
+        IsoType(
+            code: "22G0",
+            description: "General Purpose Container",
+            size: "22",
+            type: "GP"),
+        IsoType(
+            code: "22G1",
+            description: "General Purpose Container",
+            size: "22",
+            type: "GP"),
+        IsoType(
+            code: "22H0",
+            description: "Insulated Container",
+            size: "22",
+            type: "HR"),
+        IsoType(
+            code: "22P3",
+            description: "Flat (Collapsible)",
+            size: "22",
+            type: "PC"),
+        IsoType(
+            code: "22P8",
+            description: "Flat (Coll. Flush Folding)",
+            size: "22",
+            type: "PC"),
+        IsoType(
+            code: "22P9",
+            description: "Flat (Collapsible)",
+            size: "22",
+            type: "PC"),
+        IsoType(
+            code: "22P1",
+            description: "Flat (Fixed Ends)",
+            size: "22",
+            type: "PF"),
+        IsoType(
+            code: "22P7",
+            description: "Flat (Genset Carrier)",
+            size: "22",
+            type: "PF"),
+        IsoType(
+            code: "22R9",
+            description: "Reefer Container (No Food)",
+            size: "22",
+            type: "RC"),
+        IsoType(
+            code: "22R7",
+            description: "Built-in Gen. for Power Supply of Reefer",
+            size: "22",
+            type: "RS"),
+        IsoType(
+            code: "22R1",
+            description: "Reefer Container",
+            size: "22",
+            type: "RT"),
+        IsoType(
+            code: "22S1",
+            description: "Named Cargo Container",
+            size: "22",
+            type: "SN"),
+        IsoType(
+            code: "22T0",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22T1",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22T2",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22T3",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22T4",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22T5",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22T6",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22T7",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22T8",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22TG",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22TN",
+            description: "Tank Container",
+            size: "22",
+            type: "TD"),
+        IsoType(
+            code: "22U6",
+            description: "Hardtop Container",
+            size: "22",
+            type: "UP"),
+        IsoType(
+            code: "22U1",
+            description: "Open Top Container",
+            size: "22",
+            type: "UT"),
+        IsoType(
+            code: "22V0",
+            description: "Ventilated Container",
+            size: "22",
+            type: "VH"),
+        IsoType(
+            code: "22V2",
+            description: "Ventilated Container",
+            size: "22",
+            type: "VH"),
+        IsoType(
+            code: "22V3",
+            description: "Ventilated Container",
+            size: "22",
+            type: "VH"),
+        IsoType(
+            code: "25G0",
+            description: "GP-Container Over-Height",
+            size: "25",
+            type: "GP"),
+        IsoType(
+            code: "26G0",
+            description: "GP-Container Over-Height",
+            size: "26",
+            type: "GP"),
+        IsoType(
+            code: "26H0",
+            description: "Insulated Container",
+            size: "26",
+            type: "HR"),
+        IsoType(
+            code: "28T8", description: "Tank for Gas", size: "28", type: "TG"),
+        IsoType(
+            code: "28U1",
+            description: "Open Top (Half Height)",
+            size: "28",
+            type: "UT"),
+        IsoType(
+            code: "28V0",
+            description: "VE-Half-Height = 1448 mm Height",
+            size: "28",
+            type: "VH"),
         IsoType(code: "29P0", description: "Platform", size: "29", type: "PL"),
-        IsoType(code: "2EG0", description: "High Cube Cont. (Width 2.5m)", size: "2E", type: "GP"),
-        IsoType(code: "42G0", description: "General Purpose Container", size: "42", type: "GP"),
-        IsoType(code: "42G1", description: "General Purpose Container", size: "42", type: "GP"),
-        IsoType(code: "42H0", description: "Insulated Container", size: "42", type: "HR"),
-        IsoType(code: "42P3", description: "Flat (Collapsible)", size: "42", type: "PC"),
-        IsoType(code: "42P8", description: "Flat (Coll. Flush Folding)", size: "42", type: "PC"),
-        IsoType(code: "42P9", description: "Flat (Collapsible)", size: "42", type: "PC"),
-        IsoType(code: "42P1", description: "Flat (Fixed Ends)", size: "42", type: "PF"),
-        IsoType(code: "42P6", description: "Flat Space Saver", size: "42", type: "PS"),
-        IsoType(code: "42R9", description: "Reefer Container (No Food)", size: "42", type: "RC"),
-        IsoType(code: "42R3", description: "Reefer Cont. (Diesel Gen.)", size: "42", type: "RS"),
-        IsoType(code: "42R1", description: "Reefer Container", size: "42", type: "RT"),
-        IsoType(code: "42S1", description: "Named Cargo Container", size: "42", type: "SN"),
-        IsoType(code: "42T2", description: "Tank Container", size: "42", type: "TD"),
-        IsoType(code: "42T5", description: "Tank Container", size: "42", type: "TD"),
-        IsoType(code: "42T6", description: "Tank Container", size: "42", type: "TD"),
-        IsoType(code: "42T8", description: "Tank Container", size: "42", type: "TD"),
-        IsoType(code: "42TG", description: "Tank Container", size: "42", type: "TD"),
-        IsoType(code: "42TN", description: "Tank Container", size: "42", type: "TD"),
-        IsoType(code: "42U6", description: "Hardtop Container", size: "42", type: "UP"),
-        IsoType(code: "42U1", description: "Open Top Container", size: "42", type: "UT"),
-        IsoType(code: "45B3", description: "Bulk Container", size: "45", type: "BK"),
-        IsoType(code: "45G0", description: "High Cube Container", size: "45", type: "GP"),
-        IsoType(code: "45G1", description: "High Cube Cont.", size: "45", type: "GP"),
-        IsoType(code: "45P3", description: "Flat (Collapsible)", size: "45", type: "PC"),
-        IsoType(code: "45P8", description: "Flat (Coll. Flush Folding)", size: "45", type: "PC"),
-        IsoType(code: "45R9", description: "Reefer Container (No Food)", size: "45", type: "RC"),
-        IsoType(code: "45R1", description: "Reefer High Cube Container", size: "45", type: "RT"),
-        IsoType(code: "45U1", description: "Open Top Container", size: "45", type: "UT"),
-        IsoType(code: "45U6", description: "High Cube Hardtop Cont.", size: "45", type: "UP"),
-        IsoType(code: "46H0", description: "Insulated Container", size: "46", type: "HR"),
-        IsoType(code: "48T8", description: "Tank for Gas", size: "48", type: "TG"),
+        IsoType(
+            code: "2EG0",
+            description: "High Cube Cont. (Width 2.5m)",
+            size: "2E",
+            type: "GP"),
+        IsoType(
+            code: "42G0",
+            description: "General Purpose Container",
+            size: "42",
+            type: "GP"),
+        IsoType(
+            code: "42G1",
+            description: "General Purpose Container",
+            size: "42",
+            type: "GP"),
+        IsoType(
+            code: "42H0",
+            description: "Insulated Container",
+            size: "42",
+            type: "HR"),
+        IsoType(
+            code: "42P3",
+            description: "Flat (Collapsible)",
+            size: "42",
+            type: "PC"),
+        IsoType(
+            code: "42P8",
+            description: "Flat (Coll. Flush Folding)",
+            size: "42",
+            type: "PC"),
+        IsoType(
+            code: "42P9",
+            description: "Flat (Collapsible)",
+            size: "42",
+            type: "PC"),
+        IsoType(
+            code: "42P1",
+            description: "Flat (Fixed Ends)",
+            size: "42",
+            type: "PF"),
+        IsoType(
+            code: "42P6",
+            description: "Flat Space Saver",
+            size: "42",
+            type: "PS"),
+        IsoType(
+            code: "42R9",
+            description: "Reefer Container (No Food)",
+            size: "42",
+            type: "RC"),
+        IsoType(
+            code: "42R3",
+            description: "Reefer Cont. (Diesel Gen.)",
+            size: "42",
+            type: "RS"),
+        IsoType(
+            code: "42R1",
+            description: "Reefer Container",
+            size: "42",
+            type: "RT"),
+        IsoType(
+            code: "42S1",
+            description: "Named Cargo Container",
+            size: "42",
+            type: "SN"),
+        IsoType(
+            code: "42T2",
+            description: "Tank Container",
+            size: "42",
+            type: "TD"),
+        IsoType(
+            code: "42T5",
+            description: "Tank Container",
+            size: "42",
+            type: "TD"),
+        IsoType(
+            code: "42T6",
+            description: "Tank Container",
+            size: "42",
+            type: "TD"),
+        IsoType(
+            code: "42T8",
+            description: "Tank Container",
+            size: "42",
+            type: "TD"),
+        IsoType(
+            code: "42TG",
+            description: "Tank Container",
+            size: "42",
+            type: "TD"),
+        IsoType(
+            code: "42TN",
+            description: "Tank Container",
+            size: "42",
+            type: "TD"),
+        IsoType(
+            code: "42U6",
+            description: "Hardtop Container",
+            size: "42",
+            type: "UP"),
+        IsoType(
+            code: "42U1",
+            description: "Open Top Container",
+            size: "42",
+            type: "UT"),
+        IsoType(
+            code: "45B3",
+            description: "Bulk Container",
+            size: "45",
+            type: "BK"),
+        IsoType(
+            code: "45G0",
+            description: "High Cube Container",
+            size: "45",
+            type: "GP"),
+        IsoType(
+            code: "45G1",
+            description: "High Cube Cont.",
+            size: "45",
+            type: "GP"),
+        IsoType(
+            code: "45P3",
+            description: "Flat (Collapsible)",
+            size: "45",
+            type: "PC"),
+        IsoType(
+            code: "45P8",
+            description: "Flat (Coll. Flush Folding)",
+            size: "45",
+            type: "PC"),
+        IsoType(
+            code: "45R9",
+            description: "Reefer Container (No Food)",
+            size: "45",
+            type: "RC"),
+        IsoType(
+            code: "45R1",
+            description: "Reefer High Cube Container",
+            size: "45",
+            type: "RT"),
+        IsoType(
+            code: "45U1",
+            description: "Open Top Container",
+            size: "45",
+            type: "UT"),
+        IsoType(
+            code: "45U6",
+            description: "High Cube Hardtop Cont.",
+            size: "45",
+            type: "UP"),
+        IsoType(
+            code: "46H0",
+            description: "Insulated Container",
+            size: "46",
+            type: "HR"),
+        IsoType(
+            code: "48T8", description: "Tank for Gas", size: "48", type: "TG"),
         IsoType(code: "49P0", description: "Platform", size: "49", type: "PL"),
-        IsoType(code: "4CG0", description: "GP Container (Width 2.5 m)", size: "4C", type: "GP"),
-        IsoType(code: "L0G1", description: "High Cube Cont.", size: "L0", type: "GP"),
-        IsoType(code: "L2G1", description: "High Cube Cont.", size: "L2", type: "GP"),
-        IsoType(code: "L5G1", description: "High Cube Cont.", size: "L5", type: "GP"),
+        IsoType(
+            code: "4CG0",
+            description: "GP Container (Width 2.5 m)",
+            size: "4C",
+            type: "GP"),
+        IsoType(
+            code: "L0G1",
+            description: "High Cube Cont.",
+            size: "L0",
+            type: "GP"),
+        IsoType(
+            code: "L2G1",
+            description: "High Cube Cont.",
+            size: "L2",
+            type: "GP"),
+        IsoType(
+            code: "L5G1",
+            description: "High Cube Cont.",
+            size: "L5",
+            type: "GP"),
       ];
       _isoTypes = isoTypesList;
       // Create a map for quick lookups by code
@@ -283,15 +622,18 @@ class ContainerValidator {
     return checkDigit;
   }
 
-  List<String> generate(String ownerCode, String productGroupCode, [int from = 0, int to = 999999]) {
+  List<String> generate(String ownerCode, String productGroupCode,
+      [int from = 0, int to = 999999]) {
     String alphabetCode = (ownerCode + productGroupCode).toUpperCase();
     List<String> containersNo = [];
 
     if (ownerCode.length == 3 && productGroupCode.length == 1) {
       if (from >= 0 && to < 1000000 && (to - from) > 0) {
         for (int i = from; i <= to; i++) {
-          String currentContainerNo = alphabetCode + i.toString().padLeft(6, '0');
-          String currentContainerCheckDigit = createCheckDigit(currentContainerNo);
+          String currentContainerNo =
+              alphabetCode + i.toString().padLeft(6, '0');
+          String currentContainerCheckDigit =
+              createCheckDigit(currentContainerNo);
 
           if (currentContainerCheckDigit == "-1") {
             errorMessages.add('Error generating container number at number $i');
@@ -301,7 +643,8 @@ class ContainerValidator {
           containersNo.add(currentContainerNo + currentContainerCheckDigit);
         }
       } else {
-        errorMessages.add('Invalid number to generate, minimal is 0 and maximal is 999999');
+        errorMessages.add(
+            'Invalid number to generate, minimal is 0 and maximal is 999999');
       }
     } else {
       errorMessages.add('Invalid owner code or product group code');
@@ -353,7 +696,10 @@ class ContainerValidator {
     }
     numericalOwnerCode.add(alphabetNumerical[productGroupCode]!);
 
-    List<String> numericalCode = [...numericalOwnerCode.map((e) => e.toString()), ...registrationDigit];
+    List<String> numericalCode = [
+      ...numericalOwnerCode.map((e) => e.toString()),
+      ...registrationDigit
+    ];
     int sumDigit = 0;
 
     for (int i = 0; i < numericalCode.length; i++) {
@@ -365,7 +711,8 @@ class ContainerValidator {
     return (calculatedCheckDigit == 10) ? "0" : calculatedCheckDigit.toString();
   }
 
-  List<String>? identify(String containerNumber, [bool withoutCheckDigit = false]) {
+  List<String>? identify(String containerNumber,
+      [bool withoutCheckDigit = false]) {
     clearErrors();
     RegExp regex = withoutCheckDigit ? patternWithoutCheckDigit : pattern;
     RegExpMatch? match = regex.firstMatch(containerNumber.toUpperCase());
