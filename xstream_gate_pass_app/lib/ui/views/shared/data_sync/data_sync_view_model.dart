@@ -18,8 +18,7 @@ class DataSyncViewModel extends BaseViewModel {
 
   final TextEditingController filterController = TextEditingController();
   final _connectionService = locator<ConnectionService>();
-  final LocalStorageService _localStorageService =
-      locator<LocalStorageService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
   final _workerQueManager = locator<WorkerQueManager>();
   final _backgroundJobInfoRepository = locator<BackgroundJobInfoRepository>();
   bool get hasConnection => _connectionService.hasConnection;
@@ -34,8 +33,7 @@ class DataSyncViewModel extends BaseViewModel {
   StreamSubscription? connectionStreamSubscription;
   StreamSubscription? syncTaskStreamSubscription;
   bool isPageLoad = true;
-  CurrentLoginInformation? get appSession =>
-      _localStorageService.getUserLoginInfo;
+  CurrentLoginInformation? get appSession => _localStorageService.getUserLoginInfo;
 
   Future<void> runStartupLogic() async {
     await loadSyncData();
@@ -45,15 +43,13 @@ class DataSyncViewModel extends BaseViewModel {
   }
 
   void startconnectionListen() {
-    connectionStreamSubscription =
-        _connectionService.connectionChange.asBroadcastStream().listen((data) {
+    connectionStreamSubscription = _connectionService.connectionChange.asBroadcastStream().listen((data) {
       if (_connectionService.hasConnection) {
         onRefresh();
       }
     });
 
-    syncTaskStreamSubscription =
-        _workerQueManager.onSyncTaskChange.asBroadcastStream().listen((data) {
+    syncTaskStreamSubscription = _workerQueManager.onSyncTaskChange.asBroadcastStream().listen((data) {
       onRefresh();
     });
   }
@@ -69,7 +65,7 @@ class DataSyncViewModel extends BaseViewModel {
   }
 
   Future<void> syncData() async {
-    await _workerQueManager.startExecution();
+    await _workerQueManager.startExecution(forceRun: true);
     notifyListeners();
   }
 

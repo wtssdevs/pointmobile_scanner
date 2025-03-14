@@ -12,12 +12,10 @@ class DioErrorUtil {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.connectionError:
       case DioExceptionType.receiveTimeout:
-        errorDescription =
-            "Connection timeout with API server,please try again later.";
+        errorDescription = "Connection timeout with API server,please try again later.";
         break;
       case DioExceptionType.unknown:
-        errorDescription =
-            "Received invalid status code: ${error.response!.statusCode}";
+        errorDescription = "Received invalid status code: ${error.response!.statusCode}";
         switch (error.response!.statusCode) {
           case 404: //not found
             errorDescription = "";
@@ -41,8 +39,7 @@ class DioErrorUtil {
     return errorDescription;
   }
 
-  static ApiResponse handleAbpError(DioException error,
-      [bool showMessage = true]) {
+  static ApiResponse handleAbpError(DioException error, [bool showMessage = true]) {
     var apiResponse = ApiResponse();
     apiResponse.success = null;
     apiResponse.showMessage = showMessage;
@@ -58,17 +55,13 @@ class DioErrorUtil {
       case DioExceptionType.connectionError:
       case DioExceptionType.receiveTimeout:
         apiResponse.success = false;
-        apiResponse.message =
-            "Connection timeout with API server,please try again later.";
+        apiResponse.message = "Connection timeout with API server,please try again later.";
         break;
       case DioExceptionType.unknown:
         apiResponse.success = false;
-        apiResponse.message =
-            "Connection to API server failed due to internet connection";
+        apiResponse.message = "Connection to API server failed due to internet connection";
 
-        apiResponse.error = Error(
-            message:
-                "Connection to API server failed due to internet connection");
+        apiResponse.error = Error(message: "Connection to API server failed due to internet connection");
         apiResponse.showMessage = false;
         break;
 
@@ -83,10 +76,17 @@ class DioErrorUtil {
           case 500: //Internal server error
           case 403: //Internal server error
             apiResponse.message = "Bad Request";
-            if (error.response != null &&
-                error.response!.data != null &&
-                error.response!.data != "") {
-              apiResponse = ApiResponse.fromJson(error.response!.data);
+            if (error.response != null && error.response!.data != null && error.response!.data != "") {
+              if (error.response!.data is String) {
+                //may try parse json,if not parseable then use as is
+                try {
+                  apiResponse = ApiResponse.fromJson(error.response!.data);
+                } catch (e) {
+                  apiResponse.message = error.response!.data;
+                }
+              } else {
+                apiResponse = ApiResponse.fromJson(error.response!.data);
+              }
             } else {
               apiResponse.message = "Internal server error";
             }

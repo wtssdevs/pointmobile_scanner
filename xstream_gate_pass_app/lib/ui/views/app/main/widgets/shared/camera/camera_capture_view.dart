@@ -16,19 +16,13 @@ class CameraCaptureView extends StatefulWidget {
   final String refId;
   final int referanceId;
 
-  const CameraCaptureView(
-      {Key? key,
-      required this.refId,
-      required this.referanceId,
-      required this.fileStoreType})
-      : super(key: key);
+  const CameraCaptureView({Key? key, required this.refId, required this.referanceId, required this.fileStoreType}) : super(key: key);
 
   @override
   State<CameraCaptureView> createState() => _CameraCaptureViewState();
 }
 
-class _CameraCaptureViewState extends State<CameraCaptureView>
-    with TickerProviderStateMixin {
+class _CameraCaptureViewState extends State<CameraCaptureView> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
@@ -42,10 +36,8 @@ class _CameraCaptureViewState extends State<CameraCaptureView>
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CameraCaptureViewModel>.reactive(
-      viewModelBuilder: () => CameraCaptureViewModel(
-          widget.refId, widget.referanceId, widget.fileStoreType, this),
-      onViewModelReady: (model) =>
-          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      viewModelBuilder: () => CameraCaptureViewModel(widget.refId, widget.referanceId, widget.fileStoreType, this),
+      onViewModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.runStartupLogic(widget.refId, widget.fileStoreType);
       }),
       onDispose: (model) {
@@ -64,26 +56,25 @@ class _CameraCaptureViewState extends State<CameraCaptureView>
             // Return a widget, just return an empty SizedBox if you don't want to show anything
             return const SizedBox();
           },
-          saveConfig: SaveConfig.photoAndVideo(
-            initialCaptureMode: CaptureMode.photo,
-            photoPathBuilder: (sensors) async {
+          saveConfig: SaveConfig.photo(
+            mirrorFrontCamera: false,
+            pathBuilder: (sensors) async {
               return await model.getFilePath(sensors);
             },
+            //initialCaptureMode: CaptureMode.photo,
             //  videoPathBuilder: (sensors) async {
             //      // same logic as photoPathBuilder
             //  },
-            videoOptions: VideoOptions(
-              enableAudio: true,
-              ios: CupertinoVideoOptions(
-                fps: 10,
-              ),
-              android: AndroidVideoOptions(
-                bitrate: 6000000,
-                fallbackStrategy: QualityFallbackStrategy.lower,
-              ),
-            ),
-
-            mirrorFrontCamera: false,
+            // videoOptions: VideoOptions(
+            //   enableAudio: true,
+            //   ios: CupertinoVideoOptions(
+            //     fps: 10,
+            //   ),
+            //   android: AndroidVideoOptions(
+            //     bitrate: 6000000,
+            //     fallbackStrategy: QualityFallbackStrategy.lower,
+            //   ),
+            // ),
           ),
         ),
       ),

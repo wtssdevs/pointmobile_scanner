@@ -39,8 +39,7 @@ class WorkerQueManager {
   //get stream for sync que tasks
   Stream get onSyncTaskChange => _syncController.stream;
 
-  Future<void> enqueSingle(BackgroundJobInfo value,
-      [bool startNow = true]) async {
+  Future<void> enqueSingle(BackgroundJobInfo value, [bool startNow = true]) async {
     //_input.add(value);
 
     await _backgroundJobInfoRepository.insert(value);
@@ -63,14 +62,7 @@ class WorkerQueManager {
       //     nextTryTime: Timestamp.now(),
       //     id: "",
       //     isAbandoned: false),
-      BackgroundJobInfo(
-          jobType: BackgroundJobType.syncMasterfiles.index,
-          jobArgs: "",
-          lastTryTime: Timestamp.now(),
-          creationTime: Timestamp.now(),
-          nextTryTime: Timestamp.now(),
-          id: "",
-          isAbandoned: false),
+      BackgroundJobInfo(jobType: BackgroundJobType.syncMasterfiles.index, jobArgs: "", lastTryTime: Timestamp.now(), creationTime: Timestamp.now(), nextTryTime: Timestamp.now(), id: "", isAbandoned: false),
     ]);
   }
 
@@ -81,8 +73,8 @@ class WorkerQueManager {
     startExecution();
   }
 
-  Future<void> startExecution() async {
-    if (isExecuting) {
+  Future<void> startExecution({bool forceRun = false}) async {
+    if (isExecuting && forceRun == false) {
       //should we delay and call self again?
       //await delayStartQue();
       return;
@@ -114,8 +106,7 @@ class WorkerQueManager {
 
         await tryProcessJob(firstJob);
         if (kDebugMode) {
-          log.d(
-              'TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
+          log.d('TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
         }
       } else {
         //TODO clean job list from db and report issues maybe...
