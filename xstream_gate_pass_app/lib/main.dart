@@ -21,21 +21,9 @@ class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback =
-          ((X509Certificate cert, String host, int port) {
-        final isValidHost = [
-          "xstream-tms.com",
-          "localhost",
-          "192.168.1.65:8080",
-          "localhost:44311",
-          "a50f-102-66-86-121.ngrok-free.app",
-          "18.231.93.153",
-          "18.229.146.63",
-          "18.228.115.60",
-          "54.94.248.37",
-          "18.229.248.167"
-        ].contains(host); // <-- allow only hosts in array
-        print("Host validation result for $host: $isValidHost");
+      ..badCertificateCallback = ((X509Certificate cert, String host, int port) {
+        final isValidHost = ["xstream-tms.com", "localhost", "192.168.1.65:8080", "localhost:44311", "a50f-102-66-86-121.ngrok-free.app", "18.231.93.153", "18.229.146.63", "18.228.115.60", "54.94.248.37", "18.229.248.167", "xacapi.xstream-wtss.com"].contains(host); // <-- allow only hosts in array
+        //print("Host validation result for $host: $isValidHost");
         return isValidHost;
       });
   }
@@ -53,12 +41,7 @@ Future main() async {
 
   //Initialize Logging
   await FlutterLogs.initLogs(
-    logLevelsEnabled: [
-      LogLevel.INFO,
-      LogLevel.WARNING,
-      LogLevel.ERROR,
-      LogLevel.SEVERE
-    ],
+    logLevelsEnabled: [LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR, LogLevel.SEVERE],
     timeStampFormat: TimeStampFormat.TIME_FORMAT_READABLE,
     directoryStructure: DirectoryStructure.FOR_DATE,
     logTypesEnabled: ["device", "network", "errors"],
@@ -70,9 +53,9 @@ Future main() async {
     isDebuggable: true,
   );
 
-  var envFileToLoad = ".env_dev";
+  // var envFileToLoad = ".env_dev";
   //var envFileToLoad = ".env_local_proxy_dev";
-  //var envFileToLoad = ".env_qa";
+  var envFileToLoad = ".env_qa";
   // var envFileToLoad = ".env_prod";
   await initialise(envFileToLoad);
 

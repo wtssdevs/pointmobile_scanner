@@ -17,7 +17,7 @@ class GateStatusChip extends StatelessWidget {
 
     switch (gatePassStatus) {
       case GatePassStatus.pending:
-        chipColor = Colors.grey;
+        chipColor = Colors.lightBlue;
         statusText = GatePassStatus.pending.displayName;
         break;
       case GatePassStatus.atGate:
@@ -25,11 +25,11 @@ class GateStatusChip extends StatelessWidget {
         statusText = GatePassStatus.atGate.displayName;
         break;
       case GatePassStatus.inYard:
-        chipColor = Colors.green;
+        chipColor = Colors.red;
         statusText = GatePassStatus.inYard.displayName;
         break;
       case GatePassStatus.leftTheYard:
-        chipColor = Colors.blue;
+        chipColor = Colors.green;
         statusText = GatePassStatus.leftTheYard.displayName;
         break;
       default:

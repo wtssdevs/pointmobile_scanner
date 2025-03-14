@@ -228,10 +228,10 @@ class GateAccessYardOpsView extends StackedView<GateAccessYardOpsViewModel> {
               icon: Icons.location_on,
               color: Colors.orange,
               infoList: [
-                BuildInfoItem(
-                  label: viewModel.translate('VoyageNo'),
-                  value: viewModel.stockPileQrData?.voyageNo ?? 'Not Scanned',
-                ),
+                // BuildInfoItem(
+                //   label: viewModel.translate('VoyageNo'),
+                //   value: viewModel.stockPileQrData?.voyageNo ?? 'Not Scanned',
+                // ),
                 BuildInfoItem(
                   label: viewModel.translate('CustomerRefNo'),
                   value:

@@ -325,7 +325,7 @@ class CamContainernoReaderViewModel extends BaseViewModel {
     //add only if not yet in the list
     //and only buffer 10
     //
-    if (_extractedTexts.length < 10) {
+    if (_extractedTexts.length < 2) {
       _extractedTexts.add(text);
     }
   }
@@ -352,7 +352,7 @@ class CamContainernoReaderViewModel extends BaseViewModel {
       return [];
     }
     //if buffer full ,then we start to parse text only if we have a new text
-    if (_extractedTexts.length < 10) {
+    if (_extractedTexts.length < 2) {
       addText(recognizedText.text);
       return [];
       //break

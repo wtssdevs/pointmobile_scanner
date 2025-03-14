@@ -15,7 +15,7 @@ class GatePassListIcon extends StatelessWidget {
             fit: BoxFit.fill,
             child: FaIcon(
               FontAwesomeIcons.ellipsis,
-              color: Colors.orange,
+              color: Colors.lightBlue,
             ),
           ),
         );
@@ -37,7 +37,7 @@ class GatePassListIcon extends StatelessWidget {
             fit: BoxFit.fill,
             child: FaIcon(
               FontAwesomeIcons.arrowsDownToLine,
-              color: Colors.blue,
+              color: Colors.red,
             ),
           ),
         );

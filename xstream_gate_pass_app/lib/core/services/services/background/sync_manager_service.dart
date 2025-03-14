@@ -34,11 +34,11 @@ class SyncManager extends StoppableService {
   }
 
   Future<void> startBackgroundJob() async {
+    //sync data every 1 min
     String timer = "* * * * *";
 
     st = cron.schedule(Schedule.parse(timer), () async {
       if (!serviceStopped) {
-        //sync data every 1 min
         log.d("startBackgroundJob is running ");
         await _workerQueManager.startExecution();
       }
