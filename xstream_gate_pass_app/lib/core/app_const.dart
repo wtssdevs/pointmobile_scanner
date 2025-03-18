@@ -16,6 +16,7 @@ class AppConst {
   static const String recentSearches = "recent_Searches";
 
   static const String deviceConfig = "device_config";
+  static const String tenantId = "tenantId";
   //ENV File maps
   static const String GoogleMapsEnvKey = 'GOOGLE_MAPS_API_KEY';
   static const String NoKey = 'NO_KEY';
@@ -32,6 +33,9 @@ class AppConst {
   ///api/Account/ExternalAuth
   //static const String authentication = "/api/Account/ExternalAuth";
   static const String authentication = "/api/TokenAuth/Authenticate";
+
+  static const String isTenantAvailable = "/api/services/app/Account/IsTenantAvailable";
+
   //API Methods
 
   //static const String FileUploading_Images = "/api/FileUpload/Uploads/1";

@@ -32,8 +32,7 @@ class LocalStorageService {
   DeviceConfig get getDeviceConfig {
     var deviceConfig = _getFromDisk(AppConst.deviceConfig);
     if (deviceConfig == null) {
-      var newDeviceConfig =
-          DeviceConfig(deviceScanningMode: DeviceScanningMode.keyboard);
+      var newDeviceConfig = DeviceConfig(deviceScanningMode: DeviceScanningMode.keyboard);
       _saveToDisk(AppConst.deviceConfig, json.encode(newDeviceConfig.toJson()));
       return newDeviceConfig;
     }
@@ -43,6 +42,22 @@ class LocalStorageService {
 
   void setDeviceConfig(DeviceConfig deviceConfig) {
     _saveToDisk(AppConst.deviceConfig, json.encode(deviceConfig.toJson()));
+  }
+
+  void clearTenantId() {
+    _preferences!.remove(AppConst.tenantId);
+  }
+
+  void setTenantId(int value) {
+    _saveToDisk(AppConst.tenantId, value);
+  }
+
+  int? get getTenantId {
+    var tenantId = _getIntFromDisk(AppConst.tenantId);
+    if (tenantId == null) {
+      return null;
+    }
+    return tenantId;
   }
 
   AuthenticateResultModel? get getAuthToken {
@@ -62,6 +77,7 @@ class LocalStorageService {
 
   void clearAuthToken() {
     _preferences!.remove(AppConst.auth_token);
+    _preferences!.remove(AppConst.tenantId);
     saveIsLoggedIn(false);
   }
 
@@ -92,8 +108,7 @@ class LocalStorageService {
   }
 
   void setUserLoginInfo(CurrentLoginInformation userLoginInfo) {
-    _saveToDisk(
-        AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
+    _saveToDisk(AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
   }
 
   bool get isLoggedIn {
@@ -150,8 +165,7 @@ class LocalStorageService {
       searchText = searchText.trim();
     }
 
-    if (searchText == null || searchText.isEmpty || searchText == " ")
-      return; //Should not be null
+    if (searchText == null || searchText.isEmpty || searchText == " ") return; //Should not be null
 
     var listData = getRecentSearches();
     //Use `Set` to avoid duplication of recentSearches
@@ -204,6 +218,11 @@ class LocalStorageService {
 
   //General CRUD :---------------
 // updated _saveToDisk function that handles all types
+
+  int? _getIntFromDisk(String key) {
+    var value = _preferences!.getInt(key);
+    return value;
+  }
 
   dynamic _getFromDisk(String key) {
     var value = _preferences!.get(key);

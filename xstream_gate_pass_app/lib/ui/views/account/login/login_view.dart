@@ -24,8 +24,7 @@ class LoginView extends StatelessWidget with $LoginView {
   Widget build(BuildContext context) {
     precacheImage(const AssetImage("assets/wtssgrplogo.png"), context);
     void validateForm(LoginViewModel model) async {
-      model.validateModel(tenantCodeController.text, emailController.text,
-          passwordController.text);
+      model.validateModel(tenantCodeController.text, emailController.text, passwordController.text);
       if (_loginFormKey.currentState!.validate()) {
         FocusScope.of(context).requestFocus(FocusNode());
         await model.signInRequest(
@@ -48,9 +47,7 @@ class LoginView extends StatelessWidget with $LoginView {
             child: Container(
               constraints: const BoxConstraints.expand(),
               decoration: const BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage('assets/wtssgrplogo.png'),
-                    fit: BoxFit.scaleDown),
+                image: DecorationImage(image: AssetImage('assets/wtssgrplogo.png'), fit: BoxFit.scaleDown),
               ),
               child: ClipRRect(
                 // make sure we apply clip it properly
@@ -70,8 +67,7 @@ class LoginView extends StatelessWidget with $LoginView {
                         Align(
                           alignment: Alignment.center,
                           child: SizedBox(
-                            width:
-                                screenWidthPercentage(context, percentage: 0.7),
+                            width: screenWidthPercentage(context, percentage: 0.7),
                             child: BoxText.body(
                               "Enter your account details to sign in.",
                               color: Colors.black,
@@ -84,25 +80,52 @@ class LoginView extends StatelessWidget with $LoginView {
                           key: _loginFormKey,
                           child: Column(
                             children: [
-                              InputField(
-                                placeholder: "Code",
-                                controller: tenantCodeController,
-                                icon: const Icon(
-                                  Icons.house,
-                                  color: Colors.black,
-                                ),
-                                fieldFocusNode: tenantCodeFocusNode,
-                                nextFocusNode: emailFocusNode,
-                                textInputType: TextInputType.emailAddress,
-                                textInputAction: TextInputAction.next,
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return 'Code is required!';
+                              Focus(
+                                onFocusChange: (hasFocus) {
+                                  if (!hasFocus) {
+                                    //  model.setTenantCode(tenantCodeController.text);
                                   }
-                                  return null;
                                 },
+                                child: InputField(
+                                  placeholder: "Code",
+                                  controller: tenantCodeController,
+                                  icon: Icon(
+                                    Icons.house,
+                                    color: model.hasTenantId == false ? Colors.black : Colors.green,
+                                  ),
+                                  fieldFocusNode: tenantCodeFocusNode,
+                                  suffixIcon: model.hasTenantId == false
+                                      ? IconButton(
+                                          onPressed: () {
+                                            model.setTenantCode(tenantCodeController.text);
+                                          },
+                                          icon: const Icon(Icons.save, color: kcPrimaryColor),
+                                        )
+                                      : IconButton(
+                                          onPressed: () {
+                                            model.clearTenantInfo();
+                                            model.tenantCodeValue = "";
+                                            tenantCodeController.text = "";
+                                          },
+                                          icon: const Icon(Icons.clear, color: Colors.red),
+                                        ),
+                                  enterPressed: () {
+                                    model.setTenantCode(tenantCodeController.text);
+                                  },
+                                  onChanged: (value) {},
+                                  nextFocusNode: emailFocusNode,
+                                  textInputType: TextInputType.text,
+                                  textInputAction: TextInputAction.next,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'Code is required!';
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ),
                               InputField(
+                                isReadOnly: model.hasTenantId == false,
                                 placeholder: "Username",
                                 controller: emailController,
                                 icon: const Icon(
@@ -122,6 +145,7 @@ class LoginView extends StatelessWidget with $LoginView {
                               ),
                               InputField(
                                 placeholder: "Password",
+                                isReadOnly: model.hasTenantId == false,
                                 controller: passwordController,
                                 password: true,
                                 icon: const Icon(
@@ -151,8 +175,7 @@ class LoginView extends StatelessWidget with $LoginView {
                             model.validationMessage!,
                             color: Colors.red,
                           ),
-                        if (model.validationMessage != null)
-                          verticalSpaceMedium,
+                        if (model.validationMessage != null) verticalSpaceMedium,
                         GestureDetector(
                           onTap: () async {
                             validateForm(model);
@@ -167,15 +190,11 @@ class LoginView extends StatelessWidget with $LoginView {
                             ),
                             child: model.isBusy
                                 ? const CircularProgressIndicator(
-                                    valueColor:
-                                        AlwaysStoppedAnimation(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation(Colors.white),
                                   )
                                 : const Text(
                                     "SIGN IN",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14),
+                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                                   ),
                           ),
                         ),
