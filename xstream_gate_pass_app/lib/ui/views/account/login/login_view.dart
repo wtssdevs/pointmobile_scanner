@@ -96,8 +96,12 @@ class LoginView extends StatelessWidget with $LoginView {
                                   fieldFocusNode: tenantCodeFocusNode,
                                   suffixIcon: model.hasTenantId == false
                                       ? IconButton(
-                                          onPressed: () {
-                                            model.setTenantCode(tenantCodeController.text);
+                                          onPressed: () async {
+                                            await model.setTenantCode(tenantCodeController.text);
+                                            //set focus node to email emailFocusNode
+                                            if (context.mounted) {
+                                              FocusScope.of(context).requestFocus(emailFocusNode);
+                                            }
                                           },
                                           icon: const Icon(Icons.save, color: kcPrimaryColor),
                                         )

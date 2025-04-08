@@ -5,6 +5,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
+import 'package:xstream_gate_pass_app/core/app_const.dart';
 
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
@@ -18,28 +19,27 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 
 class AccountViewModel extends BaseViewModel {
   final NavigationService _navigationService = locator<NavigationService>();
-  final LocalStorageService _localStorageService =
-      locator<LocalStorageService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
   final _connectionService = locator<ConnectionService>();
   final _authenticationService = locator<AuthenticationService>();
   final _backgroundJobInfoRepository = locator<BackgroundJobInfoRepository>();
   final DialogService _dialogService = locator<DialogService>();
 
-  String get connectivityResultDisplayName =>
-      _connectionService.showConnectivityResultDisplayName;
+  final _environmentService = locator<EnvironmentService>();
+  String get connectivityResultDisplayName => _connectionService.showConnectivityResultDisplayName;
   String get showConnectionStatus => _connectionService.showConnectionStatus;
   bool get hasConnection => _connectionService.hasConnection;
-
+  String baseUrl = "";
   int _syncCount = 0;
   int get syncCount => _syncCount;
 
   CurrentLoginInformation? _currentLoginInformation;
-  CurrentLoginInformation? get currentLoginInformation =>
-      _currentLoginInformation;
+  CurrentLoginInformation? get currentLoginInformation => _currentLoginInformation;
 
   DeviceConfig get deviceConfig => _localStorageService.getDeviceConfig;
 
   Future handleStartUpLogic() async {
+    baseUrl = _environmentService.getValue(AppConst.Base_hostname);
     await loadTaskCount();
     notifyListeners();
     startconnectionListen();
@@ -51,8 +51,7 @@ class AccountViewModel extends BaseViewModel {
 
   StreamSubscription? streamSubscription;
   void startconnectionListen() {
-    streamSubscription =
-        _connectionService.connectionChange.asBroadcastStream().listen((data) {
+    streamSubscription = _connectionService.connectionChange.asBroadcastStream().listen((data) {
       //log.i('Start Connectivity Change Listener? $data');
       notifyListeners();
     });
@@ -60,8 +59,7 @@ class AccountViewModel extends BaseViewModel {
 
   Future getCurrentUserInfo() async {
     //_currentLoginInformation = _localStorageService.getUserLoginInfo;
-    _currentLoginInformation =
-        await _authenticationService.getUserLoginInfo(true);
+    _currentLoginInformation = await _authenticationService.getUserLoginInfo(true);
   }
 
   Future loadTaskCount() async {
@@ -90,13 +88,7 @@ class AccountViewModel extends BaseViewModel {
   }
 
   Future<bool> confirmLogout() async {
-    var confirm = await _dialogService.showCustomDialog(
-        variant: DialogType.infoAlert,
-        data: BasicDialogStatus.warning,
-        title: "Confirm Logout.",
-        description: 'Are you sure you want to exit the application',
-        mainButtonTitle: "Accept",
-        secondaryButtonTitle: "Decline");
+    var confirm = await _dialogService.showCustomDialog(variant: DialogType.infoAlert, data: BasicDialogStatus.warning, title: "Confirm Logout.", description: 'Are you sure you want to exit the application', mainButtonTitle: "Accept", secondaryButtonTitle: "Decline");
 
     if (confirm != null) {
       return confirm.confirmed;

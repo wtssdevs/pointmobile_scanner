@@ -45,21 +45,72 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
       Log.d(TAG, "[onReceive]");
       if (mScanner != null) {
         try {
-          int decodeBytesLength = intent.getIntExtra(ScanConst.EXTRA_EVENT_DECODE_LENGTH, 0);
-          byte[] decodeBytesValue = intent.getByteArrayExtra(ScanConst.EXTRA_EVENT_DECODE_VALUE);
-          String decodeValue = new String(decodeBytesValue, 0, decodeBytesLength);
-          int decodeLength = decodeValue.length();
+          // int decodeBytesLength = intent.getIntExtra(ScanConst.EXTRA_EVENT_DECODE_LENGTH, 0);
+          // byte[] decodeBytesValue = intent.getByteArrayExtra(ScanConst.EXTRA_EVENT_DECODE_VALUE);
+          // String decodeValue = new String(decodeBytesValue, 0, decodeBytesLength);
+          // int decodeLength = decodeValue.length();
+
+          // if (ScanConst.INTENT_USERMSG.equals(intent.getAction())) {
+          //   Log.d(TAG, "[onReceive] INTENT_USERMSG");
+          //   mScanner.aDecodeGetResult(mDecodeResult.recycle());
+
+          //   // _onDecode(decodeBytesValue);
+          //   _onDecodeCustom(mDecodeResult, decodeValue, decodeBytesValue);
+          // } else if (ScanConst.INTENT_EVENT.equals(intent.getAction())) {
+          //   Log.d(TAG, "[onReceive] INTENT_EVENT");
+          //   boolean result = intent.getBooleanExtra(ScanConst.EXTRA_EVENT_DECODE_RESULT, false);
+
+          //   String symbolName = intent.getStringExtra(ScanConst.EXTRA_EVENT_SYMBOL_NAME);
+          //   byte symbolId = intent.getByteExtra(ScanConst.EXTRA_EVENT_SYMBOL_ID, (byte) 0);
+          //   int symbolType = intent.getIntExtra(ScanConst.EXTRA_EVENT_SYMBOL_TYPE, 0);
+          //   byte letter = intent.getByteExtra(ScanConst.EXTRA_EVENT_DECODE_LETTER, (byte) 0);
+          //   byte modifier = intent.getByteExtra(ScanConst.EXTRA_EVENT_DECODE_MODIFIER, (byte) 0);
+          //   int decodingTime = intent.getIntExtra(ScanConst.EXTRA_EVENT_DECODE_TIME, 0);
+          //   Log.d(TAG, "1. result: " + result);
+          //   Log.d(TAG, "2. bytes length: " + decodeBytesLength);
+          //   Log.d(TAG, "3. bytes value: " + decodeBytesValue);
+          //   Log.d(TAG, "4. decoding length: " + decodeLength);
+          //   Log.d(TAG, "5. decoding value: " + decodeValue);
+          //   Log.d(TAG, "6. symbol name: " + symbolName);
+          //   Log.d(TAG, "7. symbol id: " + symbolId);
+          //   Log.d(TAG, "8. symbol type: " + symbolType);
+          //   Log.d(TAG, "9. decoding letter: " + letter);
+          //   Log.d(TAG, "10.decoding modifier: " + modifier);
+          //   Log.d(TAG, "11.decoding time: " + decodingTime);
+          //   _onDecodeCustom(mDecodeResult, decodeValue, decodeBytesValue);
+          //   // _onDecode(decodeBytesValue);
+          //}
+
 
           if (ScanConst.INTENT_USERMSG.equals(intent.getAction())) {
-            Log.d(TAG, "[onReceive] INTENT_USERMSG");
+            Log.d(TAG, "[onReceive] INTENT_USERMSG CUSTOM");
             mScanner.aDecodeGetResult(mDecodeResult.recycle());
 
-            // _onDecode(decodeBytesValue);
-            _onDecodeCustom(mDecodeResult, decodeValue, decodeBytesValue);
+            boolean result = intent.getBooleanExtra(ScanConst.EXTRA_EVENT_DECODE_RESULT, false);
+            String symbolName = intent.getStringExtra(ScanConst.EXTRA_EVENT_SYMBOL_NAME);
+            String decodeValue = "";
+            int decodeBytesLength = intent.getIntExtra(ScanConst.EXTRA_EVENT_DECODE_LENGTH, 0);
+            byte[] decodeBytesValue = intent.getByteArrayExtra(ScanConst.EXTRA_EVENT_DECODE_VALUE);
+
+            if(decodeBytesValue != null){
+              decodeValue = new String(decodeBytesValue, 0, decodeBytesLength);
+            }
+
+            if(decodeBytesValue == null){
+              decodeBytesValue = new byte[0];
+            }
+            Log.d(TAG, "1. result: " + result);
+            Log.d(TAG, "2. bytes length: " + decodeBytesLength);
+            Log.d(TAG, "3. bytes value: " + decodeBytesValue);
+            Log.d(TAG, "6. symbol name: " + symbolName);
+            _onDecodeCustom(mDecodeResult,decodeValue, decodeBytesValue);
           } else if (ScanConst.INTENT_EVENT.equals(intent.getAction())) {
             Log.d(TAG, "[onReceive] INTENT_EVENT");
             boolean result = intent.getBooleanExtra(ScanConst.EXTRA_EVENT_DECODE_RESULT, false);
-
+            int decodeBytesLength = intent.getIntExtra(ScanConst.EXTRA_EVENT_DECODE_LENGTH, 0);
+            byte[] decodeBytesValue = intent.getByteArrayExtra(ScanConst.EXTRA_EVENT_DECODE_VALUE);
+            String decodeValue = new String(decodeBytesValue, 0, decodeBytesLength);
+            int decodeLength = decodeValue.length();
             String symbolName = intent.getStringExtra(ScanConst.EXTRA_EVENT_SYMBOL_NAME);
             byte symbolId = intent.getByteExtra(ScanConst.EXTRA_EVENT_SYMBOL_ID, (byte) 0);
             int symbolType = intent.getIntExtra(ScanConst.EXTRA_EVENT_SYMBOL_TYPE, 0);
@@ -78,8 +129,9 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
             Log.d(TAG, "10.decoding modifier: " + modifier);
             Log.d(TAG, "11.decoding time: " + decodingTime);
             _onDecodeCustom(mDecodeResult, decodeValue, decodeBytesValue);
-            // _onDecode(decodeBytesValue);
           }
+
+          
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -142,9 +194,12 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
       if (mScanner == null) {
         mScanner = new ScanManager();
         Log.d(TAG, "[_initScanner] new ScanManager()");
+        
+        //PM84
+        mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_EVENT);
 
-        // mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_EVENT);
-        mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
+        //PM80
+        //mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
         Log.d(TAG, "[_initScanner] SetResultType(USERMSG)");
 
         mScanResultReceiver = new ScanResultReceiver();

@@ -18,16 +18,10 @@ class GatePassService {
   final log = getLogger('GatePassService');
   final ApiManager _apiManager = locator<ApiManager>();
 
-  Future<PagedList<GatePassVisitorAccess>> getVisitorPagedList(
-      int pageNumber, int pageSize, String searchValue, int branchId) async {
+  Future<PagedList<GatePassVisitorAccess>> getVisitorPagedList(int pageNumber, int pageSize, String searchValue, int branchId) async {
     try {
       List<GatePassVisitorAccess> items = <GatePassVisitorAccess>[];
-      var outPut = PagedList<GatePassVisitorAccess>(
-          totalCount: 0,
-          items: items,
-          pageNumber: pageNumber,
-          pageSize: pageSize,
-          totalPages: 0);
+      var outPut = PagedList<GatePassVisitorAccess>(totalCount: 0, items: items, pageNumber: pageNumber, pageSize: pageSize, totalPages: 0);
 
       final Map<String, dynamic> queryParameters = <String, dynamic>{};
 
@@ -43,14 +37,11 @@ class GatePassService {
         queryParameters['pageNumber'] = pageNumber;
       }
 
-      var baseResponse = await _apiManager.get(AppConst.GetAllVisitorPaged,
-          showLoader: false, queryParameters: queryParameters);
+      var baseResponse = await _apiManager.get(AppConst.GetAllVisitorPaged, showLoader: false, queryParameters: queryParameters);
       if (baseResponse != null) {
 //        var apiResponse = ApiResponse.fromJson(baseResponse);
 
-        if (baseResponse != null &&
-            baseResponse["items"] != null &&
-            baseResponse["items"] is List) {
+        if (baseResponse != null && baseResponse["items"] != null && baseResponse["items"] is List) {
           for (final dynamic item in baseResponse["items"]) {
             if (item != null) {
               //var newItem = GatePassStaffAccess.fromJson(item);
@@ -58,8 +49,7 @@ class GatePassService {
             }
           }
         }
-        outPut = PagedList<GatePassVisitorAccess>.fromJsonWithItems(
-            baseResponse, items);
+        outPut = PagedList<GatePassVisitorAccess>.fromJsonWithItems(baseResponse, items);
 
         return outPut;
       }
@@ -70,16 +60,10 @@ class GatePassService {
     }
   }
 
-  Future<PagedList<GatePassStaffAccess>> getStaffPagedList(
-      int pageNumber, int pageSize, String searchValue, int branchId) async {
+  Future<PagedList<GatePassStaffAccess>> getStaffPagedList(int pageNumber, int pageSize, String searchValue, int branchId) async {
     try {
       List<GatePassStaffAccess> items = <GatePassStaffAccess>[];
-      var outPut = PagedList<GatePassStaffAccess>(
-          totalCount: 0,
-          items: items,
-          pageNumber: pageNumber,
-          pageSize: pageSize,
-          totalPages: 0);
+      var outPut = PagedList<GatePassStaffAccess>(totalCount: 0, items: items, pageNumber: pageNumber, pageSize: pageSize, totalPages: 0);
 
       final Map<String, dynamic> queryParameters = <String, dynamic>{};
 
@@ -95,14 +79,11 @@ class GatePassService {
         queryParameters['pageNumber'] = pageNumber;
       }
 
-      var baseResponse = await _apiManager.get(AppConst.GetAllStaffPaged,
-          showLoader: false, queryParameters: queryParameters);
+      var baseResponse = await _apiManager.get(AppConst.GetAllStaffPaged, showLoader: false, queryParameters: queryParameters);
       if (baseResponse != null) {
 //        var apiResponse = ApiResponse.fromJson(baseResponse);
 
-        if (baseResponse != null &&
-            baseResponse["items"] != null &&
-            baseResponse["items"] is List) {
+        if (baseResponse != null && baseResponse["items"] != null && baseResponse["items"] is List) {
           for (final dynamic item in baseResponse["items"]) {
             if (item != null) {
               //var newItem = GatePassStaffAccess.fromJson(item);
@@ -110,8 +91,7 @@ class GatePassService {
             }
           }
         }
-        outPut = PagedList<GatePassStaffAccess>.fromJsonWithItems(
-            baseResponse, items);
+        outPut = PagedList<GatePassStaffAccess>.fromJsonWithItems(baseResponse, items);
 
         return outPut;
       }
@@ -122,16 +102,10 @@ class GatePassService {
     }
   }
 
-  Future<PagedList<GatePassAccess>> getPagedList(
-      int pageNumber, int pageSize, String searchValue) async {
+  Future<PagedList<GatePassAccess>> getPagedList(int pageNumber, int pageSize, String searchValue) async {
     try {
       List<GatePassAccess> items = <GatePassAccess>[];
-      var outPut = PagedList<GatePassAccess>(
-          totalCount: 0,
-          items: items,
-          pageNumber: pageNumber,
-          pageSize: pageSize,
-          totalPages: 0);
+      var outPut = PagedList<GatePassAccess>(totalCount: 0, items: items, pageNumber: pageNumber, pageSize: pageSize, totalPages: 0);
 
       final Map<String, dynamic> queryParameters = <String, dynamic>{};
 
@@ -146,22 +120,18 @@ class GatePassService {
         queryParameters['pageNumber'] = pageNumber;
       }
 
-      var baseResponse = await _apiManager.get(AppConst.GetAllGatePass,
-          showLoader: false, queryParameters: queryParameters);
+      var baseResponse = await _apiManager.get(AppConst.GetAllGatePass, showLoader: false, queryParameters: queryParameters);
       if (baseResponse != null) {
 //        var apiResponse = ApiResponse.fromJson(baseResponse);
 
-        if (baseResponse != null &&
-            baseResponse["items"] != null &&
-            baseResponse["items"] is List) {
+        if (baseResponse != null && baseResponse["items"] != null && baseResponse["items"] is List) {
           for (final dynamic item in baseResponse["items"]) {
             if (item != null) {
               items.add(GatePassAccess.fromJson(item));
             }
           }
         }
-        outPut =
-            PagedList<GatePassAccess>.fromJsonWithItems(baseResponse, items);
+        outPut = PagedList<GatePassAccess>.fromJsonWithItems(baseResponse, items);
 
         return outPut;
       }
@@ -172,16 +142,10 @@ class GatePassService {
     }
   }
 
-  Future<PagedList<GatePassAccess>> getPagedFilteredList(
-      FilterParams filterParams) async {
+  Future<PagedList<GatePassAccess>> getPagedFilteredList(FilterParams filterParams) async {
     try {
       List<GatePassAccess> items = <GatePassAccess>[];
-      var outPut = PagedList<GatePassAccess>(
-          totalCount: 0,
-          items: items,
-          pageNumber: filterParams.pageNumber,
-          pageSize: filterParams.pageSize,
-          totalPages: 0);
+      var outPut = PagedList<GatePassAccess>(totalCount: 0, items: items, pageNumber: filterParams.pageNumber, pageSize: filterParams.pageSize, totalPages: 0);
 
       final Map<String, dynamic> queryParameters = <String, dynamic>{};
 
@@ -192,20 +156,17 @@ class GatePassService {
         isFilterApplied = true;
       }
 
-      if (filterParams.vehicleRegNumber != null &&
-          filterParams.vehicleRegNumber!.isNotEmpty) {
+      if (filterParams.vehicleRegNumber != null && filterParams.vehicleRegNumber!.isNotEmpty) {
         queryParameters['vehicleRegNumber'] = filterParams.vehicleRegNumber;
         isFilterApplied = true;
       }
 
-      if (filterParams.containerNumber != null &&
-          filterParams.containerNumber!.isNotEmpty) {
+      if (filterParams.containerNumber != null && filterParams.containerNumber!.isNotEmpty) {
         queryParameters['containerNumber'] = filterParams.containerNumber;
         isFilterApplied = true;
       }
 
-      if (filterParams.transactionNo != null &&
-          filterParams.transactionNo!.isNotEmpty) {
+      if (filterParams.transactionNo != null && filterParams.transactionNo!.isNotEmpty) {
         queryParameters['transactionNo'] = filterParams.transactionNo;
         isFilterApplied = true;
       }
@@ -217,20 +178,16 @@ class GatePassService {
         queryParameters['pageNumber'] = filterParams.pageNumber;
       }
 
-      var baseResponse = await _apiManager.get(AppConst.GetAllGatePass,
-          showLoader: false, queryParameters: queryParameters);
+      var baseResponse = await _apiManager.get(AppConst.GetAllGatePass, showLoader: false, queryParameters: queryParameters);
       if (baseResponse != null) {
-        if (baseResponse != null &&
-            baseResponse["items"] != null &&
-            baseResponse["items"] is List) {
+        if (baseResponse != null && baseResponse["items"] != null && baseResponse["items"] is List) {
           for (final dynamic item in baseResponse["items"]) {
             if (item != null) {
               items.add(GatePassAccess.fromJson(item));
             }
           }
         }
-        outPut =
-            PagedList<GatePassAccess>.fromJsonWithItems(baseResponse, items);
+        outPut = PagedList<GatePassAccess>.fromJsonWithItems(baseResponse, items);
 
         return outPut;
       }
@@ -241,11 +198,9 @@ class GatePassService {
     }
   }
 
-  Future<GatePassVisitorAccess?> findPreBookedVisitor(
-      GatePassVisitorAccess entity) async {
+  Future<GatePassVisitorAccess?> findPreBookedVisitor(GatePassVisitorAccess entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.findPreBookedVisitor,
-          showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.findPreBookedVisitor, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -260,10 +215,27 @@ class GatePassService {
     return null;
   }
 
+//findGatePassByVoyageNo
+  Future<GatePassAccess?> findPreBookedLoadByVoyageNo(FilterParams entity) async {
+    try {
+      var baseResponse = await _apiManager.post(AppConst.findPreBookedLoadByVoyageNo, showLoader: true, data: entity.toJson());
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success != null) {
+          return GatePassAccess.fromJson(apiResponse.result);
+        }
+      }
+      return null;
+    } catch (e) {
+      log.e(e.toString());
+    }
+
+    return null;
+  }
+
   Future<GatePassAccess?> findPreBookedLoad(LoadconQrCodeModel entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.findPreBookedLoad,
-          showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.findPreBookedLoad, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -280,8 +252,7 @@ class GatePassService {
 
   Future<bool> scanVisitorOut(GatePassVisitorAccess entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.scanVisitorOut,
-          showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.scanVisitorOut, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -298,8 +269,7 @@ class GatePassService {
 
   Future<bool> scanVisitorIn(GatePassVisitorAccess entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.scanVisitorIn,
-          showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.scanVisitorIn, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -318,8 +288,7 @@ class GatePassService {
 
   Future<GatePassStaffAccess?> scanStaffIn(StaffQrCodeModel entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.scanStaffIn,
-          showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.scanStaffIn, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -335,8 +304,7 @@ class GatePassService {
 
   Future<GatePassStaffAccess?> scanStaffOut(StaffQrCodeModel entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.scanStaffOut,
-          showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.scanStaffOut, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -352,8 +320,7 @@ class GatePassService {
 
   Future<GatePassAccess?> create(GatePassAccess costMobileEdit) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.scanStaffOut,
-          showLoader: true, data: costMobileEdit.toJson());
+      var baseResponse = await _apiManager.post(AppConst.scanStaffOut, showLoader: true, data: costMobileEdit.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -369,10 +336,8 @@ class GatePassService {
     }
   }
 
-  Future<bool> setCmsGatePassEvent(
-      StockpileLoadingSlipQrCodeModel entity) async {
-    var baseResponse = await _apiManager.post(AppConst.setCmsGatePassEvent,
-        showLoader: true, data: entity.toJson());
+  Future<bool> setCmsGatePassEvent(StockpileLoadingSlipQrCodeModel entity) async {
+    var baseResponse = await _apiManager.post(AppConst.setCmsGatePassEvent, showLoader: true, data: entity.toJson());
     if (baseResponse != null) {
       var apiResponse = ApiResponse.fromJson(baseResponse);
       if (apiResponse.success != null) {
@@ -386,10 +351,7 @@ class GatePassService {
 
   Future<GatePassAccess?> authorizeForEntry(GatePassAccess entity) async {
     try {
-      var baseResponse = await _apiManager.post(
-          AppConst.AuthorizeForEntryGatePass,
-          showLoader: true,
-          data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.AuthorizeForEntryGatePass, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -407,10 +369,7 @@ class GatePassService {
 
   Future<GatePassAccess?> authorizeExit(GatePassAccess entity) async {
     try {
-      var baseResponse = await _apiManager.post(
-          AppConst.AuthorizeForExitGatePass,
-          showLoader: true,
-          data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.AuthorizeForExitGatePass, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -428,8 +387,7 @@ class GatePassService {
 
   Future<GatePassAccess?> update(GatePassAccess entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.UpdateGatePass,
-          showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.UpdateGatePass, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {
@@ -447,8 +405,7 @@ class GatePassService {
 
   Future<GatePassAccess?> rejectForEntry(GatePassAccess entity) async {
     try {
-      var baseResponse = await _apiManager.post(AppConst.RejectEntryGatePass,
-          showLoader: true, data: entity.toJson());
+      var baseResponse = await _apiManager.post(AppConst.RejectEntryGatePass, showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
         if (apiResponse.success != null) {

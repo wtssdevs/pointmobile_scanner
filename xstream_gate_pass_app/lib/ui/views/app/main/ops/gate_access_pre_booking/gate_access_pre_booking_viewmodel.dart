@@ -10,13 +10,13 @@ import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/loadcon_qrcode_model.dart';
+import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manager.dart';
 
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
 
-class GateAccessPreBookingViewModel extends BaseViewModel
-    with AppViewBaseHelper {
+class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper {
   final log = getLogger('GateAccessPreBookingViewModel');
   final _scanningService = locator<ScanningService>();
   StreamSubscription<String>? streamSubscription;
@@ -44,9 +44,7 @@ class GateAccessPreBookingViewModel extends BaseViewModel
   }
 
   Future<void> startconnectionListen() async {
-    streamSubscription = _scanningService.rawStringStream
-        .asBroadcastStream()
-        .listen((data) async {
+    streamSubscription = _scanningService.rawStringStream.asBroadcastStream().listen((data) async {
       log.i("data: $data");
       if (isBusy == false) {
         initiateQrScan(data);
@@ -54,12 +52,60 @@ class GateAccessPreBookingViewModel extends BaseViewModel
     });
   }
 
-  void onFilterValueChanged(String value) {}
+  void onFilterValueChanged(String value) {
+    if (value.isNotEmpty && value.length > 4) {
+      //to activate find btn
+      rebuildUi();
+    }
+  }
 
-  void findGatePassByVoyageNo() {
-    if (voageNoController.text.isNotEmpty) {
-      log.i("voyageNo: ${voageNoController.text}");
+  Future<void> findGatePassByVoyageNo() async {
+    try {
+      // Clear previous errors
+      validationErrors = [];
 
+      if (voageNoController.text.isEmpty) {
+        validationErrors.add('Please enter ${translate('VoyageNo')}');
+        notifyListeners();
+        return;
+      }
+
+      // Show loading indicator
+      //setBusy(true);
+      var branchId = currentUser?.userBranches[0].id ?? 0;
+
+      var filter = FilterParams(voyageNo: voageNoController.text, branchId: branchId);
+      var reponse = await _gatePassService.findPreBookedLoadByVoyageNo(filter);
+      //setBusy(false);
+      bool success = true; // Change to test different scenarios
+      if (reponse == null) {
+        success = false;
+      }
+
+      if (success) {
+        // Handle successful finding of pre-booking
+        // Navigate to details page or update UI
+
+        await _navigationService.navigateTo(
+          Routes.gatePassEditView,
+          arguments: GatePassEditViewArguments(
+            gatePass: reponse!,
+          ),
+        );
+
+        validationErrors = []; // Clear previous errors
+        //setBusy(false);
+        // _scanningService.setBarcodeScanType(BarcodeScanType.loadConQrCode);
+        rebuildUi();
+      } else {
+        // Handle case where pre-booking not found
+        setBusy(false);
+        validationErrors.add('No pre-booking found with ${translate('VoyageNo')} : ${voageNoController.text}');
+      }
+    } catch (e) {
+      validationErrors.add('Error searching for pre-booking: ${e.toString()}');
+    } finally {
+      setBusy(false);
       rebuildUi();
     }
   }
@@ -139,8 +185,7 @@ class GateAccessPreBookingViewModel extends BaseViewModel
       } else {
         // Handle case where pre-booking not found
         setBusy(false);
-        validationErrors.add(
-            'No pre-booking found with the scanned QR code data: $scannedQrData');
+        validationErrors.add('No pre-booking found with the scanned QR code data: $scannedQrData');
       }
     } catch (e) {
       validationErrors.add('Error searching for pre-booking: ${e.toString()}');

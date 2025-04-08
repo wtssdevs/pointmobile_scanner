@@ -7,6 +7,7 @@ import 'package:xstream_gate_pass_app/app/app.router.dart';
 
 import 'package:xstream_gate_pass_app/core/models/account/UserCredential.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
 
@@ -17,7 +18,7 @@ class LoginViewModel extends FormViewModel {
   final DialogService _dialogService = locator<DialogService>();
   final LocalStorageService _localStorageService = locator<LocalStorageService>();
   final _localizationManager = locator<LocalizationManagerService>();
-
+  final _workerQueManager = locator<WorkerQueManager>();
   int? get tenantId => _localStorageService.getTenantId;
   bool get hasTenantId => tenantId != null;
 
@@ -64,8 +65,8 @@ class LoginViewModel extends FormViewModel {
           await _localizationManager.getLocalizeValues();
           //get more loadin
           await _authenticationService.getUserLoginInfo(true);
-
-          _navigationService.navigateTo(Routes.homeView);
+          _workerQueManager.enqueForStartUp();
+          _navigationService.clearStackAndShow(Routes.homeView);
         } else {
           await _dialogService.showDialog(
             title: 'Login Failure',
@@ -85,7 +86,7 @@ class LoginViewModel extends FormViewModel {
 
   void clearTenantInfo() {
     _localStorageService.clearTenantId();
-    
+
     rebuildUi();
   }
 
@@ -94,6 +95,7 @@ class LoginViewModel extends FormViewModel {
       //we need to check tenenat availability
       var tenantAvailableModel = await _authenticationService.isTenantAvailable(tenantCode: value);
       _localStorageService.setTenantId(tenantAvailableModel!.tenantId!);
+
       rebuildUi();
     }
   }

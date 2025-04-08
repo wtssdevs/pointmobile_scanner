@@ -52,6 +52,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   final _workerQueManager = locator<WorkerQueManager>();
   final _connectionService = locator<ConnectionService>();
   final _masterFilesService = locator<MasterFilesService>();
+  final ScrollController scrollController = ScrollController();
 
   StreamSubscription<RsaDriversLicense>? streamSubscription;
   StreamSubscription<LicenseDiskData>? streamSubscriptionForDisc;
@@ -116,7 +117,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     });
     // Also listen to license disk data for vehicle scans
     streamSubscriptionForDisc = _scanningService.licenseDiskDataStream.asBroadcastStream().listen((licenseDiskData) async {
-      log.i("Drivers Card data received");
+      log.i("Vehicle Lisence Plate data received");
       // Process the license disk data here
       // This would populate a GatePassVisitorAccess from the license disk data
       processScanData(null, licenseDiskData);
@@ -145,7 +146,15 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
         gatePass.vehicleEngineNumber = vehicleLicenseData.engineNumber;
         gatePass.vehicleMake = vehicleLicenseData.make;
-        gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
+        //gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
+        gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
+
+        if (gatePass.vehicleRegNoMatch == false) {
+          setValidationMessage("Vehicle registration number does not match");
+          //send api call to backend to create incident
+        } else {
+          clearValidationMessage("Vehicle registration number does not match");
+        }
         gatePass.vehicleVinNumber = vehicleLicenseData.vin;
         gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
       }

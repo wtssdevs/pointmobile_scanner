@@ -52,6 +52,7 @@ class AppConst {
 // PRE BOOKINGS **********
 
   static const String findPreBookedLoad = "/api/services/app/MobileGatePassAccess/FindPreBookedLoad";
+  static const String findPreBookedLoadByVoyageNo = "/api/services/app/MobileGatePassAccess/FindPreBookedLoadByVoyageNo";
 
 //STAFF*************
   static const String GetAllStaffPaged = "/api/services/app/MobileGatePassAccess/GetAllStaffPaged";

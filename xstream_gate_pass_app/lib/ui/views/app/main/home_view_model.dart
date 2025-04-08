@@ -1,7 +1,9 @@
 import 'package:stacked/stacked.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart';
 
 class HomeViewModel extends BaseViewModel {
-  //final _syncManager = locator<SyncManager>();
+  final _syncManager = locator<SyncManager>();
   int _currentTabIndex = 0;
   int get currentTabIndex => _currentTabIndex;
 
@@ -20,6 +22,6 @@ class HomeViewModel extends BaseViewModel {
     if (tabIndex != null) {
       setTabIndex(tabIndex);
     }
-    // await _syncManager.startBackgroundJob();
+    await _syncManager.startBackgroundJob();
   }
 }

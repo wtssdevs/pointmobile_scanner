@@ -9,7 +9,13 @@ android {
     namespace = "com.wtss.xstream_gate_pass_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
-
+    buildToolsVersion "33.0.0" // Or the latest version you have
+    //Force AndroidX AppCompat Version:
+    configurations.all {
+            resolutionStrategy {
+                force 'androidx.appcompat:appcompat:1.6.1'
+            }
+        }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -46,6 +52,7 @@ flutter {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation files('sdk/device.sdk.jar')
+    implementation 'androidx.appcompat:appcompat:1.6.1' // Or a newer version
     // Add any other dependencies your app needs
 }
 

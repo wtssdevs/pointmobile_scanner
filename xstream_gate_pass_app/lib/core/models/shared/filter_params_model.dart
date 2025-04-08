@@ -4,6 +4,7 @@ class FilterParams {
   final String? sortDirection;
   int pageSize;
   int pageNumber;
+  int? branchId;
   final String? transactionNo;
   final DateTime? startDate;
   final DateTime? endDate;
@@ -21,6 +22,7 @@ class FilterParams {
     this.startDate,
     this.endDate,
     this.voyageNo,
+    this.branchId,
     this.vehicleRegNumber,
     this.containerNumber,
   });
@@ -37,6 +39,7 @@ class FilterParams {
       'sortDirection': sortDirection,
       'pageSize': pageSize,
       'pageNumber': pageNumber,
+      'branchId': branchId,
       'transactionNo': transactionNo,
       'startDate': startDate?.toIso8601String(),
       'endDate': endDate?.toIso8601String(),

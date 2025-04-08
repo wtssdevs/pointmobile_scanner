@@ -222,6 +222,8 @@ class GatePassEditView extends StatelessWidget {
                           var isValid = await validateForm(model, context);
                           if (isValid == true) {
                             model.authorizeEntry();
+                          } else {
+                            model.scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
                           }
                         },
                         icon: const FaIcon(
@@ -333,6 +335,7 @@ class GatePassEditView extends StatelessWidget {
                       ),
                     ),
                     body: SingleChildScrollView(
+                        controller: model.scrollController,
                         child: model.gatePass.gatePassBookingType == GatePassBookingType.visitor || model.gatePass.gatePassBookingType == GatePassBookingType.staff
                             ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -415,6 +418,21 @@ class GatePassEditView extends StatelessWidget {
                                   ],
                                   verticalSpaceTiny,
                                   !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
+                                  // verticalSpaceSmall,
+                                  // BuildInfoCard(
+                                  //   width: MediaQuery.of(context).size.width * 0.95,
+                                  //   title: "Scanned Data",
+                                  //   isSelected: true,
+                                  //   hasInfo: model.gatePass != null,
+                                  //   icon: Icons.directions_car,
+                                  //   color: Colors.green,
+                                  //   infoList: [
+                                  //     BuildInfoItem(label: 'Transaction No', value: model.gatePass.transactionNo ?? 'Not Scanned'),
+                                  //     BuildInfoItem(label: 'Reference No', value: model.gatePass.refNo ?? 'Not Scanned'),
+                                  //     BuildInfoItem(label: 'Customer Ref No', value: model.gatePass.customerRefNo ?? 'Not Scanned'),
+                                  //     BuildInfoItem(label: 'Booking Order No', value: model.gatePass.ticketNo ?? 'Not Scanned'),
+                                  //   ],
+                                  // ),
                                   verticalSpaceSmall,
                                   BuildInfoCard(
                                     width: width,
@@ -445,7 +463,18 @@ class GatePassEditView extends StatelessWidget {
                                     icon: Icons.directions_car,
                                     color: Colors.green,
                                     infoList: [
-                                      BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
+                                      //need to check if the vehicle reg number matches the scanned reg number
+                                      //if not we need to show a warning icon validation failed or indicate match failed in BuildInfoItem ?
+
+                                      BuildInfoItem(
+                                        label: 'Registration',
+                                        value: model.gatePass.vehicleRegNumber ?? 'Not Scanned',
+                                        validationStatus: model.gatePass.vehicleRegNoMatch == false ? ValidationStatus.failed : null,
+                                        validationMessage: 'Registration number mismatch',
+                                      ),
+                                      //BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
+                                      model.gatePass.vehicleRegNumberValidation != null && model.gatePass.vehicleRegNoMatch == false ? BuildInfoItem(label: 'Mismatch', value: model.gatePass.vehicleRegNumberValidation ?? 'Registration number mismatch', validationStatus: ValidationStatus.failed) : SizedBox.shrink(),
+
                                       BuildInfoItem(label: 'Make', value: model.gatePass.vehicleMake ?? 'Not Scanned'),
                                       BuildInfoItem(label: 'Model', value: model.gatePass.vehicleVinNumber ?? 'Not Scanned'),
                                     ],
