@@ -36,9 +36,11 @@ class AccountViewModel extends BaseViewModel {
   CurrentLoginInformation? _currentLoginInformation;
   CurrentLoginInformation? get currentLoginInformation => _currentLoginInformation;
 
-  DeviceConfig get deviceConfig => _localStorageService.getDeviceConfig;
+  DeviceConfig _deviceConfig = DeviceConfig(deviceScanningMode: DeviceModelScanningMode.pm84);
+  DeviceConfig get deviceConfig => _deviceConfig;
 
   Future handleStartUpLogic() async {
+    _deviceConfig = _localStorageService.getDeviceConfig;
     baseUrl = _environmentService.getValue(AppConst.Base_hostname);
     await loadTaskCount();
     notifyListeners();
@@ -113,10 +115,10 @@ class AccountViewModel extends BaseViewModel {
 
   void gotoDeviceConfiguration() {}
 
-  void updateDeviceConfig(DeviceScanningMode? value) {
+  void updateDeviceConfig(DeviceModelScanningMode? value) {
     if (value != null) {
-      deviceConfig.deviceScanningMode = value;
-      _localStorageService.setDeviceConfig(deviceConfig);
+      _deviceConfig.deviceScanningMode = value;
+      _localStorageService.setDeviceConfig(_deviceConfig);
       rebuildUi();
     }
   }

@@ -32,7 +32,7 @@ class LocalStorageService {
   DeviceConfig get getDeviceConfig {
     var deviceConfig = _getFromDisk(AppConst.deviceConfig);
     if (deviceConfig == null) {
-      var newDeviceConfig = DeviceConfig(deviceScanningMode: DeviceScanningMode.keyboard);
+      var newDeviceConfig = DeviceConfig(deviceScanningMode: DeviceModelScanningMode.pm84);
       _saveToDisk(AppConst.deviceConfig, json.encode(newDeviceConfig.toJson()));
       return newDeviceConfig;
     }

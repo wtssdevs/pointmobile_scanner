@@ -302,6 +302,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     //update Screen UI state with model changes
     setModelUpdate(_gatePass);
     rebuildUi();
+
+    _navigationService.back();
   }
 
   Future<void> authorizeExit() async {
@@ -343,6 +345,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     //update Screen UI state with model changes
     setModelUpdate(_gatePass);
     notifyListeners();
+    _navigationService.back();
   }
 
   Future<void> rejectEntry() async {
@@ -382,6 +385,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     //update Screen UI state with model changes
     setModelUpdate(_gatePass);
     notifyListeners();
+
+    _navigationService.back();
   }
 
   Future<void> onTabBarTap(int index) async {

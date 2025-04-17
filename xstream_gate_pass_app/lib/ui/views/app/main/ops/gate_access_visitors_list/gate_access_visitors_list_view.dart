@@ -20,8 +20,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/error_indicator.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class GateAccessVisitorsListView
-    extends StackedView<GateAccessVisitorsListViewModel> {
+class GateAccessVisitorsListView extends StackedView<GateAccessVisitorsListViewModel> {
   const GateAccessVisitorsListView({Key? key}) : super(key: key);
 
   @override
@@ -30,10 +29,7 @@ class GateAccessVisitorsListView
     GateAccessVisitorsListViewModel viewModel,
     Widget? child,
   ) {
-    double searchWidth =
-        getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet
-            ? MediaQuery.of(context).size.height * 0.8
-            : MediaQuery.of(context).size.height * 0.5;
+    double searchWidth = getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet ? MediaQuery.of(context).size.height * 0.8 : MediaQuery.of(context).size.height * 0.5;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -71,24 +67,21 @@ class GateAccessVisitorsListView
               icon: FontAwesomeIcons.arrowRightToBracket,
               color: Colors.green,
               onTap: viewModel.setScanIn,
-              isVisible: viewModel.hasPermission(
-                  AppPermissions.mobileOperationsVisitorsCheckIn),
+              isVisible: viewModel.hasPermission(AppPermissions.mobileOperationsVisitorsCheckIn),
             ),
             NavActionButton(
               label: "Pre Check In",
               icon: FontAwesomeIcons.arrowRightToBracket,
               color: Colors.green,
               onTap: viewModel.setScanPreBookIn,
-              isVisible: viewModel.hasPermission(
-                  AppPermissions.mobileOperationsVisitorsPreBookCheckIn),
+              isVisible: viewModel.hasPermission(AppPermissions.mobileOperationsVisitorsPreBookCheckIn),
             ),
             NavActionButton(
               label: "Check Out",
               icon: FontAwesomeIcons.arrowRightFromBracket,
               color: Colors.redAccent,
               onTap: viewModel.setScanOut,
-              isVisible: viewModel.hasPermission(
-                  AppPermissions.mobileOperationsVisitorsCheckOut),
+              isVisible: viewModel.hasPermission(AppPermissions.mobileOperationsVisitorsCheckOut),
             ),
           ],
         ),
@@ -108,14 +101,9 @@ class GateAccessVisitorsListView
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: entity.gatePassStatus.value ==
-                            GatePassStatus.inYard.value
-                        ? Colors.green.withOpacity(0.8)
-                        : Colors.red.withOpacity(0.8),
+                    backgroundColor: entity.gatePassStatus.value == GatePassStatus.inYard.value ? Colors.green.withOpacity(0.8) : Colors.red.withOpacity(0.8),
                     child: Icon(
-                      entity.gatePassStatus.value == GatePassStatus.inYard.value
-                          ? Icons.login
-                          : Icons.logout,
+                      entity.gatePassStatus.value == GatePassStatus.inYard.value ? Icons.login : Icons.logout,
                       color: Colors.white,
                     ),
                   ),
@@ -171,8 +159,7 @@ class GateAccessVisitorsListView
                     ],
                   ),
                   onTap: () async {
-                    await viewModel.goToDetail(
-                        GatePassAccess.fromGatePassVisitorAccess(entity));
+                    await viewModel.goToDetail(GatePassAccess.fromGatePassVisitorAccess(entity));
                     // Handle tap event - could show more details or navigate to detail view
                   },
                 ),
@@ -231,8 +218,7 @@ class GateAccessVisitorsListView
   }
 
   @override
-  void onViewModelReady(GateAccessVisitorsListViewModel viewModel) =>
-      SchedulerBinding.instance.addPostFrameCallback(
+  void onViewModelReady(GateAccessVisitorsListViewModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(
         (timeStamp) => viewModel.runStartupLogic(),
       );
 

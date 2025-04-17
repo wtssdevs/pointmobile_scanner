@@ -8,16 +8,19 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
+import 'package:xstream_gate_pass_app/core/models/device/device_config.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/rsa_scan.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_drivers_license.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_license_disk.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 
 /// Returns values from the environment read from the .env file
 @LazySingleton()
 class ScanningService {
   final log = getLogger('ScanningService');
   final DialogService _dialogService = locator<DialogService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
   StreamController<RsaDriversLicense> barcodeChangeController = StreamController<RsaDriversLicense>.broadcast();
   Stream<RsaDriversLicense> get licenseStream => barcodeChangeController.stream;
 
@@ -30,6 +33,7 @@ class ScanningService {
   RsaDriversLicense? _rsaDriversLicense;
   RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
 
+  DeviceConfig get deviceConfig => _localStorageService.getDeviceConfig;
   String _barcode = '';
   String? get barcode => _barcode;
 
@@ -52,7 +56,7 @@ class ScanningService {
       }
 
       PointmobileScanner.channel.setMethodCallHandler(_onBarcodeScannerHandler);
-      var caninit = await PointmobileScanner.initScanner();
+      var caninit = await PointmobileScanner.initScanner(deviceConfig.deviceScanningMode.value);
       if (caninit) {
         PointmobileScanner.enableScanner();
         PointmobileScanner.enableBeep();
@@ -65,7 +69,7 @@ class ScanningService {
       } else {
         _dialogService.showDialog(
           title: "PointmobileScanner SDK initScanner",
-          description: "Error initializing PointmobileScanner SDK",
+          description: "Error initializing PointmobileScanner SDK<try chaning device configuration",
           buttonTitle: "OK",
         );
         _initScanner = false;

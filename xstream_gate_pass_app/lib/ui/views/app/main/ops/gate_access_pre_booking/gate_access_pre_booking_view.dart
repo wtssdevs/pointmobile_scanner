@@ -314,6 +314,10 @@ class GateAccessPreBookingView extends StackedView<GateAccessPreBookingViewModel
       ),
     );
   }
+ @override
+  void onDispose(GateAccessPreBookingViewModel viewModel) {
+    viewModel.onDispose();
+  }
 
   @override
   void onViewModelReady(GateAccessPreBookingViewModel viewModel) => SchedulerBinding.instance.addPostFrameCallback(

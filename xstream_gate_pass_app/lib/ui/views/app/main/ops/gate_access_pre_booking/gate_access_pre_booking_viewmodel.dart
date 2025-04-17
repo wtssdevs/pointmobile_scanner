@@ -40,10 +40,22 @@ class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper
     // }
     _scanningService.initialise(barcodeScanType: BarcodeScanType.loadConQrCode);
     //we can lter do scan image of vehicle number plate or ...
-    await startconnectionListen();
+
+    // Only start listening if we don't already have an active subscription
+    if (streamSubscription == null) {
+      await startconnectionListen();
+    }
+  }
+
+  Future<void> cancelSubscription() async {
+    if (streamSubscription != null) {
+      await streamSubscription!.cancel();
+      streamSubscription = null;
+    }
   }
 
   Future<void> startconnectionListen() async {
+    await cancelSubscription();
     streamSubscription = _scanningService.rawStringStream.asBroadcastStream().listen((data) async {
       log.i("data: $data");
       if (isBusy == false) {
@@ -193,5 +205,10 @@ class GateAccessPreBookingViewModel extends BaseViewModel with AppViewBaseHelper
       setBusy(false);
       rebuildUi();
     }
+  }
+
+  Future<void> onDispose() async {
+    voageNoController.dispose();
+    await cancelSubscription();
   }
 }

@@ -156,7 +156,9 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     if (call.method.equals("initScanner")) {
-      Boolean initOk = _initScanner();
+      int deviceModelId = Integer.parseInt(call.arguments.toString());
+      
+      Boolean initOk = _initScanner(deviceModelId);
       result.success(initOk);
     } else if (call.method.equals("enableScanner")) {
       _enableScanner();
@@ -188,18 +190,32 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
     }
   }
 
-  private Boolean _initScanner() {
-    Log.d(TAG, "[_initScanner]");
+  private Boolean _initScanner(int deviceModelId) {
+    Log.d(TAG, "[_initScanner] deviceModelId=" + deviceModelId);
     try {
       if (mScanner == null) {
         mScanner = new ScanManager();
         Log.d(TAG, "[_initScanner] new ScanManager()");
         
+
+        switch (deviceModelId) {
+          case 84:
+          mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_EVENT);
+            break;
+          case 80:
+          mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
+            break;
+          default:
+          mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
+            break;
+        }
+
         //PM84
-        mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_EVENT);
+        //mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_EVENT);
 
         //PM80
         //mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
+        
         Log.d(TAG, "[_initScanner] SetResultType(USERMSG)");
 
         mScanResultReceiver = new ScanResultReceiver();

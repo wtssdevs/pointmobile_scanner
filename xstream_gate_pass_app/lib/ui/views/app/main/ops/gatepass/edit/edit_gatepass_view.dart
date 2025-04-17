@@ -264,7 +264,7 @@ class GatePassEditView extends StatelessWidget {
                 //leading:
                 title: BoxText.label(model.gatePass.transactionNo ?? "", color: Colors.black),
                 subtitle: BoxText.label(model.gatePass.voyageNo ?? "", color: Colors.black),
-                trailing: GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
+                trailing: GateStatusChip(gatePassStatus: model.gatePass.gatePassStatus),
               ),
               titleSpacing: 0.0,
               centerTitle: true,

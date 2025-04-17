@@ -209,6 +209,11 @@ class GateAccessStaffListView
       ),
     );
   }
+  @override
+  void onDispose(GateAccessStaffListViewModel viewModel) {
+    viewModel.onDispose();
+  }
+
 
   @override
   void onViewModelReady(GateAccessStaffListViewModel viewModel) =>
