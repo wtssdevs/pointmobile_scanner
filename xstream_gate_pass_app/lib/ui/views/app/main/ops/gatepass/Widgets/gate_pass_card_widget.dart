@@ -29,12 +29,18 @@ class GatePassCard extends StatelessWidget with AppViewBaseHelper {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              ListTile(
+                title: Text(gatePass.vehicleRegNumber ?? ''),
+                dense: true,
+                leading: Icon(gatePass.gatePassBookingType.icon),
+                trailing: GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
+              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   EasyLabelText(
                     label: translate('VehicleRegNumber'),
-                    labelFontSize: 16,
+                    labelFontSize: 12,
                     value: gatePass.vehicleRegNumber ?? '',
                     textFontSize: 14,
                   ),

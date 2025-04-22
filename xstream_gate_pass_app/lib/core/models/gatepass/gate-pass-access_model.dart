@@ -175,6 +175,7 @@ class GatePassAccess {
 
   bool get hasDriverInfo => driverName != null && driverIdNo != null && driverLicenceNo != null;
   bool get hasVehicleInfo => vehicleRegNumber != null && vehicleMake != null && vehicleVinNumber != null;
+  bool get vehicleDiscExpired => hasVehicleInfo ;
 
   bool get vehicleRegNoMatch => vehicleRegNumber != null && vehicleRegNumberValidation != null && vehicleRegNumber?.trim() == vehicleRegNumberValidation?.trim();
 

@@ -80,7 +80,7 @@ class PointmobileScanner {
   static const int SYM_LAST = 69;
 
   static Future<bool> initScanner(int devicemodelId) async {
-    return await channel.invokeMethod<bool>("initScanner", devicemodelId..toString()) ?? false;
+    return await channel.invokeMethod<bool>("initScanner", devicemodelId.toString()) ?? false;
   }
 
   static void enableScanner() {

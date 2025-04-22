@@ -41,6 +41,7 @@ class BuildInfoItem extends StatelessWidget {
   final String label;
   final String value;
   final ValidationStatus? validationStatus;
+  final Icon passedIcon;
   final String? validationMessage;
 
   const BuildInfoItem({
@@ -48,37 +49,41 @@ class BuildInfoItem extends StatelessWidget {
     required this.value,
     this.validationStatus,
     this.validationMessage,
+    this.passedIcon = const Icon(Icons.check_circle, color: Colors.green),
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+    return Visibility(
+      visible: value.isNotEmpty,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                Expanded(child: Text(value)),
-                if (validationStatus != null)
-                  Icon(
-                    validationStatus == ValidationStatus.failed ? Icons.error : Icons.check_circle,
-                    color: validationStatus == ValidationStatus.failed ? Colors.red : Colors.green,
-                    size: 18,
-                  ),
-              ],
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  Expanded(child: Text(value)),
+                  if (validationStatus != null)
+                    Icon(
+                      validationStatus == ValidationStatus.failed ? Icons.error : passedIcon.icon,
+                      color: validationStatus == ValidationStatus.failed ? Colors.red : passedIcon.color,
+                      size: 18,
+                    ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

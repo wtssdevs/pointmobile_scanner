@@ -416,23 +416,52 @@ class GatePassEditView extends StatelessWidget {
                                       validationMessages: model.validationMessages,
                                     ),
                                   ],
+                                  verticalSpaceSmall,
+                                  BuildInfoCard(
+                                    width: MediaQuery.of(context).size.width * 0.95,
+                                    title: "Main Information",
+                                    isSelected: true,
+                                    hasInfo: model.gatePass != null,
+                                    icon: Icons.list_alt_outlined,
+                                    color: Colors.green,
+                                    infoList: [
+                                      BuildInfoItem(
+                                        label: model.translate("GatePassDeliveryType"),
+                                        value: model.gatePass.gatePassDeliveryType.text,
+                                        validationStatus: ValidationStatus.passed,
+                                        passedIcon: model.gatePass.gatePassDeliveryType == DeliveryType.receive
+                                            ? const Icon(FontAwesomeIcons.arrowsDownToLine, color: Colors.green)
+                                            : const Icon(
+                                                FontAwesomeIcons.arrowsUpToLine,
+                                                color: Colors.red,
+                                              ),
+                                      ),
+                                      BuildInfoItem(
+                                        label: model.translate("GatePassBookingType"),
+                                        value: model.gatePass.gatePassBookingType.text,
+                                        validationStatus: ValidationStatus.passed,
+                                        passedIcon: model.gatePass.gatePassBookingType == GatePassBookingType.containers
+                                            ? const Icon(
+                                                Icons.check_box_outline_blank_sharp,
+                                                color: Colors.blue,
+                                              )
+                                            : Icon(
+                                                model.gatePass.gatePassBookingType.icon,
+                                                color: model.gatePass.gatePassBookingType == GatePassBookingType.containers ? Colors.blue : Colors.brown,
+                                              ),
+                                      ),
+                                      BuildInfoItem(
+                                        label: model.translate("TransactionNo"),
+                                        value: model.gatePass.transactionNo ?? '',
+                                      ),
+                                      BuildInfoItem(label: model.translate("RefNo"), value: model.gatePass.refNo ?? ''),
+                                      BuildInfoItem(label: model.translate("CustomerRefNo"), value: model.gatePass.customerRefNo ?? ''),
+                                      BuildInfoItem(label: model.translate("TicketNo"), value: model.gatePass.ticketNo ?? ''),
+                                      BuildInfoItem(label: model.translate("VoyageNo"), value: model.gatePass.voyageNo ?? ''),
+                                    ],
+                                  ),
                                   verticalSpaceTiny,
                                   !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
-                                  // verticalSpaceSmall,
-                                  // BuildInfoCard(
-                                  //   width: MediaQuery.of(context).size.width * 0.95,
-                                  //   title: "Scanned Data",
-                                  //   isSelected: true,
-                                  //   hasInfo: model.gatePass != null,
-                                  //   icon: Icons.directions_car,
-                                  //   color: Colors.green,
-                                  //   infoList: [
-                                  //     BuildInfoItem(label: 'Transaction No', value: model.gatePass.transactionNo ?? 'Not Scanned'),
-                                  //     BuildInfoItem(label: 'Reference No', value: model.gatePass.refNo ?? 'Not Scanned'),
-                                  //     BuildInfoItem(label: 'Customer Ref No', value: model.gatePass.customerRefNo ?? 'Not Scanned'),
-                                  //     BuildInfoItem(label: 'Booking Order No', value: model.gatePass.ticketNo ?? 'Not Scanned'),
-                                  //   ],
-                                  // ),
                                   verticalSpaceSmall,
                                   BuildInfoCard(
                                     width: width,
@@ -469,11 +498,17 @@ class GatePassEditView extends StatelessWidget {
                                       BuildInfoItem(
                                         label: 'Registration',
                                         value: model.gatePass.vehicleRegNumber ?? 'Not Scanned',
-                                        validationStatus: model.gatePass.vehicleRegNoMatch == false ? ValidationStatus.failed : null,
+                                        validationStatus: model.gatePass.vehicleRegNumberValidation != null && model.gatePass.vehicleRegNoMatch == false ? ValidationStatus.failed : null,
                                         validationMessage: 'Registration number mismatch',
                                       ),
                                       //BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
-                                      model.gatePass.vehicleRegNumberValidation != null && model.gatePass.vehicleRegNoMatch == false ? BuildInfoItem(label: 'Mismatch', value: model.gatePass.vehicleRegNumberValidation ?? 'Registration number mismatch', validationStatus: ValidationStatus.failed) : SizedBox.shrink(),
+                                      model.gatePass.vehicleRegNumberValidation != null && model.gatePass.vehicleRegNoMatch == false
+                                          ? BuildInfoItem(
+                                              label: 'Mismatch',
+                                              value: model.gatePass.vehicleRegNumberValidation ?? 'Registration number mismatch',
+                                              validationStatus: ValidationStatus.failed,
+                                            )
+                                          : const SizedBox.shrink(),
 
                                       BuildInfoItem(label: 'Make', value: model.gatePass.vehicleMake ?? 'Not Scanned'),
                                       BuildInfoItem(label: 'Model', value: model.gatePass.vehicleVinNumber ?? 'Not Scanned'),
