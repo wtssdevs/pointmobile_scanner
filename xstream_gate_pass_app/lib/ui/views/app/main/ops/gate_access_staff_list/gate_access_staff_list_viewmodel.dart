@@ -7,7 +7,7 @@ import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staff_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_access_staff_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/staff_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';

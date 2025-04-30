@@ -12,7 +12,7 @@ import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 
 import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
@@ -83,6 +83,67 @@ class GatePassEditView extends StatelessWidget {
     }
   }
 
+  Future<bool> validateForAuthEntry(GatePassEditViewModel model, BuildContext context) async {
+    //validate per status
+
+    if (model.gatePass.gatePassBookingType == GatePassBookingType.visitor) {
+      if (model.gatePass.vehicleRegNumber == null) {
+        model.setValidationMessage("Vehicle Reg Number is required");
+      } else {
+        model.clearValidationMessage("Vehicle Reg Number is required");
+      }
+
+      if (model.gatePass.driverName == null) {
+        model.setValidationMessage("Driver Name is required");
+      } else {
+        model.clearValidationMessage("Driver Name is required");
+      }
+      if (model.gatePass.driverIdNo == null) {
+        model.setValidationMessage("Driver ID Number is required");
+      } else {
+        model.clearValidationMessage("Driver ID Number is required");
+      }
+
+      if (model.showValidation) {
+        model.rebuildUi();
+        Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+        return false;
+      }
+
+      return true;
+    }
+
+//GatePassBookingType.breakBulk || GatePassBookingType.containers
+    if (model.gatePass.vehicleRegNumber == null) {
+      model.setValidationMessage("Vehicle Reg Number is required");
+    } else {
+      model.clearValidationMessage("Vehicle Reg Number is required");
+    }
+
+    if (model.gatePass.driverName == null) {
+      model.setValidationMessage("Driver Name is required");
+    } else {
+      model.clearValidationMessage("Driver Name is required");
+    }
+    if (model.gatePass.driverIdNo == null) {
+      model.setValidationMessage("Driver ID Number is required");
+    } else {
+      model.clearValidationMessage("Driver ID Number is required");
+    }
+
+    model.setDriverValidationMessage();
+
+    model.setVehicleValidationMessage();
+
+    if (model.showValidation) {
+      model.rebuildUi();
+      Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+      return false;
+    }
+
+    return !model.showValidation;
+  }
+
   Future<bool> validateForm(GatePassEditViewModel model, BuildContext context) async {
     //validate per status
 
@@ -113,6 +174,7 @@ class GatePassEditView extends StatelessWidget {
       return true;
     }
 
+//GatePassBookingType.breakBulk || GatePassBookingType.containers
     if (model.gatePass.vehicleRegNumber == null) {
       model.setValidationMessage("Vehicle Reg Number is required");
     } else {
@@ -219,7 +281,7 @@ class GatePassEditView extends StatelessWidget {
                     : ElevatedButton.icon(
                         onPressed: () async {
                           // valiate first
-                          var isValid = await validateForm(model, context);
+                          var isValid = await validateForAuthEntry(model, context);
                           if (isValid == true) {
                             model.authorizeEntry();
                           } else {
@@ -464,24 +526,42 @@ class GatePassEditView extends StatelessWidget {
                                   !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
                                   verticalSpaceSmall,
                                   BuildInfoCard(
+                                    key: model.driverInfoCardKey,
                                     width: width,
                                     title: "Drivers Lisence Card",
                                     isSelected: model.barcodeScanType == BarcodeScanType.driversCard,
                                     onTap: () {
                                       model.setBarcodeScanType(BarcodeScanType.driversCard);
                                     },
-                                    hasInfo: model.gatePass.hasDriverInfo,
+                                    hasInfo: model.gatePass.hasDriverInfo && model.gatePass.driverIdNoMatch,
                                     icon: Icons.credit_card,
                                     color: Colors.blue,
                                     infoList: [
                                       BuildInfoItem(label: 'Driver Name', value: model.gatePass.driverName ?? 'Not Scanned'),
-                                      BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Not Scanned'),
+                                      //BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Not Scanned'),
+
+                                      BuildInfoItem(
+                                        label: 'ID Number',
+                                        value: model.gatePass.driverIdNo ?? 'Not Scanned',
+                                        validationStatus: model.gatePass.driverIdNoValidation != null && model.gatePass.driverIdNoMatch == false ? ValidationStatus.failed : null,
+                                        validationMessage: 'ID Number mismatch',
+                                      ),
+                                      //BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
+                                      model.gatePass.driverIdNoValidation != null && model.gatePass.driverIdNoMatch == false
+                                          ? BuildInfoItem(
+                                              label: 'Mismatch',
+                                              value: model.gatePass.driverIdNoValidation ?? 'ID Number mismatch',
+                                              validationStatus: ValidationStatus.failed,
+                                            )
+                                          : const SizedBox.shrink(),
+
                                       BuildInfoItem(label: 'License No', value: model.gatePass.driverLicenceNo ?? 'Not Scanned'),
                                       BuildInfoItem(label: 'License Expiry', value: model.gatePass.driverLicenceExpiryDate?.toLocal().toFormattedString() ?? 'Not Scanned'),
                                     ],
                                   ),
                                   verticalSpaceSmall,
                                   BuildInfoCard(
+                                    key: model.vehicleInfoCardKey,
                                     width: width,
                                     title: "Vehicle Lisence Disc",
                                     isSelected: model.barcodeScanType == BarcodeScanType.vehicleDisc,
@@ -517,6 +597,7 @@ class GatePassEditView extends StatelessWidget {
                                   verticalSpaceSmall,
                                   if (model.gatePass.gatePassBookingType == GatePassBookingType.containers) ...[
                                     BuildInfoCard(
+                                      key: model.containerInfoCardKey,
                                       width: width,
                                       title: "Container Info",
                                       isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,

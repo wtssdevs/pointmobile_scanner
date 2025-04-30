@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/gate_pass_status_chip_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/labels/easy_label_text.dart';

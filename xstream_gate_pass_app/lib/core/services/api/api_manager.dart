@@ -7,6 +7,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 
@@ -196,10 +197,12 @@ class ApiManager {
     // }
 
     if (dioError.response == null || dioError.response?.statusCode == null) {
-      _dialogService.showDialog(
+      _dialogService.showCustomDialog(
+        variant: DialogType.infoAlert,
+        data: BasicDialogStatus.warning,
         title: "Error",
         description: "Internal error,Please try again later",
-        buttonTitle: "OK",
+        mainButtonTitle: "OK",
       );
     }
 
@@ -229,12 +232,12 @@ class ApiManager {
             if (description == null || description.isEmpty) {
               description = errorResponse.error!.validationErrors!.join(",\n");
             }
-            _dialogService.showDialog(
-              //variant: DialogType.DialogType.infoAlert,
-              //data: BasicDialogStatus.error,
+            _dialogService.showCustomDialog(
+              variant: DialogType.infoAlert,
+              data: BasicDialogStatus.warning,
+              mainButtonTitle: "Ok",
               title: title,
               description: description,
-              //mainButtonTitle: "Ok",
             );
 
             return;
@@ -253,19 +256,22 @@ class ApiManager {
               title = errorResponse.error!.message!;
             }
 
-            _dialogService.showDialog(
-              //variant: DialogType.basic,
-              //data: BasicDialogStatus.error,
+            _dialogService.showCustomDialog(
+              variant: DialogType.infoAlert,
+              data: BasicDialogStatus.warning,
+              mainButtonTitle: "Ok",
               title: title,
               description: desc,
-              //mainButtonTitle: "Ok",
             );
 
             return;
           }
 
           if (errorResponse.error!.validationErrors!.isNotEmpty || errorResponse.error!.message!.isNotEmpty) {
-            _dialogService.showDialog(
+            _dialogService.showCustomDialog(
+              variant: DialogType.infoAlert,
+              data: BasicDialogStatus.warning,
+              mainButtonTitle: "Ok",
               title: errorResponse.error!.message,
               description: errorResponse.error!.details,
             );
@@ -279,10 +285,12 @@ class ApiManager {
       if (dioError.response!.statusCode == 400 || dioError.response!.statusCode == 401 || dioError.response!.statusCode == 403 || dioError.response!.statusCode == 404 || dioError.response!.statusCode == 405 || dioError.response!.statusCode == 500) {
         var errorResponseToShow = DioErrorUtil.handleError(dioError);
         if (errorResponseToShow.isNotEmpty) {
-          _dialogService.showDialog(
+          _dialogService.showCustomDialog(
+            variant: DialogType.infoAlert,
+            mainButtonTitle: "Ok",
+            data: BasicDialogStatus.warning,
             title: "Error",
             description: errorResponseToShow,
-            buttonTitle: "OK",
           );
           return;
         }
@@ -292,10 +300,12 @@ class ApiManager {
 
     var err = DioErrorUtil.handleError(dioError);
 
-    _dialogService.showDialog(
+    _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.warning,
       title: "Error",
       description: err,
-      buttonTitle: "OK",
+      mainButtonTitle: "Ok",
     );
   }
 

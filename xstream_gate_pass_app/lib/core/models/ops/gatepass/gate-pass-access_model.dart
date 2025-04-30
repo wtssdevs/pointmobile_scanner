@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/containers/gate_pass_access_container_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_access_visitor_model.dart';
 
-import '../../utils/helper.dart';
+import '../../../utils/helper.dart';
 
 class GatePassAccess {
   String id;
@@ -47,6 +48,7 @@ class GatePassAccess {
   bool isHazardous = false;
   String? driverName;
   String? driverIdNo;
+  String? driverIdNoValidation;
   String? driverLicenceNo;
   String? driversLicenceCodes;
   DateTime? professionalDrivingPermitExpiryDate;
@@ -79,6 +81,9 @@ class GatePassAccess {
   String? branchName;
   String? customerName;
   String? transporterName;
+
+//CONTAINERS INFO , NEED TO BE LIST ??
+
   String? containerId;
   String? containerNumber;
   String? containerSize;
@@ -88,6 +93,8 @@ class GatePassAccess {
   String? containerDepot;
   DeliveryType? containerDeliveryType;
   GatePassContainerType? gatePassContainerType;
+
+  List<GatePassAccessContainerModel>? containers = [];
 
   GatePassAccess({
     required this.id,
@@ -171,13 +178,15 @@ class GatePassAccess {
     this.containerDepot,
     this.containerDeliveryType,
     this.gatePassContainerType,
+    this.containers,
   });
 
   bool get hasDriverInfo => driverName != null && driverIdNo != null && driverLicenceNo != null;
   bool get hasVehicleInfo => vehicleRegNumber != null && vehicleMake != null && vehicleVinNumber != null;
-  bool get vehicleDiscExpired => hasVehicleInfo ;
+  bool get vehicleDiscExpired => hasVehicleInfo;
 
   bool get vehicleRegNoMatch => vehicleRegNumber != null && vehicleRegNumberValidation != null && vehicleRegNumber?.trim() == vehicleRegNumberValidation?.trim();
+  bool get driverIdNoMatch => driverIdNo != null && driverIdNoValidation != null && driverIdNo?.trim() == driverIdNoValidation?.trim();
 
   String toJson() => json.encode(toMap());
 
@@ -263,6 +272,8 @@ class GatePassAccess {
         containerDepot: json["containerDepot"],
         containerDeliveryType: DeliveryType.values[asT<int?>(json['containerDeliveryType']) ?? 0],
         gatePassContainerType: GatePassContainerType.values[asT<int?>(json['gatePassContainerType']) ?? 0],
+
+        containers: json["containers"] != null ? List<GatePassAccessContainerModel>.from(json["containers"].map((x) => GatePassAccessContainerModel.fromJson(x))) : [],
       );
 
   Map<String, dynamic> toMap() => {
@@ -347,6 +358,7 @@ class GatePassAccess {
         "containerDepot": containerDepot,
         "containerDeliveryType": containerDeliveryType?.value ?? 0,
         "gatePassContainerType": gatePassContainerType?.value ?? 0,
+        "containers": containers?.map((e) => e.toJson()).toList(),
       };
 
   static fromGatePassVisitorAccess(GatePassVisitorAccess gatePassVisitorAccess) {

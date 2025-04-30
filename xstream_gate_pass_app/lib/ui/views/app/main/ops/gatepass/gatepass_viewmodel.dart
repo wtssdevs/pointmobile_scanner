@@ -11,7 +11,7 @@ import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 

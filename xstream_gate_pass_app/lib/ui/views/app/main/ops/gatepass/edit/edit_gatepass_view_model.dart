@@ -19,7 +19,7 @@ import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
 import 'package:xstream_gate_pass_app/core/models/basefiles/containers/container_info_extratced_model.dart';
 import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_repository.dart';
@@ -53,6 +53,14 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   final _connectionService = locator<ConnectionService>();
   final _masterFilesService = locator<MasterFilesService>();
   final ScrollController scrollController = ScrollController();
+
+// Driver information section
+  final GlobalKey driverInfoCardKey = GlobalKey(debugLabel: 'driverInfoCard');
+  final GlobalKey vehicleInfoCardKey = GlobalKey(debugLabel: 'vehicleInfoCard');
+
+// Container information section
+  final GlobalKey containerInfoCardKey = GlobalKey(debugLabel: 'containerInfoCard');
+  final GlobalKey timesInfoCardKey = GlobalKey(debugLabel: 'timesInfoCard');
 
   StreamSubscription<RsaDriversLicense>? streamSubscription;
   StreamSubscription<LicenseDiskData>? streamSubscriptionForDisc;
@@ -91,6 +99,38 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     await dispose();
   }
 
+  void scrollToWidget(GlobalKey key, {Duration duration = const Duration(milliseconds: 400)}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (key.currentContext != null) {
+        Scrollable.ensureVisible(
+          key.currentContext!,
+          duration: duration,
+          curve: Curves.easeIn,
+          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        );
+      }
+    });
+  }
+
+// Scroll to driver and vehicle info section
+  void scrollToDriverInfo() {
+    scrollToWidget(driverInfoCardKey);
+  }
+
+  void scrollToVehicleInfoCardKey() {
+    scrollToWidget(vehicleInfoCardKey);
+  }
+
+// Scroll to container info
+  void scrollToContainerInfo() {
+    scrollToWidget(containerInfoCardKey);
+  }
+
+// Example of scrolling to a section based on validation errors
+  void scrollToFirstError() {
+    scrollController.animateTo(0, duration: const Duration(milliseconds: 400), curve: Curves.easeIn);
+  }
+
   Future<void> runStartupLogic() async {
     await loadFileStoreImages();
     notifyListeners();
@@ -99,6 +139,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     //setCustomValidations();
     setBarcodeScanType(BarcodeScanType.driversCard);
     await initialize();
+    //scrollToContainerInfoCard();
   }
 
   Future<void> startScanListener() async {
@@ -124,6 +165,22 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     });
   }
 
+  void setDriverValidationMessage() {
+    if (gatePass.driverIdNoMatch == false) {
+      setValidationMessage("Driver ID Number does not match the scanned drivers card.");
+    } else {
+      clearValidationMessage("Driver ID Number does not match the scanned drivers card.");
+    }
+  }
+
+  void setVehicleValidationMessage() {
+    if (gatePass.vehicleRegNoMatch == false) {
+      setValidationMessage("Vehicle registration number does not match the scanned vehicle disc.");
+    } else {
+      clearValidationMessage("Vehicle registration number does not match the scanned vehicle disc.");
+    }
+  }
+
   Future<void> processScanData(RsaDriversLicense? rsaDriversLicense, LicenseDiskData? vehicleLicenseData) async {
     //_isScanning = false;
     clearAllValidationMessage();
@@ -133,7 +190,11 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         // Process driver's license data
 
         gatePass.driverName = '${rsaDriversLicense.firstNames} ${rsaDriversLicense.surname}';
-        gatePass.driverIdNo = rsaDriversLicense.idNumber;
+        //gatePass.driverIdNo = rsaDriversLicense.idNumber;
+        gatePass.driverIdNoValidation = rsaDriversLicense.idNumber;
+
+        setDriverValidationMessage();
+
         gatePass.driverLicenceNo = rsaDriversLicense.licenseNumber;
         gatePass.driverLicenceIssueDate = rsaDriversLicense.issueDates?.firstOrNull;
         gatePass.driverLicenceExpiryDate = rsaDriversLicense.validTo;
@@ -141,6 +202,11 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         gatePass.professionalDrivingPermitExpiryDate = rsaDriversLicense.prdpExpiry;
 
         setBarcodeScanType(BarcodeScanType.vehicleDisc);
+        if (showValidation) {
+          scrollToFirstError();
+        } else {
+          scrollToVehicleInfoCardKey();
+        }
       } else if (_barcodeScanType == BarcodeScanType.vehicleDisc && vehicleLicenseData != null) {
         // Process vehicle license data
 
@@ -149,14 +215,12 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         //gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
         gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
 
-        if (gatePass.vehicleRegNoMatch == false) {
-          setValidationMessage("Vehicle registration number does not match");
-          //send api call to backend to create incident
-        } else {
-          clearValidationMessage("Vehicle registration number does not match");
-        }
+        setVehicleValidationMessage();
         gatePass.vehicleVinNumber = vehicleLicenseData.vin;
         gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
+        if (showValidation) {
+          scrollToFirstError();
+        }
       }
       setModelUpdate(_gatePass);
       rebuildUi();
@@ -294,16 +358,17 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       _gatePass = reponse;
 
       Fluttertoast.showToast(msg: "Authorize for Entry was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
+      _navigationService.back();
     } else {
       //error could not save
       Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
-    }
-    setBusy(false);
-    //update Screen UI state with model changes
-    setModelUpdate(_gatePass);
-    rebuildUi();
 
-    _navigationService.back();
+      setBusy(false);
+    }
+
+    //update Screen UI state with model changes
+    //setModelUpdate(_gatePass);
+    //rebuildUi();
   }
 
   Future<void> authorizeExit() async {

@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart' as _i1;
 import 'package:stacked_services/stacked_services.dart' as _i25;
 import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart' as _i24;
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart'
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart'
     as _i23;
 import 'package:xstream_gate_pass_app/ui/views/account/login/login_view.dart'
     as _i5;

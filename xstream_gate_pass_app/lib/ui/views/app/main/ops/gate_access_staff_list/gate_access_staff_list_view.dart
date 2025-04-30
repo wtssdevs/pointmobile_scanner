@@ -4,7 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staff_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_access_staff_model.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/scheduler.dart';
 
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_access_visitor_model.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/widgets/default_build_header.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';

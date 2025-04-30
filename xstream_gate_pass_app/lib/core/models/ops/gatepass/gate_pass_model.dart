@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_question.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_question.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
 class GatePass {
