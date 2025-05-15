@@ -42,6 +42,7 @@ import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_pre_booking/g
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops/gate_access_yard_ops_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_containerno_reader/cam_containerno_reader_view.dart';
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops_select/gate_access_yard_ops_select_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -64,6 +65,7 @@ import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
     MaterialRoute(page: GateAccessVisitorsListView),
     MaterialRoute(page: GateAccessYardOpsView),
     MaterialRoute(page: CamContainernoReaderView),
+    MaterialRoute(page: GateAccessYardOpsSelectView),
 // @stacked-route
   ],
   dependencies: [

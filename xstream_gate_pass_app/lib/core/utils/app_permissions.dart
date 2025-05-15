@@ -50,6 +50,7 @@ class AppPermissions {
 
   static const String mobileOperationsYardOperations =
       views + operations + gatePassAccess + mobileOperations + yardOperations;
+      
 
   static const String mobileOperationsGateAccess =
       views + operations + gatePassAccess + mobileOperations + gateAccess;

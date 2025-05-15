@@ -86,7 +86,12 @@ class CameraCaptureViewModel extends BaseViewModel {
     //   log.d("==> saveToLocalDb newLocation : ${newLocation?.latitude}, ${newLocation?.longitude}");
     //   log.d("----------------------------------");
     // }
-    var fileStoreId = await _fileStoreRepository.insert(
+
+//check if file is in local db first before
+
+
+
+    var fileStoreId = await _fileStoreRepository.insertOrUpdateByFileName(
       FileStore(
         filestoreType: fileStoreType.value,
         path: galleryFile.path,
@@ -129,6 +134,7 @@ class CameraCaptureViewModel extends BaseViewModel {
               mainButtonTitle: "Ok",
             );
           } else {
+            lastPhotoPath = event.captureRequest.path!;
             await takePhoto(event.captureRequest.path!);
           }
         }

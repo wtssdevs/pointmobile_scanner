@@ -19,7 +19,8 @@ class TenantAvailableModel {
   // Method to convert TenantAvailableModel to JSON
   Map<String, dynamic> toJson() {
     return {
-      'state': state.index + 1, // Adding 1 to match C# enum values starting at 1
+      'state':
+          state.index + 1, // Adding 1 to match C# enum values starting at 1
       'tenantId': tenantId,
     };
   }

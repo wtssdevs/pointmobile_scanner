@@ -75,8 +75,12 @@ class BuildInfoItem extends StatelessWidget {
                   Expanded(child: Text(value)),
                   if (validationStatus != null)
                     Icon(
-                      validationStatus == ValidationStatus.failed ? Icons.error : passedIcon.icon,
-                      color: validationStatus == ValidationStatus.failed ? Colors.red : passedIcon.color,
+                      validationStatus == ValidationStatus.failed
+                          ? Icons.error
+                          : passedIcon.icon,
+                      color: validationStatus == ValidationStatus.failed
+                          ? Colors.red
+                          : passedIcon.color,
                       size: 18,
                     ),
                 ],

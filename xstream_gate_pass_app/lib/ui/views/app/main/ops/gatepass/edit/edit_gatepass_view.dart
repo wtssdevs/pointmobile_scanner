@@ -594,6 +594,65 @@ class GatePassEditView extends StatelessWidget {
                                       BuildInfoItem(label: 'Model', value: model.gatePass.vehicleVinNumber ?? 'Not Scanned'),
                                     ],
                                   ),
+
+                                  //Trailer One
+                                  BuildInfoCard(
+                                    isVisible: model.gatePass.trailerRegNumberOne != null,
+                                    key: model.trailerOneInfoCardKey,
+                                    width: width,
+                                    title: "Trailer One Disc",
+                                    isSelected: model.barcodeScanType == BarcodeScanType.trailerOneDisc,
+                                    onTap: () {
+                                      model.setBarcodeScanType(BarcodeScanType.trailerOneDisc);
+                                    },
+                                    hasInfo: model.gatePass.trailerRegNumberOne != null && model.gatePass.trailerRegNumberOneMatch,
+                                    icon: FontAwesomeIcons.trailer,
+                                    color: Colors.green,
+                                    infoList: [
+                                      BuildInfoItem(
+                                        label: 'Registration',
+                                        value: model.gatePass.trailerRegNumberOne ?? 'Not Scanned',
+                                        validationStatus: model.gatePass.trailerRegNumberOneValidation != null && model.gatePass.trailerRegNumberOneMatch == false ? ValidationStatus.failed : null,
+                                        validationMessage: 'Registration number mismatch',
+                                      ),
+                                      model.gatePass.trailerRegNumberOneValidation != null && model.gatePass.trailerRegNumberOneMatch == false
+                                          ? BuildInfoItem(
+                                              label: 'Mismatch',
+                                              value: model.gatePass.trailerRegNumberOneValidation ?? 'Registration number mismatch',
+                                              validationStatus: ValidationStatus.failed,
+                                            )
+                                          : const SizedBox.shrink(),
+                                    ],
+                                  ),
+                                  //Trailer Two
+                                  BuildInfoCard(
+                                    isVisible: model.gatePass.trailerRegNumberTwo != null,
+                                    key: model.trailerTwoInfoCardKey,
+                                    width: width,
+                                    title: "Trailer Two Disc",
+                                    isSelected: model.barcodeScanType == BarcodeScanType.trailerTwoDisc,
+                                    onTap: () {
+                                      model.setBarcodeScanType(BarcodeScanType.trailerTwoDisc);
+                                    },
+                                    hasInfo: model.gatePass.trailerRegNumberTwo != null && model.gatePass.trailerRegNumberTwoMatch,
+                                    icon: FontAwesomeIcons.trailer,
+                                    color: Colors.green,
+                                    infoList: [
+                                      BuildInfoItem(
+                                        label: 'Registration',
+                                        value: model.gatePass.trailerRegNumberTwo ?? 'Not Scanned',
+                                        validationStatus: model.gatePass.trailerRegNumberTwoValidation != null && model.gatePass.trailerRegNumberTwoMatch == false ? ValidationStatus.failed : null,
+                                        validationMessage: 'Registration number mismatch',
+                                      ),
+                                      model.gatePass.trailerRegNumberTwoValidation != null && model.gatePass.trailerRegNumberTwoMatch == false
+                                          ? BuildInfoItem(
+                                              label: 'Mismatch',
+                                              value: model.gatePass.trailerRegNumberTwoValidation ?? 'Registration number mismatch',
+                                              validationStatus: ValidationStatus.failed,
+                                            )
+                                          : const SizedBox.shrink(),
+                                    ],
+                                  ),
                                   verticalSpaceSmall,
                                   if (model.gatePass.gatePassBookingType == GatePassBookingType.containers) ...[
                                     BuildInfoCard(

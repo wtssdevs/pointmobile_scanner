@@ -8,7 +8,15 @@ class ApiResponse {
   bool? unAuthorizedRequest;
   bool? bAbp;
 
-  ApiResponse({this.result, this.targetUrl, this.message, this.success, this.error, this.unAuthorizedRequest, this.bAbp, this.showMessage = false});
+  ApiResponse(
+      {this.result,
+      this.targetUrl,
+      this.message,
+      this.success,
+      this.error,
+      this.unAuthorizedRequest,
+      this.bAbp,
+      this.showMessage = false});
 
   ApiResponse.fromJson(Map<String, dynamic> json) {
     result = json['result'];
@@ -63,7 +71,8 @@ class Error {
     data['details'] = this.details;
 
     if (this.validationErrors != null) {
-      data['validationErrors'] = this.validationErrors!.map((v) => v.toJson()).toList();
+      data['validationErrors'] =
+          this.validationErrors!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -96,13 +105,16 @@ class BaseResponse {
   dynamic result;
   List<Error>? errors;
 
-  BaseResponse({this.success, this.messages, this.message, this.errors, this.result});
+  BaseResponse(
+      {this.success, this.messages, this.message, this.errors, this.result});
 
   BaseResponse.fromJson(Map<String, dynamic> json) {
     success = json['success'];
     message = json['message'];
     title = json['title'];
-    errors = json['errors'] != null ? (json['errors'] as List).map((e) => Error.fromJson(e)).toList() : null;
+    errors = json['errors'] != null
+        ? (json['errors'] as List).map((e) => Error.fromJson(e)).toList()
+        : null;
     result = json['result'];
   }
 

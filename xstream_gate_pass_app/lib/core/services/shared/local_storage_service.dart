@@ -32,7 +32,8 @@ class LocalStorageService {
   DeviceConfig get getDeviceConfig {
     var deviceConfig = _getFromDisk(AppConst.deviceConfig);
     if (deviceConfig == null) {
-      var newDeviceConfig = DeviceConfig(deviceScanningMode: DeviceModelScanningMode.pm84);
+      var newDeviceConfig =
+          DeviceConfig(deviceScanningMode: DeviceModelScanningMode.pm84);
       _saveToDisk(AppConst.deviceConfig, json.encode(newDeviceConfig.toJson()));
       return newDeviceConfig;
     }
@@ -108,7 +109,8 @@ class LocalStorageService {
   }
 
   void setUserLoginInfo(CurrentLoginInformation userLoginInfo) {
-    _saveToDisk(AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
+    _saveToDisk(
+        AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
   }
 
   bool get isLoggedIn {
@@ -165,7 +167,8 @@ class LocalStorageService {
       searchText = searchText.trim();
     }
 
-    if (searchText == null || searchText.isEmpty || searchText == " ") return; //Should not be null
+    if (searchText == null || searchText.isEmpty || searchText == " ")
+      return; //Should not be null
 
     var listData = getRecentSearches();
     //Use `Set` to avoid duplication of recentSearches

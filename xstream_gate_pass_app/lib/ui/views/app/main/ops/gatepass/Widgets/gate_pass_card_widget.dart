@@ -35,18 +35,18 @@ class GatePassCard extends StatelessWidget with AppViewBaseHelper {
                 leading: Icon(gatePass.gatePassBookingType.icon),
                 trailing: GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  EasyLabelText(
-                    label: translate('VehicleRegNumber'),
-                    labelFontSize: 12,
-                    value: gatePass.vehicleRegNumber ?? '',
-                    textFontSize: 14,
-                  ),
-                  GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
-                ],
-              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              //   children: [
+              //     EasyLabelText(
+              //       label: translate('VehicleRegNumber'),
+              //       labelFontSize: 12,
+              //       value: gatePass.vehicleRegNumber ?? '',
+              //       textFontSize: 14,
+              //     ),
+              //     GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
+              //   ],
+              // ),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -67,7 +67,7 @@ class GatePassCard extends StatelessWidget with AppViewBaseHelper {
                           value: gatePass.customerRefNo ?? '',
                         ),
                         EasyLabelText(
-                          label: translate('TimeOut'),
+                          label: translate('TimeIn'),
                           value: gatePass.timeIn.toFormattedString(),
                         ),
                       ],
@@ -86,8 +86,12 @@ class GatePassCard extends StatelessWidget with AppViewBaseHelper {
                           value: gatePass.voyageNo ?? '',
                         ),
                         EasyLabelText(
-                          label: translate('TimeAtGate'),
-                          value: gatePass.timeAtGate.toFormattedString(),
+                          label: translate('ContainerNo'),
+                          value: gatePass.containerNumber ?? '',
+                        ),
+                        EasyLabelText(
+                          label: translate('TimeOut'),
+                          value: gatePass.timeOut.toFormattedString(),
                         ),
                       ],
                     ),

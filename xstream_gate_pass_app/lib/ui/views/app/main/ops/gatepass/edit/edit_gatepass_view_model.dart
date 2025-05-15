@@ -57,6 +57,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 // Driver information section
   final GlobalKey driverInfoCardKey = GlobalKey(debugLabel: 'driverInfoCard');
   final GlobalKey vehicleInfoCardKey = GlobalKey(debugLabel: 'vehicleInfoCard');
+  final GlobalKey trailerOneInfoCardKey = GlobalKey(debugLabel: 'trailerOneInfoCard');
+  final GlobalKey trailerTwoInfoCardKey = GlobalKey(debugLabel: 'trailerTwoInfoCard');
 
 // Container information section
   final GlobalKey containerInfoCardKey = GlobalKey(debugLabel: 'containerInfoCard');
@@ -180,53 +182,221 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       clearValidationMessage("Vehicle registration number does not match the scanned vehicle disc.");
     }
   }
+  //trailers one and two validation
+
+  void setTrailerValidationMessage(String trailerNumber) {
+    if (trailerNumber == "One") {
+      if (gatePass.trailerRegNumberOneMatch == false) {
+        setValidationMessage("Trailer $trailerNumber registration number does not match the scanned trailer disc.");
+      } else {
+        clearValidationMessage("Trailer $trailerNumber registration number does not match the scanned trailer disc.");
+      }
+    } else if (trailerNumber == "Two") {
+      if (gatePass.trailerRegNumberTwoMatch == false) {
+        setValidationMessage("Trailer $trailerNumber registration number does not match the scanned trailer disc.");
+      } else {
+        clearValidationMessage("Trailer $trailerNumber registration number does not match the scanned trailer disc.");
+      }
+    }
+  }
+
+  // Future<void> processScanData(RsaDriversLicense? rsaDriversLicense, LicenseDiskData? vehicleLicenseData) async {
+  //   //_isScanning = false;
+  //   clearAllValidationMessage();
+  //   try {
+  //     // Process the scanned data based on scan type
+  //     if (_barcodeScanType == BarcodeScanType.driversCard && rsaDriversLicense != null) {
+  //       // Process driver's license data
+
+  //       gatePass.driverName = '${rsaDriversLicense.firstNames} ${rsaDriversLicense.surname}';
+  //       //gatePass.driverIdNo = rsaDriversLicense.idNumber;
+  //       gatePass.driverIdNoValidation = rsaDriversLicense.idNumber;
+
+  //       setDriverValidationMessage();
+
+  //       gatePass.driverLicenceNo = rsaDriversLicense.licenseNumber;
+  //       gatePass.driverLicenceIssueDate = rsaDriversLicense.issueDates?.firstOrNull;
+  //       gatePass.driverLicenceExpiryDate = rsaDriversLicense.validTo;
+  //       gatePass.driversLicenceCodes = rsaDriversLicense.vehicleCodes.join(',');
+  //       gatePass.professionalDrivingPermitExpiryDate = rsaDriversLicense.prdpExpiry;
+
+  //       setBarcodeScanType(BarcodeScanType.vehicleDisc);
+  //       if (showValidation) {
+  //         scrollToFirstError();
+  //       } else {
+  //         scrollToVehicleInfoCardKey();
+  //       }
+  //     } else if (_barcodeScanType == BarcodeScanType.vehicleDisc && vehicleLicenseData != null) {
+  //       // Process vehicle license data
+
+  //       gatePass.vehicleEngineNumber = vehicleLicenseData.engineNumber;
+  //       gatePass.vehicleMake = vehicleLicenseData.make;
+  //       //gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
+  //       gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
+
+  //       setVehicleValidationMessage();
+  //       gatePass.vehicleVinNumber = vehicleLicenseData.vin;
+  //       gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
+  //       if (showValidation) {
+  //         scrollToFirstError();
+  //       }
+  //     }
+  //     setModelUpdate(_gatePass);
+  //     rebuildUi();
+  //   } catch (e) {
+  //     setValidationMessage("Failed to process scan data: ${e.toString()}");
+  //     rebuildUi();
+  //   }
+  // }
 
   Future<void> processScanData(RsaDriversLicense? rsaDriversLicense, LicenseDiskData? vehicleLicenseData) async {
-    //_isScanning = false;
     clearAllValidationMessage();
     try {
-      // Process the scanned data based on scan type
-      if (_barcodeScanType == BarcodeScanType.driversCard && rsaDriversLicense != null) {
-        // Process driver's license data
+      // Route processing based on the current barcode scan type
+      switch (_barcodeScanType) {
+        case BarcodeScanType.driversCard:
+          if (rsaDriversLicense != null) {
+            await processDriversLicenseData(rsaDriversLicense);
+          }
+          break;
 
-        gatePass.driverName = '${rsaDriversLicense.firstNames} ${rsaDriversLicense.surname}';
-        //gatePass.driverIdNo = rsaDriversLicense.idNumber;
-        gatePass.driverIdNoValidation = rsaDriversLicense.idNumber;
+        case BarcodeScanType.vehicleDisc:
+          if (vehicleLicenseData != null) {
+            await processVehicleLicenseData(vehicleLicenseData);
+          }
+          break;
 
-        setDriverValidationMessage();
+        case BarcodeScanType.trailerOneDisc:
+          if (vehicleLicenseData != null) {
+            await processTrailerOneLicenseData(vehicleLicenseData);
+          }
+          break;
 
-        gatePass.driverLicenceNo = rsaDriversLicense.licenseNumber;
-        gatePass.driverLicenceIssueDate = rsaDriversLicense.issueDates?.firstOrNull;
-        gatePass.driverLicenceExpiryDate = rsaDriversLicense.validTo;
-        gatePass.driversLicenceCodes = rsaDriversLicense.vehicleCodes.join(',');
-        gatePass.professionalDrivingPermitExpiryDate = rsaDriversLicense.prdpExpiry;
+        case BarcodeScanType.trailerTwoDisc:
+          if (vehicleLicenseData != null) {
+            await processTrailerTwoLicenseData(vehicleLicenseData);
+          }
+          break;
 
-        setBarcodeScanType(BarcodeScanType.vehicleDisc);
-        if (showValidation) {
-          scrollToFirstError();
-        } else {
-          scrollToVehicleInfoCardKey();
-        }
-      } else if (_barcodeScanType == BarcodeScanType.vehicleDisc && vehicleLicenseData != null) {
-        // Process vehicle license data
-
-        gatePass.vehicleEngineNumber = vehicleLicenseData.engineNumber;
-        gatePass.vehicleMake = vehicleLicenseData.make;
-        //gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
-        gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
-
-        setVehicleValidationMessage();
-        gatePass.vehicleVinNumber = vehicleLicenseData.vin;
-        gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
-        if (showValidation) {
-          scrollToFirstError();
-        }
+        default:
+          // Handle other barcode types if needed
+          break;
       }
+
       setModelUpdate(_gatePass);
       rebuildUi();
     } catch (e) {
       setValidationMessage("Failed to process scan data: ${e.toString()}");
       rebuildUi();
+    }
+  }
+
+  // Process driver's license data
+  Future<void> processDriversLicenseData(RsaDriversLicense driversLicense) async {
+    gatePass.driverName = '${driversLicense.firstNames} ${driversLicense.surname}';
+    gatePass.driverIdNoValidation = driversLicense.idNumber;
+
+    setDriverValidationMessage();
+
+    gatePass.driverLicenceNo = driversLicense.licenseNumber;
+    gatePass.driverLicenceIssueDate = driversLicense.issueDates?.firstOrNull;
+    gatePass.driverLicenceExpiryDate = driversLicense.validTo;
+    gatePass.driversLicenceCodes = driversLicense.vehicleCodes.join(',');
+    gatePass.professionalDrivingPermitExpiryDate = driversLicense.prdpExpiry;
+
+    // Move to vehicle disc scanning
+    setBarcodeScanType(BarcodeScanType.vehicleDisc);
+
+    // Navigate to appropriate section
+    if (showValidation) {
+      scrollToFirstError();
+    } else {
+      scrollToVehicleInfoCardKey();
+    }
+  }
+
+  // Process vehicle license data
+  Future<void> processVehicleLicenseData(LicenseDiskData vehicleLicenseData) async {
+    gatePass.vehicleEngineNumber = vehicleLicenseData.engineNumber;
+    gatePass.vehicleMake = vehicleLicenseData.make;
+    gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
+
+    setVehicleValidationMessage();
+    gatePass.vehicleVinNumber = vehicleLicenseData.vin;
+    gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
+
+    // Determine next scan target based on trailer existence
+    BarcodeScanType nextScanType = BarcodeScanType.vehicleDisc; // Default
+    GlobalKey? nextSection;
+
+    if (gatePass.trailerRegNumberOne != null && gatePass.trailerRegNumberOne!.isNotEmpty) {
+      nextScanType = BarcodeScanType.trailerOneDisc;
+      nextSection = trailerOneInfoCardKey;
+    } else if (gatePass.trailerRegNumberTwo != null && gatePass.trailerRegNumberTwo!.isNotEmpty) {
+      nextScanType = BarcodeScanType.trailerTwoDisc;
+      nextSection = trailerTwoInfoCardKey;
+    } else if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      nextSection = containerInfoCardKey;
+    }
+
+    // Set next scan type and scroll to appropriate section
+    setBarcodeScanType(nextScanType);
+
+    if (showValidation) {
+      scrollToFirstError();
+    } else if (nextSection != null) {
+      scrollToWidget(nextSection);
+    }
+  }
+
+  // Process trailer one license data
+  Future<void> processTrailerOneLicenseData(LicenseDiskData vehicleLicenseData) async {
+    gatePass.trailerRegNumberOneValidation = vehicleLicenseData.licensePlateNo;
+
+    // Check if trailer one reg matches scanned data
+
+    // Set validation message
+    setTrailerValidationMessage("One");
+
+    // Determine next scan target
+    BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc; // Default
+    GlobalKey? nextSection;
+
+    if (gatePass.trailerRegNumberTwo != null && gatePass.trailerRegNumberTwo!.isNotEmpty) {
+      nextScanType = BarcodeScanType.trailerTwoDisc;
+      nextSection = trailerTwoInfoCardKey;
+    } else if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      nextSection = containerInfoCardKey;
+    }
+
+    // Set next scan type and scroll to appropriate section
+    setBarcodeScanType(nextScanType);
+
+    if (showValidation) {
+      rebuildUi();
+      scrollToFirstError();
+    } else if (nextSection != null) {
+      scrollToWidget(nextSection);
+    }
+  }
+
+  // Process trailer two license data
+  Future<void> processTrailerTwoLicenseData(LicenseDiskData vehicleLicenseData) async {
+    gatePass.trailerRegNumberTwoValidation = vehicleLicenseData.licensePlateNo;
+
+    // Check if trailer two reg matches scanned data
+    // Set validation message
+    setTrailerValidationMessage("Two");
+    if (showValidation) {
+      rebuildUi();
+      scrollToFirstError();
+    }
+    // After trailer two, move to container info if applicable
+    if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      scrollToContainerInfo();
+    } else {
+      //go back to top
+      scrollToFirstError();
     }
   }
 

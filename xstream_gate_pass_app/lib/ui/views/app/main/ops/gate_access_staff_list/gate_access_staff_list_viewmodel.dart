@@ -15,7 +15,8 @@ import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manag
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
 
-class GateAccessStaffListViewModel extends BaseViewModel with AppViewBaseHelper {
+class GateAccessStaffListViewModel extends BaseViewModel
+    with AppViewBaseHelper {
   final log = getLogger('GateAccessStaffListViewModel');
   final _connectionService = locator<ConnectionService>();
   final _scanningService = locator<ScanningService>();
@@ -24,7 +25,8 @@ class GateAccessStaffListViewModel extends BaseViewModel with AppViewBaseHelper 
   final GatePassService _gatePassService = locator<GatePassService>();
   final TextEditingController filterController = TextEditingController();
   int _nextPage = 1;
-  final pagingController = PagingController<int, GatePassStaffAccess>(firstPageKey: 1, invisibleItemsThreshold: 3);
+  final pagingController = PagingController<int, GatePassStaffAccess>(
+      firstPageKey: 1, invisibleItemsThreshold: 3);
 
   bool _scanInOrOut = false;
   bool get scanInOrOut => _scanInOrOut;
@@ -32,7 +34,12 @@ class GateAccessStaffListViewModel extends BaseViewModel with AppViewBaseHelper 
   bool _scanInProgress = false;
   bool get scanInProgress => _scanInProgress;
 
-  PagedList<GatePassStaffAccess> _pagedList = PagedList<GatePassStaffAccess>(totalCount: 0, items: <GatePassStaffAccess>[], pageNumber: 1, pageSize: 10, totalPages: 0);
+  PagedList<GatePassStaffAccess> _pagedList = PagedList<GatePassStaffAccess>(
+      totalCount: 0,
+      items: <GatePassStaffAccess>[],
+      pageNumber: 1,
+      pageSize: 10,
+      totalPages: 0);
 
   Future<void> runStartupLogic() async {
     _scanningService.initialise(barcodeScanType: BarcodeScanType.staffQrCode);
@@ -59,7 +66,9 @@ class GateAccessStaffListViewModel extends BaseViewModel with AppViewBaseHelper 
   Future<void> startconnectionListen() async {
     await cancelSubscription();
 
-    streamSubscription = _scanningService.rawStringStream.asBroadcastStream().listen((data) async {
+    streamSubscription = _scanningService.rawStringStream
+        .asBroadcastStream()
+        .listen((data) async {
       log.i("data: $data");
       //test if data is GUID
       if (_scanInProgress) {
@@ -87,7 +96,8 @@ class GateAccessStaffListViewModel extends BaseViewModel with AppViewBaseHelper 
   Future<void> scanStaffIn(String code) async {
     var branchId = currentUser?.userBranches[0].id ?? 0;
     //here we save back to server
-    var reponse = await _gatePassService.scanStaffIn(StaffQrCodeModel(code: code, branchId: branchId));
+    var reponse = await _gatePassService
+        .scanStaffIn(StaffQrCodeModel(code: code, branchId: branchId));
     if (reponse != null) {
       refreshList();
       //Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
@@ -102,7 +112,8 @@ class GateAccessStaffListViewModel extends BaseViewModel with AppViewBaseHelper 
   Future<void> scanStaffOut(String code) async {
     var branchId = currentUser?.userBranches[0].id ?? 0;
     //here we save back to server
-    var reponse = await _gatePassService.scanStaffOut(StaffQrCodeModel(code: code, branchId: branchId));
+    var reponse = await _gatePassService
+        .scanStaffOut(StaffQrCodeModel(code: code, branchId: branchId));
     if (reponse != null) {
       refreshList();
       //Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
@@ -126,8 +137,10 @@ class GateAccessStaffListViewModel extends BaseViewModel with AppViewBaseHelper 
         filterValue = "";
       }
 
-      _pagedList = await _gatePassService.getStaffPagedList(_nextPage, _pagedList.pageSize, filterValue, branchId);
-      final previouslyFetchedItemsCount = pagingController.itemList?.length ?? 0;
+      _pagedList = await _gatePassService.getStaffPagedList(
+          _nextPage, _pagedList.pageSize, filterValue, branchId);
+      final previouslyFetchedItemsCount =
+          pagingController.itemList?.length ?? 0;
 
       final isLastPage = _pagedList.isLastPage(previouslyFetchedItemsCount);
 

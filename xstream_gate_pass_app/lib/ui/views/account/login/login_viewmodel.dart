@@ -13,10 +13,12 @@ import 'package:xstream_gate_pass_app/core/services/shared/localization/localiza
 
 class LoginViewModel extends FormViewModel {
   final log = getLogger('LoginViewModel');
-  final AuthenticationService _authenticationService = locator<AuthenticationService>();
+  final AuthenticationService _authenticationService =
+      locator<AuthenticationService>();
   final NavigationService _navigationService = locator<NavigationService>();
   final DialogService _dialogService = locator<DialogService>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final _localizationManager = locator<LocalizationManagerService>();
   final _workerQueManager = locator<WorkerQueManager>();
   int? get tenantId => _localStorageService.getTenantId;
@@ -32,7 +34,8 @@ class LoginViewModel extends FormViewModel {
   }
 
   void navigateToCreateAccount() {}
-  void validateModel(String? tenancyName, String? userNameOrEmailAddress, String? password) {
+  void validateModel(
+      String? tenancyName, String? userNameOrEmailAddress, String? password) {
     String valiMsg = "";
     if (tenancyName == null || tenancyName == "") {
       valiMsg = "Client code is requried";
@@ -47,7 +50,10 @@ class LoginViewModel extends FormViewModel {
     notifyListeners();
   }
 
-  Future signInRequest({required String tenancyName, required String userNameOrEmailAddress, required String password}) async {
+  Future signInRequest(
+      {required String tenancyName,
+      required String userNameOrEmailAddress,
+      required String password}) async {
     validateModel(tenancyName, userNameOrEmailAddress, password);
     if (!showValidationMessage) {
       var authResult = await _authenticationService.login(
@@ -93,7 +99,8 @@ class LoginViewModel extends FormViewModel {
   Future<void> setTenantCode(String value) async {
     if (value.isNotEmpty && hasTenantId == false) {
       //we need to check tenenat availability
-      var tenantAvailableModel = await _authenticationService.isTenantAvailable(tenantCode: value);
+      var tenantAvailableModel =
+          await _authenticationService.isTenantAvailable(tenantCode: value);
       _localStorageService.setTenantId(tenantAvailableModel!.tenantId!);
 
       rebuildUi();

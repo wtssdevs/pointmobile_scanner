@@ -24,7 +24,8 @@ class LoginView extends StatelessWidget with $LoginView {
   Widget build(BuildContext context) {
     precacheImage(const AssetImage("assets/wtssgrplogo.png"), context);
     void validateForm(LoginViewModel model) async {
-      model.validateModel(tenantCodeController.text, emailController.text, passwordController.text);
+      model.validateModel(tenantCodeController.text, emailController.text,
+          passwordController.text);
       if (_loginFormKey.currentState!.validate()) {
         FocusScope.of(context).requestFocus(FocusNode());
         await model.signInRequest(
@@ -47,7 +48,9 @@ class LoginView extends StatelessWidget with $LoginView {
             child: Container(
               constraints: const BoxConstraints.expand(),
               decoration: const BoxDecoration(
-                image: DecorationImage(image: AssetImage('assets/wtssgrplogo.png'), fit: BoxFit.scaleDown),
+                image: DecorationImage(
+                    image: AssetImage('assets/wtssgrplogo.png'),
+                    fit: BoxFit.scaleDown),
               ),
               child: ClipRRect(
                 // make sure we apply clip it properly
@@ -67,7 +70,8 @@ class LoginView extends StatelessWidget with $LoginView {
                         Align(
                           alignment: Alignment.center,
                           child: SizedBox(
-                            width: screenWidthPercentage(context, percentage: 0.7),
+                            width:
+                                screenWidthPercentage(context, percentage: 0.7),
                             child: BoxText.body(
                               "Enter your account details to sign in.",
                               color: Colors.black,
@@ -91,19 +95,24 @@ class LoginView extends StatelessWidget with $LoginView {
                                   controller: tenantCodeController,
                                   icon: Icon(
                                     Icons.house,
-                                    color: model.hasTenantId == false ? Colors.black : Colors.green,
+                                    color: model.hasTenantId == false
+                                        ? Colors.black
+                                        : Colors.green,
                                   ),
                                   fieldFocusNode: tenantCodeFocusNode,
                                   suffixIcon: model.hasTenantId == false
                                       ? IconButton(
                                           onPressed: () async {
-                                            await model.setTenantCode(tenantCodeController.text);
+                                            await model.setTenantCode(
+                                                tenantCodeController.text);
                                             //set focus node to email emailFocusNode
                                             if (context.mounted) {
-                                              FocusScope.of(context).requestFocus(emailFocusNode);
+                                              FocusScope.of(context)
+                                                  .requestFocus(emailFocusNode);
                                             }
                                           },
-                                          icon: const Icon(Icons.save, color: kcPrimaryColor),
+                                          icon: const Icon(Icons.save,
+                                              color: kcPrimaryColor),
                                         )
                                       : IconButton(
                                           onPressed: () {
@@ -111,10 +120,12 @@ class LoginView extends StatelessWidget with $LoginView {
                                             model.tenantCodeValue = "";
                                             tenantCodeController.text = "";
                                           },
-                                          icon: const Icon(Icons.clear, color: Colors.red),
+                                          icon: const Icon(Icons.clear,
+                                              color: Colors.red),
                                         ),
                                   enterPressed: () {
-                                    model.setTenantCode(tenantCodeController.text);
+                                    model.setTenantCode(
+                                        tenantCodeController.text);
                                   },
                                   onChanged: (value) {},
                                   nextFocusNode: emailFocusNode,
@@ -179,7 +190,8 @@ class LoginView extends StatelessWidget with $LoginView {
                             model.validationMessage!,
                             color: Colors.red,
                           ),
-                        if (model.validationMessage != null) verticalSpaceMedium,
+                        if (model.validationMessage != null)
+                          verticalSpaceMedium,
                         GestureDetector(
                           onTap: () async {
                             validateForm(model);
@@ -194,11 +206,15 @@ class LoginView extends StatelessWidget with $LoginView {
                             ),
                             child: model.isBusy
                                 ? const CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                                    valueColor:
+                                        AlwaysStoppedAnimation(Colors.white),
                                   )
                                 : const Text(
                                     "SIGN IN",
-                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14),
                                   ),
                           ),
                         ),

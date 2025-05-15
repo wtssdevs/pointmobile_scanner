@@ -5,7 +5,8 @@ class LicenseDiskData {
   final int encoding; // 139
   final String data; // 4522A001 (Likely the vehicle or license number)
   final int version; // 1
-  final String licenseNo; // 4046048SP9R2 (Potentially owner info, needs further analysis)
+  final String
+      licenseNo; // 4046048SP9R2 (Potentially owner info, needs further analysis)
   final String licensePlateNo; // BS93TVGP (Unknown, needs further analysis)
   final String vehicleRegisterNo; // PWR418W (Unknown, needs further analysis)
   final String vehicleType; // Mcycle(no sidecar) / Mfiets(nie syspan)
@@ -39,7 +40,8 @@ class LicenseDiskData {
     }
 
     // Remove any spaces or hyphens for easier pattern matching
-    final cleanedRegNumber = regNumber.toUpperCase().replaceAll(' ', '').replaceAll('-', '');
+    final cleanedRegNumber =
+        regNumber.toUpperCase().replaceAll(' ', '').replaceAll('-', '');
 
     // Define regular expressions for common South African plate formats
     // This list is not exhaustive and might need adjustments based on
@@ -47,13 +49,16 @@ class LicenseDiskData {
 
     // Provincial formats (examples - more can be added)
     final gautengRegex1 = r'^[A-Z]{3}\d{3}GP$'; // e.g., ABC 123 GP
-    final gautengRegex2 = r'^\d{2}[A-Z]{2}\d{2}GP$'; // Older format e.g., 12 AB 34 GP
-    final gautengRegex3 = r'^[A-Z]{2}\d{2}[A-Z]{2}GP$'; // Newer format e.g., AB 12 CD GP
+    final gautengRegex2 =
+        r'^\d{2}[A-Z]{2}\d{2}GP$'; // Older format e.g., 12 AB 34 GP
+    final gautengRegex3 =
+        r'^[A-Z]{2}\d{2}[A-Z]{2}GP$'; // Newer format e.g., AB 12 CD GP
     final westernCapeRegex1 = r'^[A-Z]{2}\d{3}-\d{3}$'; // e.g., CA 123-456
     final westernCapeRegex2 = r'^[A-Z]{3}\d{3}$'; // Older format e.g., CAA 123
     final kwazuluNatalRegex1 = r'^[A-Z]{2}\d{3}-\d{3}$'; // e.g., ND 123-456
     final kwazuluNatalRegex2 = r'^\d{4,5}ND$'; // Older format e.g., 12345 ND
-    final kwazuluNatalRegex3 = r'^[A-Z]{2}\d{2}[A-Z]{2}ZN$'; // Newer format e.g., BB 00 AA ZN (as of Dec 2023)
+    final kwazuluNatalRegex3 =
+        r'^[A-Z]{2}\d{2}[A-Z]{2}ZN$'; // Newer format e.g., BB 00 AA ZN (as of Dec 2023)
     final easternCapeRegex = r'^[A-Z]{3}\d{3}EC$'; // e.g., BBB 123 EC
     final freeStateRegex = r'^[A-Z]{3}\d{3}FS$'; // e.g., CCC 123 FS
     final limpopoRegex = r'^[A-Z]{3}\d{3}L$'; // e.g., DDD 123 L
@@ -62,7 +67,8 @@ class LicenseDiskData {
     final northernCapeRegex = r'^[A-Z]{3}\d{3}NC$'; // e.g., GGG 123 NC
 
     // Personalized plates (can have various formats, this is a basic example)
-    final personalizedRegex = r'^[A-Z0-9\s]{3,9}$'; // 3 to 9 alphanumeric characters and spaces
+    final personalizedRegex =
+        r'^[A-Z0-9\s]{3,9}$'; // 3 to 9 alphanumeric characters and spaces
 
     // Check against the defined patterns
     if (gautengRegex1.hasMatch(cleanedRegNumber) ||
@@ -112,7 +118,8 @@ class LicenseDiskData {
         expiryDate: DateTime.parse(parts[14]),
       );
     } catch (e) {
-      throw FormatException('Invalid license disk format: Data parsing failed: $e');
+      throw FormatException(
+          'Invalid license disk format: Data parsing failed: $e');
     }
   }
 
@@ -133,7 +140,8 @@ class LicenseDiskData {
         'expiryDate': expiryDate.toIso8601String(), // Store as ISO string
       };
 
-  factory LicenseDiskData.fromJson(Map<String, dynamic> json) => LicenseDiskData(
+  factory LicenseDiskData.fromJson(Map<String, dynamic> json) =>
+      LicenseDiskData(
         prefix: json['prefix'],
         encoding: json['encoding'],
         data: json['data'],

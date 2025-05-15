@@ -617,10 +617,12 @@ class GateAccessVisitorSheet extends StackedView<GateAccessVisitorSheetModel> {
       ),
     );
   }
+
   @override
   void onDispose(GateAccessVisitorSheetModel viewModel) {
     viewModel.onDispose();
   }
+
   @override
   void onViewModelReady(GateAccessVisitorSheetModel viewModel) =>
       SchedulerBinding.instance.addPostFrameCallback(

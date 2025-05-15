@@ -98,6 +98,8 @@ class ScanningService {
             onDecodeDebug(call);
             break;
           case BarcodeScanType.vehicleDisc:
+          case BarcodeScanType.trailerOneDisc:
+          case BarcodeScanType.trailerTwoDisc:
             onDecodeVehicleDisc(call);
             break;
           default:

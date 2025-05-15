@@ -43,7 +43,8 @@ class DeviceConfig {
   });
 
   factory DeviceConfig.fromJson(Map<String, dynamic> jsonRes) => DeviceConfig(
-        deviceScanningMode: _getSafeDeviceScanningMode(jsonRes['DeviceModelScanningMode']),
+        deviceScanningMode:
+            _getSafeDeviceScanningMode(jsonRes['DeviceModelScanningMode']),
       );
 // Add this method to your DeviceConfig class
   static DeviceModelScanningMode _getSafeDeviceScanningMode(dynamic value) {

@@ -93,7 +93,8 @@ class GatePassAccessContainerModel {
   });
 
   @override
-  String toString() => 'Container: ${containerNumber ?? "N/A"}, Description: ${description ?? "N/A"}';
+  String toString() =>
+      'Container: ${containerNumber ?? "N/A"}, Description: ${description ?? "N/A"}';
 
   String toJson() => json.encode(toMap());
 
@@ -103,9 +104,7 @@ class GatePassAccessContainerModel {
       tenantId: json["tenantId"],
       externalContainerId: json["externalContainerId"],
       containerNumber: json["containerNumber"],
-      deliveryType: json["deliveryType"],
       containerSetNo: json["containerSetNo"],
-      //gatePassContainerType: json["gatePassContainerType"],
       goodsDeliveryNo: json["goodsDeliveryNo"],
       sealNumberOne: json["sealNumberOne"],
       sealNumberTwo: json["sealNumberTwo"],
@@ -124,42 +123,47 @@ class GatePassAccessContainerModel {
       containerTypeId: json["containerTypeId"],
 
       // this.containerSize,
-    //this.containerType,
-    //this.containerCustomer,
-    //this.containerShippingLine,
+      //this.containerType,
+      //this.containerCustomer,
+      //this.containerShippingLine,
 
       branchId: json["branchId"],
       depotId: json["depotId"],
-      gatePassAccessId: json["gatePassAccessId"],   
-      containerDeliveryType: DeliveryType.values[asT<int?>(json['containerDeliveryType']) ?? DeliveryType.other.value],
-      gatePassContainerType: GatePassContainerType.values[asT<int?>(json['gatePassContainerType']) ?? GatePassContainerType.none.value],
+      gatePassAccessId: json["gatePassAccessId"],
+      containerDeliveryType: DeliveryType.values[
+          asT<int?>(json['containerDeliveryType']) ?? DeliveryType.other.value],
+      gatePassContainerType: GatePassContainerType.values[
+          asT<int?>(json['gatePassContainerType']) ??
+              GatePassContainerType.none.value],
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
+    var output = {
       "id": id,
       "tenantId": tenantId,
-      "externalContainerId": externalContainerId,
+      //"externalContainerId": externalContainerId,
       "containerNumber": containerNumber,
-      "deliveryType": deliveryType,
+      "deliveryType": containerDeliveryType?.value,
       "containerSetNo": containerSetNo,
-      "gatePassContainerType": gatePassContainerType,
+      "gatePassContainerType": gatePassContainerType?.value,
       "goodsDeliveryNo": goodsDeliveryNo,
       "sealNumberOne": sealNumberOne,
       "sealNumberTwo": sealNumberTwo,
       "sealNumberThree": sealNumberThree,
       "sealNumberFour": sealNumberFour,
-      "description": description,
-      "weight": weight,
-      "isDisabled": isDisabled,
-      "shippingLineId": shippingLineId,
-      "customerId": customerId,
+      //"description": description,
+      //"weight": weight,
+      //"isDisabled": isDisabled,
+      //"shippingLineId": shippingLineId,
+      //"customerId": customerId,
       "containerSizeId": containerSizeId,
       "containerTypeId": containerTypeId,
       "branchId": branchId,
-      "depotId": depotId,
+      //"depotId": depotId,
       "gatePassAccessId": gatePassAccessId,
     };
+
+    return output;
   }
 }

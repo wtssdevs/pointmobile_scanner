@@ -26,7 +26,28 @@ class InputField extends StatefulWidget {
   final bool isVisible;
   final Function? onTap;
 
-  InputField({required this.controller, required this.placeholder, this.enterPressed, this.fieldFocusNode, this.nextFocusNode, this.additionalNote, this.onChanged, this.formatter, this.validationMessage, this.textInputAction = TextInputAction.next, this.textInputType = TextInputType.text, this.password = false, this.isReadOnly = false, this.smallVersion = false, this.validator, this.icon, this.suffixIcon, this.isMultiLine = false, this.padding = const EdgeInsets.all(0), this.onTap, this.isVisible = true});
+  InputField(
+      {required this.controller,
+      required this.placeholder,
+      this.enterPressed,
+      this.fieldFocusNode,
+      this.nextFocusNode,
+      this.additionalNote,
+      this.onChanged,
+      this.formatter,
+      this.validationMessage,
+      this.textInputAction = TextInputAction.next,
+      this.textInputType = TextInputType.text,
+      this.password = false,
+      this.isReadOnly = false,
+      this.smallVersion = false,
+      this.validator,
+      this.icon,
+      this.suffixIcon,
+      this.isMultiLine = false,
+      this.padding = const EdgeInsets.all(0),
+      this.onTap,
+      this.isVisible = true});
 
   @override
   _InputFieldState createState() => _InputFieldState();
@@ -49,7 +70,9 @@ class _InputFieldState extends State<InputField> {
     if (widget.isMultiLine == false) {
       return;
     }
-    int count = (widget.controller.text.length / (MediaQuery.of(context).size.width * 0.06)).round();
+    int count = (widget.controller.text.length /
+            (MediaQuery.of(context).size.width * 0.06))
+        .round();
 
     if (count == 0 && fieldHeight == 55.0) {
       return;
@@ -74,9 +97,13 @@ class _InputFieldState extends State<InputField> {
               children: <Widget>[
                 Container(
                   height: widget.smallVersion ? 40 : fieldHeight,
-                  alignment: !widget.isMultiLine ? Alignment.centerLeft : Alignment.topCenter,
+                  alignment: !widget.isMultiLine
+                      ? Alignment.centerLeft
+                      : Alignment.topCenter,
                   padding: fieldPadding,
-                  decoration: widget.isReadOnly ? disabledFieldDecortaion : fieldDecortaion,
+                  decoration: widget.isReadOnly
+                      ? disabledFieldDecortaion
+                      : fieldDecortaion,
                   child: Row(
                     children: <Widget>[
                       Expanded(
@@ -91,7 +118,9 @@ class _InputFieldState extends State<InputField> {
                           textInputAction: widget.textInputAction,
                           onChanged: widget.onChanged,
                           onTap: widget.onTap as void Function()?,
-                          inputFormatters: widget.formatter != null ? widget.formatter! : null,
+                          inputFormatters: widget.formatter != null
+                              ? widget.formatter!
+                              : null,
                           onEditingComplete: () {
                             if (widget.enterPressed != null) {
                               FocusScope.of(context).requestFocus(FocusNode());
@@ -110,7 +139,8 @@ class _InputFieldState extends State<InputField> {
                           decoration: InputDecoration(
                             hintText: widget.placeholder,
                             border: InputBorder.none,
-                            hintStyle: TextStyle(fontSize: widget.smallVersion ? 12 : 15),
+                            hintStyle: TextStyle(
+                                fontSize: widget.smallVersion ? 12 : 15),
                             icon: widget.icon,
                             suffixIcon: widget.suffixIcon,
 
@@ -122,7 +152,15 @@ class _InputFieldState extends State<InputField> {
                         onTap: () => setState(() {
                           isPassword = !isPassword;
                         }),
-                        child: widget.password ? Container(width: fieldHeight, height: fieldHeight, alignment: Alignment.center, child: Icon(isPassword ? Icons.visibility : Icons.visibility_off)) : Container(),
+                        child: widget.password
+                            ? Container(
+                                width: fieldHeight,
+                                height: fieldHeight,
+                                alignment: Alignment.center,
+                                child: Icon(isPassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off))
+                            : Container(),
                       ),
                     ],
                   ),
@@ -133,7 +171,8 @@ class _InputFieldState extends State<InputField> {
                     color: Colors.red,
                   ),
                 if (widget.additionalNote != null) verticalSpace(5),
-                if (widget.additionalNote != null) NoteText(widget.additionalNote),
+                if (widget.additionalNote != null)
+                  NoteText(widget.additionalNote),
                 verticalSpaceSmall
               ],
             ),
