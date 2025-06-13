@@ -105,4 +105,6 @@ class AppConst {
       "The Network connection was lost.";
 
   static const String GetLocalizeValues = "/AbpUserConfiguration/GetAll/";
+
+  static const String tenantCode = "tenantCode";
 }

@@ -31,6 +31,7 @@ import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_licens
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/images_viewer_list/images_viewer_list_view.dart';
 
 import 'package:xstream_gate_pass_app/ui/views/shared/base_form_view_model.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
@@ -66,9 +67,15 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   StreamSubscription<RsaDriversLicense>? streamSubscription;
   StreamSubscription<LicenseDiskData>? streamSubscriptionForDisc;
-
   List<FileStore> _fileStoreItems = <FileStore>[];
   List<FileStore> get fileStoreItems => _fileStoreItems;
+
+  // Foreign license photo state
+  bool _foreignLicensePhotoTaken = false;
+  bool get foreignLicensePhotoTaken => _foreignLicensePhotoTaken;
+
+  FileStore? _foreignLicensePhotoPath;
+  FileStore? get foreignLicensePhotoPath => _foreignLicensePhotoPath;
 
   bool get hasConnection => _connectionService.hasConnection;
   List<SearchableDropdownMenuItem<int>> get serviceTypes => _masterFilesService.serviceTypes;
@@ -139,7 +146,12 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     //_customers = await _masterFilesService.getAllLocalDetainOptions("");
 
     //setCustomValidations();
-    setBarcodeScanType(BarcodeScanType.driversCard);
+    if (gatePass.driverHasForeignID == true) {
+      setBarcodeScanType(BarcodeScanType.vehicleDisc);
+    } else {
+      setBarcodeScanType(BarcodeScanType.driversCard);
+    }
+
     await initialize();
     //scrollToContainerInfoCard();
   }
@@ -637,6 +649,16 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Future<void> loadFileStoreImages() async {
     if (gatePass.id != null && gatePass.id != 0) {
       _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gateBookingImage, 100);
+
+      // Load foreign license photos and update state
+      final foreignLicensePhotos = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gatePassAccessDriverLicenceImage, 100);
+      if (foreignLicensePhotos.isNotEmpty) {
+        _foreignLicensePhotoTaken = true;
+        _foreignLicensePhotoPath = foreignLicensePhotos.first;
+      } else {
+        _foreignLicensePhotoTaken = false;
+        _foreignLicensePhotoPath = null;
+      }
     }
   }
 
@@ -662,6 +684,20 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
       await loadFileStoreImages();
 
+      notifyListeners();
+    }
+  }
+
+  Future<void> captureForeignLicensePhoto() async {
+    await getStoragePermissions();
+    if (gatePass.id != null && gatePass.id != 0) {
+      await _navigationService.navigateTo(
+        Routes.cameraCaptureView,
+        arguments: CameraCaptureViewArguments(refId: gatePass.id, referanceId: 0, fileStoreType: FileStoreType.gatePassAccessDriverLicenceImage),
+      );
+
+      // Load updated images and foreign license photo state
+      await loadFileStoreImages();
       notifyListeners();
     }
   }
@@ -732,5 +768,16 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   void routePop() {
     _scanningService.setBarcodeScanType(BarcodeScanType.loadConQrCode);
+  }
+
+  void viewAllForeignLicensePhotos() async {
+    if (_foreignLicensePhotoPath != null) {
+      await _navigationService.navigateTo(
+        Routes.imagesViewerListView,
+        arguments: ImagesViewerListViewArguments(
+          gatePassId: gatePass.id,
+        ),
+      );
+    }
   }
 }

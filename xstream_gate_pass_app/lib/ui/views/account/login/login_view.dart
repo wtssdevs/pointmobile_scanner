@@ -20,6 +20,12 @@ class LoginView extends StatelessWidget with $LoginView {
   LoginView({Key? key}) : super(key: key);
   final _loginFormKey = GlobalKey<FormState>();
 
+  onReset(String tenantCode, String email, String password) {
+    tenantCodeController.text = tenantCode;
+    emailController.text = email;
+    passwordController.text = password;
+  }
+
   @override
   Widget build(BuildContext context) {
     precacheImage(const AssetImage("assets/wtssgrplogo.png"), context);
@@ -38,7 +44,11 @@ class LoginView extends StatelessWidget with $LoginView {
 
     return ViewModelBuilder<LoginViewModel>.reactive(
       viewModelBuilder: () => LoginViewModel(),
-      onModelReady: (model) => listenToFormUpdated(model),
+      onViewModelReady: (model) {
+        syncFormWithViewModel(model);
+        model.listenToFormReset(onReset);
+        model.initialise();
+      },
       builder: (context, model, child) => WillPopScope(
         onWillPop: () async {
           return false;

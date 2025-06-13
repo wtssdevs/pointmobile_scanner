@@ -33,7 +33,8 @@ class GatePassCard extends StatelessWidget with AppViewBaseHelper {
                 title: Text(gatePass.vehicleRegNumber ?? ''),
                 dense: true,
                 leading: Icon(gatePass.gatePassBookingType.icon),
-                trailing: GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
+                trailing:
+                    GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
               ),
               // Row(
               //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,

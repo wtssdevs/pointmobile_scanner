@@ -112,7 +112,7 @@ class FileStoreRepository {
     var now = new DateTime.now();
     var nowLess14Days = now.subtract(Duration(days: 14));
 
-    var toClear = list.where((e) => e.createdDateTime.toDateTime().isBefore(nowLess14Days)).toList();
+    var toClear = list.where((e) => e.createdDateTime.toDateTime().isBefore(nowLess14Days) && e.upLoaded).toList();
 
     if (toClear.isNotEmpty) {
       await deleteMany(toClear);

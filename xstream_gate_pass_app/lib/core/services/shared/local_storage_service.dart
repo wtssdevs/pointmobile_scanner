@@ -145,6 +145,24 @@ class LocalStorageService {
 //   void clearForgotPassword() {
 //     _preferences!.remove(AppConst.is_OTP_Pin_Request);
 //   }
+  String getStringByKey(String key) {
+    var data = _getFromDisk(key);
+    if (data != null) {
+      if (data is String) {
+        return data;
+      }
+    }
+
+    return '';
+  }
+
+  void setStringByKey(String key, String value) {
+    if (value.isEmpty) {
+      _preferences!.remove(key);
+    } else {
+      _saveToDisk(key, value);
+    }
+  }
 
   List<String> getRecentSearches() {
     List<String> outPut = [];

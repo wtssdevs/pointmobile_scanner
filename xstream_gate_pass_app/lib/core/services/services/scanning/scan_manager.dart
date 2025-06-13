@@ -10,6 +10,7 @@ import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/models/device/device_config.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/rsa_scan.dart';
+import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_driver_temp_license.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_drivers_license.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_license_disk.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -20,15 +21,28 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 class ScanningService {
   final log = getLogger('ScanningService');
   final DialogService _dialogService = locator<DialogService>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
-  StreamController<RsaDriversLicense> barcodeChangeController = StreamController<RsaDriversLicense>.broadcast();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
+
+//RsaDriversLicense
+  StreamController<RsaDriversLicense> barcodeChangeController =
+      StreamController<RsaDriversLicense>.broadcast();
   Stream<RsaDriversLicense> get licenseStream => barcodeChangeController.stream;
 
-  StreamController<String> barcodeScanChangeController = StreamController<String>.broadcast();
+//DriverTempLicense
+  StreamController<DriverTempLicense> barcodeDriverTempLicenseChangeController =
+      StreamController<DriverTempLicense>.broadcast();
+  Stream<DriverTempLicense> get driverTempLicenseStream =>
+      barcodeDriverTempLicenseChangeController.stream;
+
+  StreamController<String> barcodeScanChangeController =
+      StreamController<String>.broadcast();
   Stream<String> get rawStringStream => barcodeScanChangeController.stream;
 
-  StreamController<LicenseDiskData> barcodeScanLicenseDiskDataChangeController = StreamController<LicenseDiskData>.broadcast();
-  Stream<LicenseDiskData> get licenseDiskDataStream => barcodeScanLicenseDiskDataChangeController.stream;
+  StreamController<LicenseDiskData> barcodeScanLicenseDiskDataChangeController =
+      StreamController<LicenseDiskData>.broadcast();
+  Stream<LicenseDiskData> get licenseDiskDataStream =>
+      barcodeScanLicenseDiskDataChangeController.stream;
 
   RsaDriversLicense? _rsaDriversLicense;
   RsaDriversLicense? get rsaDriversLicense => _rsaDriversLicense;
@@ -47,7 +61,8 @@ class ScanningService {
     _barcodeScanType = barcodeScanType;
   }
 
-  Future<void> initialise({BarcodeScanType barcodeScanType = BarcodeScanType.loadConQrCode}) async {
+  Future<void> initialise(
+      {BarcodeScanType barcodeScanType = BarcodeScanType.loadConQrCode}) async {
     try {
       setBarcodeScanType(barcodeScanType);
 
@@ -56,7 +71,8 @@ class ScanningService {
       }
 
       PointmobileScanner.channel.setMethodCallHandler(_onBarcodeScannerHandler);
-      var caninit = await PointmobileScanner.initScanner(deviceConfig.deviceScanningMode.value);
+      var caninit = await PointmobileScanner.initScanner(
+          deviceConfig.deviceScanningMode.value);
       if (caninit) {
         PointmobileScanner.enableScanner();
         PointmobileScanner.enableBeep();
@@ -69,7 +85,8 @@ class ScanningService {
       } else {
         _dialogService.showDialog(
           title: "PointmobileScanner SDK initScanner",
-          description: "Error initializing PointmobileScanner SDK<try chaning device configuration",
+          description:
+              "Error initializing PointmobileScanner SDK<try chaning device configuration",
           buttonTitle: "OK",
         );
         _initScanner = false;
@@ -95,7 +112,7 @@ class ScanningService {
             break;
           case BarcodeScanType.driversCard:
             //onDecode(call);
-            onDecodeDebug(call);
+            onDecodeDriversCard(call);
             break;
           case BarcodeScanType.vehicleDisc:
           case BarcodeScanType.trailerOneDisc:
@@ -114,7 +131,7 @@ class ScanningService {
     }
   }
 
-  void onDecodeDebug(MethodCall call) {
+  void onDecodeDriversCard(MethodCall call) {
     try {
       if (call.arguments != null) {
         var scanData = Uint8List.fromList(call.arguments);
@@ -125,20 +142,40 @@ class ScanningService {
           barcodeChangeController.add(_rsaDriversLicense!);
         }
       } else {
-        Fluttertoast.showToast(msg: "Barcode READ FAIL!", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM, timeInSecForIosWeb: 1, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 16.0);
+        Fluttertoast.showToast(
+            msg: "Barcode READ FAIL!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0);
       }
     } catch (e) {
       if (e is FormatException) {
-        log.i("Invalid South African driver's license barcode data length: ${call.arguments.length}.");
-        Fluttertoast.showToast(msg: "Barcode READ FAIL!", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM, timeInSecForIosWeb: 1, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 16.0);
+        log.i(
+            "Invalid South African driver's license barcode data length: ${call.arguments.length}.");
+        Fluttertoast.showToast(
+            msg: "Barcode READ FAIL!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0);
       }
     }
   }
 
+// Decode RSA Drivers License from the call arguments
+  // Returns RsaDriversLicense object or null if decoding fails
+  //Not used anymore, use onDecodeDriversCard instead
   RsaDriversLicense? onDecode(MethodCall call) {
     final List lDecodeResult = call.arguments;
     //var _decodeResult = "Symbology: ${lDecodeResult[0]}\n Base64Value: ${lDecodeResult[1]}";
-    if (lDecodeResult[1] != null && lDecodeResult[0] != null && lDecodeResult[0] != "READ_FAIL") {
+    if (lDecodeResult[1] != null &&
+        lDecodeResult[0] != null &&
+        lDecodeResult[0] != "READ_FAIL") {
       var base64String = lDecodeResult[1] as String;
       var withOutNewlines = base64String.replaceAll("\n", "");
       var normalBase64 = base64.normalize(withOutNewlines);
@@ -189,8 +226,39 @@ class ScanningService {
         barcodeScanChangeController.add(textScanData.trim());
       }
     } else {
-      Fluttertoast.showToast(msg: "Barcode READ FAIL!", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM, timeInSecForIosWeb: 1, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 16.0);
+      Fluttertoast.showToast(
+          msg: "Barcode READ FAIL!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
+  }
+
+  bool onDecodeDriverTempLisence(MethodCall call) {
+    var scanData = Uint8List.fromList(call.arguments);
+    var textScanData = utf8.decode(scanData);
+    if (textScanData != "READ_FAIL") {
+      log.i("Scan Complete $textScanData");
+      if (textScanData.isNotEmpty) {
+        //convert to license disk data
+        var licenseDiskData = DriverTempLicense.fromString(textScanData);
+        barcodeDriverTempLicenseChangeController.add(licenseDiskData);
+        return true;
+      }
+    } else {
+      Fluttertoast.showToast(
+          msg: "Barcode READ FAIL!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+    return false;
   }
 
   void onDecodeVehicleDisc(MethodCall call) {
@@ -206,7 +274,14 @@ class ScanningService {
         barcodeScanLicenseDiskDataChangeController.add(licenseDiskData);
       }
     } else {
-      Fluttertoast.showToast(msg: "Barcode READ FAIL!", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM, timeInSecForIosWeb: 1, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 16.0);
+      Fluttertoast.showToast(
+          msg: "Barcode READ FAIL!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
   }
 }

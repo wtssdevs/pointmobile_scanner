@@ -38,7 +38,8 @@ class CameraCaptureViewModel extends BaseViewModel {
   final int referanceId;
   StreamSubscription<MediaCapture?>? listenEvent;
   final TickerProvider vsync;
-  CameraCaptureViewModel(this.refId, this.referanceId, this.fileStoreType, this.vsync);
+  CameraCaptureViewModel(
+      this.refId, this.referanceId, this.fileStoreType, this.vsync);
 
   final log = getLogger('CameraCaptureViewModel');
 
@@ -69,13 +70,18 @@ class CameraCaptureViewModel extends BaseViewModel {
 
   Future<SingleCaptureRequest> getFilePath(sensors) async {
     final Directory extDir = await getTemporaryDirectory();
-    final testDir = await Directory('${extDir.path}/Images').create(recursive: true);
+    final testDir =
+        await Directory('${extDir.path}/Images').create(recursive: true);
     const String fileExtension = 'jpg';
-    final String filePath = '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+    final String filePath =
+        '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
     return SingleCaptureRequest(filePath, sensors.first);
   }
 
-  Future<void> saveToLocalDb({required File galleryFile, required String tempFilePath, String? fileName}) async {
+  Future<void> saveToLocalDb(
+      {required File galleryFile,
+      required String tempFilePath,
+      String? fileName}) async {
     // var newLocation = await _locationService.getLocation().timeout(const Duration(seconds: 12), onTimeout: () => null);
     // if (newLocation != null && newLocation.latitude == null) {
     //   newLocation = await _locationService.getLocation().timeout(const Duration(seconds: 10), onTimeout: () => null);
@@ -88,8 +94,6 @@ class CameraCaptureViewModel extends BaseViewModel {
     // }
 
 //check if file is in local db first before
-
-
 
     var fileStoreId = await _fileStoreRepository.insertOrUpdateByFileName(
       FileStore(
@@ -106,7 +110,18 @@ class CameraCaptureViewModel extends BaseViewModel {
       ),
       //step
     );
-    await _workerQueManager.enqueSingle(BackgroundJobInfo(jobType: BackgroundJobType.syncImages.index, jobArgs: fileStoreId, lastTryTime: Timestamp.now(), creationTime: Timestamp.now(), nextTryTime: Timestamp.now(), refTransactionId: refId.toString(), stopId: referanceId, id: "", isAbandoned: false), false);
+    await _workerQueManager.enqueSingle(
+        BackgroundJobInfo(
+            jobType: BackgroundJobType.syncImages.index,
+            jobArgs: fileStoreId,
+            lastTryTime: Timestamp.now(),
+            creationTime: Timestamp.now(),
+            nextTryTime: Timestamp.now(),
+            refTransactionId: refId.toString(),
+            stopId: referanceId,
+            id: "",
+            isAbandoned: false),
+        false);
   }
 
   void setUpCaptureStateSubscription(CameraState state) {
@@ -175,7 +190,8 @@ class CameraCaptureViewModel extends BaseViewModel {
 
       lastPhotoPath = file.path;
       //here we will
-      await saveToLocalDb(galleryFile: file, tempFilePath: filePath, fileName: null);
+      await saveToLocalDb(
+          galleryFile: file, tempFilePath: filePath, fileName: null);
 
       notifyListeners();
 

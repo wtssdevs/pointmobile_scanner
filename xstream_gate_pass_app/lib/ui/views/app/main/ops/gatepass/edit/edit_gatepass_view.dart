@@ -25,6 +25,7 @@ import 'package:xstream_gate_pass_app/ui/shared/widgets/text_fields/input_field.
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_Info_item.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_info_card.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_scanning_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/foreign_license_photo_card.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/visitor_status_Icon.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/gate_pass_status_chip_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_gatepass_view_model.dart';
@@ -129,6 +130,13 @@ class GatePassEditView extends StatelessWidget {
       model.setValidationMessage("Driver ID Number is required");
     } else {
       model.clearValidationMessage("Driver ID Number is required");
+    }
+
+    // Foreign license photo validation
+    if (model.gatePass.driverHasForeignID == true && !model.foreignLicensePhotoTaken) {
+      model.setValidationMessage("Foreign license photo is required");
+    } else {
+      model.clearValidationMessage("Foreign license photo is required");
     }
 
     model.setDriverValidationMessage();
@@ -523,9 +531,27 @@ class GatePassEditView extends StatelessWidget {
                                     ],
                                   ),
                                   verticalSpaceTiny,
+                                  //*********Drivers TEMP Lisence Card******** */
+                                  //new widget for driver  foreign lisence ID
+                                  ForeignLicensePhotoCard(
+                                    isVisible: model.gatePass.driverHasForeignID == true,
+                                    width: width,
+                                    isPhotoTaken: model.foreignLicensePhotoTaken,
+                                    fileStore: model.foreignLicensePhotoPath,
+                                    onTap: () {
+                                      model.captureForeignLicensePhoto();
+                                    },
+                                    onViewAllImages: () {
+                                      model.viewAllForeignLicensePhotos();
+                                    },
+                                  ),
+
                                   !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
                                   verticalSpaceSmall,
+
+                                  //*********Drivers Lisence Card******** */
                                   BuildInfoCard(
+                                    isVisible: model.gatePass.driverHasForeignID == false,
                                     key: model.driverInfoCardKey,
                                     width: width,
                                     title: "Drivers Lisence Card",
@@ -559,6 +585,7 @@ class GatePassEditView extends StatelessWidget {
                                       BuildInfoItem(label: 'License Expiry', value: model.gatePass.driverLicenceExpiryDate?.toLocal().toFormattedString() ?? 'Not Scanned'),
                                     ],
                                   ),
+
                                   verticalSpaceSmall,
                                   BuildInfoCard(
                                     key: model.vehicleInfoCardKey,
