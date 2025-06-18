@@ -138,8 +138,9 @@ class GatePassEditView extends StatelessWidget {
     } else {
       model.clearValidationMessage("Foreign license photo is required");
     }
-
-    model.setDriverValidationMessage();
+    if (model.gatePass.driverHasForeignID == false) {
+      model.setDriverValidationMessage();
+    }
 
     model.setVehicleValidationMessage();
 
@@ -187,6 +188,13 @@ class GatePassEditView extends StatelessWidget {
       model.setValidationMessage("Vehicle Reg Number is required");
     } else {
       model.clearValidationMessage("Vehicle Reg Number is required");
+    }
+
+//split between foreign license and normal drivers lisence
+    if (model.gatePass.driverHasForeignID == true && !model.foreignLicensePhotoTaken) {
+      model.setValidationMessage("Foreign license photo is required");
+    } else {
+      model.clearValidationMessage("Foreign license photo is required");
     }
 
     if (model.gatePass.driverName == null) {
@@ -544,6 +552,10 @@ class GatePassEditView extends StatelessWidget {
                                     onViewAllImages: () {
                                       model.viewAllForeignLicensePhotos();
                                     },
+                                    infoList: [
+                                      BuildInfoItem(label: 'Driver Name', value: model.gatePass.driverName ?? 'Missing Information'),
+                                      BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Missing Information'),
+                                    ],
                                   ),
 
                                   !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
