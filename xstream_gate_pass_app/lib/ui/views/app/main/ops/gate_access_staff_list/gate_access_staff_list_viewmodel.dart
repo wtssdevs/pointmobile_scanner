@@ -7,7 +7,7 @@ import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staff_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_access_staff_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/staff_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
@@ -31,6 +31,9 @@ class GateAccessStaffListViewModel extends BaseViewModel
   bool _scanInOrOut = false;
   bool get scanInOrOut => _scanInOrOut;
 
+  bool _scanInProgress = false;
+  bool get scanInProgress => _scanInProgress;
+
   PagedList<GatePassStaffAccess> _pagedList = PagedList<GatePassStaffAccess>(
       totalCount: 0,
       items: <GatePassStaffAccess>[],
@@ -46,15 +49,32 @@ class GateAccessStaffListViewModel extends BaseViewModel
 
     fetchPage(_nextPage);
 
-    await startconnectionListen();
+    // Only start listening if we don't already have an active subscription
+    if (streamSubscription == null) {
+      await startconnectionListen();
+    }
   }
 
+  Future<void> cancelSubscription() async {
+    if (streamSubscription != null) {
+      await streamSubscription!.cancel();
+      streamSubscription = null;
+    }
+  }
+
+//only allow one listener per view widget instance
   Future<void> startconnectionListen() async {
+    await cancelSubscription();
+
     streamSubscription = _scanningService.rawStringStream
         .asBroadcastStream()
         .listen((data) async {
       log.i("data: $data");
       //test if data is GUID
+      if (_scanInProgress) {
+        return;
+      }
+      _scanInProgress = true;
 
       if (data.isNotEmpty && data.length == 36) {
         //is GUID
@@ -65,8 +85,8 @@ class GateAccessStaffListViewModel extends BaseViewModel
           await scanStaffOut(data);
         }
       }
+      _scanInProgress = false;
 
-      //convert to correct format
       //var loadCOn = LoadconQrCodeModel.fromJson(data);
 
       //rebuildUi();
@@ -160,5 +180,13 @@ class GateAccessStaffListViewModel extends BaseViewModel
   void setScanStaffIn() {
     _scanInOrOut = true;
     rebuildUi();
+  }
+
+  void onDispose() {
+    // Cancel subscription when the view model is disposed
+    cancelSubscription();
+    // Dispose of other controllers
+    filterController.dispose();
+    pagingController.dispose();
   }
 }

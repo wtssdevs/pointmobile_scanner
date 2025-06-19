@@ -46,6 +46,20 @@ class FileStoreRepository {
     return entity.id;
   }
 
+  Future<String> insertOrUpdateByFileName(FileStore entity) async {
+    var oldEntity = await getByFileNameFilter(entity);
+    if (oldEntity == null) {
+      //not found we have new
+      entity.id = Guid.newGuidAsString;
+    } else {
+      entity.id = oldEntity.id;
+    }
+
+    entity.fileName = basename(entity.fileName);
+    await _store!.record(entity.id).put(_appDatabase.db!, entity.toJson());
+    return entity.id;
+  }
+
   Future<String> upSert(FileStore entity) async {
     var oldEntity = await getByFilter(entity);
     if (oldEntity == null) {
@@ -98,7 +112,7 @@ class FileStoreRepository {
     var now = new DateTime.now();
     var nowLess14Days = now.subtract(Duration(days: 14));
 
-    var toClear = list.where((e) => e.createdDateTime.toDateTime().isBefore(nowLess14Days)).toList();
+    var toClear = list.where((e) => e.createdDateTime.toDateTime().isBefore(nowLess14Days) && e.upLoaded).toList();
 
     if (toClear.isNotEmpty) {
       await deleteMany(toClear);
@@ -118,6 +132,25 @@ class FileStoreRepository {
     return recordSnapshot.map((snapshot) {
       return FileStore.fromJson(snapshot.value as Map<String, dynamic>);
     }).toList();
+  }
+
+  Future<FileStore?> getByFileNameFilter(FileStore fileStore) async {
+    var filter = Filter.and([
+      Filter.equals('fileName', fileStore.fileName),
+      Filter.equals('refId', fileStore.refId),
+      Filter.equals('filestoreType', fileStore.filestoreType),
+    ]);
+    var finder = Finder(sortOrders: [SortOrder(Field.key, false)], filter: filter, limit: 1);
+
+    final recordSnapshot = await _store!.findFirst(_appDatabase.db!, finder: finder);
+
+    if (recordSnapshot == null) {
+      return null;
+    }
+
+    var outPutFileStore = FileStore.fromJson(recordSnapshot.value as Map<String, dynamic>);
+
+    return outPutFileStore;
   }
 
   Future<FileStore?> getByFilter(FileStore fileStore) async {

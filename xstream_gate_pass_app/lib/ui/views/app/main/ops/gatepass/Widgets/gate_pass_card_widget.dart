@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/gate_pass_status_chip_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/labels/easy_label_text.dart';
@@ -29,18 +29,25 @@ class GatePassCard extends StatelessWidget with AppViewBaseHelper {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  EasyLabelText(
-                    label: translate('VehicleRegNumber'),
-                    labelFontSize: 16,
-                    value: gatePass.vehicleRegNumber ?? '',
-                    textFontSize: 14,
-                  ),
-                  GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
-                ],
+              ListTile(
+                title: Text(gatePass.vehicleRegNumber ?? ''),
+                dense: true,
+                leading: Icon(gatePass.gatePassBookingType.icon),
+                trailing:
+                    GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
               ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              //   children: [
+              //     EasyLabelText(
+              //       label: translate('VehicleRegNumber'),
+              //       labelFontSize: 12,
+              //       value: gatePass.vehicleRegNumber ?? '',
+              //       textFontSize: 14,
+              //     ),
+              //     GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
+              //   ],
+              // ),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -61,7 +68,7 @@ class GatePassCard extends StatelessWidget with AppViewBaseHelper {
                           value: gatePass.customerRefNo ?? '',
                         ),
                         EasyLabelText(
-                          label: translate('TimeOut'),
+                          label: translate('TimeIn'),
                           value: gatePass.timeIn.toFormattedString(),
                         ),
                       ],
@@ -80,8 +87,12 @@ class GatePassCard extends StatelessWidget with AppViewBaseHelper {
                           value: gatePass.voyageNo ?? '',
                         ),
                         EasyLabelText(
-                          label: translate('TimeAtGate'),
-                          value: gatePass.timeAtGate.toFormattedString(),
+                          label: translate('ContainerNo'),
+                          value: gatePass.containerNumber ?? '',
+                        ),
+                        EasyLabelText(
+                          label: translate('TimeOut'),
+                          value: gatePass.timeOut.toFormattedString(),
                         ),
                       ],
                     ),

@@ -73,35 +73,6 @@ class AccountView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Card(
-                  //   elevation: 8,
-                  //   child: Column(
-                  //     children: [
-                  //       const ListDividerWrapper(
-                  //         size: 2000,
-                  //         child: BoxText.headingThree("Scanning Mode"),
-                  //       ),
-                  //       RadioListTile<DeviceScanningMode>(
-                  //         title: const Text("Keyboard Mode"),
-                  //         value: DeviceScanningMode.keyboard,
-                  //         groupValue: model.deviceConfig.deviceScanningMode,
-                  //         onChanged: (value) {
-                  //           model.updateDeviceConfig(value);
-                  //         },
-                  //       ),
-                  //       RadioListTile<DeviceScanningMode>(
-                  //         title: const Text("Laser Mode"),
-                  //         subtitle: const Text(
-                  //             "Special device only settings needed..."),
-                  //         value: DeviceScanningMode.laser,
-                  //         groupValue: model.deviceConfig.deviceScanningMode,
-                  //         onChanged: (value) {
-                  //           model.updateDeviceConfig(value);
-                  //         },
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
                   Card(
                     elevation: 8,
                     child: ListTile(
@@ -113,8 +84,16 @@ class AccountView extends StatelessWidget {
                             ? Colors.red
                             : Colors.green,
                       ),
-                      title: BoxText.tileTitle(
-                        "Status: ${model.showConnectionStatus} - ${model.connectivityResultDisplayName}",
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          BoxText.tileTitle(
+                            "Url: ${model.baseUrl} ",
+                          ),
+                          BoxText.tileTitle(
+                            "Status: ${model.showConnectionStatus} - ${model.connectivityResultDisplayName}",
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -133,6 +112,39 @@ class AccountView extends StatelessWidget {
                       title: BoxText.tileTitle(
                         "Sync Count: ${model.syncCount}",
                       ),
+                    ),
+                  ),
+                  Card(
+                    elevation: 8,
+                    child: Column(
+                      children: [
+                        const ListTile(
+                          leading: const Icon(
+                            Icons.barcode_reader,
+                            color: Colors.red,
+                          ),
+                          // onTap: model.navigateToTermsView,
+                          title: BoxText.tileTitle(
+                            "Scanner SDK Model",
+                          ),
+                        ),
+                        RadioListTile<DeviceModelScanningMode>(
+                          title: const Text("PM80"),
+                          value: DeviceModelScanningMode.pm80,
+                          groupValue: model.deviceConfig.deviceScanningMode,
+                          onChanged: (value) {
+                            model.updateDeviceConfig(value);
+                          },
+                        ),
+                        RadioListTile<DeviceModelScanningMode>(
+                          title: const Text("PM84"),
+                          value: DeviceModelScanningMode.pm84,
+                          groupValue: model.deviceConfig.deviceScanningMode,
+                          onChanged: (value) {
+                            model.updateDeviceConfig(value);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   Card(

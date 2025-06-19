@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/containers/gate_pass_access_container_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_access_visitor_model.dart';
 
-import '../../utils/helper.dart';
+import '../../../utils/helper.dart';
 
 class GatePassAccess {
   String id;
@@ -35,7 +36,10 @@ class GatePassAccess {
   String? vehicleRegNumber;
   String? vehicleRegNumberValidation;
   String? trailerRegNumberOne;
+  String? trailerRegNumberOneValidation;
   String? trailerRegNumberTwo;
+  String? trailerRegNumberTwoValidation;
+
   String? logisticRefNumber;
   String? siNumber;
   String? customerRefNo;
@@ -47,6 +51,8 @@ class GatePassAccess {
   bool isHazardous = false;
   String? driverName;
   String? driverIdNo;
+  String? driverIdNoValidation;
+  bool driverHasForeignID = false;
   String? driverLicenceNo;
   String? driversLicenceCodes;
   DateTime? professionalDrivingPermitExpiryDate;
@@ -79,15 +85,22 @@ class GatePassAccess {
   String? branchName;
   String? customerName;
   String? transporterName;
+
+//CONTAINERS INFO , NEED TO BE LIST ??
+
   String? containerId;
   String? containerNumber;
   String? containerSize;
+  int? containerSizeId;
+  int? containerTypeId;
   String? containerType;
   String? containerCustomer;
   String? containerShippingLine;
   String? containerDepot;
   DeliveryType? containerDeliveryType;
   GatePassContainerType? gatePassContainerType;
+
+  List<GatePassAccessContainerModel>? containers = [];
 
   GatePassAccess({
     required this.id,
@@ -117,7 +130,9 @@ class GatePassAccess {
     this.vehicleRegNumber,
     this.vehicleRegNumberValidation,
     this.trailerRegNumberOne,
+    this.trailerRegNumberOneValidation,
     this.trailerRegNumberTwo,
+    this.trailerRegNumberTwoValidation,
     this.serviceTypeId,
     this.logisticRefNumber,
     this.siNumber,
@@ -130,6 +145,7 @@ class GatePassAccess {
     this.isHazardous = false,
     this.driverName,
     this.driverIdNo,
+    this.driverHasForeignID = false,
     this.driverLicenceNo,
     this.driversLicenceCodes,
     this.professionalDrivingPermitExpiryDate,
@@ -166,23 +182,100 @@ class GatePassAccess {
     this.containerNumber,
     this.containerSize,
     this.containerType,
+    this.containerSizeId,
+    this.containerTypeId,
     this.containerCustomer,
     this.containerShippingLine,
     this.containerDepot,
     this.containerDeliveryType,
     this.gatePassContainerType,
+    this.containers,
   });
 
   bool get hasDriverInfo =>
       driverName != null && driverIdNo != null && driverLicenceNo != null;
+
   bool get hasVehicleInfo =>
       vehicleRegNumber != null &&
       vehicleMake != null &&
       vehicleVinNumber != null;
+  bool get vehicleDiscExpired => hasVehicleInfo;
 
-  //factory GatePassAccess.fromJson(String str) => GatePassAccess.fromMap(json.decode(str));
+  bool get vehicleRegNoMatch =>
+      vehicleRegNumber != null &&
+      vehicleRegNumberValidation != null &&
+      vehicleRegNumber?.trim() == vehicleRegNumberValidation?.trim();
 
-  String toJson() => json.encode(toMap());
+  bool get trailerRegNumberOneMatch =>
+      trailerRegNumberOne != null &&
+      trailerRegNumberOneValidation != null &&
+      trailerRegNumberOne?.trim() == trailerRegNumberOneValidation?.trim();
+  bool get trailerRegNumberTwoMatch =>
+      trailerRegNumberTwo != null &&
+      trailerRegNumberTwoValidation != null &&
+      trailerRegNumberTwo?.trim() == trailerRegNumberTwoValidation?.trim();
+
+  bool get driverIdNoMatch =>
+      driverIdNo != null &&
+      driverIdNoValidation != null &&
+      driverIdNo?.trim() == driverIdNoValidation?.trim();
+
+  void handleContainers() {
+    if (containerId != null) {
+      containers = containers ?? [];
+
+      // Find existing container index
+      int existingIndex =
+          containers!.indexWhere((element) => element.id == containerId);
+
+      if (existingIndex == -1) {
+        // Not found, add new container
+        containers!.add(
+          GatePassAccessContainerModel(
+            id: containerId,
+            containerNumber: containerNumber,
+            containerSize: containerSize,
+            containerSizeId: containerSizeId,
+            containerType: containerType,
+            containerTypeId: containerTypeId,
+            containerCustomer: containerCustomer,
+            containerShippingLine: containerShippingLine,
+            containerDepot: containerDepot,
+            containerDeliveryType: containerDeliveryType,
+            gatePassContainerType: gatePassContainerType,
+            gatePassAccessId: id,
+            branchId: branchId,
+            containerSetNo: 1,
+            tenantId: tenantId,
+          ),
+        );
+      } else {
+        // Found, update existing container
+        containers![existingIndex] = GatePassAccessContainerModel(
+          id: containerId,
+          containerNumber: containerNumber,
+          containerSize: containerSize,
+          containerSizeId: containerSizeId,
+          containerType: containerType,
+          containerTypeId: containerTypeId,
+          containerCustomer: containerCustomer,
+          containerShippingLine: containerShippingLine,
+          containerDepot: containerDepot,
+          containerDeliveryType: containerDeliveryType,
+          gatePassContainerType: gatePassContainerType,
+          gatePassAccessId: id,
+          branchId: branchId,
+          containerSetNo: 1,
+          tenantId: tenantId,
+        );
+      }
+    }
+  }
+
+  String toJson() {
+    handleContainers();
+    return json.encode(toMap());
+  }
 
   factory GatePassAccess.fromJson(Map<String, dynamic> json) => GatePassAccess(
         id: json["id"],
@@ -235,6 +328,7 @@ class GatePassAccess {
         ticketNo: json["ticketNo"],
         refNo: json["refNo"],
         isHazardous: json["isHazardous"] ?? false,
+        driverHasForeignID: json["driverHasForeignID"] ?? false,
         driverName: json["driverName"],
         driverIdNo: json["driverIdNo"],
         driverLicenceNo: json["driverLicenceNo"],
@@ -279,7 +373,10 @@ class GatePassAccess {
         containerId: json["containerId"],
         containerNumber: json["containerNumber"],
         containerSize: json["containerSize"],
+        containerSizeId: json["containerSizeId"],
         containerType: json["containerType"],
+        containerTypeId: json["containerTypeId"],
+
         containerCustomer: json["containerCustomer"],
         containerShippingLine: json["containerShippingLine"],
         containerDepot: json["containerDepot"],
@@ -287,6 +384,11 @@ class GatePassAccess {
             DeliveryType.values[asT<int?>(json['containerDeliveryType']) ?? 0],
         gatePassContainerType: GatePassContainerType
             .values[asT<int?>(json['gatePassContainerType']) ?? 0],
+
+        containers: json["containers"] != null
+            ? List<GatePassAccessContainerModel>.from(json["containers"]
+                .map((x) => GatePassAccessContainerModel.fromJson(x)))
+            : [],
       );
 
   Map<String, dynamic> toMap() => {
@@ -318,7 +420,9 @@ class GatePassAccess {
         "vehicleRegNumber": vehicleRegNumber,
         "vehicleRegNumberValidation": vehicleRegNumberValidation,
         "trailerRegNumberOne": trailerRegNumberOne,
+        "trailerRegNumberOneValidation": trailerRegNumberOneValidation,
         "trailerRegNumberTwo": trailerRegNumberTwo,
+        "trailerRegNumberTwoValidation": trailerRegNumberTwoValidation,
         "logisticRefNumber": logisticRefNumber,
         "siNumber": siNumber,
         "customerRefNo": customerRefNo,
@@ -330,6 +434,7 @@ class GatePassAccess {
         "isHazardous": isHazardous,
         "driverName": driverName,
         "driverIdNo": driverIdNo,
+        "driverHasForeignID": driverHasForeignID,
         "driverLicenceNo": driverLicenceNo,
         "driversLicenceCodes": driversLicenceCodes,
         "professionalDrivingPermitExpiryDate":
@@ -372,6 +477,7 @@ class GatePassAccess {
         "containerDepot": containerDepot,
         "containerDeliveryType": containerDeliveryType?.value ?? 0,
         "gatePassContainerType": gatePassContainerType?.value ?? 0,
+        "containers": containers?.map((e) => e.toMap()).toList(),
       };
 
   static fromGatePassVisitorAccess(
@@ -402,6 +508,8 @@ class GatePassAccess {
       driverLicenceIssueDate: gatePassVisitorAccess.driverLicenceIssueDate,
       driverLicenceExpiryDate: gatePassVisitorAccess.driverLicenceExpiryDate,
       vehicleRegisterNumber: gatePassVisitorAccess.vehicleRegisterNumber,
+      trailerRegNumberOne: gatePassVisitorAccess.trailerRegNumberOne,
+      trailerRegNumberTwo: gatePassVisitorAccess.trailerRegNumberTwo,
       vehicleVinNumber: gatePassVisitorAccess.vehicleVinNumber,
       vehicleEngineNumber: gatePassVisitorAccess.vehicleEngineNumber,
       vehicleMake: gatePassVisitorAccess.vehicleMake,

@@ -13,8 +13,8 @@ import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/scan_action_types.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_access_visitor_model.dart';
 import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterfiles_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/scan_manager.dart';
@@ -71,8 +71,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
 
   @override
   void dispose() {
-    streamSubscription?.cancel();
-    streamSubscriptionForDisc?.cancel();
+    cancelSubscription();
     //_scanningService.onExit(); // Properly disable scanner when done
     super.dispose();
   }
@@ -88,28 +87,45 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
     rebuildUi();
   }
 
+  Future<void> cancelSubscription() async {
+    if (streamSubscription != null) {
+      await streamSubscription!.cancel();
+      streamSubscription = null;
+    }
+
+    if (streamSubscriptionForDisc != null) {
+      await streamSubscriptionForDisc!.cancel();
+      streamSubscriptionForDisc = null;
+    }
+  }
+
   Future<void> startScanListener() async {
     // Cancel any existing subscription
-    streamSubscription?.cancel();
-    streamSubscriptionForDisc?.cancel();
+    await cancelSubscription();
 
-    // Also listen to license disk data for vehicle scans
-    streamSubscription =
-        _scanningService.licenseStream.asBroadcastStream().listen((data) async {
-      log.i("Drivers Card data received");
-      // Process the driversCard  data here
-      // This would populate a GatePassVisitorAccess from the driversCard data
-      processScanData(data, null);
-    });
-    // Also listen to license disk data for vehicle scans
-    streamSubscriptionForDisc = _scanningService.licenseDiskDataStream
-        .asBroadcastStream()
-        .listen((licenseDiskData) async {
-      log.i("Drivers Card data received");
-      // Process the license disk data here
-      // This would populate a GatePassVisitorAccess from the license disk data
-      processScanData(null, licenseDiskData);
-    });
+    if (streamSubscription == null) {
+      // Also listen to license disk data for vehicle scans
+      streamSubscription = _scanningService.licenseStream
+          .asBroadcastStream()
+          .listen((data) async {
+        log.i("Drivers Card data received");
+        // Process the driversCard  data here
+        // This would populate a GatePassVisitorAccess from the driversCard data
+        processScanData(data, null);
+      });
+    }
+
+    if (streamSubscriptionForDisc == null) {
+      // Also listen to license disk data for vehicle scans
+      streamSubscriptionForDisc = _scanningService.licenseDiskDataStream
+          .asBroadcastStream()
+          .listen((licenseDiskData) async {
+        log.i("Drivers Card data received");
+        // Process the license disk data here
+        // This would populate a GatePassVisitorAccess from the license disk data
+        processScanData(null, licenseDiskData);
+      });
+    }
   }
 
   Future<void> startScanning() async {
@@ -329,5 +345,12 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
 
     _scannedVisitor.serviceTypeId = val;
     rebuildUi();
+  }
+
+  void onDispose() async {
+    await cancelSubscription();
+    _errorMessage = null;
+    _isScanning = false;
+    setBarcodeScanType(BarcodeScanType.driversCard);
   }
 }

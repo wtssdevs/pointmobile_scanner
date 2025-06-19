@@ -1,6 +1,6 @@
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
 class GatePassVisitorAccess {
@@ -31,6 +31,8 @@ class GatePassVisitorAccess {
   DateTime? driverLicenceIssueDate;
   DateTime? driverLicenceExpiryDate;
   String? vehicleRegisterNumber;
+  String? trailerRegNumberOne;
+  String? trailerRegNumberTwo;
   String? vehicleVinNumber;
   String? vehicleEngineNumber;
   String? vehicleMake;
@@ -66,6 +68,8 @@ class GatePassVisitorAccess {
     this.driverLicenceIssueDate,
     this.driverLicenceExpiryDate,
     this.vehicleRegisterNumber,
+    this.trailerRegNumberOne,
+    this.trailerRegNumberTwo,
     this.vehicleVinNumber,
     this.vehicleEngineNumber,
     this.vehicleMake,
@@ -124,6 +128,8 @@ class GatePassVisitorAccess {
           ? DateTime.parse(json['driverLicenceExpiryDate'])
           : null,
       vehicleRegisterNumber: json['vehicleRegisterNumber'],
+      trailerRegNumberOne: json['trailerRegNumberOne'],
+      trailerRegNumberTwo: json['trailerRegNumberTwo'],
       vehicleVinNumber: json['vehicleVinNumber'],
       vehicleEngineNumber: json['vehicleEngineNumber'],
       vehicleMake: json['vehicleMake'],
@@ -162,6 +168,8 @@ class GatePassVisitorAccess {
       'driverLicenceIssueDate': driverLicenceIssueDate?.toIso8601String(),
       'driverLicenceExpiryDate': driverLicenceExpiryDate?.toIso8601String(),
       'vehicleRegisterNumber': vehicleRegisterNumber,
+      'trailerRegNumberOne': trailerRegNumberOne,
+      'trailerRegNumberTwo': trailerRegNumberTwo,
       'vehicleVinNumber': vehicleVinNumber,
       'vehicleEngineNumber': vehicleEngineNumber,
       'vehicleMake': vehicleMake,

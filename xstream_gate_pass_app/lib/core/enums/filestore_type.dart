@@ -9,11 +9,11 @@ enum FileStoreType {
   // Types
   gatePassAccess(32),
   tenant(64),
-
   // Combinations
   gateBookingImage(34), // 32 | 2 (gatePassAccess | image)
   gateBookingDocument(40), // 32 | 8 (gatePassAccess | document)
   gateBookingVideo(48), // 32 | 16 (gatePassAccess | video)
+  gatePassAccessDriverLicenceImage(162), // Foreign license photo capture
   tenantLogo(65); // 64 | 1 (tenant | logo)
 
   final int value;

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';
+import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_pre_booking/gate_access_pre_booking_viewmodel.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_Info_item.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_info_card.dart';
-import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/finder_app_bar.dart';
 
 class GateAccessPreBookingView
     extends StackedView<GateAccessPreBookingViewModel> {
@@ -54,33 +54,33 @@ class GateAccessPreBookingView
         child: Column(
           children: [
             const SizedBox(height: 5.0),
-            BarcodeKeyboardListener(
-              bufferDuration: const Duration(milliseconds: 200),
-              caseSensitive: false,
-              useKeyDownEvent: false,
-              onBarcodeScanned: (barcode) {
-                viewModel.onBarcodeScanned(barcode);
-              },
-              child: const SizedBox.shrink(),
-              // child: ListTile(
-              //   contentPadding: const EdgeInsets.all(0),
-              //   dense: true,
-              //   title: FinderAppBar(
-              //     controller: viewModel.filterController,
-              //     searchWidth: searchWidth,
-              //     searchIcon: const Icon(
-              //       Icons.qr_code_sharp,
-              //       size: 20,
-              //       color: kcPrimaryColor,
-              //     ),
-              //     placeholder:
-              //         "Scan Load Confirmation QrCode", //viewModel.translate('ScanLoadConfirmationQrCode'),
-              //     onChanged: (value) {
-              //       viewModel.onFilterValueChanged(value);
-              //     },
-              //   ),
-              // ),
-            ),
+            // BarcodeKeyboardListener(
+            //   bufferDuration: const Duration(milliseconds: 200),
+            //   caseSensitive: false,
+            //   useKeyDownEvent: false,
+            //   onBarcodeScanned: (barcode) {
+            //     viewModel.onBarcodeScanned(barcode);
+            //   },
+            //   child: const SizedBox.shrink(),
+            //   // child: ListTile(
+            //   //   contentPadding: const EdgeInsets.all(0),
+            //   //   dense: true,
+            //   //   title: FinderAppBar(
+            //   //     controller: viewModel.filterController,
+            //   //     searchWidth: searchWidth,
+            //   //     searchIcon: const Icon(
+            //   //       Icons.qr_code_sharp,
+            //   //       size: 20,
+            //   //       color: kcPrimaryColor,
+            //   //     ),
+            //   //     placeholder:
+            //   //         "Scan Load Confirmation QrCode", //viewModel.translate('ScanLoadConfirmationQrCode'),
+            //   //     onChanged: (value) {
+            //   //       viewModel.onFilterValueChanged(value);
+            //   //     },
+            //   //   ),
+            //   // ),
+            // ),
             // Instructions
             Container(
               padding: const EdgeInsets.all(16),
@@ -115,6 +115,85 @@ class GateAccessPreBookingView
               ),
             ),
             const SizedBox(height: 20.0),
+//manual type in load number to find pre booking if qr code not provided by user
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.search, color: kcPrimaryColor),
+                      horizontalSpaceSmall,
+                      Text(
+                        'Find ${viewModel.translate('PreBookings')} by ${viewModel.translate('VoyageNo')}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: kcPrimaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  verticalSpaceSmall,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          autocorrect: false,
+                          onChanged: (value) {
+                            viewModel.onFilterValueChanged(value);
+                          },
+                          keyboardType: TextInputType.text,
+                          controller: viewModel.voageNoController,
+                          inputFormatters: <TextInputFormatter>[
+                            UpperCaseTextFormatter(),
+                          ],
+                          decoration: InputDecoration(
+                            hintText:
+                                'Enter ${viewModel.translate('VoyageNo')}',
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                      ),
+                      horizontalSpaceMedium,
+                      ElevatedButton.icon(
+                        onPressed: viewModel.voageNoController.text.isEmpty
+                            ? null
+                            : () => viewModel.findGatePassByVoyageNo(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              viewModel.voageNoController.text.isEmpty
+                                  ? Colors.grey[300]
+                                  : kcPrimaryColor,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
+                        ),
+                        icon: const Icon(Icons.search, color: Colors.white),
+                        label: const Text('Find',
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
             // QR Code Scanning Section
             Container(
               padding: const EdgeInsets.all(16),
@@ -271,6 +350,11 @@ class GateAccessPreBookingView
         ),
       ),
     );
+  }
+
+  @override
+  void onDispose(GateAccessPreBookingViewModel viewModel) {
+    viewModel.onDispose();
   }
 
   @override

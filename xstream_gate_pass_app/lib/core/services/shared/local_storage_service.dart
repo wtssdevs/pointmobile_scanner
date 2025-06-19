@@ -32,7 +32,8 @@ class LocalStorageService {
   DeviceConfig get getDeviceConfig {
     var deviceConfig = _getFromDisk(AppConst.deviceConfig);
     if (deviceConfig == null) {
-      var newDeviceConfig = DeviceConfig(deviceScanningMode: DeviceScanningMode.keyboard);
+      var newDeviceConfig =
+          DeviceConfig(deviceScanningMode: DeviceModelScanningMode.pm84);
       _saveToDisk(AppConst.deviceConfig, json.encode(newDeviceConfig.toJson()));
       return newDeviceConfig;
     }
@@ -108,7 +109,8 @@ class LocalStorageService {
   }
 
   void setUserLoginInfo(CurrentLoginInformation userLoginInfo) {
-    _saveToDisk(AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
+    _saveToDisk(
+        AppConst.current_UserProfile, json.encode(userLoginInfo.toJson()));
   }
 
   bool get isLoggedIn {
@@ -143,6 +145,24 @@ class LocalStorageService {
 //   void clearForgotPassword() {
 //     _preferences!.remove(AppConst.is_OTP_Pin_Request);
 //   }
+  String getStringByKey(String key) {
+    var data = _getFromDisk(key);
+    if (data != null) {
+      if (data is String) {
+        return data;
+      }
+    }
+
+    return '';
+  }
+
+  void setStringByKey(String key, String value) {
+    if (value.isEmpty) {
+      _preferences!.remove(key);
+    } else {
+      _saveToDisk(key, value);
+    }
+  }
 
   List<String> getRecentSearches() {
     List<String> outPut = [];
@@ -165,7 +185,8 @@ class LocalStorageService {
       searchText = searchText.trim();
     }
 
-    if (searchText == null || searchText.isEmpty || searchText == " ") return; //Should not be null
+    if (searchText == null || searchText.isEmpty || searchText == " ")
+      return; //Should not be null
 
     var listData = getRecentSearches();
     //Use `Set` to avoid duplication of recentSearches

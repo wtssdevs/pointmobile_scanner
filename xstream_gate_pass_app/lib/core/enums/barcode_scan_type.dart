@@ -3,5 +3,7 @@ enum BarcodeScanType {
   loadConQrCode,
   staffQrCode,
   vehicleDisc,
+  trailerOneDisc,
+  trailerTwoDisc,
   code128
 }

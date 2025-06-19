@@ -1,6 +1,6 @@
 import 'package:dart_helper_utils/dart_helper_utils.dart';
 
-class LicenseDiskData {
+class DriverTempLicense {
   final String prefix; // e.g., MVL1CC20
   final int encoding; // 139
   final String data; // 4522A001 (Likely the vehicle or license number)
@@ -17,7 +17,7 @@ class LicenseDiskData {
   final String engineNumber; // RC61E5001427
   final DateTime expiryDate; // 2025-02-28
 
-  LicenseDiskData({
+  DriverTempLicense({
     required this.prefix,
     required this.encoding,
     required this.data,
@@ -93,7 +93,7 @@ class LicenseDiskData {
     }
   }
 
-  factory LicenseDiskData.fromString(String qrCodeString) {
+  factory DriverTempLicense.fromString(String qrCodeString) {
     List<String> parts = qrCodeString.split('%');
 
     if (parts.length < 15) {
@@ -101,7 +101,7 @@ class LicenseDiskData {
     }
 
     try {
-      return LicenseDiskData(
+      return DriverTempLicense(
         prefix: parts[1],
         encoding: int.parse(parts[2]),
         data: parts[3],
@@ -140,8 +140,8 @@ class LicenseDiskData {
         'expiryDate': expiryDate.toIso8601String(), // Store as ISO string
       };
 
-  factory LicenseDiskData.fromJson(Map<String, dynamic> json) =>
-      LicenseDiskData(
+  factory DriverTempLicense.fromJson(Map<String, dynamic> json) =>
+      DriverTempLicense(
         prefix: json['prefix'],
         encoding: json['encoding'],
         data: json['data'],

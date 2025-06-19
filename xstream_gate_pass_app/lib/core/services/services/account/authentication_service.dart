@@ -27,21 +27,26 @@ class AuthenticationService {
   UserCredential? get currentUser => _currentUser;
   final ApiManager _apiManager = locator<ApiManager>();
   final DialogService _dialogService = locator<DialogService>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final _workerQueManager = locator<WorkerQueManager>();
   final AccessTokenRepo _accessTokenRepo = locator<AccessTokenRepo>();
 
-  Future<TenantAvailableModel?> isTenantAvailable({required String tenantCode}) async {
+  Future<TenantAvailableModel?> isTenantAvailable(
+      {required String tenantCode}) async {
     var dataModel = {'tenancyName': tenantCode};
 //need to convert queryParameters to json
     var queryJson = jsonEncode(dataModel);
-    var authResponse = await _apiManager.post(AppConst.isTenantAvailable, data: queryJson, showLoader: true);
+    var authResponse = await _apiManager.post(AppConst.isTenantAvailable,
+        data: queryJson, showLoader: true);
 
     var apiResponse = ApiResponse.fromJson(authResponse);
 
-    var tenantAvailableModel = TenantAvailableModel.fromJson(apiResponse.result);
+    var tenantAvailableModel =
+        TenantAvailableModel.fromJson(apiResponse.result);
 
-    if (tenantAvailableModel.state == TenantAvailabilityState.available && tenantAvailableModel.tenantId != null) {
+    if (tenantAvailableModel.state == TenantAvailabilityState.available &&
+        tenantAvailableModel.tenantId != null) {
       //update local storage with tenant id
       _localStorageService.setTenantId(tenantAvailableModel.tenantId!);
       return tenantAvailableModel;
@@ -63,26 +68,36 @@ class AuthenticationService {
   Future<AuthenticateResultModel?> login({
     required UserCredential userCredential,
   }) async {
-    var authResponse = await _apiManager.post(AppConst.authentication, data: userCredential.toJson(), showLoader: true);
+    var authResponse = await _apiManager.post(AppConst.authentication,
+        data: userCredential.toJson(), showLoader: true);
     var apiResponse = ApiResponse.fromJson(authResponse);
 
-    var authenticateResultModel = AuthenticateResultModel.fromJson(apiResponse.result);
+    var authenticateResultModel =
+        AuthenticateResultModel.fromJson(apiResponse.result);
 
     await processAuthenticateResult(authenticateResultModel, userCredential);
     return authenticateResultModel;
   }
 
-  Future processAuthenticateResult(AuthenticateResultModel authenticateResultModel, UserCredential userCredential) async {
+  Future processAuthenticateResult(
+      AuthenticateResultModel authenticateResultModel,
+      UserCredential userCredential) async {
     if (authenticateResultModel.accessToken!.isNotEmpty) {
       // Successfully logged in
       authenticateResultModel.tenancyName = userCredential.tenancyName;
-      authenticateResultModel.userNameOrEmailAddress = userCredential.userNameOrEmailAddress;
+      authenticateResultModel.userNameOrEmailAddress =
+          userCredential.userNameOrEmailAddress;
       authenticateResultModel.password = userCredential.password;
-      if (authenticateResultModel.tenantId == null && userCredential.tenantId != null) {
+      if (authenticateResultModel.tenantId == null &&
+          userCredential.tenantId != null) {
         authenticateResultModel.tenantId = userCredential.tenantId;
       }
 
-      authenticateResultModel.setUserCredentials(tenancyName: userCredential.tenancyName, userNameOrEmailAddress: userCredential.userNameOrEmailAddress, password: userCredential.password, tenantId: userCredential.tenantId);
+      authenticateResultModel.setUserCredentials(
+          tenancyName: userCredential.tenancyName,
+          userNameOrEmailAddress: userCredential.userNameOrEmailAddress,
+          password: userCredential.password,
+          tenantId: userCredential.tenantId);
 
       _localStorageService.setAuthToken(authenticateResultModel);
       _localStorageService.saveIsLoggedIn(true);
@@ -103,7 +118,9 @@ class AuthenticationService {
     required RegisterUser registerUser,
   }) async {
     try {
-      var authResult = await _apiManager?.post("/api/services/app/account/register", data: registerUser.toJson());
+      var authResult = await _apiManager?.post(
+          "/api/services/app/account/register",
+          data: registerUser.toJson());
       var apiResponse = ApiResponse.fromJson(authResult);
       return apiResponse.success;
     } catch (e) {
@@ -113,9 +130,11 @@ class AuthenticationService {
 
   //**********Forgot Password ********************************** */
 
-  Future<ForgotPassword?> forgotPassword({required String userNameOrEmailAddress}) async {
+  Future<ForgotPassword?> forgotPassword(
+      {required String userNameOrEmailAddress}) async {
     try {
-      var forgotPassword = ForgotPassword(emailAddress: userNameOrEmailAddress, userId: 0);
+      var forgotPassword =
+          ForgotPassword(emailAddress: userNameOrEmailAddress, userId: 0);
       var authResult = await _apiManager.post(
         "/api/services/app/Account/ForgotPassword",
         data: forgotPassword.toJson(),
@@ -134,7 +153,8 @@ class AuthenticationService {
     }
   }
 
-  Future<bool?> resetForgotPassword({required ResetForgotPassword resetForgotPassword}) async {
+  Future<bool?> resetForgotPassword(
+      {required ResetForgotPassword resetForgotPassword}) async {
     try {
       var authResult = await _apiManager.post(
         "/api/services/app/Account/ResetForgotPassword",
@@ -168,21 +188,26 @@ class AuthenticationService {
         tenantId: token.tenantId,
       );
 
-      var authResult = await _apiManager.post(AppConst.authentication, data: userCredential.toJson(), showLoader: false);
+      var authResult = await _apiManager.post(AppConst.authentication,
+          data: userCredential.toJson(), showLoader: false);
 
       var apiResponse = ApiResponse.fromJson(authResult);
 
       if (apiResponse == null) {
-        var authenticateResultModel = AuthenticateResultModel.fromJson(authResult);
+        var authenticateResultModel =
+            AuthenticateResultModel.fromJson(authResult);
         if (authenticateResultModel != null) {
-          await _accessTokenRepo.processAuthenticateResult(authenticateResultModel, userCredential);
+          await _accessTokenRepo.processAuthenticateResult(
+              authenticateResultModel, userCredential);
           return true;
         }
       }
 
       if (apiResponse.success != null && apiResponse.success == true) {
-        var authenticateResultModel = AuthenticateResultModel.fromJson(apiResponse.result);
-        await _accessTokenRepo.processAuthenticateResult(authenticateResultModel, userCredential);
+        var authenticateResultModel =
+            AuthenticateResultModel.fromJson(apiResponse.result);
+        await _accessTokenRepo.processAuthenticateResult(
+            authenticateResultModel, userCredential);
         return true;
       } else {
         _accessTokenRepo.logOutCurrentUser();
@@ -192,7 +217,8 @@ class AuthenticationService {
     return false;
   }
 
-  Future<CurrentLoginInformation?> getUserLoginInfo([bool forceUpdate = false]) async {
+  Future<CurrentLoginInformation?> getUserLoginInfo(
+      [bool forceUpdate = false]) async {
     try {
       if (forceUpdate == false) {
         var localprofile = _localStorageService.getUserLoginInfo;
@@ -201,10 +227,13 @@ class AuthenticationService {
         }
       }
 
-      var authResult = await _apiManager.get("/api/services/app/Session/GetCurrentLoginInformations", showLoader: false);
+      var authResult = await _apiManager.get(
+          "/api/services/app/Session/GetCurrentLoginInformations",
+          showLoader: false);
       //var apiResponse = ApiResponse.fromJson(authResult);
       if (authResult != null) {
-        var userLoginInfo = CurrentLoginInformation.fromJson(authResult['result']);
+        var userLoginInfo =
+            CurrentLoginInformation.fromJson(authResult['result']);
         _localStorageService.setUserLoginInfo(userLoginInfo);
         return userLoginInfo;
       }
@@ -222,7 +251,8 @@ class AuthenticationService {
     }
   }
 
-  BaseResponse isPasswordCompliant(String password, String username, [int minLength = 6]) {
+  BaseResponse isPasswordCompliant(String password, String username,
+      [int minLength = 6]) {
     var outPut = BaseResponse();
     outPut.messages = [];
     outPut.success = true;
@@ -255,7 +285,8 @@ class AuthenticationService {
       outPut.success = false;
       outPut.messages!.add("One lowercase character is required!.");
     }
-    bool hasSpecialCharacters = password.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    bool hasSpecialCharacters =
+        password.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
     if (!hasSpecialCharacters) {
       outPut.success = false;
       outPut.messages!.add("One special character is required!.");

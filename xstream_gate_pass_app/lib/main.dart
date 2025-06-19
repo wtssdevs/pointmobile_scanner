@@ -55,8 +55,8 @@ Future main() async {
 
   //var envFileToLoad = ".env_dev";
   //var envFileToLoad = ".env_local_proxy_dev";
-  var envFileToLoad = ".env_qa";
-  // var envFileToLoad = ".env_prod";
+  //var envFileToLoad = ".env_qa";
+  var envFileToLoad = ".env_prod";
   await initialise(envFileToLoad);
 
   await setupLocator();

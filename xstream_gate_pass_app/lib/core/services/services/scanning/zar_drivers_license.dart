@@ -108,9 +108,7 @@ class RsaDriversLicense implements RsaIdDocument {
     int section3Start = 10 + bytes[5] + bytes[7];
 
 // Extract the image data
-    Uint8List? section3 = section3Length > 0
-        ? bytes.sublist(section3Start, section3Start + section3Length)
-        : null;
+    Uint8List? section3 = section3Length > 0 ? bytes.sublist(section3Start, section3Start + section3Length) : null;
 
 // Parse the image data if present
     Uint8List? imageData = null;
@@ -137,15 +135,13 @@ class RsaDriversLicense implements RsaIdDocument {
   static Uint8List _cleanRawBytes(Uint8List bytes) {
     // Remove any BOM or control characters at the beginning
     int startIndex = 0;
-    while (startIndex < bytes.length &&
-        (bytes[startIndex] < 32 || bytes[startIndex] > 126)) {
+    while (startIndex < bytes.length && (bytes[startIndex] < 32 || bytes[startIndex] > 126)) {
       startIndex++;
     }
 
     // Remove any trailing control characters
     int endIndex = bytes.length;
-    while (endIndex > startIndex &&
-        (bytes[endIndex - 1] < 32 || bytes[endIndex - 1] > 126)) {
+    while (endIndex > startIndex && (bytes[endIndex - 1] < 32 || bytes[endIndex - 1] > 126)) {
       endIndex--;
     }
 
@@ -157,6 +153,186 @@ class RsaDriversLicense implements RsaIdDocument {
     return bytes;
   }
 
+  /// Factory constructor to create a [RsaDriversLicense] instance from the raw bytes
+  /// read from the Temp license barcode of a South African driver's license.
+  ///sample raw bytes converted to string sample : "%TDL98%0108%2008K02W%1%20080000MYBS%02%8512056292085%EB MVUMBI%EC/2018-12-14/0%%%%DGP/2027-03-13%2025-03-08%"
+
+//create new factory method to create a [RsaDriversLicense] instance from the converted string sample
+
+  factory RsaDriversLicense.fromString(String qrCodeString) {
+    // Example: "%TDL98%0108%2008K02W%1%20080000MYBS%02%8512056292085%EB MVUMBI%EC/2018-12-14/0%%%%DGP/2027-03-13%2025-03-08%"
+    List<String> parts = qrCodeString.split('%');
+
+    if (parts.length < 15) {
+      throw FormatException('Invalid license disk format: Not enough parts');
+    }
+
+    try {
+      // The structure is based on the sample string and typical temp license QR
+      // [0] = '', [1] = TDL98, [2] = 0108, [3] = 2008K02W, [4] = 1, [5] = 20080000MYBS, [6] = 02, [7] = 8512056292085, [8] = EB MVUMBI, [9] = EC/2018-12-14/0, [10] = '', [11] = '', [12] = '', [13] = DGP/2027-03-13, [14] = 25-03-08, [15] = ''
+
+      // Vehicle codes: [3] (may contain multiple codes, e.g. '2008K02W')
+      List<String> vehicleCodes = [];
+      if (parts[3].isNotEmpty) {
+        // Split by non-alphanumeric if needed, or treat as one code
+        vehicleCodes = [parts[3]];
+      }
+
+      // Parse index 9: EC/2018-12-14/0
+      String driversCode = '';
+      DateTime? firstIssueDate;
+      String restriction = '00';
+      if (parts[9].isNotEmpty) {
+        var subParts = parts[9].split('/');
+        if (subParts.length >= 1) {
+          driversCode = subParts[0]; // 'EC'
+        }
+        if (subParts.length >= 2) {
+          try {
+            firstIssueDate = DateTime.parse(subParts[1]); // '2018-12-14'
+          } catch (_) {
+            firstIssueDate = null;
+          }
+        }
+        if (subParts.length >= 3) {
+          restriction = subParts[2]; // '0'
+        }
+      }
+
+      // Surname and first names: [8] (e.g. 'EB MVUMBI')
+      String surname = '';
+      String firstNames = '';
+      if (parts[8].contains(' ')) {
+        var nameParts = parts[8].split(' ');
+        surname = nameParts.last;
+        firstNames = nameParts.sublist(0, nameParts.length - 1).join(' ');
+      } else {
+        surname = parts[8];
+        firstNames = '';
+      }
+
+      // ID number: [7]
+      String idNumber = parts[7];
+
+      // License number: [5] (e.g. '20080000MYBS')
+      String licenseNumber = parts[5];
+
+      // PrDP code: [13] (e.g. 'DGP/2027-03-13') - extract the 'DGP' part
+      String prdpCode = '';
+      DateTime? prdpExpiry;
+      if (parts[13].contains('/')) {
+        var prdpParts = parts[13].split('/');
+        prdpCode = prdpParts[0]; // 'DGP'
+        if (prdpParts.length > 1) {
+          try {
+            prdpExpiry = DateTime.parse(prdpParts[1]); // '2027-03-13'
+          } catch (_) {
+            prdpExpiry = null;
+          }
+        }
+      }
+
+      // Vehicle restrictions: use the restriction from index 9
+      List<String> vehicleRestrictions = [];
+      if (restriction != '0' && restriction.isNotEmpty) {
+        vehicleRestrictions = [restriction];
+      }
+
+      // ID country of issue: not present, default to 'ZA'
+      String idCountryOfIssue = 'ZA';
+
+      // License country of issue: not present, default to 'ZA'
+      String licenseCountryOfIssue = 'ZA';
+
+      // ID number type: not present, default to '02' (South African)
+      String idNumberType = '02';
+
+      // Driver restrictions: use the restriction from index 9
+      String driverRestrictions = restriction.padLeft(2, '0');
+
+      // License issue number: not present, set to empty
+      String licenseIssueNumber = '';
+
+      // Issue dates: [14] (e.g. '25-03-08')
+      List<DateTime?>? issueDates = [];
+      if (parts[14].isNotEmpty) {
+        try {
+          // Format: yy-MM-dd
+          var dateParts = parts[14].split('-');
+          if (dateParts.length == 3) {
+            int year = int.parse(dateParts[0]);
+            int month = int.parse(dateParts[1]);
+            int day = int.parse(dateParts[2]);
+            // Assume 2000+ for year < 50, else 1900+
+            year += (year < 50) ? 2000 : 1900;
+            issueDates.add(DateTime(year, month, day));
+          }
+        } catch (_) {
+          // If parsing fails, keep empty list
+        }
+      }
+
+      // Gender: not present, set to empty
+      String gender = '';
+
+      // Valid from: use first issue date if available
+      DateTime validFrom = issueDates?.first ?? DateTime.now();
+
+      // Valid to: use prdp expiry if available
+      //need to subract 6 month here only valid for 6 month after issue date
+      DateTime now = issueDates.first ?? DateTime.now();
+      DateTime sixMonthsFromNow = DateTime(now.year, now.month + 6, now.day);
+
+      // Handle potential overflow (e.g., if now is December 15, adding 6 months will result in June 15 of the next year)
+      if (sixMonthsFromNow.month > 12) {
+        sixMonthsFromNow = DateTime(sixMonthsFromNow.year + 1, sixMonthsFromNow.month - 12, sixMonthsFromNow.day);
+      }
+
+      DateTime validTo = sixMonthsFromNow;
+
+      // Birth date: try to extract from ID number (YYMMDD)
+      DateTime birthDate;
+      if (idNumber.length >= 6) {
+        int year = int.parse(idNumber.substring(0, 2));
+        int month = int.parse(idNumber.substring(2, 4));
+        int day = int.parse(idNumber.substring(4, 6));
+        // South African IDs: if year < 50, assume 2000+, else 1900+
+        year += (year < 50) ? 2000 : 1900;
+        birthDate = DateTime(year, month, day);
+      } else {
+        birthDate = DateTime(1900, 1, 1);
+      }
+
+      // Image data: not present in temp license
+      Uint8List? imageData;
+
+      return RsaDriversLicense(
+        idNumber: idNumber,
+        firstNames: firstNames,
+        surname: surname,
+        gender: gender,
+        birthDate: birthDate,
+        issueDates: issueDates,
+        licenseNumber: licenseNumber,
+        vehicleCodes: vehicleCodes,
+        prdpCode: prdpCode,
+        idCountryOfIssue: idCountryOfIssue,
+        licenseCountryOfIssue: licenseCountryOfIssue,
+        vehicleRestrictions: vehicleRestrictions,
+        idNumberType: idNumberType,
+        driverRestrictions: driverRestrictions,
+        prdpExpiry: prdpExpiry,
+        licenseIssueNumber: licenseIssueNumber,
+        validFrom: validFrom,
+        validTo: validTo,
+        imageData: imageData,
+      );
+    } catch (e) {
+      throw FormatException('Invalid license disk format: Data parsing failed: $e');
+    }
+  }
+
+  ///
   /// Returns a `DriversLicense` instance from the bytes read from the
   /// barcode of the DriversLicense.
   ///
@@ -179,8 +355,7 @@ class RsaDriversLicense implements RsaIdDocument {
         // Skip the last byte which is likely added by the scanner as a newline character or terminator
         bytes = bytes.sublist(0, 720);
       } else if (bytes.length != 720) {
-        throw FormatException(
-            'Invalid South African driver\'s license barcode data length: ${bytes.length}.');
+        throw FormatException('Invalid South African driver\'s license barcode data length: ${bytes.length}.');
       }
 
       bytes = _decodeDriversAll(bytes);
@@ -239,8 +414,7 @@ class RsaDriversLicense implements RsaIdDocument {
         imageData: imageData,
       );
     } catch (e) {
-      throw FormatException(
-          'Could not instantiate Drivers License from bytes: $e');
+      throw FormatException('Could not instantiate Drivers License from bytes: $e');
     }
   }
 // Replace direct String.fromCharCodes with a safer version
@@ -253,8 +427,7 @@ class RsaDriversLicense implements RsaIdDocument {
         return utf8.decode(bytes, allowMalformed: true);
       } catch (_) {
         // Last resort - replace invalid bytes
-        return String.fromCharCodes(
-            bytes.map((b) => b >= 32 && b <= 126 ? b : 46) // Replace with '.'
+        return String.fromCharCodes(bytes.map((b) => b >= 32 && b <= 126 ? b : 46) // Replace with '.'
             );
       }
     }
@@ -371,10 +544,7 @@ class RsaDriversLicense implements RsaIdDocument {
 
       while (values.length < 12) {
         // If values.length is 0, 5, 7, or 8 - the next values is 2 nibbles (letters) long
-        if (values.isEmpty ||
-            values.length == 5 ||
-            values.length == 7 ||
-            values.length == 11) {
+        if (values.isEmpty || values.length == 5 || values.length == 7 || values.length == 11) {
           //2 nibbles
           values.add(nibbleString.substring(0, 2));
           nibbleString = nibbleString.substring(2);
@@ -383,14 +553,7 @@ class RsaDriversLicense implements RsaIdDocument {
 
         // If values.length is 0, 5, 7, or 8 - the next values is a date, which can be
         // a single nibble or 8 nibbles long.
-        if (values.length == 1 ||
-            values.length == 2 ||
-            values.length == 3 ||
-            values.length == 4 ||
-            values.length == 6 ||
-            values.length == 8 ||
-            values.length == 9 ||
-            values.length == 10) {
+        if (values.length == 1 || values.length == 2 || values.length == 3 || values.length == 4 || values.length == 6 || values.length == 8 || values.length == 9 || values.length == 10) {
           if (nibbleString.substring(0, 1) == 'a') {
             // 1 nibble
             values.add(null);
@@ -433,10 +596,7 @@ MF8CSwC0BKDfEdHKz/GhoEjU1XP5U6YsWD10klknVhpteh4rFAQlJq9wtVBUc5DqbsdI0w/bga20kODD
     var decrypted = <int>[];
     try {
       // Check version from header bytes
-      bool isVersion2 = bytes[0] == 0x01 &&
-          bytes[1] == 0x9b &&
-          bytes[2] == 0x09 &&
-          bytes[3] == 0x45;
+      bool isVersion2 = bytes[0] == 0x01 && bytes[1] == 0x9b && bytes[2] == 0x09 && bytes[3] == 0x45;
 
       // Select appropriate keys based on version
       var key128 = isVersion2 ? key128v2 : key128v1;
@@ -456,16 +616,11 @@ MF8CSwC0BKDfEdHKz/GhoEjU1XP5U6YsWD10klknVhpteh4rFAQlJq9wtVBUc5DqbsdI0w/bga20kODD
       var modulus = (sequence.elements[0] as ASN1Integer).valueAsBigInteger!;
       var exponent = (sequence.elements[1] as ASN1Integer).valueAsBigInteger!;
 
-      decrypted
-          .addAll(_encryptValue(block1, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block2, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block3, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block4, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block5, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block1, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block2, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block3, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block4, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block5, exponent, modulus, 128).sublist(5));
 
       // decode last block using 74-bit key
       rows = key74.split(RegExp(r'\r\n?|\n'));
@@ -516,16 +671,11 @@ Kw==
       var sequence = _parseSequence(rows);
       var modulus = (sequence.elements[0] as ASN1Integer).valueAsBigInteger!;
       var exponent = (sequence.elements[1] as ASN1Integer).valueAsBigInteger!;
-      decrypted
-          .addAll(_encryptValue(block1, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block2, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block3, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block4, exponent, modulus, 128).sublist(5));
-      decrypted
-          .addAll(_encryptValue(block5, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block1, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block2, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block3, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block4, exponent, modulus, 128).sublist(5));
+      decrypted.addAll(_encryptValue(block5, exponent, modulus, 128).sublist(5));
 
       // decode last block of 74 and add to decrypted.
       rows = key74.split(RegExp(r'\r\n?|\n'));
@@ -557,11 +707,7 @@ Kw==
   /// manually since encryption packages don't seem to be working.
   static ASN1Sequence _parseSequence(List<String> rows) {
     try {
-      final keyText = rows
-          .skipWhile((row) => row.startsWith('-----BEGIN'))
-          .takeWhile((row) => !row.startsWith('-----END'))
-          .map((row) => row.trim())
-          .join('');
+      final keyText = rows.skipWhile((row) => row.startsWith('-----BEGIN')).takeWhile((row) => !row.startsWith('-----END')).map((row) => row.trim()).join('');
 
       final keyBytes = Uint8List.fromList(base64.decode(keyText));
       final asn1Parser = ASN1Parser(keyBytes);

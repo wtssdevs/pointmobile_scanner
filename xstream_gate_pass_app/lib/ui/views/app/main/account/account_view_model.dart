@@ -5,6 +5,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
+import 'package:xstream_gate_pass_app/core/app_const.dart';
 
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
@@ -25,11 +26,12 @@ class AccountViewModel extends BaseViewModel {
   final _backgroundJobInfoRepository = locator<BackgroundJobInfoRepository>();
   final DialogService _dialogService = locator<DialogService>();
 
+  final _environmentService = locator<EnvironmentService>();
   String get connectivityResultDisplayName =>
       _connectionService.showConnectivityResultDisplayName;
   String get showConnectionStatus => _connectionService.showConnectionStatus;
   bool get hasConnection => _connectionService.hasConnection;
-
+  String baseUrl = "";
   int _syncCount = 0;
   int get syncCount => _syncCount;
 
@@ -37,9 +39,13 @@ class AccountViewModel extends BaseViewModel {
   CurrentLoginInformation? get currentLoginInformation =>
       _currentLoginInformation;
 
-  DeviceConfig get deviceConfig => _localStorageService.getDeviceConfig;
+  DeviceConfig _deviceConfig =
+      DeviceConfig(deviceScanningMode: DeviceModelScanningMode.pm84);
+  DeviceConfig get deviceConfig => _deviceConfig;
 
   Future handleStartUpLogic() async {
+    _deviceConfig = _localStorageService.getDeviceConfig;
+    baseUrl = _environmentService.getValue(AppConst.Base_hostname);
     await loadTaskCount();
     notifyListeners();
     startconnectionListen();
@@ -121,10 +127,10 @@ class AccountViewModel extends BaseViewModel {
 
   void gotoDeviceConfiguration() {}
 
-  void updateDeviceConfig(DeviceScanningMode? value) {
+  void updateDeviceConfig(DeviceModelScanningMode? value) {
     if (value != null) {
-      deviceConfig.deviceScanningMode = value;
-      _localStorageService.setDeviceConfig(deviceConfig);
+      _deviceConfig.deviceScanningMode = value;
+      _localStorageService.setDeviceConfig(_deviceConfig);
       rebuildUi();
     }
   }

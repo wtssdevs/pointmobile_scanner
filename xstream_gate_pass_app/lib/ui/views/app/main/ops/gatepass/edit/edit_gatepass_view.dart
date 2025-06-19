@@ -12,7 +12,7 @@ import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 
 import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
@@ -25,6 +25,7 @@ import 'package:xstream_gate_pass_app/ui/shared/widgets/text_fields/input_field.
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_Info_item.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_info_card.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/build_scanning_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/foreign_license_photo_card.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/visitor_status_Icon.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/gate_pass_status_chip_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_gatepass_view_model.dart';
@@ -83,6 +84,75 @@ class GatePassEditView extends StatelessWidget {
     }
   }
 
+  Future<bool> validateForAuthEntry(GatePassEditViewModel model, BuildContext context) async {
+    //validate per status
+
+    if (model.gatePass.gatePassBookingType == GatePassBookingType.visitor) {
+      if (model.gatePass.vehicleRegNumber == null) {
+        model.setValidationMessage("Vehicle Reg Number is required");
+      } else {
+        model.clearValidationMessage("Vehicle Reg Number is required");
+      }
+
+      if (model.gatePass.driverName == null) {
+        model.setValidationMessage("Driver Name is required");
+      } else {
+        model.clearValidationMessage("Driver Name is required");
+      }
+      if (model.gatePass.driverIdNo == null) {
+        model.setValidationMessage("Driver ID Number is required");
+      } else {
+        model.clearValidationMessage("Driver ID Number is required");
+      }
+
+      if (model.showValidation) {
+        model.rebuildUi();
+        Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+        return false;
+      }
+
+      return true;
+    }
+
+//GatePassBookingType.breakBulk || GatePassBookingType.containers
+    if (model.gatePass.vehicleRegNumber == null) {
+      model.setValidationMessage("Vehicle Reg Number is required");
+    } else {
+      model.clearValidationMessage("Vehicle Reg Number is required");
+    }
+
+    if (model.gatePass.driverName == null) {
+      model.setValidationMessage("Driver Name is required");
+    } else {
+      model.clearValidationMessage("Driver Name is required");
+    }
+    if (model.gatePass.driverIdNo == null) {
+      model.setValidationMessage("Driver ID Number is required");
+    } else {
+      model.clearValidationMessage("Driver ID Number is required");
+    }
+
+    // Foreign license photo validation
+    if (model.gatePass.driverHasForeignID == true && !model.foreignLicensePhotoTaken) {
+      model.setValidationMessage("Foreign license photo is required");
+    } else {
+      model.clearValidationMessage("Foreign license photo is required");
+    }
+    if (model.gatePass.driverHasForeignID == false) {
+      model.setDriverValidationMessage();
+    }
+
+    model.setVehicleValidationMessage();
+
+    if (model.showValidation) {
+      model.rebuildUi();
+      Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+      return false;
+    }
+
+    return !model.showValidation;
+  }
+
   Future<bool> validateForm(GatePassEditViewModel model, BuildContext context) async {
     //validate per status
 
@@ -113,10 +183,18 @@ class GatePassEditView extends StatelessWidget {
       return true;
     }
 
+//GatePassBookingType.breakBulk || GatePassBookingType.containers
     if (model.gatePass.vehicleRegNumber == null) {
       model.setValidationMessage("Vehicle Reg Number is required");
     } else {
       model.clearValidationMessage("Vehicle Reg Number is required");
+    }
+
+//split between foreign license and normal drivers lisence
+    if (model.gatePass.driverHasForeignID == true && !model.foreignLicensePhotoTaken) {
+      model.setValidationMessage("Foreign license photo is required");
+    } else {
+      model.clearValidationMessage("Foreign license photo is required");
     }
 
     if (model.gatePass.driverName == null) {
@@ -219,9 +297,11 @@ class GatePassEditView extends StatelessWidget {
                     : ElevatedButton.icon(
                         onPressed: () async {
                           // valiate first
-                          var isValid = await validateForm(model, context);
+                          var isValid = await validateForAuthEntry(model, context);
                           if (isValid == true) {
                             model.authorizeEntry();
+                          } else {
+                            model.scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
                           }
                         },
                         icon: const FaIcon(
@@ -262,7 +342,7 @@ class GatePassEditView extends StatelessWidget {
                 //leading:
                 title: BoxText.label(model.gatePass.transactionNo ?? "", color: Colors.black),
                 subtitle: BoxText.label(model.gatePass.voyageNo ?? "", color: Colors.black),
-                trailing: GateStatusChip(gatePassStatus: gatePass.gatePassStatus),
+                trailing: GateStatusChip(gatePassStatus: model.gatePass.gatePassStatus),
               ),
               titleSpacing: 0.0,
               centerTitle: true,
@@ -333,6 +413,7 @@ class GatePassEditView extends StatelessWidget {
                       ),
                     ),
                     body: SingleChildScrollView(
+                        controller: model.scrollController,
                         child: model.gatePass.gatePassBookingType == GatePassBookingType.visitor || model.gatePass.gatePassBookingType == GatePassBookingType.staff
                             ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -413,28 +494,113 @@ class GatePassEditView extends StatelessWidget {
                                       validationMessages: model.validationMessages,
                                     ),
                                   ],
-                                  verticalSpaceTiny,
-                                  !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
                                   verticalSpaceSmall,
                                   BuildInfoCard(
+                                    width: MediaQuery.of(context).size.width * 0.95,
+                                    title: "Main Information",
+                                    isSelected: true,
+                                    hasInfo: model.gatePass != null,
+                                    icon: Icons.list_alt_outlined,
+                                    color: Colors.green,
+                                    infoList: [
+                                      BuildInfoItem(
+                                        label: model.translate("GatePassDeliveryType"),
+                                        value: model.gatePass.gatePassDeliveryType.text,
+                                        validationStatus: ValidationStatus.passed,
+                                        passedIcon: model.gatePass.gatePassDeliveryType == DeliveryType.receive
+                                            ? const Icon(FontAwesomeIcons.arrowsDownToLine, color: Colors.green)
+                                            : const Icon(
+                                                FontAwesomeIcons.arrowsUpToLine,
+                                                color: Colors.red,
+                                              ),
+                                      ),
+                                      BuildInfoItem(
+                                        label: model.translate("GatePassBookingType"),
+                                        value: model.gatePass.gatePassBookingType.text,
+                                        validationStatus: ValidationStatus.passed,
+                                        passedIcon: model.gatePass.gatePassBookingType == GatePassBookingType.containers
+                                            ? const Icon(
+                                                Icons.check_box_outline_blank_sharp,
+                                                color: Colors.blue,
+                                              )
+                                            : Icon(
+                                                model.gatePass.gatePassBookingType.icon,
+                                                color: model.gatePass.gatePassBookingType == GatePassBookingType.containers ? Colors.blue : Colors.brown,
+                                              ),
+                                      ),
+                                      BuildInfoItem(
+                                        label: model.translate("TransactionNo"),
+                                        value: model.gatePass.transactionNo ?? '',
+                                      ),
+                                      BuildInfoItem(label: model.translate("RefNo"), value: model.gatePass.refNo ?? ''),
+                                      BuildInfoItem(label: model.translate("CustomerRefNo"), value: model.gatePass.customerRefNo ?? ''),
+                                      BuildInfoItem(label: model.translate("TicketNo"), value: model.gatePass.ticketNo ?? ''),
+                                      BuildInfoItem(label: model.translate("VoyageNo"), value: model.gatePass.voyageNo ?? ''),
+                                    ],
+                                  ),
+                                  verticalSpaceTiny,
+                                  //*********Drivers TEMP Lisence Card******** */
+                                  //new widget for driver  foreign lisence ID
+                                  ForeignLicensePhotoCard(
+                                    isVisible: model.gatePass.driverHasForeignID == true,
+                                    width: width,
+                                    isPhotoTaken: model.foreignLicensePhotoTaken,
+                                    fileStore: model.foreignLicensePhotoPath,
+                                    onTap: () {
+                                      model.captureForeignLicensePhoto();
+                                    },
+                                    onViewAllImages: () {
+                                      model.viewAllForeignLicensePhotos();
+                                    },
+                                    infoList: [
+                                      BuildInfoItem(label: 'Driver Name', value: model.gatePass.driverName ?? 'Missing Information'),
+                                      BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Missing Information'),
+                                    ],
+                                  ),
+
+                                  !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
+                                  verticalSpaceSmall,
+
+                                  //*********Drivers Lisence Card******** */
+                                  BuildInfoCard(
+                                    isVisible: model.gatePass.driverHasForeignID == false,
+                                    key: model.driverInfoCardKey,
                                     width: width,
                                     title: "Drivers Lisence Card",
                                     isSelected: model.barcodeScanType == BarcodeScanType.driversCard,
                                     onTap: () {
                                       model.setBarcodeScanType(BarcodeScanType.driversCard);
                                     },
-                                    hasInfo: model.gatePass.hasDriverInfo,
+                                    hasInfo: model.gatePass.hasDriverInfo && model.gatePass.driverIdNoMatch,
                                     icon: Icons.credit_card,
                                     color: Colors.blue,
                                     infoList: [
                                       BuildInfoItem(label: 'Driver Name', value: model.gatePass.driverName ?? 'Not Scanned'),
-                                      BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Not Scanned'),
+                                      //BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Not Scanned'),
+
+                                      BuildInfoItem(
+                                        label: 'ID Number',
+                                        value: model.gatePass.driverIdNo ?? 'Not Scanned',
+                                        validationStatus: model.gatePass.driverIdNoValidation != null && model.gatePass.driverIdNoMatch == false ? ValidationStatus.failed : null,
+                                        validationMessage: 'ID Number mismatch',
+                                      ),
+                                      //BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
+                                      model.gatePass.driverIdNoValidation != null && model.gatePass.driverIdNoMatch == false
+                                          ? BuildInfoItem(
+                                              label: 'Mismatch',
+                                              value: model.gatePass.driverIdNoValidation ?? 'ID Number mismatch',
+                                              validationStatus: ValidationStatus.failed,
+                                            )
+                                          : const SizedBox.shrink(),
+
                                       BuildInfoItem(label: 'License No', value: model.gatePass.driverLicenceNo ?? 'Not Scanned'),
                                       BuildInfoItem(label: 'License Expiry', value: model.gatePass.driverLicenceExpiryDate?.toLocal().toFormattedString() ?? 'Not Scanned'),
                                     ],
                                   ),
+
                                   verticalSpaceSmall,
                                   BuildInfoCard(
+                                    key: model.vehicleInfoCardKey,
                                     width: width,
                                     title: "Vehicle Lisence Disc",
                                     isSelected: model.barcodeScanType == BarcodeScanType.vehicleDisc,
@@ -445,14 +611,91 @@ class GatePassEditView extends StatelessWidget {
                                     icon: Icons.directions_car,
                                     color: Colors.green,
                                     infoList: [
-                                      BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
+                                      //need to check if the vehicle reg number matches the scanned reg number
+                                      //if not we need to show a warning icon validation failed or indicate match failed in BuildInfoItem ?
+
+                                      BuildInfoItem(
+                                        label: 'Registration',
+                                        value: model.gatePass.vehicleRegNumber ?? 'Not Scanned',
+                                        validationStatus: model.gatePass.vehicleRegNumberValidation != null && model.gatePass.vehicleRegNoMatch == false ? ValidationStatus.failed : null,
+                                        validationMessage: 'Registration number mismatch',
+                                      ),
+                                      //BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
+                                      model.gatePass.vehicleRegNumberValidation != null && model.gatePass.vehicleRegNoMatch == false
+                                          ? BuildInfoItem(
+                                              label: 'Mismatch',
+                                              value: model.gatePass.vehicleRegNumberValidation ?? 'Registration number mismatch',
+                                              validationStatus: ValidationStatus.failed,
+                                            )
+                                          : const SizedBox.shrink(),
+
                                       BuildInfoItem(label: 'Make', value: model.gatePass.vehicleMake ?? 'Not Scanned'),
                                       BuildInfoItem(label: 'Model', value: model.gatePass.vehicleVinNumber ?? 'Not Scanned'),
+                                    ],
+                                  ),
+
+                                  //Trailer One
+                                  BuildInfoCard(
+                                    isVisible: model.gatePass.trailerRegNumberOne != null,
+                                    key: model.trailerOneInfoCardKey,
+                                    width: width,
+                                    title: "Trailer One Disc",
+                                    isSelected: model.barcodeScanType == BarcodeScanType.trailerOneDisc,
+                                    onTap: () {
+                                      model.setBarcodeScanType(BarcodeScanType.trailerOneDisc);
+                                    },
+                                    hasInfo: model.gatePass.trailerRegNumberOne != null && model.gatePass.trailerRegNumberOneMatch,
+                                    icon: FontAwesomeIcons.trailer,
+                                    color: Colors.green,
+                                    infoList: [
+                                      BuildInfoItem(
+                                        label: 'Registration',
+                                        value: model.gatePass.trailerRegNumberOne ?? 'Not Scanned',
+                                        validationStatus: model.gatePass.trailerRegNumberOneValidation != null && model.gatePass.trailerRegNumberOneMatch == false ? ValidationStatus.failed : null,
+                                        validationMessage: 'Registration number mismatch',
+                                      ),
+                                      model.gatePass.trailerRegNumberOneValidation != null && model.gatePass.trailerRegNumberOneMatch == false
+                                          ? BuildInfoItem(
+                                              label: 'Mismatch',
+                                              value: model.gatePass.trailerRegNumberOneValidation ?? 'Registration number mismatch',
+                                              validationStatus: ValidationStatus.failed,
+                                            )
+                                          : const SizedBox.shrink(),
+                                    ],
+                                  ),
+                                  //Trailer Two
+                                  BuildInfoCard(
+                                    isVisible: model.gatePass.trailerRegNumberTwo != null,
+                                    key: model.trailerTwoInfoCardKey,
+                                    width: width,
+                                    title: "Trailer Two Disc",
+                                    isSelected: model.barcodeScanType == BarcodeScanType.trailerTwoDisc,
+                                    onTap: () {
+                                      model.setBarcodeScanType(BarcodeScanType.trailerTwoDisc);
+                                    },
+                                    hasInfo: model.gatePass.trailerRegNumberTwo != null && model.gatePass.trailerRegNumberTwoMatch,
+                                    icon: FontAwesomeIcons.trailer,
+                                    color: Colors.green,
+                                    infoList: [
+                                      BuildInfoItem(
+                                        label: 'Registration',
+                                        value: model.gatePass.trailerRegNumberTwo ?? 'Not Scanned',
+                                        validationStatus: model.gatePass.trailerRegNumberTwoValidation != null && model.gatePass.trailerRegNumberTwoMatch == false ? ValidationStatus.failed : null,
+                                        validationMessage: 'Registration number mismatch',
+                                      ),
+                                      model.gatePass.trailerRegNumberTwoValidation != null && model.gatePass.trailerRegNumberTwoMatch == false
+                                          ? BuildInfoItem(
+                                              label: 'Mismatch',
+                                              value: model.gatePass.trailerRegNumberTwoValidation ?? 'Registration number mismatch',
+                                              validationStatus: ValidationStatus.failed,
+                                            )
+                                          : const SizedBox.shrink(),
                                     ],
                                   ),
                                   verticalSpaceSmall,
                                   if (model.gatePass.gatePassBookingType == GatePassBookingType.containers) ...[
                                     BuildInfoCard(
+                                      key: model.containerInfoCardKey,
                                       width: width,
                                       title: "Container Info",
                                       isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,

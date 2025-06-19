@@ -1,10 +1,13 @@
 import 'package:stacked/stacked_annotations.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate-pass-access_model.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_staff_model.dart';
-import 'package:xstream_gate_pass_app/core/models/gatepass/gate_pass_access_visitor_model.dart';
+import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_access_staff_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate_pass_access_visitor_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/loadcon_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/staff_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/stockpile_loading_slip_qrcode_model.dart';
@@ -17,6 +20,7 @@ import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
 class GatePassService {
   final log = getLogger('GatePassService');
   final ApiManager _apiManager = locator<ApiManager>();
+  final _dialogService = locator<DialogService>();
 
   Future<PagedList<GatePassVisitorAccess>> getVisitorPagedList(
       int pageNumber, int pageSize, String searchValue, int branchId) async {
@@ -260,6 +264,28 @@ class GatePassService {
     return null;
   }
 
+//findGatePassByVoyageNo
+  Future<GatePassAccess?> findPreBookedLoadByVoyageNo(
+      FilterParams entity) async {
+    try {
+      var baseResponse = await _apiManager.post(
+          AppConst.findPreBookedLoadByVoyageNo,
+          showLoader: true,
+          data: entity.toJson());
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success != null) {
+          return GatePassAccess.fromJson(apiResponse.result);
+        }
+      }
+      return null;
+    } catch (e) {
+      log.e(e.toString());
+    }
+
+    return null;
+  }
+
   Future<GatePassAccess?> findPreBookedLoad(LoadconQrCodeModel entity) async {
     try {
       var baseResponse = await _apiManager.post(AppConst.findPreBookedLoad,
@@ -321,9 +347,19 @@ class GatePassService {
       var baseResponse = await _apiManager.post(AppConst.scanStaffIn,
           showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
-        var apiResponse = ApiResponse.fromJson(baseResponse);
-        if (apiResponse.success != null) {
+        var apiResponse = BaseResponse.fromJson(baseResponse);
+        if (apiResponse.success != null && apiResponse.success == true) {
           return GatePassStaffAccess.fromJson(apiResponse.result);
+        } else {
+          await _dialogService.showCustomDialog(
+            variant: DialogType.infoAlert,
+            title: apiResponse.title,
+            description: apiResponse.message,
+            data: BasicDialogStatus.error,
+            mainButtonTitle: "Ok",
+          );
+
+          return null;
         }
       }
     } catch (e) {
@@ -338,10 +374,20 @@ class GatePassService {
       var baseResponse = await _apiManager.post(AppConst.scanStaffOut,
           showLoader: true, data: entity.toJson());
       if (baseResponse != null) {
-        var apiResponse = ApiResponse.fromJson(baseResponse);
-        if (apiResponse.success != null) {
+        var apiResponse = BaseResponse.fromJson(baseResponse);
+        if (apiResponse.success != null && apiResponse.success == true) {
           return GatePassStaffAccess.fromJson(apiResponse.result);
         }
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          title: apiResponse.title,
+          description: apiResponse.message,
+          data: BasicDialogStatus.error,
+          mainButtonTitle: "Ok",
+        );
+
+        return null;
       }
     } catch (e) {
       log.e(e.toString());

@@ -16,13 +16,19 @@ class CameraCaptureView extends StatefulWidget {
   final String refId;
   final int referanceId;
 
-  const CameraCaptureView({Key? key, required this.refId, required this.referanceId, required this.fileStoreType}) : super(key: key);
+  const CameraCaptureView(
+      {Key? key,
+      required this.refId,
+      required this.referanceId,
+      required this.fileStoreType})
+      : super(key: key);
 
   @override
   State<CameraCaptureView> createState() => _CameraCaptureViewState();
 }
 
-class _CameraCaptureViewState extends State<CameraCaptureView> with TickerProviderStateMixin {
+class _CameraCaptureViewState extends State<CameraCaptureView>
+    with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
@@ -36,8 +42,10 @@ class _CameraCaptureViewState extends State<CameraCaptureView> with TickerProvid
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CameraCaptureViewModel>.reactive(
-      viewModelBuilder: () => CameraCaptureViewModel(widget.refId, widget.referanceId, widget.fileStoreType, this),
-      onViewModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      viewModelBuilder: () => CameraCaptureViewModel(
+          widget.refId, widget.referanceId, widget.fileStoreType, this),
+      onViewModelReady: (model) =>
+          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.runStartupLogic(widget.refId, widget.fileStoreType);
       }),
       onDispose: (model) {
