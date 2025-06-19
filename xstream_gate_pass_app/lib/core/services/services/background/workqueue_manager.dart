@@ -10,6 +10,7 @@ import 'package:xstream_gate_pass_app/core/models/background_job_que/background_
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterfiles_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
@@ -24,6 +25,7 @@ class WorkerQueManager {
   final _connectionService = locator<ConnectionService>();
   final _fileStoreManager = locator<FileStoreManager>();
   final _masterFilesService = locator<MasterFilesService>();
+  final _incidentManagerService = locator<IncidentManagerService>();
 
   final int maxConcurrentTasks = 1;
   int runningTasks = 0;
@@ -39,8 +41,7 @@ class WorkerQueManager {
   //get stream for sync que tasks
   Stream get onSyncTaskChange => _syncController.stream;
 
-  Future<void> enqueSingle(BackgroundJobInfo value,
-      [bool startNow = true]) async {
+  Future<void> enqueSingle(BackgroundJobInfo value, [bool startNow = true]) async {
     //_input.add(value);
 
     await _backgroundJobInfoRepository.insert(value);
@@ -63,14 +64,7 @@ class WorkerQueManager {
       //     nextTryTime: Timestamp.now(),
       //     id: "",
       //     isAbandoned: false),
-      BackgroundJobInfo(
-          jobType: BackgroundJobType.syncMasterfiles.index,
-          jobArgs: "",
-          lastTryTime: Timestamp.now(),
-          creationTime: Timestamp.now(),
-          nextTryTime: Timestamp.now(),
-          id: "",
-          isAbandoned: false),
+      BackgroundJobInfo(jobType: BackgroundJobType.syncMasterfiles.index, jobArgs: "", lastTryTime: Timestamp.now(), creationTime: Timestamp.now(), nextTryTime: Timestamp.now(), id: "", isAbandoned: false),
     ]);
   }
 
@@ -114,8 +108,7 @@ class WorkerQueManager {
 
         await tryProcessJob(firstJob);
         if (kDebugMode) {
-          log.d(
-              'TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
+          log.d('TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
         }
       } else {
         //TODO clean job list from db and report issues maybe...
@@ -160,10 +153,16 @@ class WorkerQueManager {
           await _masterFilesService.syncServerWithLocalAll();
           deleteJob = true;
           break;
+        case BackgroundJobType.createIncident:
+          await _incidentManagerService.createIncident(jobInfo.jobArgs);
+          deleteJob = true;
+          break;
+
         case BackgroundJobType.syncImages:
           if (jobInfo.jobArgs != null) {
             var refIdAsString = asT<String>(jobInfo.jobArgs);
             if (refIdAsString != null) {
+              //await _fileStoreManager.uploadImageToServer(refIdAsString);
               await _fileStoreManager.uploadImageToServer(refIdAsString);
             }
           } else {

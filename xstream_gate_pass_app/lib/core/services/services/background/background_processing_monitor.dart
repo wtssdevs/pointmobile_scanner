@@ -33,11 +33,13 @@ class BackgroundProcessingMonitor {
   static const int _maxResponseTimeMs = 30000; // 30 seconds
 
   // Alerts
-  final StreamController<PerformanceAlert> _alertController = StreamController<PerformanceAlert>.broadcast();
+  final StreamController<PerformanceAlert> _alertController =
+      StreamController<PerformanceAlert>.broadcast();
   final List<PerformanceAlert> _activeAlerts = [];
 
   // Statistics
-  final StreamController<PerformanceMetrics> _metricsController = StreamController<PerformanceMetrics>.broadcast();
+  final StreamController<PerformanceMetrics> _metricsController =
+      StreamController<PerformanceMetrics>.broadcast();
 
   /// Stream for performance alerts
   Stream<PerformanceAlert> get alertStream => _alertController.stream;
@@ -46,7 +48,8 @@ class BackgroundProcessingMonitor {
   Stream<PerformanceMetrics> get metricsStream => _metricsController.stream;
 
   /// Start monitoring
-  Future<void> startMonitoring({Duration interval = const Duration(seconds: 30)}) async {
+  Future<void> startMonitoring(
+      {Duration interval = const Duration(seconds: 30)}) async {
     if (_isMonitoring) {
       log.w('Monitoring already started');
       return;
@@ -138,7 +141,8 @@ class BackgroundProcessingMonitor {
       alerts.add(PerformanceAlert(
         type: AlertType.highErrorRate,
         severity: AlertSeverity.warning,
-        message: 'High error rate detected: ${metrics.errorRate.toStringAsFixed(2)}%',
+        message:
+            'High error rate detected: ${metrics.errorRate.toStringAsFixed(2)}%',
         value: metrics.errorRate,
         threshold: _errorRateThreshold,
         timestamp: metrics.timestamp,
@@ -150,7 +154,8 @@ class BackgroundProcessingMonitor {
       alerts.add(PerformanceAlert(
         type: AlertType.lowSuccessRate,
         severity: AlertSeverity.critical,
-        message: 'Low success rate detected: ${metrics.successRate.toStringAsFixed(2)}%',
+        message:
+            'Low success rate detected: ${metrics.successRate.toStringAsFixed(2)}%',
         value: metrics.successRate,
         threshold: _successRateThreshold,
         timestamp: metrics.timestamp,
@@ -220,7 +225,10 @@ class BackgroundProcessingMonitor {
   /// Process individual alert
   void _processAlert(PerformanceAlert alert) {
     // Check if this is a duplicate alert
-    final isDuplicate = _activeAlerts.any((a) => a.type == alert.type && a.severity == alert.severity && DateTime.now().difference(a.timestamp).inMinutes < 5);
+    final isDuplicate = _activeAlerts.any((a) =>
+        a.type == alert.type &&
+        a.severity == alert.severity &&
+        DateTime.now().difference(a.timestamp).inMinutes < 5);
 
     if (!isDuplicate) {
       _activeAlerts.add(alert);
@@ -274,7 +282,8 @@ class BackgroundProcessingMonitor {
       totalJobsProcessed: totalJobs,
       totalJobsFailed: totalFailures,
       activeAlerts: _activeAlerts.length,
-      isHealthy: avgSuccessRate >= _successRateThreshold && avgErrorRate <= _errorRateThreshold,
+      isHealthy: avgSuccessRate >= _successRateThreshold &&
+          avgErrorRate <= _errorRateThreshold,
       executionMode: _migrationService.isUsingEnhanced ? 'isolates' : 'legacy',
       metricsCollected: totalEntries,
       monitoringActive: _isMonitoring,
@@ -340,7 +349,8 @@ class PerformanceMetrics {
     required this.activeWorkers,
   });
 
-  factory PerformanceMetrics.fromStats(Map<String, dynamic> stats, DateTime timestamp) {
+  factory PerformanceMetrics.fromStats(
+      Map<String, dynamic> stats, DateTime timestamp) {
     final successRateStr = stats['successRate'] as String? ?? '100.00';
     final successRate = double.tryParse(successRateStr) ?? 100.0;
     final errorRate = 100.0 - successRate;

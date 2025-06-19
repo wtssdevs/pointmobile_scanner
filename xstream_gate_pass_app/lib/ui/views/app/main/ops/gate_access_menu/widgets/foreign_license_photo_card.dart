@@ -34,7 +34,9 @@ class ForeignLicensePhotoCard extends StatelessWidget {
             width: width,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isPhotoTaken ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              color: isPhotoTaken
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.orange.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isPhotoTaken ? Colors.green : Colors.orange,
@@ -62,11 +64,13 @@ class ForeignLicensePhotoCard extends StatelessWidget {
                         onTap: () => onViewAllImages!(),
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.blue.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                            border:
+                                Border.all(color: Colors.blue.withOpacity(0.3)),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
@@ -112,7 +116,8 @@ class ForeignLicensePhotoCard extends StatelessWidget {
                     children: [
                       if (isPhotoTaken) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 12),
                           decoration: BoxDecoration(
                             color: Colors.green.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
@@ -202,14 +207,16 @@ class ForeignLicensePhotoCard extends StatelessWidget {
                         ],
                       ] else ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 12),
                           decoration: BoxDecoration(
                             color: Colors.orange.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Row(
                             children: [
-                              Icon(Icons.warning, color: Colors.orange, size: 16),
+                              Icon(Icons.warning,
+                                  color: Colors.orange, size: 16),
                               SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -232,7 +239,8 @@ class ForeignLicensePhotoCard extends StatelessWidget {
                           margin: const EdgeInsets.symmetric(horizontal: 8),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300, width: 1),
+                            border: Border.all(
+                                color: Colors.grey.shade300, width: 1),
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -262,7 +270,8 @@ class ForeignLicensePhotoCard extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         color: Colors.grey.shade200,
                                         borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(color: Colors.grey.shade400),
+                                        border: Border.all(
+                                            color: Colors.grey.shade400),
                                       ),
                                       child: Icon(
                                         Icons.person,
@@ -274,15 +283,18 @@ class ForeignLicensePhotoCard extends StatelessWidget {
                                     // License info
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
                                         children: [
                                           Container(
                                             height: 8,
                                             width: 120,
                                             decoration: BoxDecoration(
                                               color: Colors.grey.shade300,
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
                                             ),
                                           ),
                                           Container(
@@ -290,7 +302,8 @@ class ForeignLicensePhotoCard extends StatelessWidget {
                                             width: 80,
                                             decoration: BoxDecoration(
                                               color: Colors.grey.shade300,
-                                              borderRadius: BorderRadius.circular(3),
+                                              borderRadius:
+                                                  BorderRadius.circular(3),
                                             ),
                                           ),
                                           Container(
@@ -298,7 +311,8 @@ class ForeignLicensePhotoCard extends StatelessWidget {
                                             width: 100,
                                             decoration: BoxDecoration(
                                               color: Colors.grey.shade300,
-                                              borderRadius: BorderRadius.circular(3),
+                                              borderRadius:
+                                                  BorderRadius.circular(3),
                                             ),
                                           ),
                                         ],

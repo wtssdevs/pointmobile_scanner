@@ -31,7 +31,8 @@ class BackgroundProcessingMigrationService {
   DateTime? _migrationStartTime;
 
   // Monitoring
-  final StreamController<Map<String, dynamic>> _migrationStatusController = StreamController<Map<String, dynamic>>.broadcast();
+  final StreamController<Map<String, dynamic>> _migrationStatusController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
   // Statistics for comparison
   final Map<String, dynamic> _legacyStats = {};
@@ -42,7 +43,8 @@ class BackgroundProcessingMigrationService {
   }
 
   /// Stream for migration status updates
-  Stream<Map<String, dynamic>> get migrationStatusStream => _migrationStatusController.stream;
+  Stream<Map<String, dynamic>> get migrationStatusStream =>
+      _migrationStatusController.stream;
 
   /// Initialize migration process
   Future<void> _initializeMigration() async {
@@ -102,7 +104,8 @@ class BackgroundProcessingMigrationService {
       log.d('Enhanced manager execution mode: $executionMode');
 
       // Validation criteria
-      final isValid = stats['executionMode'] != null && stats['maxConcurrentTasks'] > 0;
+      final isValid =
+          stats['executionMode'] != null && stats['maxConcurrentTasks'] > 0;
 
       if (isValid) {
         log.i('Enhanced manager validation successful');
@@ -138,7 +141,8 @@ class BackgroundProcessingMigrationService {
   }
 
   /// Run a specific migration phase
-  Future<void> _runPhase(String phaseName, double trafficPercentage, Duration duration) async {
+  Future<void> _runPhase(
+      String phaseName, double trafficPercentage, Duration duration) async {
     log.i('Running migration phase: $phaseName ($trafficPercentage traffic)');
 
     _useEnhanced = true; // For this implementation, we'll use enhanced manager
@@ -201,7 +205,8 @@ class BackgroundProcessingMigrationService {
 
         final isSuccessful = successRate >= (minSuccessRate * 100);
 
-        log.d('Phase $phaseName success rate: $successRate% (threshold: ${minSuccessRate * 100}%)');
+        log.d(
+            'Phase $phaseName success rate: $successRate% (threshold: ${minSuccessRate * 100}%)');
 
         return isSuccessful;
       }
@@ -258,10 +263,12 @@ class BackgroundProcessingMigrationService {
       final hasProcessedJobs = totalJobs > 0;
       final isolatesWorking = stats['executionMode'] == 'isolates';
 
-      final decision = hasGoodSuccessRate && hasProcessedJobs && isolatesWorking;
+      final decision =
+          hasGoodSuccessRate && hasProcessedJobs && isolatesWorking;
 
       log.i('Final migration decision: $decision');
-      log.d('Success rate: $successRate%, Jobs processed: $totalJobs, Isolates: $isolatesWorking');
+      log.d(
+          'Success rate: $successRate%, Jobs processed: $totalJobs, Isolates: $isolatesWorking');
 
       return decision;
     } catch (e) {
@@ -374,7 +381,8 @@ class BackgroundProcessingMigrationService {
 
   // Wrapper methods to maintain API compatibility
 
-  Future<void> enqueSingle(BackgroundJobInfo value, [bool startNow = true]) async {
+  Future<void> enqueSingle(BackgroundJobInfo value,
+      [bool startNow = true]) async {
     if (_useEnhanced && _enhancedManager != null) {
       return _enhancedManager!.enqueSingle(value, startNow);
     }

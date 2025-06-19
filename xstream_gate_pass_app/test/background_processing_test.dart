@@ -17,7 +17,8 @@ void main() {
 
       expect(config.isolatesEnabled, isTrue);
       expect(config.minWorkerIsolates, greaterThanOrEqualTo(2));
-      expect(config.maxWorkerIsolates, greaterThanOrEqualTo(config.minWorkerIsolates));
+      expect(config.maxWorkerIsolates,
+          greaterThanOrEqualTo(config.minWorkerIsolates));
       expect(config.maxConcurrentJobs, greaterThan(0));
       expect(config.jobTimeout.inMinutes, greaterThan(0));
     });
@@ -185,7 +186,8 @@ void main() {
 
       // Test minimum constraints
       expect(config.minWorkerIsolates, greaterThanOrEqualTo(1));
-      expect(config.maxWorkerIsolates, greaterThanOrEqualTo(config.minWorkerIsolates));
+      expect(config.maxWorkerIsolates,
+          greaterThanOrEqualTo(config.minWorkerIsolates));
 
       // Test update validation
       config.updatePerformanceSettings(
@@ -218,7 +220,8 @@ void main() {
         jobType: BackgroundJobType.syncMasterfiles.index,
         jobArgs: '',
         lastTryTime: Timestamp.now(),
-        creationTime: Timestamp.fromDateTime(DateTime.now().subtract(const Duration(days: 3))),
+        creationTime: Timestamp.fromDateTime(
+            DateTime.now().subtract(const Duration(days: 3))),
         nextTryTime: Timestamp.now(),
         isAbandoned: false,
         tryCount: 20,
@@ -238,7 +241,8 @@ void main() {
         jobType: BackgroundJobType.syncMasterfiles.index,
         jobArgs: '',
         lastTryTime: Timestamp.now(),
-        creationTime: Timestamp.fromDateTime(DateTime.now().subtract(const Duration(days: 5))),
+        creationTime: Timestamp.fromDateTime(
+            DateTime.now().subtract(const Duration(days: 5))),
         nextTryTime: Timestamp.now(),
         isAbandoned: false,
         tryCount: 30, // High try count

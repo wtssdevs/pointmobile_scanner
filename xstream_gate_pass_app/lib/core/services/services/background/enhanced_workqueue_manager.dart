@@ -43,8 +43,10 @@ class EnhancedWorkerQueManager {
   final Queue<BackgroundJobInfo> _legacyQueue = Queue();
 
   // Monitoring
-  final StreamController<bool> _syncController = StreamController<bool>.broadcast();
-  final StreamController<Map<String, dynamic>> _statsController = StreamController<Map<String, dynamic>>.broadcast();
+  final StreamController<bool> _syncController =
+      StreamController<bool>.broadcast();
+  final StreamController<Map<String, dynamic>> _statsController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
   // Statistics
   int _totalJobsProcessed = 0;
@@ -108,7 +110,8 @@ class EnhancedWorkerQueManager {
   Stream<Map<String, dynamic>> get onStatsChange => _statsController.stream;
 
   /// Enqueue a single job
-  Future<void> enqueSingle(BackgroundJobInfo value, [bool startNow = true]) async {
+  Future<void> enqueSingle(BackgroundJobInfo value,
+      [bool startNow = true]) async {
     await _backgroundJobInfoRepository.insert(value);
 
     if (startNow) {
@@ -342,7 +345,12 @@ class EnhancedWorkerQueManager {
       'maxConcurrentTasks': _maxConcurrentTasks,
       'totalJobsProcessed': _totalJobsProcessed,
       'totalJobsFailed': _totalJobsFailed,
-      'successRate': _totalJobsProcessed > 0 ? ((_totalJobsProcessed - _totalJobsFailed) / _totalJobsProcessed * 100).toStringAsFixed(2) : '0.00',
+      'successRate': _totalJobsProcessed > 0
+          ? ((_totalJobsProcessed - _totalJobsFailed) /
+                  _totalJobsProcessed *
+                  100)
+              .toStringAsFixed(2)
+          : '0.00',
       'jobTypeCounters': Map.from(_jobTypeCounters),
       'legacyQueueSize': _legacyQueue.length,
     };
@@ -359,7 +367,8 @@ class EnhancedWorkerQueManager {
   void setExecutionMode({required bool useIsolates}) {
     if (_useIsolates != useIsolates) {
       _useIsolates = useIsolates;
-      log.i('Execution mode changed to: ${useIsolates ? "isolates" : "legacy"}');
+      log.i(
+          'Execution mode changed to: ${useIsolates ? "isolates" : "legacy"}');
 
       if (useIsolates && !_isolatePoolInitialized) {
         _initializeIsolatePool().catchError((e) {

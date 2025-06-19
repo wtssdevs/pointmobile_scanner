@@ -20,6 +20,7 @@ import 'package:xstream_gate_pass_app/core/models/background_job_que/background_
 import 'package:xstream_gate_pass_app/core/models/basefiles/containers/container_info_extratced_model.dart';
 import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/incidents/incident_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_repository.dart';
@@ -735,6 +736,30 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     }
 
     notifyListeners();
+  }
+
+  Future<void> logIncident(String message) async {
+    var newIncident = Incident(
+      id: "",
+      gatePassAccessId: gatePass.id,
+      //incidentType: IncidentType.gatePassIncident,
+      message: message,
+      branchId: gatePass.branchId,
+      revolved: false,
+    );
+    await _workerQueManager.enqueSingle(
+      BackgroundJobInfo(
+        jobType: BackgroundJobType.createIncident.index,
+        jobArgs: newIncident.toJson(),
+        lastTryTime: Timestamp.now(),
+        creationTime: Timestamp.now(),
+        nextTryTime: Timestamp.now(),
+        refTransactionId: gatePass.id,
+        id: "",
+        isAbandoned: false,
+      ),
+      false,
+    );
   }
 
   BaseLookup? getCustomer() {

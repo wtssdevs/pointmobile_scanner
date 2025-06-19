@@ -45,7 +45,8 @@ class IsolatePoolManager {
   })  : _minWorkers = minWorkers ?? _calculateMinWorkers(),
         _maxWorkers = maxWorkers ?? _calculateMaxWorkers(),
         _workerIdleTimeout = workerIdleTimeout ?? const Duration(minutes: 5),
-        _healthCheckInterval = healthCheckInterval ?? const Duration(minutes: 2);
+        _healthCheckInterval =
+            healthCheckInterval ?? const Duration(minutes: 2);
 
   /// Initialize the isolate pool
   Future<void> initialize() async {
@@ -60,7 +61,8 @@ class IsolatePoolManager {
       // Start health monitoring
       _startHealthCheck();
 
-      log.i('Isolate pool initialized successfully with ${_workers.length} workers');
+      log.i(
+          'Isolate pool initialized successfully with ${_workers.length} workers');
     } catch (e) {
       log.e('Failed to initialize isolate pool: $e');
       rethrow;
@@ -68,7 +70,8 @@ class IsolatePoolManager {
   }
 
   /// Submit a job for processing
-  Future<JobResult> submitJob(BackgroundJobInfo jobInfo, {Duration? timeout}) async {
+  Future<JobResult> submitJob(BackgroundJobInfo jobInfo,
+      {Duration? timeout}) async {
     if (_isShuttingDown) {
       throw StateError('Pool is shutting down');
     }
@@ -152,7 +155,12 @@ class IsolatePoolManager {
       'pendingJobs': _pendingJobs.length,
       'totalJobsProcessed': _totalJobsProcessed,
       'totalJobsFailed': _totalJobsFailed,
-      'successRate': _totalJobsProcessed > 0 ? ((_totalJobsProcessed - _totalJobsFailed) / _totalJobsProcessed * 100).toStringAsFixed(2) : '0.00',
+      'successRate': _totalJobsProcessed > 0
+          ? ((_totalJobsProcessed - _totalJobsFailed) /
+                  _totalJobsProcessed *
+                  100)
+              .toStringAsFixed(2)
+          : '0.00',
       'workerJobCounts': Map.from(_workerJobCounts),
     };
   }
@@ -172,11 +180,13 @@ class IsolatePoolManager {
 
   Future<WorkerInfo?> _selectWorker() async {
     // Find available worker
-    var availableWorkers = _workers.where((w) => !w.isBusy && w.isHealthy).toList();
+    var availableWorkers =
+        _workers.where((w) => !w.isBusy && w.isHealthy).toList();
 
     if (availableWorkers.isNotEmpty) {
       // Load balancing: select worker with least jobs processed
-      availableWorkers.sort((a, b) => (_workerJobCounts[a.id] ?? 0).compareTo(_workerJobCounts[b.id] ?? 0));
+      availableWorkers.sort((a, b) =>
+          (_workerJobCounts[a.id] ?? 0).compareTo(_workerJobCounts[b.id] ?? 0));
       return availableWorkers.first;
     }
 
@@ -194,7 +204,8 @@ class IsolatePoolManager {
     while (attempts < 50) {
       // Max 5 seconds wait
       await Future.delayed(const Duration(milliseconds: 100));
-      availableWorkers = _workers.where((w) => !w.isBusy && w.isHealthy).toList();
+      availableWorkers =
+          _workers.where((w) => !w.isBusy && w.isHealthy).toList();
       if (availableWorkers.isNotEmpty) {
         return availableWorkers.first;
       }
@@ -281,11 +292,14 @@ class IsolatePoolManager {
     worker.markUnhealthy();
 
     // Handle any pending jobs from this worker
-    final workerJobs = _pendingJobs.entries.where((entry) => entry.key.startsWith(worker.id)).toList();
+    final workerJobs = _pendingJobs.entries
+        .where((entry) => entry.key.startsWith(worker.id))
+        .toList();
 
     for (final entry in workerJobs) {
       if (!entry.value.isCompleted) {
-        entry.value.complete(JobResult.error(entry.key, 'Worker error: $error'));
+        entry.value
+            .complete(JobResult.error(entry.key, 'Worker error: $error'));
       }
       _pendingJobs.remove(entry.key);
     }
@@ -294,7 +308,8 @@ class IsolatePoolManager {
   void _handleWorkerExit(WorkerInfo worker) {
     log.w('Worker ${worker.id} exited unexpectedly');
     _workers.remove(worker);
-    _workerJobCounts.remove(worker.id); // Respawn if needed and not shutting down
+    _workerJobCounts
+        .remove(worker.id); // Respawn if needed and not shutting down
     if (!_isShuttingDown && _workers.length < _minWorkers) {
       _spawnWorker().then((_) {
         log.d('Worker respawned after exit');
@@ -305,7 +320,8 @@ class IsolatePoolManager {
   }
 
   void _startHealthCheck() {
-    _healthCheckTimer = Timer.periodic(_healthCheckInterval, (_) => _performHealthCheck());
+    _healthCheckTimer =
+        Timer.periodic(_healthCheckInterval, (_) => _performHealthCheck());
   }
 
   Future<void> _performHealthCheck() async {
@@ -332,7 +348,12 @@ class IsolatePoolManager {
 
       // Remove idle workers above minimum
       if (_workers.length > _minWorkers) {
-        final idleWorkers = _workers.where((w) => !w.isBusy && DateTime.now().difference(w.lastActivity) > _workerIdleTimeout).take(_workers.length - _minWorkers).toList();
+        final idleWorkers = _workers
+            .where((w) =>
+                !w.isBusy &&
+                DateTime.now().difference(w.lastActivity) > _workerIdleTimeout)
+            .take(_workers.length - _minWorkers)
+            .toList();
 
         for (final worker in idleWorkers) {
           await _killWorker(worker);

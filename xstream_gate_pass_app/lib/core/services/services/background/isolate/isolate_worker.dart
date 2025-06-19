@@ -51,14 +51,16 @@ Future<JobResult> _processJob(JobMessage jobMessage) async {
 
     switch (jobInfo.getJobType) {
       case BackgroundJobType.none:
-        return JobResult.success(jobId, data: {'message': 'No-op job completed'});
+        return JobResult.success(jobId,
+            data: {'message': 'No-op job completed'});
 
       case BackgroundJobType.syncMasterfiles:
         // Note: In a real isolate, we can't access singletons directly
         // We would need to pass necessary data or use a different approach
         // For now, we'll simulate the work
         await _simulateMasterFileSync();
-        return JobResult.success(jobId, data: {'message': 'Master files synced'});
+        return JobResult.success(jobId,
+            data: {'message': 'Master files synced'});
 
       case BackgroundJobType.syncImages:
         final refId = jobInfo.jobArgs as String?;
@@ -67,7 +69,8 @@ Future<JobResult> _processJob(JobMessage jobMessage) async {
         } else {
           await _simulateImageBatchSync();
         }
-        return JobResult.success(jobId, data: {'message': 'Images synced', 'refId': refId});
+        return JobResult.success(jobId,
+            data: {'message': 'Images synced', 'refId': refId});
 
       case BackgroundJobType.clearCache:
         await _simulateCacheClear();
@@ -78,7 +81,8 @@ Future<JobResult> _processJob(JobMessage jobMessage) async {
         return JobResult.success(jobId, data: {'message': 'Log emailed'});
 
       default:
-        return JobResult.error(jobId, 'Unknown job type: ${jobInfo.getJobType}');
+        return JobResult.error(
+            jobId, 'Unknown job type: ${jobInfo.getJobType}');
     }
   } catch (e) {
     return JobResult.error(jobId, 'Job processing failed: $e');

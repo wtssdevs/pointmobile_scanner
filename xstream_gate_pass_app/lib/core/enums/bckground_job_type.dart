@@ -3,7 +3,9 @@ enum BackgroundJobType {
   syncMasterfiles(1, displayName: "Sync Master files"),
   syncImages(2, displayName: "GatePass Images"),
   clearCache(3, displayName: "Clear Cache"),
-  emailLog(4, displayName: "Email Log");
+  emailLog(4, displayName: "Email Log"),
+
+  createIncident(5, displayName: "Create Incident");
 
   const BackgroundJobType(
     int value, {

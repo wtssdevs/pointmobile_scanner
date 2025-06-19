@@ -25,7 +25,8 @@ class JobMessage {
   factory JobMessage.fromJson(Map<String, dynamic> json) {
     return JobMessage(
       jobId: json['jobId'] as String,
-      jobInfo: BackgroundJobInfo.fromJson(json['jobInfo'] as Map<String, dynamic>),
+      jobInfo:
+          BackgroundJobInfo.fromJson(json['jobInfo'] as Map<String, dynamic>),
       timestamp: DateTime.parse(json['timestamp'] as String),
     );
   }

@@ -5,8 +5,12 @@ import 'package:xstream_gate_pass_app/core/services/database/sembast_store.dart'
 import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
+import 'package:xstream_gate_pass_app/core/services/services/background/background_processing_config.dart';
+import 'package:xstream_gate_pass_app/core/services/services/background/background_processing_migration_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/background/background_processing_monitor.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
+import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_isolate_initializer.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterfiles_service.dart';
@@ -44,6 +48,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/ca
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops_select/gate_access_yard_ops_select_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/images_viewer_list/images_viewer_list_view.dart';
+import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -91,6 +96,11 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/im
     LazySingleton(classType: FileStoreRepository),
     LazySingleton(classType: MediaService),
     LazySingleton(classType: FileStoreManager),
+    LazySingleton(classType: FileStoreIsolateInitializer),
+
+    //LazySingleton(classType: BackgroundProcessingConfig),
+    //LazySingleton(classType: BackgroundProcessingMigrationService),
+    //LazySingleton(classType: BackgroundProcessingMonitor),
 
     LazySingleton(classType: WorkerQueManager),
 
@@ -98,6 +108,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/im
     LazySingleton(classType: LocalizationManagerService),
     LazySingleton(classType: BottomSheetService),
     LazySingleton(classType: IsoTypeService),
+    LazySingleton(classType: IncidentManagerService),
 // @stacked-service
   ],
   bottomsheets: [

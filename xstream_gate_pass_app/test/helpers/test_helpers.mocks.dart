@@ -17,6 +17,8 @@ import 'package:xstream_gate_pass_app/core/models/localization/localization_valu
     as _i10;
 import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart'
     as _i9;
+import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart'
+    as _i12;
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart' as _i3;
 
 // ignore_for_file: type=lint
@@ -1027,3 +1029,9 @@ class MockIsoTypeService extends _i1.Mock implements _i3.IsoTypeService {
         returnValueForMissingStub: <String>{},
       ) as Set<String>);
 }
+
+/// A class which mocks [IncidentManagerService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockIncidentManagerService extends _i1.Mock
+    implements _i12.IncidentManagerService {}

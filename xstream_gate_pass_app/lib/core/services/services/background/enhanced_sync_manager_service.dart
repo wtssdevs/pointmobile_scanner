@@ -106,7 +106,8 @@ class EnhancedSyncManager extends StoppableService {
       await _syncTask?.cancel();
 
       // Determine sync interval
-      final interval = _adaptiveScheduling ? _calculateAdaptiveInterval() : _syncInterval;
+      final interval =
+          _adaptiveScheduling ? _calculateAdaptiveInterval() : _syncInterval;
 
       log.i('Starting background job with interval: $interval');
 
@@ -134,7 +135,8 @@ class EnhancedSyncManager extends StoppableService {
       final duration = DateTime.now().difference(startTime);
       _recordSyncSuccess(duration);
 
-      log.d('Background sync completed successfully in ${duration.inMilliseconds}ms');
+      log.d(
+          'Background sync completed successfully in ${duration.inMilliseconds}ms');
     } catch (e) {
       // Track failure
       final duration = DateTime.now().difference(startTime);
@@ -172,7 +174,8 @@ class EnhancedSyncManager extends StoppableService {
 
     // Alert on consecutive failures
     if (_consecutiveFailures >= 3) {
-      log.w('Multiple consecutive sync failures detected: $_consecutiveFailures');
+      log.w(
+          'Multiple consecutive sync failures detected: $_consecutiveFailures');
     }
   }
 
@@ -197,7 +200,8 @@ class EnhancedSyncManager extends StoppableService {
       }
       // Adjust based on recent sync durations
       if (_syncDurations.isNotEmpty) {
-        final totalMs = _syncDurations.map((d) => d.inMilliseconds).reduce((a, b) => a + b);
+        final totalMs =
+            _syncDurations.map((d) => d.inMilliseconds).reduce((a, b) => a + b);
         final avgDurationMs = totalMs / _syncDurations.length;
         if (avgDurationMs > 30000) {
           // 30 seconds
@@ -253,7 +257,8 @@ class EnhancedSyncManager extends StoppableService {
 
       // Check if sync is completely stalled
       if (_lastSuccessfulSync != null) {
-        final timeSinceLastSync = DateTime.now().difference(_lastSuccessfulSync!);
+        final timeSinceLastSync =
+            DateTime.now().difference(_lastSuccessfulSync!);
         if (timeSinceLastSync.inMinutes > 10) {
           log.w('No successful sync in ${timeSinceLastSync.inMinutes} minutes');
 
@@ -403,7 +408,11 @@ class EnhancedSyncManager extends StoppableService {
       'consecutiveFailures': _consecutiveFailures,
       'currentInterval': _syncInterval,
       'adaptiveScheduling': _adaptiveScheduling,
-      'avgSyncDuration': _syncDurations.isNotEmpty ? (_syncDurations.reduce((a, b) => a + b).inMilliseconds / _syncDurations.length).round() : 0,
+      'avgSyncDuration': _syncDurations.isNotEmpty
+          ? (_syncDurations.reduce((a, b) => a + b).inMilliseconds /
+                  _syncDurations.length)
+              .round()
+          : 0,
       'syncHistory': _syncDurations.map((d) => d.inMilliseconds).toList(),
       'performanceSummary': _monitor.getPerformanceSummary().toJson(),
     };

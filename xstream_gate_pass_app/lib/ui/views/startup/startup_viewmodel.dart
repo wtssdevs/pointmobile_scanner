@@ -9,6 +9,8 @@ import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
+import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_isolate_initializer.dart';
+import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
@@ -25,6 +27,18 @@ class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
   final _localizationManager = locator<LocalizationManagerService>();
   final _connectionService = locator<ConnectionService>();
   bool get hasConnection => _connectionService.hasConnection;
+// Initialize FileStore isolate
+  final _fileStoreIsolateInitializer = locator<FileStoreIsolateInitializer>();
+
+  Future<void> runBaseStartup() async {
+    // Initialize FileStore isolate for background uploads
+    try {
+      await _fileStoreIsolateInitializer.initializeFileStoreIsolate();
+    } catch (e) {
+      log.e('FileStore isolate initialization warning: $e');
+      // App continues normally with fallback uploads
+    }
+  }
 
   Future<void> runStartupLogic() async {
     //FlutterNativeSplash.remove();
@@ -38,6 +52,7 @@ class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
         _authenticationService.logOutCurrentUser();
         _navigationService.clearStackAndShow(Routes.loginView);
       } else {
+        //
         if (hasConnection) {
           var canRefresh = await _authenticationService.refreshToken();
           if (canRefresh == false) {
@@ -77,6 +92,9 @@ class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
 
       FlutterNativeSplash.remove();
       _navigationService.clearStackAndShow(Routes.loginView);
+    } finally {
+      FlutterNativeSplash.remove();
+      await runBaseStartup();
     }
   }
 }

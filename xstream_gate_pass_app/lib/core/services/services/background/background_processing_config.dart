@@ -230,29 +230,40 @@ class BackgroundProcessingConfig {
     try {
       final features = config['features'] as Map<String, dynamic>?;
       if (features != null) {
-        _isolatesEnabled = features['isolatesEnabled'] as bool? ?? _isolatesEnabled;
-        _fallbackToMainThread = features['fallbackToMainThread'] as bool? ?? _fallbackToMainThread;
-        _healthMonitoringEnabled = features['healthMonitoringEnabled'] as bool? ?? _healthMonitoringEnabled;
-        _advancedRetryLogicEnabled = features['advancedRetryLogicEnabled'] as bool? ?? _advancedRetryLogicEnabled;
+        _isolatesEnabled =
+            features['isolatesEnabled'] as bool? ?? _isolatesEnabled;
+        _fallbackToMainThread =
+            features['fallbackToMainThread'] as bool? ?? _fallbackToMainThread;
+        _healthMonitoringEnabled =
+            features['healthMonitoringEnabled'] as bool? ??
+                _healthMonitoringEnabled;
+        _advancedRetryLogicEnabled =
+            features['advancedRetryLogicEnabled'] as bool? ??
+                _advancedRetryLogicEnabled;
       }
 
       final performance = config['performance'] as Map<String, dynamic>?;
       if (performance != null) {
-        _minWorkerIsolates = performance['minWorkerIsolates'] as int? ?? _minWorkerIsolates;
-        _maxWorkerIsolates = performance['maxWorkerIsolates'] as int? ?? _maxWorkerIsolates;
-        _maxConcurrentJobs = performance['maxConcurrentJobs'] as int? ?? _maxConcurrentJobs;
+        _minWorkerIsolates =
+            performance['minWorkerIsolates'] as int? ?? _minWorkerIsolates;
+        _maxWorkerIsolates =
+            performance['maxWorkerIsolates'] as int? ?? _maxWorkerIsolates;
+        _maxConcurrentJobs =
+            performance['maxConcurrentJobs'] as int? ?? _maxConcurrentJobs;
 
         final jobTimeoutMinutes = performance['jobTimeoutMinutes'] as int?;
         if (jobTimeoutMinutes != null) {
           _jobTimeout = Duration(minutes: jobTimeoutMinutes);
         }
 
-        final workerIdleTimeoutMinutes = performance['workerIdleTimeoutMinutes'] as int?;
+        final workerIdleTimeoutMinutes =
+            performance['workerIdleTimeoutMinutes'] as int?;
         if (workerIdleTimeoutMinutes != null) {
           _workerIdleTimeout = Duration(minutes: workerIdleTimeoutMinutes);
         }
 
-        final healthCheckIntervalMinutes = performance['healthCheckIntervalMinutes'] as int?;
+        final healthCheckIntervalMinutes =
+            performance['healthCheckIntervalMinutes'] as int?;
         if (healthCheckIntervalMinutes != null) {
           _healthCheckInterval = Duration(minutes: healthCheckIntervalMinutes);
         }
@@ -260,8 +271,11 @@ class BackgroundProcessingConfig {
 
       final retry = config['retry'] as Map<String, dynamic>?;
       if (retry != null) {
-        _maxRetryAttempts = retry['maxRetryAttempts'] as int? ?? _maxRetryAttempts;
-        _retryBackoffFactor = (retry['retryBackoffFactor'] as num?)?.toDouble() ?? _retryBackoffFactor;
+        _maxRetryAttempts =
+            retry['maxRetryAttempts'] as int? ?? _maxRetryAttempts;
+        _retryBackoffFactor =
+            (retry['retryBackoffFactor'] as num?)?.toDouble() ??
+                _retryBackoffFactor;
 
         final baseRetryDelaySeconds = retry['baseRetryDelaySeconds'] as int?;
         if (baseRetryDelaySeconds != null) {
@@ -276,11 +290,14 @@ class BackgroundProcessingConfig {
 
       final monitoring = config['monitoring'] as Map<String, dynamic>?;
       if (monitoring != null) {
-        _statisticsEnabled = monitoring['statisticsEnabled'] as bool? ?? _statisticsEnabled;
+        _statisticsEnabled =
+            monitoring['statisticsEnabled'] as bool? ?? _statisticsEnabled;
 
-        final statsReportingIntervalSeconds = monitoring['statsReportingIntervalSeconds'] as int?;
+        final statsReportingIntervalSeconds =
+            monitoring['statsReportingIntervalSeconds'] as int?;
         if (statsReportingIntervalSeconds != null) {
-          _statsReportingInterval = Duration(seconds: statsReportingIntervalSeconds);
+          _statsReportingInterval =
+              Duration(seconds: statsReportingIntervalSeconds);
         }
       }
 
