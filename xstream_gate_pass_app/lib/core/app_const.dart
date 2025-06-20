@@ -112,4 +112,43 @@ class AppConst {
   static List<String> getSSLAllowedHosts() {
     return List.from(sslAllowedHosts); // Return a copy to prevent modification
   }
+
+  // Validation Messages - Centralized validation messages to avoid magic strings
+
+  // Driver Validation Messages
+
+  static const String msgDriverNameRequired = "Driver Name is required";
+  static const String msgDriverIdRequired = "Driver ID Number is required";
+
+  // Vehicle Validation Messages
+  static const String msgVehicleRegRequired = "Vehicle Reg Number is required";
+  static const String msgVehicleRegMismatch = "Vehicle registration";
+  static const String msgForeignLicensePhotoRequired = "Foreign license photo is required";
+
+  // Trailer Validation Messages
+  static const String msgRegMismatch = "registration number does not match the scanned :";
+
+  // General Validation Messages
+  static const String msgCustomerRequired = "Customer is required!";
+  static const String msgScanDataProcessingFailed = "Failed to process scan data";
+
+  // Network and Connection Messages
+  static const String msgInternetConnectionLost = "The Network connection was lost.";
+
+  // Form Validation Messages
+  static const String msgFieldRequired = "is required";
+  static const String msgPhotoRequired = "photo is required";
+
+  // Helper methods for generating field-specific validation messages
+  static String getFieldRequiredMessage(String fieldName) {
+    return "$fieldName $msgFieldRequired";
+  }
+
+  static String getPhotoRequiredMessage(String photoType) {
+    return "$photoType $msgPhotoRequired";
+  }
+
+  static String getScanDataProcessingFailedMessage(String error) {
+    return "$msgScanDataProcessingFailed: $error";
+  }
 }

@@ -11,6 +11,7 @@ import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
+import 'package:xstream_gate_pass_app/core/utils/validation_messages.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
@@ -179,34 +180,43 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   void setDriverValidationMessage() {
+    var msg = ValidationMessages.getDriverIdMismatchMessage(gatePass.driverIdNo, gatePass.driverIdNoValidation);
     if (gatePass.driverIdNoMatch == false) {
-      setValidationMessage("Driver ID Number does not match the scanned drivers card.");
+      setValidationMessage(msg);
+      //enque incident
+      logIncident(msg);
     } else {
-      clearValidationMessage("Driver ID Number does not match the scanned drivers card.");
+      clearValidationMessage(msg);
     }
   }
 
   void setVehicleValidationMessage() {
+    var msg = ValidationMessages.regNoMismatch("Vehicle registration", gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
     if (gatePass.vehicleRegNoMatch == false) {
-      setValidationMessage("Vehicle registration number does not match the scanned vehicle disc.");
+      setValidationMessage(msg);
+      logIncident(msg);
     } else {
-      clearValidationMessage("Vehicle registration number does not match the scanned vehicle disc.");
+      clearValidationMessage(msg);
     }
   }
-  //trailers one and two validation
 
+  //trailers one and two validation
   void setTrailerValidationMessage(String trailerNumber) {
     if (trailerNumber == "One") {
+      var msg = ValidationMessages.regNoMismatch("Trailer One registration", gatePass.trailerRegNumberOne, gatePass.trailerRegNumberOneValidation);
       if (gatePass.trailerRegNumberOneMatch == false) {
-        setValidationMessage("Trailer $trailerNumber registration number does not match the scanned trailer disc.");
+        setValidationMessage(msg);
+        logIncident(msg);
       } else {
-        clearValidationMessage("Trailer $trailerNumber registration number does not match the scanned trailer disc.");
+        clearValidationMessage(msg);
       }
     } else if (trailerNumber == "Two") {
+      var msg = ValidationMessages.regNoMismatch("Trailer Two registration", gatePass.trailerRegNumberTwo, gatePass.trailerRegNumberTwoValidation);
       if (gatePass.trailerRegNumberTwoMatch == false) {
-        setValidationMessage("Trailer $trailerNumber registration number does not match the scanned trailer disc.");
+        setValidationMessage(msg);
+        logIncident(msg);
       } else {
-        clearValidationMessage("Trailer $trailerNumber registration number does not match the scanned trailer disc.");
+        clearValidationMessage(msg);
       }
     }
   }
@@ -297,7 +307,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       setModelUpdate(_gatePass);
       rebuildUi();
     } catch (e) {
-      setValidationMessage("Failed to process scan data: ${e.toString()}");
+      setValidationMessage(ValidationMessages.scanProcessingFailed(e.toString()));
       rebuildUi();
     }
   }
@@ -416,11 +426,10 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   setCustomValidations() {
-    var valMsg = "Customer is required!";
     if (gatePass.customerId == null || gatePass.customerId == 0) {
-      setValidationMessage(valMsg);
+      setValidationMessage(ValidationMessages.customerRequired);
     } else {
-      clearValidationMessage(valMsg);
+      clearValidationMessage(ValidationMessages.customerRequired);
     }
   }
 
