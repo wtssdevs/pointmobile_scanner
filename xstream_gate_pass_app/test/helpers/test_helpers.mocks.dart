@@ -15,10 +15,12 @@ import 'package:xstream_gate_pass_app/core/models/basefiles/containers/container
     as _i11;
 import 'package:xstream_gate_pass_app/core/models/localization/localization_value.dart'
     as _i10;
-import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart'
-    as _i9;
+import 'package:xstream_gate_pass_app/core/models/ops/incidents/incident_model.dart'
+    as _i13;
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart'
     as _i12;
+import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart'
+    as _i9;
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart' as _i3;
 
 // ignore_for_file: type=lint
@@ -1034,4 +1036,28 @@ class MockIsoTypeService extends _i1.Mock implements _i3.IsoTypeService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockIncidentManagerService extends _i1.Mock
-    implements _i12.IncidentManagerService {}
+    implements _i12.IncidentManagerService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i7.Future<_i13.Incident?> createIncident(dynamic entity) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #createIncident,
+          [entity],
+        ),
+        returnValue: _i7.Future<_i13.Incident?>.value(),
+        returnValueForMissingStub: _i7.Future<_i13.Incident?>.value(),
+      ) as _i7.Future<_i13.Incident?>);
+}

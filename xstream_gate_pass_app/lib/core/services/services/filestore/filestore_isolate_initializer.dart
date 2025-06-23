@@ -9,20 +9,23 @@ class FileStoreIsolateInitializer {
   static final log = getLogger('FileStoreIsolateInitializer');
 
   /// Initialize FileStore isolate during app startup
-  Future<void> initializeFileStoreIsolate() async {
+  Future<void> initializeFileStoreIsolate({bool useIsolate = true}) async {
     try {
       log.i('Initializing FileStore isolate...');
 
       final fileStoreManager = locator<FileStoreManager>();
+      if (useIsolate) {
+        // Test isolate configuration
+        final isConfigured = await fileStoreManager.testIsolateConfiguration();
 
-      // Test isolate configuration
-      final isConfigured = await fileStoreManager.testIsolateConfiguration();
-
-      if (isConfigured) {
-        log.i('FileStore isolate initialized and configured successfully');
+        if (isConfigured) {
+          log.i('FileStore isolate initialized and configured successfully');
+        } else {
+          log.w('FileStore isolate initialization failed - falling back to main isolate uploads');
+          fileStoreManager.setUseIsolate(false);
+        }
       } else {
-        log.w(
-            'FileStore isolate initialization failed - falling back to main isolate uploads');
+        log.w('FileStore isolate usage is disabled, using main isolate uploads');
         fileStoreManager.setUseIsolate(false);
       }
 
@@ -50,8 +53,7 @@ class FileStoreIsolateInitializer {
 
       // Check if the host is in our allowed list using AppConst helper
       final isAllowed = AppConst.isSSLHostAllowed(testHost);
-      log.i(
-          'Host $testHost is ${isAllowed ? 'allowed' : 'not allowed'} in SSL configuration');
+      log.i('Host $testHost is ${isAllowed ? 'allowed' : 'not allowed'} in SSL configuration');
 
       return isAllowed;
     } catch (e) {

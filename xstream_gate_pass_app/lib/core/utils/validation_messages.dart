@@ -22,7 +22,8 @@ class ValidationMessages {
   static const String driverNameRequired = AppConst.msgDriverNameRequired;
   static const String driverIdRequired = AppConst.msgDriverIdRequired;
   static const String vehicleRegRequired = AppConst.msgVehicleRegRequired;
-  static const String foreignLicensePhotoRequired = AppConst.msgForeignLicensePhotoRequired;
+  static const String foreignLicensePhotoRequired =
+      AppConst.msgForeignLicensePhotoRequired;
 
   // Dynamic validation message generators
   static String required(String fieldName) {
@@ -33,7 +34,8 @@ class ValidationMessages {
     return AppConst.getPhotoRequiredMessage(photoType);
   }
 
-  static String regNoMismatch(String preFix, String? regNumber, String? mismatchRegNo) {
+  static String regNoMismatch(
+      String preFix, String? regNumber, String? mismatchRegNo) {
     return "$preFix $regNumber ${AppConst.msgRegMismatch} $mismatchRegNo.";
   }
 
@@ -42,9 +44,11 @@ class ValidationMessages {
   }
 
   // Network and connection messages
-  static const String internetConnectionLost = AppConst.msgInternetConnectionLost;
+  static const String internetConnectionLost =
+      AppConst.msgInternetConnectionLost;
 
-  static String getDriverIdMismatchMessage(String? driverIdNo, String? driverIdNoValidation) {
+  static String getDriverIdMismatchMessage(
+      String? driverIdNo, String? driverIdNoValidation) {
     return "Driver ID Number: $driverIdNo does not match the scanned drivers card ID number: $driverIdNoValidation.";
   }
 }

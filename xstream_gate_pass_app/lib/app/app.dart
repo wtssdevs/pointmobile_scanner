@@ -97,7 +97,7 @@ import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incid
     LazySingleton(classType: MediaService),
     LazySingleton(classType: FileStoreManager),
     LazySingleton(classType: FileStoreIsolateInitializer),
-
+    LazySingleton(classType: IncidentManagerService),
     //LazySingleton(classType: BackgroundProcessingConfig),
     //LazySingleton(classType: BackgroundProcessingMigrationService),
     //LazySingleton(classType: BackgroundProcessingMonitor),
@@ -108,7 +108,7 @@ import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incid
     LazySingleton(classType: LocalizationManagerService),
     LazySingleton(classType: BottomSheetService),
     LazySingleton(classType: IsoTypeService),
-    LazySingleton(classType: IncidentManagerService),
+
 // @stacked-service
   ],
   bottomsheets: [

@@ -201,12 +201,15 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
         switch (deviceModelId) {
           case 84:
           mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_EVENT);
+           Log.d(TAG, "[_initScanner] SetResultType(EVENT)");
             break;
           case 80:
           mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
+           Log.d(TAG, "[_initScanner] SetResultType(USERMSG)");
             break;
           default:
           mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
+              Log.d(TAG, "[_initScanner] SetResultType(USERMSG)");
             break;
         }
 
@@ -216,7 +219,7 @@ public class PointmobileScannerPlugin implements FlutterPlugin, MethodCallHandle
         //PM80
         //mScanner.aDecodeSetResultType(ScanConst.ResultType.DCD_RESULT_USERMSG);
         
-        Log.d(TAG, "[_initScanner] SetResultType(USERMSG)");
+       
 
         mScanResultReceiver = new ScanResultReceiver();
         IntentFilter filter = new IntentFilter();

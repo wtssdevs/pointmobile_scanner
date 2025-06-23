@@ -17,7 +17,8 @@ class IncidentManagerService {
   final _dialogService = locator<DialogService>();
 
   Future<Incident?> createIncident(dynamic entity) async {
-    var baseResponse = await _apiManager.post(AppConst.CreateIncident, showLoader: false, data: entity);
+    var baseResponse = await _apiManager.post(AppConst.CreateIncident,
+        showLoader: false, data: entity);
     if (baseResponse != null) {
       var apiResponse = ApiResponse.fromJson(baseResponse);
       if (apiResponse.success != null) {

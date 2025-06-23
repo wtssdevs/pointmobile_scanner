@@ -22,6 +22,7 @@ import '../core/services/services/filestore/filestore_isolate_initializer.dart';
 import '../core/services/services/filestore/filestore_manager.dart';
 import '../core/services/services/filestore/filestore_repository.dart';
 import '../core/services/services/masterfiles/masterfiles_service.dart';
+import '../core/services/services/ops/Incidents/incident_manager_service.dart';
 import '../core/services/services/ops/gatepass/gatepass_service.dart';
 import '../core/services/services/scanning/scan_manager.dart';
 import '../core/services/shared/connection_service.dart';
@@ -30,7 +31,6 @@ import '../core/services/shared/local_storage_service.dart';
 import '../core/services/shared/localization/localization_manager_service.dart';
 import '../core/services/shared/media_service.dart';
 import '../core/services/shared/overlays/overlay_service.dart';
-import '../core/services/services/ops/Incidents/incident_manager_service.dart';
 import '../services/iso_type_service.dart';
 
 final locator = StackedLocator.instance;
@@ -80,10 +80,10 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => MediaService());
   locator.registerLazySingleton(() => FileStoreManager());
   locator.registerLazySingleton(() => FileStoreIsolateInitializer());
+  locator.registerLazySingleton(() => IncidentManagerService());
   locator.registerLazySingleton(() => WorkerQueManager());
   locator.registerSingleton(SyncManager());
   locator.registerLazySingleton(() => LocalizationManagerService());
   locator.registerLazySingleton(() => BottomSheetService());
   locator.registerLazySingleton(() => IsoTypeService());
-  locator.registerLazySingleton(() => IncidentManagerService());
 }

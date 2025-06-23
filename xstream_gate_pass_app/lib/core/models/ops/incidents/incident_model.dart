@@ -29,7 +29,9 @@ class Incident {
       number: json['number'],
       message: json['message'],
       revolved: json['revolved'],
-      refDateTime: json['refDateTime'] != null ? DateTime.parse(json['refDateTime']) : null,
+      refDateTime: json['refDateTime'] != null
+          ? DateTime.parse(json['refDateTime'])
+          : null,
       gatePassAccessId: json['gatePassAccessId'],
       branchId: json['branchId'],
       gatePassNumber: json['gatePassNumber'],
