@@ -5,6 +5,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -17,6 +18,7 @@ import 'test_helpers.mocks.dart';
       onMissingStub: OnMissingStub.returnDefault),
   MockSpec<IsoTypeService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<IncidentManagerService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<CheckListServiceService>(onMissingStub: OnMissingStub.returnDefault),
 // @stacked-mock-spec
 ])
 void registerServices() {
@@ -26,6 +28,7 @@ void registerServices() {
   getAndRegisterLocalizationManagerService();
   getAndRegisterIsoTypeService();
   getAndRegisterIncidentManagerService();
+  getAndRegisterCheckListServiceService();
 // @stacked-mock-register
 }
 
@@ -97,6 +100,13 @@ MockIncidentManagerService getAndRegisterIncidentManagerService() {
   _removeRegistrationIfExists<IncidentManagerService>();
   final service = MockIncidentManagerService();
   locator.registerSingleton<IncidentManagerService>(service);
+  return service;
+}
+
+MockCheckListServiceService getAndRegisterCheckListServiceService() {
+  _removeRegistrationIfExists<CheckListServiceService>();
+  final service = MockCheckListServiceService();
+  locator.registerSingleton<CheckListServiceService>(service);
   return service;
 }
 // @stacked-mock-create

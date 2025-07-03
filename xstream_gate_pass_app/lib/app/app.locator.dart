@@ -23,6 +23,7 @@ import '../core/services/services/filestore/filestore_manager.dart';
 import '../core/services/services/filestore/filestore_repository.dart';
 import '../core/services/services/masterfiles/masterfiles_service.dart';
 import '../core/services/services/ops/Incidents/incident_manager_service.dart';
+import '../core/services/services/ops/checklists/check_list_service_service.dart';
 import '../core/services/services/ops/gatepass/gatepass_service.dart';
 import '../core/services/services/scanning/scan_manager.dart';
 import '../core/services/shared/connection_service.dart';
@@ -86,4 +87,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => LocalizationManagerService());
   locator.registerLazySingleton(() => BottomSheetService());
   locator.registerLazySingleton(() => IsoTypeService());
+  locator.registerLazySingleton(() => CheckListServiceService());
 }

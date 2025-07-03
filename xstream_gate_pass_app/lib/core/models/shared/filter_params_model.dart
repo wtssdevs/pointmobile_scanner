@@ -1,3 +1,5 @@
+import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
+
 class FilterParams {
   final String? searchQuery;
   final String? sortColumn;
@@ -12,6 +14,18 @@ class FilterParams {
   String? vehicleRegNumber;
   String? containerNumber;
 
+  //checklist
+
+  String? gatePassAccessId;
+  String? templateId;
+  ChecklistType? checklistType;
+
+  DeliveryType? gateAccessDeliveryType;
+  GatePassBookingType? gateAccessBookingType;
+
+  String? previousChecklistId;
+  String? containerId;
+
   FilterParams({
     this.searchQuery,
     this.sortColumn,
@@ -25,11 +39,25 @@ class FilterParams {
     this.branchId,
     this.vehicleRegNumber,
     this.containerNumber,
+    this.gatePassAccessId,
+    this.templateId,
+    this.checklistType,
+    this.gateAccessDeliveryType,
+    this.gateAccessBookingType,
+    this.previousChecklistId,
+    this.containerId,
   });
   void clear() {
     voyageNo = null;
     vehicleRegNumber = null;
     containerNumber = null;
+    gatePassAccessId = null;
+    templateId = null;
+    checklistType = null;
+    gateAccessDeliveryType = null;
+    gateAccessBookingType = null;
+    previousChecklistId = null;
+    containerId = null;
   }
 
   Map<String, dynamic> toJson() {
@@ -46,6 +74,13 @@ class FilterParams {
       'voyageNo': voyageNo,
       'department': vehicleRegNumber,
       'requestedBy': containerNumber,
+      'gatePassAccessId': gatePassAccessId,
+      'templateId': templateId,
+      'checklistType': checklistType?.value,
+      'gateAccessDeliveryType': gateAccessDeliveryType?.value,
+      'gateAccessBookingType': gateAccessBookingType?.value,
+      'previousChecklistId': previousChecklistId,
+      'containerId': containerId,
     }..removeWhere((key, value) => value == null);
   }
 }

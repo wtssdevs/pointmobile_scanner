@@ -49,6 +49,8 @@ import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops_select/gate_access_yard_ops_select_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/images_viewer_list/images_viewer_list_view.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/check_list/check_list_view.dart';
+import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -73,6 +75,7 @@ import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incid
     MaterialRoute(page: CamContainernoReaderView),
     MaterialRoute(page: GateAccessYardOpsSelectView),
     MaterialRoute(page: ImagesViewerListView),
+    MaterialRoute(page: CheckListView),
 // @stacked-route
   ],
   dependencies: [
@@ -109,6 +112,7 @@ import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incid
     LazySingleton(classType: BottomSheetService),
     LazySingleton(classType: IsoTypeService),
 
+    LazySingleton(classType: CheckListServiceService),
 // @stacked-service
   ],
   bottomsheets: [

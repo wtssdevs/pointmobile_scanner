@@ -5,12 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
+import 'package:sembast/sembast.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
+import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
+import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_driver_temp_license.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
 import 'package:xstream_gate_pass_app/core/utils/validation_messages.dart';
@@ -55,6 +58,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   final _workerQueManager = locator<WorkerQueManager>();
   final _connectionService = locator<ConnectionService>();
   final _masterFilesService = locator<MasterFilesService>();
+  //IncidentManagerService
+  final _incidentManagerService = locator<IncidentManagerService>();
   final ScrollController scrollController = ScrollController();
 
 // Driver information section
@@ -155,7 +160,29 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     }
 
     await initialize();
-    //scrollToContainerInfoCard();
+  }
+
+  Future<void> gotoCheckListView() async {
+    //check for checklist on types and  load from server
+    //set screen busy for this operation
+
+    setBusy(true); //show loading indicator
+    //disable all other inputs during this time
+
+    await gotoCheckListView();
+
+    await _navigationService.navigateTo(
+      Routes.checkListView,
+      arguments: CheckListViewArguments(
+        filterParams: FilterParams(
+          branchId: currentUser?.userBranches.first.id,
+          gateAccessBookingType: gatePass.gatePassBookingType,
+          gatePassAccessId: gatePass.id,
+          gateAccessDeliveryType: gatePass.gatePassDeliveryType,
+          checklistType: ChecklistType.gatePassAccess,
+        ),
+      ),
+    );
   }
 
   Future<void> startScanListener() async {
@@ -761,6 +788,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   Future<void> logIncident(String message) async {
+    //try to send if fail then we log it to the que
+
     var newIncident = Incident(
       id: Guid.newGuidAsString,
       gatePassAccessId: gatePass.id,
@@ -769,20 +798,35 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       branchId: gatePass.branchId,
       revolved: false,
     );
-    await _workerQueManager.enqueSingle(
-      BackgroundJobInfo(
-        jobType: BackgroundJobType.createIncident.index,
-        jobArgs: newIncident.toJson(),
-        lastTryTime: Timestamp.now(),
-        creationTime: Timestamp.now(),
-        nextTryTime: Timestamp.now(),
-        refTransactionId: gatePass.id,
-        id: "",
-        isAbandoned: false,
-      ),
-      true,
-    );
+
+    bool couldSend = false;
+    try {
+      ///..ohter
+      await _incidentManagerService.createIncident(newIncident.toJson());
+      couldSend = true;
+    } catch (e) {
+      couldSend = false;
+      log.e("Error checking connection: $e");
+    }
+
+    if (couldSend == false) {
+      await _workerQueManager.enqueSingle(
+        BackgroundJobInfo(
+          jobType: BackgroundJobType.createIncident.index,
+          jobArgs: newIncident.toJson(),
+          lastTryTime: Timestamp.now(),
+          creationTime: Timestamp.now(),
+          nextTryTime: Timestamp.now(),
+          refTransactionId: gatePass.id,
+          id: "",
+          isAbandoned: false,
+        ),
+        true,
+      );
+    }
   }
+
+//
 
   BaseLookup? getCustomer() {
     if (gatePass.customerName != null && gatePass.customerName!.isNotEmpty) {
