@@ -12,8 +12,10 @@ import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_find_template_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/scanning/zar_driver_temp_license.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
 import 'package:xstream_gate_pass_app/core/utils/validation_messages.dart';
@@ -60,6 +62,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   final _masterFilesService = locator<MasterFilesService>();
   //IncidentManagerService
   final _incidentManagerService = locator<IncidentManagerService>();
+  final _checkListService = locator<CheckListServiceService>();
   final ScrollController scrollController = ScrollController();
 
 // Driver information section
@@ -162,16 +165,33 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     await initialize();
   }
 
-  Future<void> gotoCheckListView() async {
+//_checkListService
+
+  Future<bool> findChecklistTemplate() async {
+    final checkListFindTemplateModel = await _checkListService.findChecklistTemplate(FilterParams(
+      branchId: currentUser?.userBranches.first.id,
+      gateAccessBookingType: gatePass.gatePassBookingType,
+      gatePassAccessId: gatePass.id,
+      gateAccessDeliveryType: gatePass.gatePassDeliveryType,
+      checklistType: ChecklistType.gatePassAccess,
+    ));
+
+    if (checkListFindTemplateModel.hasTemplate == true) {
+      // Navigate to checklist view with the template data
+      return await gotoCheckListView(checkListFindTemplateModel);
+    }
+
+    return true;
+  }
+
+  Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateModel) async {
     //check for checklist on types and  load from server
     //set screen busy for this operation
 
-    setBusy(true); //show loading indicator
+    //setBusy(true); //show loading indicator
     //disable all other inputs during this time
 
-    await gotoCheckListView();
-
-    await _navigationService.navigateTo(
+    var completed = await _navigationService.navigateTo(
       Routes.checkListView,
       arguments: CheckListViewArguments(
         filterParams: FilterParams(
@@ -180,9 +200,18 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
           gatePassAccessId: gatePass.id,
           gateAccessDeliveryType: gatePass.gatePassDeliveryType,
           checklistType: ChecklistType.gatePassAccess,
+          templateId: checkListFindTemplateModel.templateId,
+          id: checkListFindTemplateModel.checklistId,
         ),
       ),
     );
+
+    if (completed == true) {
+      // If checklist was completed, refresh the gate pass data
+      return true;
+    }
+
+    return false;
   }
 
   Future<void> startScanListener() async {
@@ -559,13 +588,15 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   Future<void> authorizeEntry() async {
     if (!_connectionService.hasConnection) {
-      await _dialogService.showCustomDialog(
+      var confirm = await _dialogService.showCustomDialog(
         variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
         description: 'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
+
+      return;
     }
     setBusy(true);
 
@@ -579,10 +610,19 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       secondaryButtonTitle: "Cancel",
     );
     if (confirm != null && confirm.confirmed == false) {
+      setBusy(false);
       return;
     }
 
-    //here we save back to server
+    //check for entry checklist
+    var checkListCompleted = await findChecklistTemplate();
+
+    if (checkListCompleted == false) {
+      setBusy(false);
+      return; // If checklist is not completed, do not proceed with authorization
+      // Checklist is complete, proceed with authorization
+    }
+
     var reponse = await _gatePassService.authorizeForEntry(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
@@ -592,13 +632,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     } else {
       //error could not save
       Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
-
-      setBusy(false);
     }
-
-    //update Screen UI state with model changes
-    //setModelUpdate(_gatePass);
-    //rebuildUi();
+    setBusy(false);
   }
 
   Future<void> authorizeExit() async {
@@ -626,20 +661,25 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     }
 
     setBusy(true);
+
+    //check for entry checklist
+    var checkListCompleted = await findChecklistTemplate();
+    if (checkListCompleted == false) {
+      setBusy(false);
+      return; // If checklist is not completed, do not proceed with authorization
+      // Checklist is complete, proceed with authorization
+    }
     //here we save back to server
     var reponse = await _gatePassService.authorizeExit(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
       setBusy(false);
-      Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
+      Fluttertoast.showToast(msg: "Authorize for Exit was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
     } else {
       //error could not save
       Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
     }
 
-    //update Screen UI state with model changes
-    setModelUpdate(_gatePass);
-    notifyListeners();
     _navigationService.back();
   }
 

@@ -56,6 +56,8 @@ class AppConst {
   ///api/services/app/GatePassChecklist/SubmitResponses
   static const String submitResponses = "/api/services/app/GatePassChecklist/SubmitResponses";
 
+  static const String findChecklistTemplate = "/api/services/app/GatePassChecklist/FindChecklistTemplate";
+
   ///api/services/app/Incident/Create
   static const String CreateIncident = "/api/services/app/Incident/Create";
 

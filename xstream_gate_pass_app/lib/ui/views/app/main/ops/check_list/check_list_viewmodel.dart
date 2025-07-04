@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
+import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
+import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_model.dart';
-import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_response_modal.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_response_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_repository.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
 
 class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
@@ -18,8 +23,13 @@ class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
   final _navigationService = locator<NavigationService>();
   final _checkListService = locator<CheckListServiceService>();
   final _dialogService = locator<DialogService>();
+  final _fileStoreRepository = locator<FileStoreRepository>();
 
   Map<String, TextEditingController> controllerMap = Map();
+
+  // Photo capture state
+  Map<String, List<FileStore>> _questionPhotos = {};
+  Map<String, List<FileStore>> get questionPhotos => _questionPhotos;
 
   FilterParams _filterParams;
   FilterParams get filterParams => _filterParams;
@@ -45,6 +55,9 @@ class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
     _filterParams.branchId = currentUser?.userBranches.first.id;
 
     await getCheckListForGatePass();
+
+    // Load photos for all questions that require them
+    await _loadPhotosForAllQuestions();
   }
 
   Future<void> getCheckListForGatePass() async {
@@ -97,8 +110,10 @@ class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
         description: "Failed to submit responses.,Please try again later",
         mainButtonTitle: "OK",
       );
+
+      _navigationService.back(result: false);
     } else {
-      var r = await _dialogService.showCustomDialog(
+      await _dialogService.showCustomDialog(
         variant: DialogType.infoAlert,
         data: BasicDialogStatus.success,
         title: "Success",
@@ -106,10 +121,7 @@ class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
         mainButtonTitle: "OK",
       );
 
-      if (r?.confirmed == true) {
-        // Navigate back or to another view
-        _navigationService.back();
-      }
+      _navigationService.back(result: true);
     }
     setBusy(false);
   }
@@ -303,5 +315,77 @@ class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
     return errors;
   }
 
-  bool get hasValidationErrors => validationErrors.isNotEmpty;
+  bool get hasValidationErrors => validationErrors.isNotEmpty; // Photo capture methods
+  Future<void> capturePhotoForQuestion(ChecklistResponse question) async {
+    if (question.checklistItemId == null) return;
+
+    // Check camera permission
+    var cameraStatus = await Permission.camera.status;
+    if (!cameraStatus.isGranted) {
+      await Permission.camera.request();
+    }
+
+    // Navigate to camera capture view
+    var cameraResponse = await _navigationService.navigateTo(
+      Routes.cameraCaptureView,
+      arguments: CameraCaptureViewArguments(
+        refId: question.checklistItemId!,
+        referanceId: 0,
+        fileStoreType: FileStoreType.checklistQuestionImage,
+      ),
+    );
+
+    // Refresh photos after capture
+    await _refreshPhotosForQuestion(question);
+  }
+
+  Future<void> _refreshPhotosForQuestion(ChecklistResponse question) async {
+    if (question.checklistItemId == null) return;
+
+    final photos = await _fileStoreRepository.getAll(
+      question.checklistItemId!,
+      FileStoreType.checklistQuestionImage,
+      100,
+    );
+
+    _questionPhotos[question.checklistItemId!] = photos;
+    notifyListeners();
+  }
+
+  List<FileStore> getPhotosForQuestion(ChecklistResponse question) {
+    if (question.checklistItemId == null) return [];
+    return _questionPhotos[question.checklistItemId!] ?? [];
+  }
+
+  bool hasPhotosForQuestion(ChecklistResponse question) {
+    return getPhotosForQuestion(question).isNotEmpty;
+  }
+
+  Future<void> deletePhotoForQuestion(ChecklistResponse question, FileStore photo) async {
+    if (question.checklistItemId == null) return;
+
+    await _fileStoreRepository.delete(photo);
+    await _refreshPhotosForQuestion(question);
+  }
+
+  Future<void> viewAllPhotosForQuestion(ChecklistResponse question) async {
+    if (question.checklistItemId == null) return;
+
+    await _navigationService.navigateTo(
+      Routes.imagesViewerListView,
+      arguments: ImagesViewerListViewArguments(
+        gatePassId: question.checklistItemId!,
+      ),
+    );
+  }
+
+  Future<void> _loadPhotosForAllQuestions() async {
+    if (_checkList?.responses == null) return;
+
+    for (var question in _checkList!.responses!) {
+      if (question.requiresPhoto == true) {
+        await _refreshPhotosForQuestion(question);
+      }
+    }
+  }
 }

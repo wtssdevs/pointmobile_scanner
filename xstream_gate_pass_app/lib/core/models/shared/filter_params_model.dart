@@ -1,6 +1,7 @@
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 
 class FilterParams {
+  String? id;
   final String? searchQuery;
   final String? sortColumn;
   final String? sortDirection;
@@ -27,6 +28,7 @@ class FilterParams {
   String? containerId;
 
   FilterParams({
+    this.id,
     this.searchQuery,
     this.sortColumn,
     this.sortDirection,
@@ -48,6 +50,7 @@ class FilterParams {
     this.containerId,
   });
   void clear() {
+    id = null;
     voyageNo = null;
     vehicleRegNumber = null;
     containerNumber = null;
@@ -62,6 +65,7 @@ class FilterParams {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'searchQuery': searchQuery,
       'sortColumn': sortColumn,
       'sortDirection': sortDirection,

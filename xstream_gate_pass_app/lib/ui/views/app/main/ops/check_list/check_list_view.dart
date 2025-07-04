@@ -1,10 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_model.dart';
-import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_response_modal.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_text.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
@@ -96,7 +97,7 @@ class CheckListView extends StackedView<CheckListViewModel> {
   }
 
   Color _getHeaderColor(ChecklistResponse question, String? validationError) {
-    if (validationError != null) return Colors.red.shade600;
+    if (validationError != null) return Colors.blue.shade600.withOpacity(0.8);
     if (question.hasResponse) return Colors.green.shade600;
     if (question.isRequiredResponse) return Colors.orange.shade600;
     return Colors.blue.shade600;
@@ -112,18 +113,333 @@ class CheckListView extends StackedView<CheckListViewModel> {
     return const Icon(Icons.radio_button_unchecked, size: 28, color: Colors.white70);
   }
 
+  Widget _buildPhotoRequiredIndicator(ChecklistResponse question, CheckListViewModel model, BuildContext context) {
+    if (question.requiresPhoto != true) return const SizedBox.shrink();
+
+    final photos = model.getPhotosForQuestion(question);
+    final hasPhotos = photos.isNotEmpty;
+    final width = MediaQuery.of(context).size.width;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      child: Column(
+        children: [
+          verticalSpaceSmall,
+          Container(
+            width: width,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: hasPhotos ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: hasPhotos ? Colors.green : Colors.orange,
+                width: 2,
+              ),
+            ),
+            child: Column(
+              children: [
+                // Header row with title, button, and icons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Photo Required for Question',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    // View All Images button
+                    if (hasPhotos)
+                      InkWell(
+                        onTap: () => model.viewAllPhotosForQuestion(question),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.photo_library,
+                                color: Colors.blue,
+                                size: 14,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                'View All',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.camera_alt,
+                      color: hasPhotos ? Colors.green : Colors.orange,
+                      size: 28,
+                    ),
+                    Icon(
+                      hasPhotos ? Icons.check_circle : Icons.camera_enhance,
+                      color: hasPhotos ? Colors.green : Colors.orange,
+                      size: 32,
+                    ),
+                  ],
+                ),
+                verticalSpaceSmall,
+
+                // Photo count indicator
+                if (photos.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      '${photos.length} photo${photos.length > 1 ? 's' : ''} captured',
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+
+                verticalSpaceSmall,
+
+                // Content area with gesture detector for main action
+                GestureDetector(
+                  onTap: () => model.capturePhotoForQuestion(question),
+                  child: Column(
+                    children: [
+                      if (hasPhotos) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.check, color: Colors.green, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Photo${photos.length > 1 ? 's' : ''} Captured Successfully',
+                                  style: const TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Show first photo preview
+                        if (photos.isNotEmpty && photos.first.path.isNotEmpty) ...[
+                          verticalSpaceSmall,
+                          Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              height: 200,
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Stack(
+                                  children: <Widget>[
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        image: DecorationImage(
+                                          image: FileImage(File(photos.first.path)),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      alignment: Alignment.center,
+                                    ),
+                                    Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: Container(
+                                        margin: const EdgeInsets.all(8),
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.7),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Icon(
+                                          photos.first.upLoaded ? Icons.check_circle : Icons.pending,
+                                          color: photos.first.upLoaded ? Colors.green : Colors.orange,
+                                          size: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          verticalSpaceSmall,
+                          Text(
+                            'File: ${photos.first.fileName.split('/').last}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ] else ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.warning, color: Colors.orange, size: 16),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Photo Required for This Question',
+                                  style: TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        verticalSpaceSmall,
+                        // Placeholder photo capture area
+                        Container(
+                          height: 100,
+                          width: double.infinity,
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300, width: 1),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.grey.shade50,
+                                Colors.grey.shade100,
+                              ],
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              // Photo placeholder content
+                              Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Row(
+                                  children: [
+                                    // Camera icon placeholder
+                                    Container(
+                                      width: 60,
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: Colors.grey.shade400),
+                                      ),
+                                      child: Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.grey.shade500,
+                                        size: 30,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    // Instructions
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Take Photo',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey.shade700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Tap to capture a photo for this question',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Tap to capture overlay
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.orange.withOpacity(0.05),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.touch_app,
+                                      color: Colors.orange,
+                                      size: 24,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRequiredIndicator(ChecklistResponse question) {
     if (question.isRequiredResponse) {
       return Container(
         margin: const EdgeInsets.only(top: 4),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withOpacity(0.9),
           borderRadius: BorderRadius.circular(12),
         ),
         child: AppText.body(
           "Required",
           fontSize: 10,
+          color: Colors.red,
           fontWeight: FontWeight.bold,
         ),
       );
@@ -146,6 +462,7 @@ class CheckListView extends StackedView<CheckListViewModel> {
           _buildQuestionTypeIndicator(question),
           verticalSpaceSmall,
           _buildInputWidget(question, ctrnl, model, context),
+          _buildPhotoRequiredIndicator(question, model, context),
         ],
       ),
     );
@@ -638,8 +955,6 @@ class CheckListView extends StackedView<CheckListViewModel> {
       ),
     );
   }
-
-
 
   @override
   void onDispose(CheckListViewModel viewModel) async {

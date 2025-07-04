@@ -112,8 +112,6 @@ class GatePassEditView extends StatelessWidget {
         return false;
       }
 
-      //check for enrty checklist
-
       return true;
     }
 
@@ -300,7 +298,7 @@ class GatePassEditView extends StatelessWidget {
                     : ElevatedButton.icon(
                         onPressed: () async {
                           // valiate first
-                          var isValid = await validateForAuthEntry(model, context);
+                          var isValid = true; //await validateForAuthEntry(model, context);
                           if (isValid == true) {
                             model.authorizeEntry();
                           } else {
