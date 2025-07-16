@@ -92,7 +92,15 @@ class FileStoreRepository {
       await _store!.record(entity.id).delete(_appDatabase.db!);
     }
   }
-
+  Future<void> deleteAllByRefId(String refId, FileStoreType fileStoreType) async {
+    final finder = Finder(
+      filter: Filter.and([
+        Filter.equals('refId', refId),
+        Filter.equals('filestoreType', fileStoreType.value),
+      ]),
+    );
+    await _store!.delete(_appDatabase.db!, finder: finder);
+  }
   /// Save many records, create if needed.
   Future<void> upsertMany(List<FileStore> entities) async {
     await _appDatabase.db!.transaction((txn) async {

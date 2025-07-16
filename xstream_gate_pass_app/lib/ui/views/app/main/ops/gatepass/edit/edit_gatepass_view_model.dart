@@ -167,16 +167,24 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
 //_checkListService
 
-  Future<bool> findChecklistTemplate() async {
-    final checkListFindTemplateModel = await _checkListService.findChecklistTemplate(FilterParams(
-      branchId: currentUser?.userBranches.first.id,
-      gateAccessBookingType: gatePass.gatePassBookingType,
-      gatePassAccessId: gatePass.id,
-      gateAccessDeliveryType: gatePass.gatePassDeliveryType,
-      checklistType: ChecklistType.gatePassAccess,
-    ));
+ Future<bool> findChecklistTemplate() async {
+    final checkListFindTemplateModel =
+        await _checkListService.findChecklistTemplate(
+      FilterParams(
+        branchId: currentUser?.userBranches.first.id,
+        gateAccessBookingType: gatePass.gatePassBookingType,
+        gatePassAccessId: gatePass.id,
+        gateAccessDeliveryType: gatePass.gatePassDeliveryType,
+        checklistType: ChecklistType.gatePassAccess,
+      ),
+    );
 
     if (checkListFindTemplateModel.hasTemplate == true) {
+      // If checklist is already completed simply continue without opening the view
+      if (checkListFindTemplateModel.isCompleted == true) {
+        return true;
+      }
+
       // Navigate to checklist view with the template data
       return await gotoCheckListView(checkListFindTemplateModel);
     }

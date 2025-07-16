@@ -55,7 +55,17 @@ class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
     _filterParams.branchId = currentUser?.userBranches.first.id;
 
     await getCheckListForGatePass();
-
+    if (_checkList?.responses != null) {
+        for (var question in _checkList!.responses!) {
+          question.response = null;
+          question.booleanResponse = null;
+          question.numericResponse = null;
+          question.dateResponse = null;
+          question.photoPath = null;
+          question.photoPaths = null;
+          question.isPassing = null;
+        }
+      }
     // Load photos for all questions that require them
     await _loadPhotosForAllQuestions();
   }
