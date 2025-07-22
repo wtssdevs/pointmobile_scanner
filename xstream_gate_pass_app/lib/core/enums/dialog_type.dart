@@ -39,7 +39,11 @@ enum GatePassContainerType {
 enum ChecklistType {
   none(0, "None", Icons.help_outline),
   gatePassAccess(1, "Gate Pass Access", FontAwesomeIcons.dungeon),
-  container(2, "Container", FontAwesomeIcons.boxesPacking);
+  container(2, "Container", FontAwesomeIcons.boxesPacking),
+  entry(4, "Entry", FontAwesomeIcons.doorOpen),
+  exit(8, "Exit", FontAwesomeIcons.doorClosed),
+  gatePassAccessEntry(5, "Gate Pass Access Entry", FontAwesomeIcons.signInAlt),
+  gatePassAccessExit(9, "Gate Pass Access Exit", FontAwesomeIcons.signOutAlt);
 
   final int value;
   final String text;
@@ -67,3 +71,4 @@ enum ChecklistItemType {
   final String textValue;
   const ChecklistItemType(this.value, this.textValue);
 }
+

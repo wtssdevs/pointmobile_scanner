@@ -12,6 +12,7 @@ import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
+import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_find_template_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
@@ -167,61 +168,109 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
 //_checkListService
 
- Future<bool> findChecklistTemplate() async {
-    final checkListFindTemplateModel =
-        await _checkListService.findChecklistTemplate(
-      FilterParams(
-        branchId: currentUser?.userBranches.first.id,
-        gateAccessBookingType: gatePass.gatePassBookingType,
-        gatePassAccessId: gatePass.id,
-        gateAccessDeliveryType: gatePass.gatePassDeliveryType,
-        checklistType: ChecklistType.gatePassAccess,
-      ),
-    );
-
-    if (checkListFindTemplateModel.hasTemplate == true) {
-      // If checklist is already completed simply continue without opening the view
-      if (checkListFindTemplateModel.isCompleted == true) {
-        return true;
-      }
-
-      // Navigate to checklist view with the template data
-      return await gotoCheckListView(checkListFindTemplateModel);
-    }
-
-    return true;
+Future<bool> findChecklistTemplate() async {
+  // Determine the correct checklist type and delivery type based on gate pass status
+  ChecklistType checklistType = ChecklistType.gatePassAccess;
+  DeliveryType deliveryType = gatePass.gatePassDeliveryType; // Default to gate pass delivery type
+  
+  // Entry scenarios - when vehicle is arriving or at gate
+  var entryStatuses = [
+    GatePassStatus.pending,
+    GatePassStatus.atGate,
+    GatePassStatus.rejectedEntry,
+  ];
+  
+  // Exit scenarios - when vehicle is leaving or has completed work
+  var exitStatuses = [
+    GatePassStatus.inYard,
+    GatePassStatus.leftTheYard,
+  ];
+  
+  if (entryStatuses.contains(gatePass.gatePassStatus)) {
+    checklistType = ChecklistType.gatePassAccessEntry;
+    deliveryType = DeliveryType.receive; // Entry = Receive
+  } else if (exitStatuses.contains(gatePass.gatePassStatus)) {
+    checklistType = ChecklistType.gatePassAccessExit;
+    deliveryType = DeliveryType.dispatch; // Exit = Dispatch
   }
+  
+  final checkListFindTemplateModel =
+      await _checkListService.findChecklistTemplate(
+    FilterParams(
+      branchId: currentUser?.userBranches.first.id,
+      gateAccessBookingType: gatePass.gatePassBookingType,
+      gatePassAccessId: gatePass.id,
+      gateAccessDeliveryType: deliveryType, // Use determined delivery type
+      checklistType: checklistType,
+    ),
+  );
 
-  Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateModel) async {
-    //check for checklist on types and  load from server
-    //set screen busy for this operation
-
-    //setBusy(true); //show loading indicator
-    //disable all other inputs during this time
-
-    var completed = await _navigationService.navigateTo(
-      Routes.checkListView,
-      arguments: CheckListViewArguments(
-        filterParams: FilterParams(
-          branchId: currentUser?.userBranches.first.id,
-          gateAccessBookingType: gatePass.gatePassBookingType,
-          gatePassAccessId: gatePass.id,
-          gateAccessDeliveryType: gatePass.gatePassDeliveryType,
-          checklistType: ChecklistType.gatePassAccess,
-          templateId: checkListFindTemplateModel.templateId,
-          id: checkListFindTemplateModel.checklistId,
-        ),
-      ),
-    );
-
-    if (completed == true) {
-      // If checklist was completed, refresh the gate pass data
+  if (checkListFindTemplateModel.hasTemplate == true) {
+    // If checklist is already completed simply continue without opening the view
+    if (checkListFindTemplateModel.isCompleted == true) {
       return true;
     }
 
-    return false;
+    // Navigate to checklist view with the template data
+    return await gotoCheckListView(checkListFindTemplateModel);
   }
 
+  return true;
+}
+  Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateModel) async {
+  //check for checklist on types and  load from server
+  //set screen busy for this operation
+
+  //setBusy(true); //show loading indicator
+  //disable all other inputs during this time
+
+  // Use the SAME logic as findChecklistTemplate to determine correct parameters
+  ChecklistType checklistType = ChecklistType.gatePassAccess;
+  DeliveryType deliveryType = gatePass.gatePassDeliveryType;
+  
+  // Entry scenarios - when vehicle is arriving or at gate
+  var entryStatuses = [
+    GatePassStatus.pending,
+    GatePassStatus.atGate,
+    GatePassStatus.rejectedEntry,
+  ];
+  
+  // Exit scenarios - when vehicle is leaving or has completed work
+  var exitStatuses = [
+    GatePassStatus.inYard,
+    GatePassStatus.leftTheYard,
+  ];
+  
+  if (entryStatuses.contains(gatePass.gatePassStatus)) {
+    checklistType = ChecklistType.gatePassAccessEntry;
+    deliveryType = DeliveryType.receive; // Entry = Receive
+  } else if (exitStatuses.contains(gatePass.gatePassStatus)) {
+    checklistType = ChecklistType.gatePassAccessExit;
+    deliveryType = DeliveryType.dispatch; // Exit = Dispatch
+  }
+
+  var completed = await _navigationService.navigateTo(
+    Routes.checkListView,
+    arguments: CheckListViewArguments(
+      filterParams: FilterParams(
+        branchId: currentUser?.userBranches.first.id,
+        gateAccessBookingType: gatePass.gatePassBookingType,
+        gatePassAccessId: gatePass.id,
+        gateAccessDeliveryType: deliveryType, // Use determined delivery type
+        checklistType: checklistType, // Use determined checklist type
+        templateId: checkListFindTemplateModel.templateId,
+        id: checkListFindTemplateModel.checklistId,
+      ),
+    ),
+  );
+
+  if (completed == true) {
+    // If checklist was completed, refresh the gate pass data
+    return true;
+  }
+
+  return false;
+}
   Future<void> startScanListener() async {
     setModelUpdate(_gatePass);
 
@@ -636,7 +685,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       _gatePass = reponse;
 
       Fluttertoast.showToast(msg: "Authorize for Entry was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
-      _navigationService.back();
+      _navigationService.back(result: true);
     } else {
       //error could not save
       Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
@@ -688,7 +737,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
     }
 
-    _navigationService.back();
+_navigationService.back(result: true);
   }
 
   Future<void> rejectEntry() async {
