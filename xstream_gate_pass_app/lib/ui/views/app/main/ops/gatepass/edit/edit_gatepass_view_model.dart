@@ -43,6 +43,8 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/base_form_view_model.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
+import 'package:xstream_gate_pass_app/core/utils/checklist_type_resolver.dart';
+
 
 class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   GatePassEditViewModel(this._gatePass);
@@ -169,108 +171,61 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 //_checkListService
 
 Future<bool> findChecklistTemplate() async {
-  // Determine the correct checklist type and delivery type based on gate pass status
-  ChecklistType checklistType = ChecklistType.gatePassAccess;
-  DeliveryType deliveryType = gatePass.gatePassDeliveryType; // Default to gate pass delivery type
-  
-  // Entry scenarios - when vehicle is arriving or at gate
-  var entryStatuses = [
-    GatePassStatus.pending,
-    GatePassStatus.atGate,
-    GatePassStatus.rejectedEntry,
-  ];
-  
-  // Exit scenarios - when vehicle is leaving or has completed work
-  var exitStatuses = [
-    GatePassStatus.inYard,
-    GatePassStatus.leftTheYard,
-  ];
-  
-  if (entryStatuses.contains(gatePass.gatePassStatus)) {
-    checklistType = ChecklistType.gatePassAccessEntry;
-    deliveryType = DeliveryType.receive; // Entry = Receive
-  } else if (exitStatuses.contains(gatePass.gatePassStatus)) {
-    checklistType = ChecklistType.gatePassAccessExit;
-    deliveryType = DeliveryType.dispatch; // Exit = Dispatch
-  }
-  
+  // Resolve the checklist type and delivery type using helper
+  final (checklistType, deliveryType) =
+      ChecklistTypeResolver.resolve(gatePass.gatePassStatus);
+
+  // Call the checklist service with the resolved values
   final checkListFindTemplateModel =
       await _checkListService.findChecklistTemplate(
     FilterParams(
       branchId: currentUser?.userBranches.first.id,
       gateAccessBookingType: gatePass.gatePassBookingType,
       gatePassAccessId: gatePass.id,
-      gateAccessDeliveryType: deliveryType, // Use determined delivery type
+      gateAccessDeliveryType: deliveryType,
       checklistType: checklistType,
     ),
   );
 
+  // If a checklist template is found and completed, return true
   if (checkListFindTemplateModel.hasTemplate == true) {
-    // If checklist is already completed simply continue without opening the view
     if (checkListFindTemplateModel.isCompleted == true) {
       return true;
     }
 
-    // Navigate to checklist view with the template data
+    // Otherwise, navigate to the checklist view
     return await gotoCheckListView(checkListFindTemplateModel);
   }
 
+  // No checklist required or template found
   return true;
 }
-  Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateModel) async {
-  //check for checklist on types and  load from server
-  //set screen busy for this operation
 
-  //setBusy(true); //show loading indicator
-  //disable all other inputs during this time
+Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateModel) async {
+  // Resolve checklist and delivery types based on gate pass status
+  final (checklistType, deliveryType) =
+      ChecklistTypeResolver.resolve(gatePass.gatePassStatus);
 
-  // Use the SAME logic as findChecklistTemplate to determine correct parameters
-  ChecklistType checklistType = ChecklistType.gatePassAccess;
-  DeliveryType deliveryType = gatePass.gatePassDeliveryType;
-  
-  // Entry scenarios - when vehicle is arriving or at gate
-  var entryStatuses = [
-    GatePassStatus.pending,
-    GatePassStatus.atGate,
-    GatePassStatus.rejectedEntry,
-  ];
-  
-  // Exit scenarios - when vehicle is leaving or has completed work
-  var exitStatuses = [
-    GatePassStatus.inYard,
-    GatePassStatus.leftTheYard,
-  ];
-  
-  if (entryStatuses.contains(gatePass.gatePassStatus)) {
-    checklistType = ChecklistType.gatePassAccessEntry;
-    deliveryType = DeliveryType.receive; // Entry = Receive
-  } else if (exitStatuses.contains(gatePass.gatePassStatus)) {
-    checklistType = ChecklistType.gatePassAccessExit;
-    deliveryType = DeliveryType.dispatch; // Exit = Dispatch
-  }
-
-  var completed = await _navigationService.navigateTo(
+  // Navigate to the checklist view with resolved filter parameters
+  final completed = await _navigationService.navigateTo(
     Routes.checkListView,
     arguments: CheckListViewArguments(
       filterParams: FilterParams(
         branchId: currentUser?.userBranches.first.id,
         gateAccessBookingType: gatePass.gatePassBookingType,
         gatePassAccessId: gatePass.id,
-        gateAccessDeliveryType: deliveryType, // Use determined delivery type
-        checklistType: checklistType, // Use determined checklist type
+        gateAccessDeliveryType: deliveryType,
+        checklistType: checklistType,
         templateId: checkListFindTemplateModel.templateId,
         id: checkListFindTemplateModel.checklistId,
       ),
     ),
   );
 
-  if (completed == true) {
-    // If checklist was completed, refresh the gate pass data
-    return true;
-  }
-
-  return false;
+  // Return true if checklist was completed
+  return completed == true;
 }
+
   Future<void> startScanListener() async {
     setModelUpdate(_gatePass);
 
