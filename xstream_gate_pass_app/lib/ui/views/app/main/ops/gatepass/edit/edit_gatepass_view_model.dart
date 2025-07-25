@@ -43,7 +43,6 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/base_form_view_model.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
-import 'package:xstream_gate_pass_app/core/utils/checklist_type_resolver.dart';
 
 
 class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
@@ -171,13 +170,34 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 //_checkListService
 
 Future<bool> findChecklistTemplate() async {
-  // Resolve the checklist type and delivery type using helper
-  final (checklistType, deliveryType) =
-      ChecklistTypeResolver.resolve(gatePass.gatePassStatus);
+  final resolveResult = await _checkListService.resolveChecklistType(
+    gatePass.gatePassStatus.name.capitalize(),
+  );
 
-  // Call the checklist service with the resolved values
-  final checkListFindTemplateModel =
-      await _checkListService.findChecklistTemplate(
+  if (resolveResult == null || 
+      resolveResult.checklistType == null || 
+      resolveResult.deliveryType == null) {
+    log.e('Checklist type resolution failed for status: ${gatePass.gatePassStatus}');
+    return false;
+  }
+
+  final checklistType = ChecklistType.values.firstWhere(
+    (e) => e.value == int.tryParse(resolveResult.checklistType ?? ''),
+    orElse: () {
+      log.e('Unknown checklistType: ${resolveResult.checklistType}');
+      return ChecklistType.gatePassAccess;
+    },
+  );
+
+  final deliveryType = DeliveryType.values.firstWhere(
+    (e) => e.value == int.tryParse(resolveResult.deliveryType ?? ''),
+    orElse: () {
+      log.e('Unknown deliveryType: ${resolveResult.deliveryType}');
+      return DeliveryType.other;
+    },
+  );
+
+  final checkListFindTemplateModel = await _checkListService.findChecklistTemplate(
     FilterParams(
       branchId: currentUser?.userBranches.first.id,
       gateAccessBookingType: gatePass.gatePassBookingType,
@@ -192,7 +212,7 @@ Future<bool> findChecklistTemplate() async {
     if (checkListFindTemplateModel.isCompleted == true) {
       return true;
     }
-
+    
     // Otherwise, navigate to the checklist view
     return await gotoCheckListView(checkListFindTemplateModel);
   }
@@ -202,11 +222,34 @@ Future<bool> findChecklistTemplate() async {
 }
 
 Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateModel) async {
-  // Resolve checklist and delivery types based on gate pass status
-  final (checklistType, deliveryType) =
-      ChecklistTypeResolver.resolve(gatePass.gatePassStatus);
+    // Resolve checklist and delivery types based on gate pass status
+  final resolveResult = await _checkListService.resolveChecklistType(
+    gatePass.gatePassStatus.name.capitalize(),
+  );
 
-  // Navigate to the checklist view with resolved filter parameters
+  if (resolveResult == null || 
+      resolveResult.checklistType == null || 
+      resolveResult.deliveryType == null) {
+    log.e('Checklist type resolution failed in gotoCheckListView for status: ${gatePass.gatePassStatus}');
+    return false;
+  }
+
+  final checklistType = ChecklistType.values.firstWhere(
+    (e) => e.value == int.tryParse(resolveResult.checklistType ?? ''),
+    orElse: () {
+      log.e('Unknown checklistType: ${resolveResult.checklistType}');
+      return ChecklistType.gatePassAccess;
+    },
+  );
+
+  final deliveryType = DeliveryType.values.firstWhere(
+    (e) => e.value == int.tryParse(resolveResult.deliveryType ?? ''),
+    orElse: () {
+      log.e('Unknown deliveryType: ${resolveResult.deliveryType}');
+      return DeliveryType.other;
+    },
+  );
+
   final completed = await _navigationService.navigateTo(
     Routes.checkListView,
     arguments: CheckListViewArguments(
@@ -920,5 +963,12 @@ _navigationService.back(result: true);
         ),
       );
     }
+  }
+}
+
+extension StringCapitalize on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1)}';
   }
 }

@@ -23,6 +23,14 @@ enum DeliveryType {
   final String text;
   final IconData icon;
   const DeliveryType(this.value, this.text, this.icon);
+
+  static DeliveryType fromValue(dynamic raw) {
+    final int? val = raw is int ? raw : int.tryParse(raw.toString());
+    return DeliveryType.values.firstWhere(
+      (e) => e.value == val,
+      orElse: () => DeliveryType.other,
+    );
+  }
 }
 
 enum GatePassContainerType {
@@ -34,7 +42,16 @@ enum GatePassContainerType {
   final int value;
   final String text;
   const GatePassContainerType(this.value, this.text);
+
+  static GatePassContainerType fromValue(dynamic val) {
+    final int? intVal = val is int ? val : int.tryParse(val.toString());
+    return GatePassContainerType.values.firstWhere(
+      (e) => e.value == intVal,
+      orElse: () => GatePassContainerType.none,
+    );
+  }
 }
+
 
 enum ChecklistType {
   none(0, "None", Icons.help_outline),
@@ -49,6 +66,13 @@ enum ChecklistType {
   final String text;
   final IconData icon;
   const ChecklistType(this.value, this.text, this.icon);
+
+  static ChecklistType fromValue(int value) {
+    return ChecklistType.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => ChecklistType.none,
+    );
+  }
 }
 //ChecklistItemType
 // YesNo = 1,

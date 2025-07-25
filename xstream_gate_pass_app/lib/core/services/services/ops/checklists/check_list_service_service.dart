@@ -4,6 +4,7 @@ import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_find_template_model.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_resolve_type_output.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_response_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
@@ -47,4 +48,21 @@ class CheckListServiceService {
     }
     return CheckListFindTemplateModel(hasTemplate: false, templateId: null);
   }
+  
+    Future<CheckListResolveTypeOutput?> resolveChecklistType(String status) async {
+    final baseResponse = await _apiManager.get(
+      '${AppConst.resolveChecklistType}?status=$status',
+      showLoader: false,
+    );
+
+    if (baseResponse != null) {
+      final apiResponse = ApiResponse.fromJson(baseResponse);
+      if (apiResponse.success == true) {
+        return CheckListResolveTypeOutput.fromJson(apiResponse.result);
+      }
+    }
+
+    return null;
+  }
+
 }
