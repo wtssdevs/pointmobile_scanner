@@ -160,4 +160,6 @@ class AppConst {
   static String getScanDataProcessingFailedMessage(String error) {
     return "$msgScanDataProcessingFailed: $error";
   }
+  static const String resolveChecklistType = '/api/services/app/GatePassChecklist/ResolveChecklistType';
+
 }

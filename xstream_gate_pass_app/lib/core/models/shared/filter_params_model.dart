@@ -1,4 +1,5 @@
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
+import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 
 class FilterParams {
   String? id;
@@ -23,6 +24,7 @@ class FilterParams {
 
   DeliveryType? gateAccessDeliveryType;
   GatePassBookingType? gateAccessBookingType;
+  GatePassStatus? gatePassStatus;
 
   String? previousChecklistId;
   String? containerId;
@@ -47,6 +49,7 @@ class FilterParams {
     this.gateAccessDeliveryType,
     this.gateAccessBookingType,
     this.previousChecklistId,
+    this.gatePassStatus,
     this.containerId,
   });
   void clear() {
@@ -61,6 +64,7 @@ class FilterParams {
     gateAccessBookingType = null;
     previousChecklistId = null;
     containerId = null;
+    gatePassStatus = null;
   }
 
   Map<String, dynamic> toJson() {
@@ -85,6 +89,7 @@ class FilterParams {
       'gateAccessBookingType': gateAccessBookingType?.value,
       'previousChecklistId': previousChecklistId,
       'containerId': containerId,
+      'gatePassStatus' : gatePassStatus?.value
     }..removeWhere((key, value) => value == null);
   }
 }

@@ -380,10 +380,9 @@ class GatePassAccess {
         containerCustomer: json["containerCustomer"],
         containerShippingLine: json["containerShippingLine"],
         containerDepot: json["containerDepot"],
-        containerDeliveryType:
-            DeliveryType.values[asT<int?>(json['containerDeliveryType']) ?? 0],
+        containerDeliveryType: DeliveryType.fromValue(json['containerDeliveryType']),
         gatePassContainerType: GatePassContainerType
-            .values[asT<int?>(json['gatePassContainerType']) ?? 0],
+            .fromValue(json['gatePassContainerType']),
 
         containers: json["containers"] != null
             ? List<GatePassAccessContainerModel>.from(json["containers"]
