@@ -191,16 +191,21 @@ class GatePassViewModel extends BaseViewModel with AppViewBaseHelper {
     pagingController.refresh();
   }
 
-  Future goToDetail(GatePassAccess entity) async {
-    await _navigationService.navigateTo(
+Future goToDetail(GatePassAccess entity) async {
+    final result = await _navigationService.navigateTo(
       Routes.gatePassEditView,
       arguments: GatePassEditViewArguments(
         gatePass: entity,
       ),
     );
 
-    //refreshList();
-    await fetchLastPage(_pagedList.pageNumber);
+    if (result == true) {
+      filterController.clear();
+      _filterParams.clear();
+      refreshList();
+    } else {
+      await fetchLastPage(_pagedList.pageNumber);
+    }
   }
 
   Future onAddNewGatePass() async {

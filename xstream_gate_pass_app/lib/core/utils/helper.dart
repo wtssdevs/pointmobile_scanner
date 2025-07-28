@@ -62,10 +62,68 @@ String? calculateAgeFormatted(DateTime? dateOfBirth) {
   return "${years}Y ${months}M";
 }
 
-class UpperCaseTextFormatter extends TextInputFormatter {
+class DecimalTextInputFormatter extends TextInputFormatter {
+  DecimalTextInputFormatter({required this.decimalRange, required this.beforeDecimalRange}) : assert(decimalRange == null || decimalRange > 0 || beforeDecimalRange == null || beforeDecimalRange > 0);
+
+  final int decimalRange;
+  final int beforeDecimalRange;
+
+  get math => null;
+
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue, // unused.
+    TextEditingValue newValue,
+  ) {
+    TextSelection newSelection = newValue.selection;
+    String truncated = newValue.text;
+
+    String value;
+
+    if (beforeDecimalRange != null) {
+      value = newValue.text;
+
+      if (value.contains(".")) {
+        if (value.split(".")[0].length > beforeDecimalRange) {
+          truncated = oldValue.text;
+          newSelection = oldValue.selection;
+        }
+      } else {
+        if (value.length > beforeDecimalRange) {
+          truncated = oldValue.text;
+          newSelection = oldValue.selection;
+        }
+      }
+    }
+
+    if (decimalRange != null) {
+      value = newValue.text;
+
+      if (value.contains(".") && value.substring(value.indexOf(".") + 1).length > decimalRange) {
+        truncated = oldValue.text;
+        newSelection = oldValue.selection;
+      } else if (value == ".") {
+        truncated = "0.";
+
+        newSelection = newValue.selection.copyWith(
+          baseOffset: math.min(truncated.length, truncated.length + 1),
+          extentOffset: math.min(truncated.length, truncated.length + 1),
+        );
+      }
+
+      return TextEditingValue(
+        text: truncated,
+        selection: newSelection,
+        composing: TextRange.empty,
+      );
+    }
+    return newValue;
+  }
+}
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     return TextEditingValue(
       text: newValue.text.toUpperCase(),
       selection: newValue.selection,
@@ -80,8 +138,7 @@ extension CustomString on String {
 extension CustomStringExtensions on String {
   /// Removes consecutive empty lines, replacing them with single newlines.
   /// Example: "Line1\n\n\nLine2" => "Line1\nLine2"
-  String get removeEmptyLines =>
-      replaceAll(RegExp(r'(?:[\t ]*(?:\r?\n|\r))+'), '\n');
+  String get removeEmptyLines => replaceAll(RegExp(r'(?:[\t ]*(?:\r?\n|\r))+'), '\n');
 
   /// Converts the string into a single line by replacing newline characters.
   /// Example: "Line1\nLine2" => "Line1Line2"
@@ -106,8 +163,7 @@ extension CustomStringExtensions on String {
 }
 
 MergeDeltaResponse<T> getDeltaMerge<T>(List<T> local, List<T> server) {
-  var delta = MergeDeltaResponse(
-      added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
+  var delta = MergeDeltaResponse(added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
 
   //map ids from array
   // old local
@@ -129,8 +185,7 @@ MergeDeltaResponse<T> getDeltaMerge<T>(List<T> local, List<T> server) {
           value.mergeUpdate(mapServer[key]! as BaseLookup);
         }
         //delta.changed.add(mapServer[key]!); // update local from server "Server WINS Conflict"
-        delta.changed
-            .add(value); // update local from server "Local WINS Conflict"
+        delta.changed.add(value); // update local from server "Local WINS Conflict"
       } else {
         delta.same.add(value);
       }
@@ -149,8 +204,7 @@ MergeDeltaResponse<T> getDeltaMerge<T>(List<T> local, List<T> server) {
 }
 
 MergeDeltaResponse<T> getDeltaMergLocalWins<T>(List<T> local, List<T> server) {
-  var delta = MergeDeltaResponse(
-      added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
+  var delta = MergeDeltaResponse(added: <T>[], changed: <T>[], deleted: <T>[], same: <T>[], all: <T>[]);
 
   //map ids from array
   // old local
@@ -254,14 +308,11 @@ extension DoubleWhiteSpaceStringExtensions on String {
   }
 }
 
-Future<File?> saveSignatureImageWithRandomFileName(Uint8List imageAsBytes,
-    [bool addToGallery = true]) async {
+Future<File?> saveSignatureImageWithRandomFileName(Uint8List imageAsBytes, [bool addToGallery = true]) async {
   try {
     final Directory extDir = await getTemporaryDirectory();
-    final testDir = await Directory('${extDir.path}/TMS_Signatures')
-        .create(recursive: true);
-    final String filePath =
-        '${testDir.path}/Signature_${DateTime.now().millisecondsSinceEpoch}.png';
+    final testDir = await Directory('${extDir.path}/TMS_Signatures').create(recursive: true);
+    final String filePath = '${testDir.path}/Signature_${DateTime.now().millisecondsSinceEpoch}.png';
     File(filePath).writeAsBytesSync(imageAsBytes);
 
     final file = File(filePath);
@@ -300,8 +351,7 @@ extension FormatDatedExtension on DateTime? {
       if (this == null) {
         return "";
       }
-      String formattedDate =
-          DateFormat('yyyy/MM/dd HH:mm a').format(this!.toLocal());
+      String formattedDate = DateFormat('yyyy/MM/dd HH:mm a').format(this!.toLocal());
       return formattedDate;
     } catch (e) {
       return "";
@@ -314,8 +364,7 @@ extension FormatDatedExtension on DateTime? {
         return "";
       }
 
-      String formattedDate =
-          DateFormat('yyyy/MM/dd HH:mm:ss').format(this!.toLocal());
+      String formattedDate = DateFormat('yyyy/MM/dd HH:mm:ss').format(this!.toLocal());
       return formattedDate;
     } catch (e) {
       return "";
@@ -327,8 +376,7 @@ extension FormatDatedExtension on DateTime? {
       if (this == null) {
         return "";
       }
-      String formattedDate =
-          DateFormat('yyyy/MM/dd HH:mm:ss a').format(this!.toLocal());
+      String formattedDate = DateFormat('yyyy/MM/dd HH:mm:ss a').format(this!.toLocal());
       return formattedDate;
     } catch (e) {
       return "";
@@ -343,14 +391,12 @@ extension FormatDatedExtension on DateTime? {
     final double n1 = imageSize.height / imageSize.width;
     final double n2 = size.height / size.width;
     if (n1 > n2) {
-      final FittedSizes fittedSizes =
-          applyBoxFit(BoxFit.contain, imageSize, size);
+      final FittedSizes fittedSizes = applyBoxFit(BoxFit.contain, imageSize, size);
       //final Size sourceSize = fittedSizes.source;
       final Size destinationSize = fittedSizes.destination;
       return size.width / destinationSize.width;
     } else if (n1 / n2 < 1 / 4) {
-      final FittedSizes fittedSizes =
-          applyBoxFit(BoxFit.contain, imageSize, size);
+      final FittedSizes fittedSizes = applyBoxFit(BoxFit.contain, imageSize, size);
       //final Size sourceSize = fittedSizes.source;
       final Size destinationSize = fittedSizes.destination;
       return size.height / destinationSize.height;

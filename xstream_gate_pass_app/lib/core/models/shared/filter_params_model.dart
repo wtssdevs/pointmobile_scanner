@@ -1,4 +1,8 @@
+import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
+import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
+
 class FilterParams {
+  String? id;
   final String? searchQuery;
   final String? sortColumn;
   final String? sortDirection;
@@ -12,7 +16,21 @@ class FilterParams {
   String? vehicleRegNumber;
   String? containerNumber;
 
+  //checklist
+
+  String? gatePassAccessId;
+  String? templateId;
+  ChecklistType? checklistType;
+
+  DeliveryType? gateAccessDeliveryType;
+  GatePassBookingType? gateAccessBookingType;
+  GatePassStatus? gatePassStatus;
+
+  String? previousChecklistId;
+  String? containerId;
+
   FilterParams({
+    this.id,
     this.searchQuery,
     this.sortColumn,
     this.sortDirection,
@@ -25,15 +43,33 @@ class FilterParams {
     this.branchId,
     this.vehicleRegNumber,
     this.containerNumber,
+    this.gatePassAccessId,
+    this.templateId,
+    this.checklistType,
+    this.gateAccessDeliveryType,
+    this.gateAccessBookingType,
+    this.previousChecklistId,
+    this.gatePassStatus,
+    this.containerId,
   });
   void clear() {
+    id = null;
     voyageNo = null;
     vehicleRegNumber = null;
     containerNumber = null;
+    gatePassAccessId = null;
+    templateId = null;
+    checklistType = null;
+    gateAccessDeliveryType = null;
+    gateAccessBookingType = null;
+    previousChecklistId = null;
+    containerId = null;
+    gatePassStatus = null;
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'searchQuery': searchQuery,
       'sortColumn': sortColumn,
       'sortDirection': sortDirection,
@@ -46,6 +82,14 @@ class FilterParams {
       'voyageNo': voyageNo,
       'department': vehicleRegNumber,
       'requestedBy': containerNumber,
+      'gatePassAccessId': gatePassAccessId,
+      'templateId': templateId,
+      'checklistType': checklistType?.value,
+      'gateAccessDeliveryType': gateAccessDeliveryType?.value,
+      'gateAccessBookingType': gateAccessBookingType?.value,
+      'previousChecklistId': previousChecklistId,
+      'containerId': containerId,
+      'gatePassStatus' : gatePassStatus?.value
     }..removeWhere((key, value) => value == null);
   }
 }

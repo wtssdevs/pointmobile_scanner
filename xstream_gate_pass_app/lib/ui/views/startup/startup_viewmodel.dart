@@ -18,7 +18,8 @@ import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base
 
 class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
   final log = getLogger('StartUpViewModel');
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
   final ApiManager _apiManager = locator<ApiManager>();
   final _navigationService = locator<NavigationService>();
   final _workerQueManager = locator<WorkerQueManager>();
@@ -32,7 +33,7 @@ class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
   Future<void> runBaseStartup() async {
     // Initialize FileStore isolate for background uploads
     try {
-        await _fileStoreIsolateInitializer.initializeFileStoreIsolate();
+      await _fileStoreIsolateInitializer.initializeFileStoreIsolate();
     } catch (e) {
       log.e('FileStore isolate initialization warning: $e');
       // App continues normally with fallback uploads

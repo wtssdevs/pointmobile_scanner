@@ -20,13 +20,17 @@ class BackgroundJobInfo {
     required this.jobType,
   });
 
-  factory BackgroundJobInfo.fromJson(Map<String, dynamic> jsonRes) => BackgroundJobInfo(
+  factory BackgroundJobInfo.fromJson(Map<String, dynamic> jsonRes) =>
+      BackgroundJobInfo(
         id: asT<String>(jsonRes['id']) ?? "",
         jobArgs: asT<dynamic>(jsonRes['jobArgs']),
         tryCount: asT<int>(jsonRes['tryCount']) ?? 0,
-        lastTryTime: Timestamp.tryAnyAsTimestamp((jsonRes['lastTryTime'])) ?? Timestamp.fromDateTime(DateTime.now()),
-        nextTryTime: Timestamp.tryAnyAsTimestamp((jsonRes['nextTryTime'])) ?? Timestamp.fromDateTime(DateTime.now()),
-        creationTime: Timestamp.tryAnyAsTimestamp((jsonRes['creationTime'])) ?? Timestamp.fromDateTime(DateTime.now()),
+        lastTryTime: Timestamp.tryAnyAsTimestamp((jsonRes['lastTryTime'])) ??
+            Timestamp.fromDateTime(DateTime.now()),
+        nextTryTime: Timestamp.tryAnyAsTimestamp((jsonRes['nextTryTime'])) ??
+            Timestamp.fromDateTime(DateTime.now()),
+        creationTime: Timestamp.tryAnyAsTimestamp((jsonRes['creationTime'])) ??
+            Timestamp.fromDateTime(DateTime.now()),
         isAbandoned: asT<bool>(jsonRes['isAbandoned']) ?? true,
         jobType: asT<int>(jsonRes['jobType']) ?? 0,
         refTransactionId: asT<String>(jsonRes['refTransactionId']) ?? '',
@@ -67,8 +71,10 @@ class BackgroundJobInfo {
   final double _defaultWaitFactor = 2.0;
   final int _defaultTimeout = 172800;
   DateTime? calculateNextTryTime() {
-    var nextWaitDuration = _defaultFirstWaitDuration * (pow(_defaultWaitFactor, tryCount - 1)).toInt();
-    var nextTryDate = lastTryTime.toDateTime().add(Duration(seconds: nextWaitDuration));
+    var nextWaitDuration = _defaultFirstWaitDuration *
+        (pow(_defaultWaitFactor, tryCount - 1)).toInt();
+    var nextTryDate =
+        lastTryTime.toDateTime().add(Duration(seconds: nextWaitDuration));
     if (kDebugMode) {
       print("JOB:$id, Try COunt:$tryCount");
     }

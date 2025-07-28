@@ -12,8 +12,7 @@ class GateAccessMenuView extends StatefulWidget {
   _GateAccessMenuViewState createState() => _GateAccessMenuViewState();
 }
 
-class _GateAccessMenuViewState extends State<GateAccessMenuView>
-    with AutomaticKeepAliveClientMixin {
+class _GateAccessMenuViewState extends State<GateAccessMenuView> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -22,8 +21,7 @@ class _GateAccessMenuViewState extends State<GateAccessMenuView>
     super.build(context);
     return ViewModelBuilder<GateAccessMenuViewModel>.reactive(
       viewModelBuilder: () => GateAccessMenuViewModel(),
-      onViewModelReady: (model) =>
-          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      onViewModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.initialise();
       }),
       builder: (context, model, child) => Scaffold(

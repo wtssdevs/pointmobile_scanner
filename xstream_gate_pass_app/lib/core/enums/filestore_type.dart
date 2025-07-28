@@ -14,6 +14,9 @@ enum FileStoreType {
   gateBookingDocument(40), // 32 | 8 (gatePassAccess | document)
   gateBookingVideo(48), // 32 | 16 (gatePassAccess | video)
   gatePassAccessDriverLicenceImage(162), // Foreign license photo capture
+
+  checklistQuestionImage(770), // CheckListItem + CheckListItemQuestion + Image,//256 +512+2 = 770
+
   tenantLogo(65); // 64 | 1 (tenant | logo)
 
   final int value;
