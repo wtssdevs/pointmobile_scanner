@@ -62,29 +62,38 @@ class CheckListServiceService {
   ChecklistType checklistType;
   DeliveryType deliveryType;
 
-  switch (gatePassStatus) {
-    case GatePassStatus.pending:
-    case GatePassStatus.atGate:
-    case GatePassStatus.rejectedEntry:
-      checklistType = ChecklistType.gatePassAccessEntry;
-      deliveryType = DeliveryType.receive;
-      break;
+switch (gatePassStatus) {
+  case GatePassStatus.pending:
+    checklistType = ChecklistType.gatePassAccessEntry;
+    deliveryType = DeliveryType.receive;
+    break;
 
-    case GatePassStatus.inYard:
-    case GatePassStatus.leftTheYard:
-      checklistType = ChecklistType.gatePassAccessExit;
-      deliveryType = DeliveryType.dispatch;
-      break;
+  case GatePassStatus.atGate:
+    checklistType = ChecklistType.gatePassAccessEntry;
+    deliveryType = DeliveryType.receive;
+    break;
 
-    default:
-      checklistType = ChecklistType.gatePassAccess;
-      deliveryType = DeliveryType.other;
-  }
+  case GatePassStatus.rejectedEntry:
+    checklistType = ChecklistType.gatePassAccessReject;
+    deliveryType = DeliveryType.receive;
+    break;
 
-  return CheckListResolveTypeOutput(
-    checklistType: checklistType.value.toString(),
-    deliveryType: deliveryType.value.toString(),
-  );
+  case GatePassStatus.inYard:
+  case GatePassStatus.leftTheYard:
+    checklistType = ChecklistType.gatePassAccessExit;
+    deliveryType = DeliveryType.dispatch;
+    break;
+
+  default:
+    checklistType = ChecklistType.gatePassAccess;
+    deliveryType = DeliveryType.other;
+}
+
+return CheckListResolveTypeOutput(
+  checklistType: checklistType.value.toString(),
+  deliveryType: deliveryType.value.toString(),
+);
+
 }
 
 
