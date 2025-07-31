@@ -762,17 +762,30 @@ _navigationService.back(result: true);
       return;
     }
 
-    //here we save back to server
+        //here we save back to server
     var reponse = await _gatePassService.rejectForEntry(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
       Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
     } else {
-      //error could not save
+            //error could not save
       Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
     }
 
-    //update Screen UI state with model changes
+    if (_gatePass != null) {
+      await _navigationService.navigateTo(
+        Routes.checkListView,
+        arguments: CheckListViewArguments(
+          filterParams: FilterParams(
+            gatePassAccessId: _gatePass!.id!,
+            gatePassStatus: _gatePass!.gatePassStatus,
+            checklistType: ChecklistType.gatePassAccessReject, 
+            gateAccessDeliveryType: _gatePass!.gatePassDeliveryType,
+          ),
+        ),
+      );
+    }
+       //update Screen UI state with model changes
     setModelUpdate(_gatePass);
     notifyListeners();
 
