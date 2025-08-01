@@ -491,22 +491,40 @@ class GatePassService {
     }
   }
 
-  Future<GatePassAccess?> rejectForEntry(GatePassAccess entity) async {
-    try {
-      var baseResponse = await _apiManager.post(AppConst.RejectEntryGatePass,
-          showLoader: true, data: entity.toJson());
-      if (baseResponse != null) {
-        var apiResponse = ApiResponse.fromJson(baseResponse);
-        if (apiResponse.success != null) {
-          return GatePassAccess.fromJson(apiResponse.result);
-        }
+Future<GatePassAccess?> rejectForEntry(GatePassAccess entity) async {
+  try {
+    var baseResponse = await _apiManager.post(
+      AppConst.RejectEntryGatePass,
+      showLoader: true,
+      data: entity.toJson(),
+    );
 
-        return null;
+    if (baseResponse != null) {
+      var apiResponse = ApiResponse.fromJson(baseResponse);
+
+      if (apiResponse.success == true && apiResponse.result != null) {
+        return GatePassAccess.fromJson(apiResponse.result);
       }
-      return null;
-    } catch (e) {
-      log.e(e.toString());
-      return null;
+
+      // Handle UserFriendlyException
+      if (apiResponse.error != null) {
+        final message = apiResponse.result!['details'] ?? apiResponse.result!['message'] ?? "Reject failed.";
+
+        await locator<DialogService>().showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.error,
+          title: "Rejection Failed",
+          description: message,
+          mainButtonTitle: "Ok",
+        );
+      }
     }
+
+    return null;
+  } catch (e) {
+    log.e(e.toString());
+    return null;
   }
+}
+
 }

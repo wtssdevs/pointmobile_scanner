@@ -62,7 +62,7 @@ class CheckListServiceService {
   ChecklistType checklistType;
   DeliveryType deliveryType;
 
-switch (gatePassStatus) {
+  switch (gatePassStatus) {
   case GatePassStatus.pending:
     checklistType = ChecklistType.gatePassAccessEntry;
     deliveryType = DeliveryType.receive;
@@ -74,7 +74,7 @@ switch (gatePassStatus) {
     break;
 
   case GatePassStatus.rejectedEntry:
-    checklistType = ChecklistType.gatePassAccessReject;
+    checklistType = ChecklistType.reject;
     deliveryType = DeliveryType.receive;
     break;
 

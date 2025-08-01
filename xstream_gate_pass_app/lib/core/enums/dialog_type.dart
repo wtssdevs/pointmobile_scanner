@@ -59,7 +59,7 @@ enum ChecklistType {
   container(2, "Container", FontAwesomeIcons.boxesPacking),
   entry(4, "Entry", FontAwesomeIcons.doorOpen),
   exit(8, "Exit", FontAwesomeIcons.doorClosed),
-  gatePassAccessReject (16, "Exit", FontAwesomeIcons.doorClosed),
+  reject (16, "Exit", FontAwesomeIcons.doorClosed),
   gatePassAccessEntry(5, "Gate Pass Access Entry", FontAwesomeIcons.signInAlt),
   gatePassAccessExit(9, "Gate Pass Access Exit", FontAwesomeIcons.signOutAlt);
 
