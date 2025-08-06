@@ -72,22 +72,18 @@ class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
   }
 
   Future<void> getCheckListForGatePass() async {
-    setBusy(true);
-    _checkList = await _checkListService.getEmptyChecklistForGatePass(
-      _filterParams,
-    );
+  setBusy(true);
+  _checkList = await _checkListService.getEmptyChecklistForGatePass(
+    _filterParams,
+  );
 
-    if (_checkList == null) {
-      _dialogService.showCustomDialog(
-        variant: DialogType.infoAlert,
-        data: BasicDialogStatus.warning,
-        title: "Error",
-        description: "Failed to load checklist.,Please try again later",
-        mainButtonTitle: "OK",
-      );
-    }
+  if (_checkList == null) {
     setBusy(false);
+    _navigationService.back(); 
+    return;
   }
+  setBusy(false);
+}
 
   Future<void> submitChecklist() async {
     setBusy(true);
@@ -326,77 +322,175 @@ class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
     return errors;
   }
 
-  bool get hasValidationErrors => validationErrors.isNotEmpty; // Photo capture methods
-  Future<void> capturePhotoForQuestion(ChecklistResponse question) async {
-    if (question.checklistItemId == null) return;
 
-    // Check camera permission
-    var cameraStatus = await Permission.camera.status;
-    if (!cameraStatus.isGranted) {
-      await Permission.camera.request();
+// Photo capture methods
+bool get hasValidationErrors => validationErrors.isNotEmpty;
+
+// Photo capture methods
+Future<void> capturePhotoForQuestion(ChecklistResponse question) async {
+  if (question.checklistItemId == null) return;
+
+  // Check camera permission
+  var cameraStatus = await Permission.camera.status;
+  if (!cameraStatus.isGranted) {
+    await Permission.camera.request();
+  }
+
+  // DEBUG: Check what gate pass ID we're using
+  print("DEBUG CAPTURE: _filterParams.gatePassAccessId: ${_filterParams.gatePassAccessId}");
+  print("DEBUG CAPTURE: question.checklistItemId: ${question.checklistItemId}");
+
+  // Create consistent reference ID for photo storage
+  final photoRefId = '${_filterParams.gatePassAccessId}_${question.checklistItemId}';
+  
+  print("DEBUG CAPTURE: Using photoRefId for capture: $photoRefId");
+
+  // Navigate to camera capture view
+  var cameraResponse = await _navigationService.navigateTo(
+    Routes.cameraCaptureView,
+    arguments: CameraCaptureViewArguments(
+      refId: photoRefId,  // Use combined ID
+      referanceId: 0,
+      fileStoreType: FileStoreType.checklistQuestionImage,
+    ),
+  );
+
+  print("DEBUG CAPTURE: Camera capture completed, refreshing photos...");
+
+  // Refresh photos after capture
+  await _refreshPhotosForQuestion(question);
+  
+  // Update the response after photo capture
+  final photos = getPhotosForQuestion(question);
+  print("DEBUG CAPTURE: Photos found after capture: ${photos.length}");
+  
+  if (photos.isNotEmpty) {
+    question.photoPath = photos.first.path;
+    // Create PhotoPath objects using the class from the model
+    question.photoPaths = photos.map((photo) => PhotoPath(
+      name: photo.fileName ?? '',
+      value: photo.path ?? ''
+    )).toList();
+    question.isPassing = question.hasResponse;
+    
+    print("DEBUG CAPTURE: Updated question photoPath: '${question.photoPath}'");
+    print("DEBUG CAPTURE: Updated question photoPaths: ${question.photoPaths?.length}");
+    print("DEBUG CAPTURE: Question isPassing: ${question.isPassing}");
+    print("DEBUG CAPTURE: Question hasResponse after update: ${question.hasResponse}");
+    
+    rebuildUi();
+  } else {
+    print("DEBUG CAPTURE: No photos found after capture!");
+  }
+}
+
+Future<void> _refreshPhotosForQuestion(ChecklistResponse question) async {
+  if (question.checklistItemId == null) return;
+
+  // DEBUG: Check the exact IDs being used for retrieval
+  print("DEBUG REFRESH: _filterParams.gatePassAccessId: ${_filterParams.gatePassAccessId}");
+  print("DEBUG REFRESH: question.checklistItemId: ${question.checklistItemId}");
+
+  // Use the same combined reference ID for retrieval
+  final photoRefId = '${_filterParams.gatePassAccessId}_${question.checklistItemId}';
+  
+  print("DEBUG REFRESH: Using photoRefId for retrieval: $photoRefId");
+
+  final photos = await _fileStoreRepository.getAll(
+    photoRefId,  // Use combined ID for retrieval too
+    FileStoreType.checklistQuestionImage,
+    100,
+  );
+
+  print("DEBUG REFRESH: _refreshPhotosForQuestion found ${photos.length} photos");
+  
+  if (photos.isNotEmpty) {
+    for (var i = 0; i < photos.length; i++) {
+      print("DEBUG REFRESH: Photo $i - fileName: ${photos[i].fileName}, path: ${photos[i].path}");
     }
-
-    // Navigate to camera capture view
-    var cameraResponse = await _navigationService.navigateTo(
-      Routes.cameraCaptureView,
-      arguments: CameraCaptureViewArguments(
-        refId: question.checklistItemId!,
-        referanceId: 0,
-        fileStoreType: FileStoreType.checklistQuestionImage,
-      ),
-    );
-
-    // Refresh photos after capture
-    await _refreshPhotosForQuestion(question);
   }
 
-  Future<void> _refreshPhotosForQuestion(ChecklistResponse question) async {
-    if (question.checklistItemId == null) return;
+  _questionPhotos[question.checklistItemId!] = photos;
+  notifyListeners();
+}
 
-    final photos = await _fileStoreRepository.getAll(
-      question.checklistItemId!,
-      FileStoreType.checklistQuestionImage,
-      100,
-    );
+List<FileStore> getPhotosForQuestion(ChecklistResponse question) {
+  if (question.checklistItemId == null) return [];
+  final photos = _questionPhotos[question.checklistItemId!] ?? [];
+  print("DEBUG GET: getPhotosForQuestion returning ${photos.length} photos for question ${question.checklistItemId}");
+  return photos;
+}
 
-    _questionPhotos[question.checklistItemId!] = photos;
-    notifyListeners();
+bool hasPhotosForQuestion(ChecklistResponse question) {
+  final hasPhotos = getPhotosForQuestion(question).isNotEmpty;
+  print("DEBUG HAS: hasPhotosForQuestion: $hasPhotos for question ${question.checklistItemId}");
+  return hasPhotos;
+}
+
+Future<void> deletePhotoForQuestion(ChecklistResponse question, FileStore photo) async {
+  if (question.checklistItemId == null) return;
+
+  print("DEBUG DELETE: Deleting photo ${photo.fileName} for question ${question.checklistItemId}");
+
+  await _fileStoreRepository.delete(photo);
+  await _refreshPhotosForQuestion(question);
+  
+  // Update the question response after deletion
+  final photos = getPhotosForQuestion(question);
+  if (photos.isEmpty) {
+    question.photoPath = null;
+    question.photoPaths = null;
+    question.isPassing = question.hasResponse;
+    print("DEBUG DELETE: No photos remaining, cleared photo fields");
+    rebuildUi();
   }
+}
 
-  List<FileStore> getPhotosForQuestion(ChecklistResponse question) {
-    if (question.checklistItemId == null) return [];
-    return _questionPhotos[question.checklistItemId!] ?? [];
-  }
+Future<void> viewAllPhotosForQuestion(ChecklistResponse question) async {
+  if (question.checklistItemId == null) return;
 
-  bool hasPhotosForQuestion(ChecklistResponse question) {
-    return getPhotosForQuestion(question).isNotEmpty;
-  }
+  // Use consistent reference ID for viewing
+  final photoRefId = '${_filterParams.gatePassAccessId}_${question.checklistItemId}';
 
-  Future<void> deletePhotoForQuestion(ChecklistResponse question, FileStore photo) async {
-    if (question.checklistItemId == null) return;
+  print("DEBUG VIEW: Opening photo viewer with photoRefId: $photoRefId");
 
-    await _fileStoreRepository.delete(photo);
-    await _refreshPhotosForQuestion(question);
-  }
+  await _navigationService.navigateTo(
+    Routes.imagesViewerListView,
+    arguments: ImagesViewerListViewArguments(
+      gatePassId: photoRefId,  // Use combined ID
+    ),
+  );
+}
 
-  Future<void> viewAllPhotosForQuestion(ChecklistResponse question) async {
-    if (question.checklistItemId == null) return;
+Future<void> _loadPhotosForAllQuestions() async {
+  if (_checkList?.responses == null) return;
 
-    await _navigationService.navigateTo(
-      Routes.imagesViewerListView,
-      arguments: ImagesViewerListViewArguments(
-        gatePassId: question.checklistItemId!,
-      ),
-    );
-  }
+  print("DEBUG LOAD: Loading photos for all questions...");
+  print("DEBUG LOAD: _filterParams.gatePassAccessId: ${_filterParams.gatePassAccessId}");
 
-  Future<void> _loadPhotosForAllQuestions() async {
-    if (_checkList?.responses == null) return;
-
-    for (var question in _checkList!.responses!) {
-      if (question.requiresPhoto == true) {
-        await _refreshPhotosForQuestion(question);
+  for (var question in _checkList!.responses!) {
+    if (question.requiresPhoto == true) {
+      print("DEBUG LOAD: Loading photos for question ${question.checklistItemId}");
+      await _refreshPhotosForQuestion(question);
+      
+      // Update question response state if photos exist
+      final photos = getPhotosForQuestion(question);
+      if (photos.isNotEmpty && question.photoPath == null) {
+        question.photoPath = photos.first.path;
+        question.photoPaths = photos.map((photo) => PhotoPath(
+          name: photo.fileName ?? '',
+          value: photo.path ?? ''
+        )).toList();
+        question.isPassing = question.hasResponse;
+        
+        print("DEBUG LOAD: Updated existing photo data for question ${question.checklistItemId}");
+        print("DEBUG LOAD: photoPath: ${question.photoPath}");
+        print("DEBUG LOAD: photoPaths count: ${question.photoPaths?.length}");
+        print("DEBUG LOAD: isPassing: ${question.isPassing}");
       }
     }
   }
+  
+  rebuildUi();
+}
 }

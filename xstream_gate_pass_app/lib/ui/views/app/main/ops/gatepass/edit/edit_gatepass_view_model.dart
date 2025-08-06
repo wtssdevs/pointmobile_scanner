@@ -172,11 +172,16 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 Future<bool> findChecklistTemplate({bool isReject = false}) async {
   late final ChecklistType checklistType;
   late final DeliveryType deliveryType;
+  late final GatePassBookingType bookingType;
 
   if (isReject) {
     checklistType = ChecklistType.reject;
-    deliveryType = DeliveryType.other;
+    deliveryType = gatePass.gatePassDeliveryType;
+    bookingType = gatePass.gatePassBookingType;
   } else {
+    deliveryType = gatePass.gatePassDeliveryType;
+    bookingType = gatePass.gatePassBookingType;
+    
     final resolveResult = await _checkListService.resolveChecklistType(
       gatePass.gatePassStatus.name.capitalize(),
     );
@@ -195,17 +200,7 @@ Future<bool> findChecklistTemplate({bool isReject = false}) async {
         return ChecklistType.gatePassAccess;
       },
     );
-
-    deliveryType = DeliveryType.values.firstWhere(
-      (e) => e.value == int.tryParse(resolveResult.deliveryType ?? ''),
-      orElse: () {
-        log.e('Unknown deliveryType: ${resolveResult.deliveryType}');
-        return DeliveryType.other;
-      },
-    );
   }
-
-  final bookingType = isReject ? GatePassBookingType.none : gatePass.gatePassBookingType;
 
   final checkListFindTemplateModel = await _checkListService.findChecklistTemplate(
     FilterParams(
@@ -224,10 +219,8 @@ Future<bool> findChecklistTemplate({bool isReject = false}) async {
 
     return await gotoCheckListView(checkListFindTemplateModel, isReject: isReject);
   }
-
   return true;
 }
-
 
 Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateModel, {bool isReject = false}) async {
   late final ChecklistType checklistType;
@@ -236,9 +229,12 @@ Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateM
 
   if (isReject) {
     checklistType = ChecklistType.reject;
-    deliveryType = DeliveryType.receive;
-    bookingType = GatePassBookingType.none;
+    deliveryType = gatePass.gatePassDeliveryType;
+    bookingType = gatePass.gatePassBookingType;
   } else {
+    deliveryType = gatePass.gatePassDeliveryType;
+    bookingType = gatePass.gatePassBookingType;
+    
     final resolveResult = await _checkListService.resolveChecklistType(
       gatePass.gatePassStatus.name.capitalize(),
     );
@@ -257,16 +253,6 @@ Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateM
         return ChecklistType.gatePassAccess;
       },
     );
-
-    deliveryType = DeliveryType.values.firstWhere(
-      (e) => e.value == int.tryParse(resolveResult.deliveryType ?? ''),
-      orElse: () {
-        log.e('Unknown deliveryType: ${resolveResult.deliveryType}');
-        return DeliveryType.other;
-      },
-    );
-
-    bookingType = gatePass.gatePassBookingType;
   }
 
   final currentChecklistId = checkListFindTemplateModel.checklistId;
@@ -288,7 +274,6 @@ Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateM
 
   return completed == true;
 }
-
 
   Future<void> startScanListener() async {
     setModelUpdate(_gatePass);
@@ -770,7 +755,6 @@ _navigationService.back(result: true);
       );
     }
 
-//confirmation before we reject
     var confirm = await _dialogService.showCustomDialog(
       variant: DialogType.infoAlert,
       data: BasicDialogStatus.warning,
@@ -783,37 +767,23 @@ _navigationService.back(result: true);
       return;
     }
 
-      
-    if (_gatePass != null) {
-      await _navigationService.navigateTo(
-        Routes.checkListView,
-        arguments: CheckListViewArguments(
-          filterParams: FilterParams(
-            gatePassAccessId: _gatePass!.id!,
-            gatePassStatus: _gatePass!.gatePassStatus,
-            checklistType: ChecklistType.reject,  
-            gateAccessDeliveryType: _gatePass!.gatePassDeliveryType,
-          ),
-        ),
-      );
-    }
-  
+    setBusy(true);
+
     final checklistCompleted = await findChecklistTemplate(isReject: true);
     if (!checklistCompleted) {
       setBusy(false);
       return;
     }
-      //here we save back to server
+
+    //here we save back to server
     var reponse = await _gatePassService.rejectForEntry(gatePass);
     if (reponse != null) {
       _gatePass = reponse;
       Fluttertoast.showToast(msg: "Save was successful! ", toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.green, textColor: Colors.white, fontSize: 14.0);
     } else {
-            //error could not save
       Fluttertoast.showToast(msg: "Save Failed!,Please try again or contact your system admin. ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
     }
 
-       //update Screen UI state with model changes
     setModelUpdate(_gatePass);
     notifyListeners();
 
@@ -834,7 +804,6 @@ _navigationService.back(result: true);
     if (gatePass.id != null && gatePass.id != 0) {
       _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gateBookingImage, 100);
 
-      // Load foreign license photos and update state
       final foreignLicensePhotos = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gatePassAccessDriverLicenceImage, 100);
       if (foreignLicensePhotos.isNotEmpty) {
         _foreignLicensePhotoTaken = true;

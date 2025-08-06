@@ -17,16 +17,21 @@ class CheckListServiceService {
   final log = getLogger('CheckListServiceService');
   final ApiManager _apiManager = locator<ApiManager>();
 
-  Future<CheckList?> getEmptyChecklistForGatePass(FilterParams entity) async {
+Future<CheckList?> getEmptyChecklistForGatePass(FilterParams entity) async {
     var baseResponse = await _apiManager.post(AppConst.getEmptyChecklistForGatePass, showLoader: true, data: entity.toJson());
     if (baseResponse != null) {
       var apiResponse = ApiResponse.fromJson(baseResponse);
-      if (apiResponse.success != null) {
-        return CheckList.fromJson(apiResponse.result);
+      if (apiResponse.success == true) {
+        var checklist = CheckList.fromJson(apiResponse.result);
+        // If no template, return null to continue silently
+        if (checklist.hasTempalte == false) {
+          return null;
+        }
+        return checklist;
       }
     }
     return null;
-  }
+}
 
 //
   Future<CheckList?> submitResponses(CheckListResponseModel entity) async {

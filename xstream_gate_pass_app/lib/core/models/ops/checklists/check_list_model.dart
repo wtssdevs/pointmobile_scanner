@@ -148,6 +148,7 @@ class ChecklistResponse {
   String? expectedActionResponse;
   bool? requiresPhoto;
   String? checklistTemplateId;
+  bool? hasTemplate;
 
   ChecklistResponse({
     this.id,
@@ -174,6 +175,7 @@ class ChecklistResponse {
     this.expectedActionResponse,
     this.requiresPhoto,
     this.checklistTemplateId,
+    this.hasTemplate,
   });
 
 //has a reponse been given for this question based on the type of question
@@ -181,23 +183,60 @@ class ChecklistResponse {
   /// Getter to check if response has been provided
   bool get hasResponse {
     switch (itemType) {
-      case ChecklistItemType.text:
-        return response?.isNotEmpty == true;
-      case ChecklistItemType.numeric:
-        return numericResponse != null;
       case ChecklistItemType.yesNo:
-        return booleanResponse != null;
-      case ChecklistItemType.date:
-        return dateResponse != null;
+        bool hasYesNoResponse = booleanResponse != null;
+        
+        // If this question requires a photo, check for photo too
+        if (requiresPhoto == true) {
+          bool hasRequiredPhoto = (photoPath?.isNotEmpty ?? false) || 
+                                (photoPaths?.isNotEmpty ?? false);
+          return hasYesNoResponse && hasRequiredPhoto;  // Both required
+        }
+        
+        return hasYesNoResponse;  // Only Yes/No required
+        
+      case ChecklistItemType.text:
       case ChecklistItemType.multipleChoice:
-        return response?.isNotEmpty == true;
+        bool hasTextResponse = response?.isNotEmpty ?? false;
+        
+        if (requiresPhoto == true) {
+          bool hasRequiredPhoto = (photoPath?.isNotEmpty ?? false) || 
+                                (photoPaths?.isNotEmpty ?? false);
+          return hasTextResponse && hasRequiredPhoto;
+        }
+        
+        return hasTextResponse;
+        
       case ChecklistItemType.photo:
-        return photoPath?.isNotEmpty == true || photoPaths?.isNotEmpty == true;
+        return (photoPath?.isNotEmpty ?? false) || 
+              (photoPaths?.isNotEmpty ?? false);
+              
+      case ChecklistItemType.numeric:
+        bool hasNumericResponse = numericResponse != null;
+        
+        if (requiresPhoto == true) {
+          bool hasRequiredPhoto = (photoPath?.isNotEmpty ?? false) || 
+                                (photoPaths?.isNotEmpty ?? false);
+          return hasNumericResponse && hasRequiredPhoto;
+        }
+        
+        return hasNumericResponse;
+        
+      case ChecklistItemType.date:
+        bool hasDateResponse = dateResponse != null;
+        
+        if (requiresPhoto == true) {
+          bool hasRequiredPhoto = (photoPath?.isNotEmpty ?? false) || 
+                                (photoPaths?.isNotEmpty ?? false);
+          return hasDateResponse && hasRequiredPhoto;
+        }
+        
+        return hasDateResponse;
+        
       default:
         return false;
     }
   }
-
   /// Getter to check if response has question options
   bool get hasQuestionOptions => questionOptions?.isNotEmpty == true;
 
@@ -233,6 +272,7 @@ class ChecklistResponse {
 
   /// Getter to check if item type is Photo
   bool get isPhotoType => itemType == ChecklistItemType.photo;
+ 
 
   factory ChecklistResponse.fromJson(Map<String, dynamic> json) {
     return ChecklistResponse(
@@ -260,6 +300,7 @@ class ChecklistResponse {
       expectedActionResponse: json['expectedActionResponse'],
       requiresPhoto: json['requiresPhoto'],
       checklistTemplateId: json['checklistTemplateId'],
+      hasTemplate: json['hasTemplate'] ?? true,
     );
   }
 
@@ -289,6 +330,7 @@ class ChecklistResponse {
       'expectedActionResponse': expectedActionResponse,
       'requiresPhoto': requiresPhoto,
       'checklistTemplateId': checklistTemplateId,
+      'hasTemplate': hasTemplate
     };
   }
 }
@@ -317,6 +359,7 @@ class CheckList {
   String? createdByUser;
   String? lastModifiedByUser;
   DateTime? lastModificationTime;
+  bool? hasTempalte;
 
   CheckList({
     this.id,
