@@ -6,7 +6,8 @@ class PointmobileScanner {
 
   static const String ON_DECODE = "onDecode";
   static const String ON_ERROR = "onError";
-
+  static const String platformVersion = "42";
+//
   static const int SYM_NIL = 0;
   static const int SYM_AIRLINE_2OF5_13_DIGIT = 1;
   static const int SYM_AIRLINE_2OF5_15_DIGIT = 2;
@@ -78,8 +79,8 @@ class PointmobileScanner {
   static const int SYM_SWEDENPOST = 68;
   static const int SYM_LAST = 69;
 
-  static void initScanner() {
-    channel.invokeMethod("initScanner");
+  static Future<bool> initScanner(int devicemodelId) async {
+    return await channel.invokeMethod<bool>("initScanner", devicemodelId.toString()) ?? false;
   }
 
   static void enableScanner() {

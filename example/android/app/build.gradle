@@ -25,6 +25,7 @@ apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
+<<<<<<< HEAD
     compileSdk 34
     namespace "com.plugin.flutter.pointmobile_scanner_example"
     defaultConfig {
@@ -32,6 +33,15 @@ android {
         applicationId "com.plugin.flutter.pointmobile_scanner_example"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 34
+=======
+    compileSdkVersion 31
+
+    defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId "com.plugin.flutter.pointmobile_scanner_example"
+        minSdkVersion 21
+        targetSdkVersion 31
+>>>>>>> Dev
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }

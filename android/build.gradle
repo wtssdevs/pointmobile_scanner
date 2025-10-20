@@ -8,7 +8,12 @@ buildscript {
     }
 
     dependencies {
+<<<<<<< HEAD
         classpath 'com.android.tools.build:gradle:8.1.4'
+=======
+        //classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath 'com.android.tools.build:gradle:7.1.3'
+>>>>>>> Dev
     }
 }
 
@@ -22,10 +27,15 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
+<<<<<<< HEAD
     compileSdk 34
     namespace "com.plugin.flutter.pointmobile_scanner"
+=======
+    compileSdkVersion 34
+
+>>>>>>> Dev
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
     }
 }
 
