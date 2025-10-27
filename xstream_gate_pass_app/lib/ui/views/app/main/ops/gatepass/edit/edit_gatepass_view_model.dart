@@ -43,7 +43,7 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/base_form_view_model.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
-
+import 'package:xstream_gate_pass_app/core/utils/app_permissions.dart';
 
 class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   GatePassEditViewModel(this._gatePass);
@@ -66,6 +66,35 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   final _incidentManagerService = locator<IncidentManagerService>();
   final _checkListService = locator<CheckListServiceService>();
   final ScrollController scrollController = ScrollController();
+
+  bool _showVehicleManualInput = false;
+  bool get showVehicleManualInput => _showVehicleManualInput;
+
+  bool _showTrailerOneManualInput = false;
+  bool get showTrailerOneManualInput => _showTrailerOneManualInput;
+
+  bool _showTrailerTwoManualInput = false;
+  bool get showTrailerTwoManualInput => _showTrailerTwoManualInput;
+
+  bool get hasVehicleManualInputPermission {
+    return hasPermission(
+        AppPermissions.mobileOperationsAllowVehicleManualInput);
+  }
+
+  bool get hasTrailerManualInputPermission {
+    return hasPermission(
+        AppPermissions.mobileOperationsAllowTrailerManualInput);
+  }
+
+  bool get hasTrailerOverridePermission {
+    return hasPermission(AppPermissions.mobileOperationsAllowTrailerOverride);
+  }
+
+  bool _sameReg(String? a, String? b) {
+    if (a == null || b == null) return false;
+    return a.replaceAll(' ', '').toUpperCase() ==
+        b.replaceAll(' ', '').toUpperCase();
+  }
 
 // Driver information section
   final GlobalKey driverInfoCardKey = GlobalKey(debugLabel: 'driverInfoCard');
@@ -99,6 +128,22 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     _scanningService.setBarcodeScanType(type);
     rebuildUi();
   }
+
+  // Manual entry tracking
+  bool _vehicleManualEntryUsed = false;
+  bool _vehicleManualPhotoTaken = false;
+  bool get vehicleManualEntryUsed => _vehicleManualEntryUsed;
+  bool get vehicleManualPhotoTaken => _vehicleManualPhotoTaken;
+
+  bool _trailerOneManualEntryUsed = false;
+  bool _trailerOneManualPhotoTaken = false;
+  bool get trailerOneManualEntryUsed => _trailerOneManualEntryUsed;
+  bool get trailerOneManualPhotoTaken => _trailerOneManualPhotoTaken;
+
+  bool _trailerTwoManualEntryUsed = false;
+  bool _trailerTwoManualPhotoTaken = false;
+  bool get trailerTwoManualEntryUsed => _trailerTwoManualEntryUsed;
+  bool get trailerTwoManualPhotoTaken => _trailerTwoManualPhotoTaken;
 
   List<BaseLookup> _customers = <BaseLookup>[];
   List<BaseLookup> get customers => _customers;
@@ -167,6 +212,20 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     await initialize();
   }
 
+  void toggleVehicleManualInput() {
+    _showVehicleManualInput = !_showVehicleManualInput;
+    rebuildUi();
+  }
+
+  void toggleTrailerOneManualInput() {
+    _showTrailerOneManualInput = !_showTrailerOneManualInput;
+    rebuildUi();
+  }
+
+  void toggleTrailerTwoManualInput() {
+    _showTrailerTwoManualInput = !_showTrailerTwoManualInput;
+    rebuildUi();
+  }
 //_checkListService
 
 Future<bool> findChecklistTemplate({bool isReject = false}) async {
@@ -181,7 +240,7 @@ Future<bool> findChecklistTemplate({bool isReject = false}) async {
   } else {
     deliveryType = gatePass.gatePassDeliveryType;
     bookingType = gatePass.gatePassBookingType;
-    
+
     final resolveResult = await _checkListService.resolveChecklistType(
       gatePass.gatePassStatus.name.capitalize(),
     );
@@ -234,7 +293,7 @@ Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateM
   } else {
     deliveryType = gatePass.gatePassDeliveryType;
     bookingType = gatePass.gatePassBookingType;
-    
+
     final resolveResult = await _checkListService.resolveChecklistType(
       gatePass.gatePassStatus.name.capitalize(),
     );
@@ -313,6 +372,10 @@ Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateM
     var msg = ValidationMessages.regNoMismatch("Vehicle registration", gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
     if (gatePass.vehicleRegNoMatch == false) {
       setValidationMessage(msg);
+      if (hasVehicleManualInputPermission) {
+        _showVehicleManualInput = true;
+        scrollToVehicleInfoCardKey();
+      }
       logIncident(msg);
     } else {
       clearValidationMessage(msg);
@@ -325,14 +388,26 @@ Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateM
       var msg = ValidationMessages.regNoMismatch("Trailer One registration", gatePass.trailerRegNumberOne, gatePass.trailerRegNumberOneValidation);
       if (gatePass.trailerRegNumberOneMatch == false) {
         setValidationMessage(msg);
+        if (hasTrailerManualInputPermission) {
+          _showTrailerOneManualInput = true;
+          scrollToWidget(trailerOneInfoCardKey);
+        }
         logIncident(msg);
       } else {
         clearValidationMessage(msg);
       }
-    } else if (trailerNumber == "Two") {
-      var msg = ValidationMessages.regNoMismatch("Trailer Two registration", gatePass.trailerRegNumberTwo, gatePass.trailerRegNumberTwoValidation);
+    } else {
+      var msg = ValidationMessages.regNoMismatch(
+        "Trailer Two registration",
+        gatePass.trailerRegNumberTwo,
+        gatePass.trailerRegNumberTwoValidation,
+      );
       if (gatePass.trailerRegNumberTwoMatch == false) {
         setValidationMessage(msg);
+        if (hasTrailerManualInputPermission) {
+          _showTrailerTwoManualInput = true;
+          scrollToWidget(trailerTwoInfoCardKey);
+        }
         logIncident(msg);
       } else {
         clearValidationMessage(msg);
@@ -509,6 +584,13 @@ Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateM
     if (vehicleLicenseData.expiryDate != null && vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
       logIncident("Trailer One (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
     }
+
+    if (gatePass.trailerRegNumberOneMatch == false &&
+        hasTrailerManualInputPermission) {
+      _showTrailerOneManualInput = true;
+      scrollToWidget(trailerOneInfoCardKey);
+      return;
+    }
     // Determine next scan target
     BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc; // Default
     GlobalKey? nextSection;
@@ -538,6 +620,20 @@ Future<bool> gotoCheckListView(CheckListFindTemplateModel checkListFindTemplateM
     // Check if trailer two reg matches scanned data
     // Set validation message
     setTrailerValidationMessage("Two");
+
+    if (vehicleLicenseData.expiryDate != null &&
+        vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
+      logIncident(
+          "Trailer Two (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
+    }
+
+    if (gatePass.trailerRegNumberTwoMatch == false &&
+        hasTrailerManualInputPermission) {
+      _showTrailerTwoManualInput = true;
+      scrollToWidget(trailerTwoInfoCardKey);
+      return;
+    }
+
     if (showValidation) {
       rebuildUi();
       scrollToFirstError();
@@ -890,6 +986,344 @@ _navigationService.back(result: true);
     }
 
     notifyListeners();
+  }
+
+  Future<void> manualInputVehicle(String registrationNumber) async {
+    if (registrationNumber.contains(' ')) {
+      setValidationMessage(ValidationMessages.noSpacesAllowed);
+      return;
+    }
+    registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
+    gatePass.vehicleRegNumberValidation = registrationNumber;
+    setVehicleValidationMessage();
+
+    await _incidentManagerService.logManualInput(
+        gatePass.id.toString(), 'Vehicle', registrationNumber);
+
+    if (gatePass.vehicleRegNoMatch == true) {
+      _vehicleManualEntryUsed = true;
+      _vehicleManualPhotoTaken = false;
+      await promptForVehiclePhoto();
+
+      BarcodeScanType nextScanType = BarcodeScanType.vehicleDisc;
+      GlobalKey? nextSection;
+
+      if (gatePass.trailerRegNumberOne != null &&
+          gatePass.trailerRegNumberOne!.isNotEmpty) {
+        nextScanType = BarcodeScanType.trailerOneDisc;
+        nextSection = trailerOneInfoCardKey;
+      } else if (gatePass.trailerRegNumberTwo != null &&
+          gatePass.trailerRegNumberTwo!.isNotEmpty) {
+        nextScanType = BarcodeScanType.trailerTwoDisc;
+        nextSection = trailerTwoInfoCardKey;
+      } else if (gatePass.gatePassBookingType ==
+          GatePassBookingType.containers) {
+        nextSection = containerInfoCardKey;
+      }
+
+      setBarcodeScanType(nextScanType);
+      if (nextSection != null) {
+        scrollToWidget(nextSection);
+      }
+
+      _showVehicleManualInput = false;
+    } else {
+      var result = await _dialogService.showCustomDialog(
+        variant: DialogType.infoAlert,
+        data: BasicDialogStatus.error,
+        title: "License Mismatch",
+        description: ValidationMessages.regNoMismatch("Vehicle registration",
+            gatePass.vehicleRegNumber, registrationNumber),
+        mainButtonTitle: "Re-enter",
+        secondaryButtonTitle: "Reject Entry",
+      );
+
+      if (result?.confirmed == true) {
+        _showVehicleManualInput = true;
+      } else {
+        await rejectEntry();
+      }
+    }
+
+    setModelUpdate(gatePass);
+    rebuildUi();
+  }
+
+  Future<void> manualInputTrailerOne(String registrationNumber) async {
+    if (registrationNumber.contains(' ')) {
+      setValidationMessage(ValidationMessages.noSpacesAllowed);
+      return;
+    }
+
+    registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
+    gatePass.trailerRegNumberOneValidation = registrationNumber;
+
+    setTrailerValidationMessage("One");
+    await _incidentManagerService.logManualInput(
+        gatePass.id.toString(), 'Trailer One', registrationNumber);
+
+    if (gatePass.trailerRegNumberOneMatch == true) {
+      _trailerOneManualEntryUsed = true;
+      _trailerOneManualPhotoTaken = false;
+
+      await promptForTrailerOnePhoto();
+
+      BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
+      GlobalKey? nextSection;
+
+      if (gatePass.trailerRegNumberTwo != null &&
+          gatePass.trailerRegNumberTwo!.isNotEmpty) {
+        nextScanType = BarcodeScanType.trailerTwoDisc;
+        nextSection = trailerTwoInfoCardKey;
+      } else if (gatePass.gatePassBookingType ==
+          GatePassBookingType.containers) {
+        nextSection = containerInfoCardKey;
+      }
+
+      setBarcodeScanType(nextScanType);
+      if (nextSection != null) {
+        scrollToWidget(nextSection);
+      }
+
+      _showTrailerOneManualInput = false;
+    } else {
+      if (hasTrailerOverridePermission) {
+        await showTrailerOneOverrideDialog(registrationNumber);
+      } else {
+        var result = await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.error,
+          title: "License Mismatch",
+          description: ValidationMessages.regNoMismatch(
+              "Trailer One registration",
+              gatePass.trailerRegNumberOne,
+              registrationNumber),
+          mainButtonTitle: "Re-enter",
+          secondaryButtonTitle: "Reject Entry",
+        );
+
+        if (result?.confirmed == true) {
+          _showTrailerOneManualInput = true;
+        } else {
+          await rejectEntry();
+        }
+      }
+    }
+
+    setModelUpdate(gatePass);
+    rebuildUi();
+  }
+
+  // Manual Trailer Two Input
+  Future<void> manualInputTrailerTwo(String registrationNumber) async {
+    if (registrationNumber.contains(' ')) {
+      setValidationMessage(ValidationMessages.noSpacesAllowed);
+      return;
+    }
+
+    registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
+    gatePass.trailerRegNumberTwoValidation = registrationNumber;
+    setTrailerValidationMessage("Two");
+
+    await _incidentManagerService.logManualInput(
+        gatePass.id.toString(), 'Trailer Two', registrationNumber);
+
+    if (gatePass.trailerRegNumberTwoMatch == true) {
+      _trailerTwoManualEntryUsed = true;
+      _trailerTwoManualPhotoTaken = false;
+      await promptForTrailerTwoPhoto();
+
+      if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+        scrollToContainerInfo();
+      } else {
+        scrollToFirstError();
+      }
+
+      _showTrailerTwoManualInput = false;
+    } else {
+      if (hasTrailerOverridePermission) {
+        await showTrailerTwoOverrideDialog(registrationNumber);
+      } else {
+        var result = await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.error,
+          title: "License Mismatch",
+          description: ValidationMessages.regNoMismatch(
+              "Trailer Two registration",
+              gatePass.trailerRegNumberTwo,
+              registrationNumber),
+          mainButtonTitle: "Re-enter",
+          secondaryButtonTitle: "Reject Entry",
+        );
+
+        if (result?.confirmed == true) {
+          _showTrailerTwoManualInput = true;
+        } else {
+          await rejectEntry();
+        }
+      }
+    }
+
+    setModelUpdate(gatePass);
+    rebuildUi();
+  }
+
+  // Trailer Override
+  Future<void> showTrailerOneOverrideDialog(String enteredReg) async {
+  var confirm = await _dialogService.showCustomDialog(
+    variant: DialogType.infoAlert,
+    data: BasicDialogStatus.warning,
+    title: "Trailer Override Required",
+    description: ValidationMessages.overrideConfirmation(
+      "Trailer One", 
+      gatePass.trailerRegNumberOne ?? "N/A", 
+      enteredReg
+    ),
+    mainButtonTitle: "Override & Proceed",
+    secondaryButtonTitle: "Cancel",
+  );
+
+  if (confirm?.confirmed == true) {
+
+    gatePass.trailerRegNumberOne = enteredReg;
+
+    var msg = ValidationMessages.regNoMismatch(
+      "Trailer One registration",
+      gatePass.trailerRegNumberOne,
+      gatePass.trailerRegNumberOneValidation,
+    );
+    clearValidationMessage(msg);
+    
+    clearAllValidationMessage();
+    
+    await _incidentManagerService.logTrailerOverride(
+      gatePass.id.toString(),
+      'Trailer One',
+      gatePass.trailerRegNumberOne ?? "N/A",
+      enteredReg
+    );
+
+    _trailerOneManualEntryUsed = true;
+    _trailerOneManualPhotoTaken = false;
+
+    await promptForTrailerOnePhoto();
+    
+    BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
+    GlobalKey? nextSection;
+
+    if (gatePass.trailerRegNumberTwo != null && gatePass.trailerRegNumberTwo!.isNotEmpty) {
+      nextScanType = BarcodeScanType.trailerTwoDisc;
+      nextSection = trailerTwoInfoCardKey;
+    } else if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      nextSection = containerInfoCardKey;
+    }
+
+    setBarcodeScanType(nextScanType);
+    if (nextSection != null) {
+      scrollToWidget(nextSection);
+    }
+    
+    _showTrailerOneManualInput = false;
+  } else {
+    _showTrailerOneManualInput = true;
+  }
+  
+  rebuildUi();
+}
+
+ Future<void> showTrailerTwoOverrideDialog(String enteredReg) async {
+  var confirm = await _dialogService.showCustomDialog(
+    variant: DialogType.infoAlert,
+    data: BasicDialogStatus.warning,
+    title: "Trailer Override Required",
+    description: ValidationMessages.overrideConfirmation(
+      "Trailer Two", 
+      gatePass.trailerRegNumberTwo ?? "N/A", 
+      enteredReg
+    ),
+    mainButtonTitle: "Override & Proceed",
+    secondaryButtonTitle: "Cancel",
+  );
+
+  if (confirm?.confirmed == true) {
+
+    gatePass.trailerRegNumberTwo = enteredReg; 
+
+    var msg = ValidationMessages.regNoMismatch(
+      "Trailer Two registration",
+      gatePass.trailerRegNumberTwo,
+      gatePass.trailerRegNumberTwoValidation,
+    );
+    clearValidationMessage(msg);
+
+    clearAllValidationMessage();
+    
+    await _incidentManagerService.logTrailerOverride(
+      gatePass.id.toString(),
+      'Trailer Two',
+      gatePass.trailerRegNumberTwo ?? "N/A",
+      enteredReg
+    );
+
+    _trailerTwoManualEntryUsed = true;
+    _trailerTwoManualPhotoTaken = false;
+
+    await promptForTrailerTwoPhoto();
+    
+    if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      scrollToContainerInfo();
+    } else {
+      scrollToFirstError();
+    }
+    
+    _showTrailerTwoManualInput = false;
+  } else {
+    _showTrailerTwoManualInput = true;
+  }
+  
+  rebuildUi();
+}
+
+  /// Photo capture methods
+  Future<void> promptForVehiclePhoto() async {
+    await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.info,
+      title: "Photo Required",
+      description: ValidationMessages.photoRequiredForManualInput("vehicle"),
+      mainButtonTitle: "Take Photo",
+    );
+
+    await goToCamView(FileStoreType.gateBookingImage);
+    _vehicleManualPhotoTaken = true;
+  }
+
+  Future<void> promptForTrailerOnePhoto() async {
+    await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.info,
+      title: "Photo Required",
+      description:
+          ValidationMessages.photoRequiredForManualInput("trailer one"),
+      mainButtonTitle: "Take Photo",
+    );
+
+    await goToCamView(FileStoreType.gateBookingImage);
+    _trailerOneManualPhotoTaken = true;
+  }
+
+  Future<void> promptForTrailerTwoPhoto() async {
+    await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.info,
+      title: "Photo Required",
+      description:
+          ValidationMessages.photoRequiredForManualInput("trailer two"),
+      mainButtonTitle: "Take Photo",
+    );
+
+    await goToCamView(FileStoreType.gateBookingImage);
+    _trailerTwoManualPhotoTaken = true;
   }
 
   Future<void> logIncident(String message) async {

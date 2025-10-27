@@ -108,7 +108,7 @@ class GatePassEditView extends StatelessWidget {
 
       if (model.showValidation) {
         model.rebuildUi();
-        Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+   Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
         return false;
       }
 
@@ -142,12 +142,30 @@ class GatePassEditView extends StatelessWidget {
     if (model.gatePass.driverHasForeignID == false) {
       model.setDriverValidationMessage();
     }
+    if (model.vehicleManualEntryUsed && !model.vehicleManualPhotoTaken) {
+      model.setValidationMessage("Photo required for manual input Vehicle");
+    } else {
+      model.clearValidationMessage("Photo required for manual input Vehicle");
+    }
 
+    if (model.trailerOneManualEntryUsed && !model.trailerOneManualPhotoTaken) {
+      model.setValidationMessage("Photo required for manual input Trailer One");
+    } else {
+      model.clearValidationMessage(
+          "Photo required for manual input Trailer One");
+    }
+
+    if (model.trailerTwoManualEntryUsed && !model.trailerTwoManualPhotoTaken) {
+      model.setValidationMessage("Photo required for manual input Trailer Two");
+    } else {
+      model.clearValidationMessage(
+          "Photo required for manual input Trailer Two");
+    }
     model.setVehicleValidationMessage();
 
     if (model.showValidation) {
       model.rebuildUi();
-      Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
       return false;
     }
 
@@ -177,7 +195,7 @@ class GatePassEditView extends StatelessWidget {
 
       if (model.showValidation) {
         model.rebuildUi();
-        Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
         return false;
       }
 
@@ -211,7 +229,7 @@ class GatePassEditView extends StatelessWidget {
 
     if (model.showValidation) {
       model.rebuildUi();
-      Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
       return false;
     }
 
@@ -272,7 +290,7 @@ class GatePassEditView extends StatelessWidget {
           child: Scaffold(
             persistentFooterButtons: [
               Visibility(
-                visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.inYard.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value,
+visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.inYard.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value,
                 child: model.isBusy
                     ? const SizedBox.shrink()
                     : ElevatedButton.icon(
@@ -292,7 +310,7 @@ class GatePassEditView extends StatelessWidget {
                       ),
               ),
               Visibility(
-                visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
+ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
                 child: model.isBusy
                     ? const SizedBox.shrink()
                     : ElevatedButton.icon(
@@ -339,7 +357,7 @@ class GatePassEditView extends StatelessWidget {
                 dense: true,
                 horizontalTitleGap: 0.0,
 
-                contentPadding: const EdgeInsets.only(left: 0.0, right: 0.0, top: 0, bottom: 0),
+                 contentPadding: const EdgeInsets.only(left: 0.0, right: 0.0, top: 0, bottom: 0),
                 //leading:
                 title: BoxText.label(model.gatePass.transactionNo ?? "", color: Colors.black),
                 subtitle: BoxText.label(model.gatePass.voyageNo ?? "", color: Colors.black),
@@ -531,7 +549,7 @@ class GatePassEditView extends StatelessWidget {
                                       ),
                                       BuildInfoItem(
                                         label: model.translate("TransactionNo"),
-                                        value: model.gatePass.transactionNo ?? '',
+                                       value: model.gatePass.transactionNo ?? '',
                                       ),
                                       BuildInfoItem(label: model.translate("RefNo"), value: model.gatePass.refNo ?? ''),
                                       BuildInfoItem(label: model.translate("CustomerRefNo"), value: model.gatePass.customerRefNo ?? ''),
@@ -559,7 +577,7 @@ class GatePassEditView extends StatelessWidget {
                                     ],
                                   ),
 
-                                  !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
+ !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
                                   verticalSpaceSmall,
 
                                   //*********Drivers Lisence Card******** */
@@ -630,11 +648,41 @@ class GatePassEditView extends StatelessWidget {
                                             )
                                           : const SizedBox.shrink(),
 
-                                      BuildInfoItem(label: 'Make', value: model.gatePass.vehicleMake ?? 'Not Scanned'),
+                                    BuildInfoItem(label: 'Make', value: model.gatePass.vehicleMake ?? 'Not Scanned'),
                                       BuildInfoItem(label: 'Model', value: model.gatePass.vehicleVinNumber ?? 'Not Scanned'),
                                     ],
                                   ),
-
+                                  // VEHICLE — manual input
+                                  if (model.hasVehicleManualInputPermission &&
+                                      model.gatePass.vehicleRegNumber !=
+                                          null) ...[
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        TextButton.icon(
+                                          onPressed:
+                                              model.toggleVehicleManualInput,
+                                          icon: const Icon(Icons.edit),
+                                          label: Text(
+                                              model.showVehicleManualInput
+                                                  ? "Hide manual input"
+                                                  : "Enter manually"),
+                                        ),
+                                      ],
+                                    ),
+                                    if (model.showVehicleManualInput)
+                                      TextField(
+                                        textCapitalization:
+                                            TextCapitalization.characters,
+                                        decoration: const InputDecoration(
+                                          labelText: "Vehicle Registration",
+                                          hintText:
+                                              "Type the vehicle reg (no spaces)",
+                                        ),
+                                        onSubmitted: (val) =>
+                                            model.manualInputVehicle(val),
+                                      ),
+                                  ],
                                   //Trailer One
                                   BuildInfoCard(
                                     isVisible: model.gatePass.trailerRegNumberOne != null,
@@ -650,12 +698,12 @@ class GatePassEditView extends StatelessWidget {
                                     color: Colors.green,
                                     infoList: [
                                       BuildInfoItem(
-                                        label: 'Registration',
+                                         label: 'Registration',
                                         value: model.gatePass.trailerRegNumberOne ?? 'Not Scanned',
                                         validationStatus: model.gatePass.trailerRegNumberOneValidation != null && model.gatePass.trailerRegNumberOneMatch == false ? ValidationStatus.failed : null,
                                         validationMessage: 'Registration number mismatch',
                                       ),
-                                      model.gatePass.trailerRegNumberOneValidation != null && model.gatePass.trailerRegNumberOneMatch == false
+                                       model.gatePass.trailerRegNumberOneValidation != null && model.gatePass.trailerRegNumberOneMatch == false
                                           ? BuildInfoItem(
                                               label: 'Mismatch',
                                               value: model.gatePass.trailerRegNumberOneValidation ?? 'Registration number mismatch',
@@ -664,7 +712,48 @@ class GatePassEditView extends StatelessWidget {
                                           : const SizedBox.shrink(),
                                     ],
                                   ),
-                                  //Trailer Two
+
+                                  // TRAILER ONE — manual input
+                                  if (model.hasTrailerManualInputPermission &&
+                                      model.gatePass.trailerRegNumberOne !=
+                                          null) ...[
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        TextButton.icon(
+                                          onPressed:
+                                              model.toggleTrailerOneManualInput,
+                                          icon: const Icon(Icons.edit),
+                                          label: Text(
+                                              model.showTrailerOneManualInput
+                                                  ? "Hide manual input"
+                                                  : "Enter manually"),
+                                        ),
+                                      ],
+                                    ),
+                                    if (model.showTrailerOneManualInput)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16.0),
+                                        child: TextField(
+                                          textCapitalization:
+                                              TextCapitalization.characters,
+                                          decoration: const InputDecoration(
+                                            labelText:
+                                                "Trailer One Registration",
+                                            hintText:
+                                                "Type the trailer reg (no spaces)",
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          onSubmitted: (val) =>
+                                              model.manualInputTrailerOne(val),
+                                        ),
+                                      ),
+                                  ],
+
+                                  verticalSpaceSmall,
+
+ //Trailer Two
                                   BuildInfoCard(
                                     isVisible: model.gatePass.trailerRegNumberTwo != null,
                                     key: model.trailerTwoInfoCardKey,
@@ -693,7 +782,45 @@ class GatePassEditView extends StatelessWidget {
                                           : const SizedBox.shrink(),
                                     ],
                                   ),
-                                  verticalSpaceSmall,
+
+                                  // TRAILER TWO — manual input
+                                  if (model.hasTrailerManualInputPermission &&
+                                      model.gatePass.trailerRegNumberTwo !=
+                                          null) ...[
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        TextButton.icon(
+                                          onPressed:
+                                              model.toggleTrailerTwoManualInput,
+                                          icon: const Icon(Icons.edit),
+                                          label: Text(
+                                              model.showTrailerTwoManualInput
+                                                  ? "Hide manual input"
+                                                  : "Enter manually"),
+                                        ),
+                                      ],
+                                    ),
+                                    if (model.showTrailerTwoManualInput)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16.0),
+                                        child: TextField(
+                                          textCapitalization:
+                                              TextCapitalization.characters,
+                                          decoration: const InputDecoration(
+                                            labelText:
+                                                "Trailer Two Registration",
+                                            hintText:
+                                                "Type the trailer reg (no spaces)",
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          onSubmitted: (val) =>
+                                              model.manualInputTrailerTwo(val),
+                                        ),
+                                      ),
+                                  ],
+ verticalSpaceSmall,
                                   if (model.gatePass.gatePassBookingType == GatePassBookingType.containers) ...[
                                     BuildInfoCard(
                                       key: model.containerInfoCardKey,
@@ -712,7 +839,7 @@ class GatePassEditView extends StatelessWidget {
                                     ),
                                     verticalSpaceSmall,
                                   ],
-                                  BuildInfoCard(
+ BuildInfoCard(
                                     width: width,
                                     title: "Times",
                                     isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,

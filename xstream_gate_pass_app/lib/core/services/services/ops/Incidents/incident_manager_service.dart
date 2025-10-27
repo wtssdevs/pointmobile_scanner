@@ -24,7 +24,46 @@ class IncidentManagerService {
       if (apiResponse.success != null) {
         return Incident.fromJson(apiResponse.result);
       }
-    }
+     }
     return null;
+  }
+
+  Future<void> logManualInput(String gatePassId, String fieldType, String value) async {
+    try {
+      log.i('Manual Input: GatePass=$gatePassId, Field=$fieldType, Value=$value');
+      
+      await _apiManager.post(
+        '/api/services/app/MobileGatePassAccess/LogManualInput',
+        showLoader: false,
+        data: {
+          'gatePassId': gatePassId,
+          'fieldType': fieldType,
+          'enteredValue': value,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
+    } catch (e) {
+      log.e('Failed to log manual input: $e');
+    }
+  }
+
+  Future<void> logTrailerOverride(String gatePassId, String trailerType, String expectedValue, String enteredValue) async {
+    try {
+      log.i('Trailer Override: GatePass=$gatePassId, Trailer=$trailerType, Expected=$expectedValue, Entered=$enteredValue');
+      
+      await _apiManager.post(
+        '/api/services/app/MobileGatePassAccess/LogTrailerOverride',
+        showLoader: false,
+        data: {
+          'gatePassId': gatePassId,
+          'trailerType': trailerType,
+          'expectedValue': expectedValue,
+          'enteredValue': enteredValue,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
+    } catch (e) {
+      log.e('Failed to log trailer override: $e');
+    }
   }
 }

@@ -47,4 +47,14 @@ class ValidationMessages {
   static String getDriverIdMismatchMessage(String? driverIdNo, String? driverIdNoValidation) {
     return "Driver ID Number: $driverIdNo does not match the scanned drivers card ID number: ${driverIdNoValidation ?? '(Not Scanned)'}.";
   }
+
+  static const String noSpacesAllowed = "No spaces allowed in registration number.";
+
+  static String photoRequiredForManualInput(String fieldType) {
+    return "Photo required for manually entered $fieldType registration.";
+  }
+
+  static String overrideConfirmation(String fieldType, String expected, String entered) {
+    return "Override: $fieldType registration mismatch.Expected: $expected Entered: $entered Are you sure you want to proceed?";
+  }
 }

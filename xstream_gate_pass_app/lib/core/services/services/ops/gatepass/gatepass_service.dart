@@ -491,40 +491,111 @@ class GatePassService {
     }
   }
 
-Future<GatePassAccess?> rejectForEntry(GatePassAccess entity) async {
-  try {
-    var baseResponse = await _apiManager.post(
-      AppConst.RejectEntryGatePass,
-      showLoader: true,
-      data: entity.toJson(),
-    );
+  Future<GatePassAccess?> rejectForEntry(GatePassAccess entity) async {
+    try {
+      var baseResponse = await _apiManager.post(
+        AppConst.RejectEntryGatePass,
+        showLoader: true,
+        data: entity.toJson(),
+      );
 
-    if (baseResponse != null) {
-      var apiResponse = ApiResponse.fromJson(baseResponse);
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
 
-      if (apiResponse.success == true && apiResponse.result != null) {
-        return GatePassAccess.fromJson(apiResponse.result);
+        if (apiResponse.success == true && apiResponse.result != null) {
+          return GatePassAccess.fromJson(apiResponse.result);
+        }
+
+        // Handle UserFriendlyException
+        if (apiResponse.error != null) {
+          final message = apiResponse.result!['details'] ?? apiResponse.result!['message'] ?? "Reject failed.";
+
+          await locator<DialogService>().showCustomDialog(
+            variant: DialogType.infoAlert,
+            data: BasicDialogStatus.error,
+            title: "Rejection Failed",
+            description: message,
+            mainButtonTitle: "Ok",
+          );
+        }
       }
 
-      // Handle UserFriendlyException
-      if (apiResponse.error != null) {
-        final message = apiResponse.result!['details'] ?? apiResponse.result!['message'] ?? "Reject failed.";
-
-        await locator<DialogService>().showCustomDialog(
-          variant: DialogType.infoAlert,
-          data: BasicDialogStatus.error,
-          title: "Rejection Failed",
-          description: message,
-          mainButtonTitle: "Ok",
-        );
-      }
+      return null;
+    } catch (e) {
+      log.e(e.toString());
+      return null;
     }
-
-    return null;
-  } catch (e) {
-    log.e(e.toString());
-    return null;
   }
-}
 
+  Future<Map<String, dynamic>?> validateManualInput({
+    required String gatePassId,
+    required String registrationNumber,
+    required bool isVehicle,
+    int? trailerNumber,
+  }) async {
+    try {
+      final payload = {
+        'gatePassId': gatePassId,
+        'registrationNumber':
+            registrationNumber.replaceAll(' ', '').toUpperCase(),
+        'isVehicle': isVehicle,
+        if (trailerNumber != null) 'trailerNumber': trailerNumber,
+      };
+
+      var baseResponse = await _apiManager.post(
+        '/api/services/app/MobileGatePassAccess/ValidateManualInput',
+        showLoader: true,
+        data: payload,
+      );
+
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success == true) {
+          return apiResponse.result;
+        }
+      }
+      return null;
+    } catch (e) {
+      log.e('Error validating manual input: $e');
+      return null;
+    }
+  }
+
+  Future<GatePassAccess?> saveManualInput({
+    required String gatePassId,
+    required String registrationNumber,
+    required bool isVehicle,
+    int? trailerNumber,
+    required String photoBase64,
+    String? photoFileName,
+  }) async {
+    try {
+      final payload = {
+        'gatePassId': gatePassId,
+        'registrationNumber':
+            registrationNumber.replaceAll(' ', '').toUpperCase(),
+        'isVehicle': isVehicle,
+        if (trailerNumber != null) 'trailerNumber': trailerNumber,
+        'photoBase64': photoBase64,
+        if (photoFileName != null) 'photoFileName': photoFileName,
+      };
+
+      var baseResponse = await _apiManager.post(
+        '/api/services/app/MobileGatePassAccess/SaveManualInput',
+        showLoader: true,
+        data: payload,
+      );
+
+      if (baseResponse != null) {
+        var apiResponse = ApiResponse.fromJson(baseResponse);
+        if (apiResponse.success == true && apiResponse.result != null) {
+          return GatePassAccess.fromJson(apiResponse.result);
+        }
+      }
+      return null;
+    } catch (e) {
+      log.e('Error saving manual input: $e');
+      return null;
+    }
+  }
 }
