@@ -527,39 +527,6 @@ class GatePassService {
     }
   }
 
-  Future<Map<String, dynamic>?> validateManualInput({
-    required String gatePassId,
-    required String registrationNumber,
-    required bool isVehicle,
-    int? trailerNumber,
-  }) async {
-    try {
-      final payload = {
-        'gatePassId': gatePassId,
-        'registrationNumber':
-            registrationNumber.replaceAll(' ', '').toUpperCase(),
-        'isVehicle': isVehicle,
-        if (trailerNumber != null) 'trailerNumber': trailerNumber,
-      };
-
-      var baseResponse = await _apiManager.post(
-        '/api/services/app/MobileGatePassAccess/ValidateManualInput',
-        showLoader: true,
-        data: payload,
-      );
-
-      if (baseResponse != null) {
-        var apiResponse = ApiResponse.fromJson(baseResponse);
-        if (apiResponse.success == true) {
-          return apiResponse.result;
-        }
-      }
-      return null;
-    } catch (e) {
-      log.e('Error validating manual input: $e');
-      return null;
-    }
-  }
 
   Future<GatePassAccess?> saveManualInput({
     required String gatePassId,

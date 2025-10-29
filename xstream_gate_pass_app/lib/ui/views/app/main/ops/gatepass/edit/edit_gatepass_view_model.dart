@@ -988,52 +988,90 @@ _navigationService.back(result: true);
     notifyListeners();
   }
 
-  Future<void> manualInputVehicle(String registrationNumber) async {
-    if (registrationNumber.contains(' ')) {
-      setValidationMessage(ValidationMessages.noSpacesAllowed);
-      return;
+Future<void> manualInputVehicle(String registrationNumber) async {
+  String cleanedRegNumber = _cleanRegistrationNumber(registrationNumber);
+  
+  gatePass.vehicleRegNumberValidation = cleanedRegNumber;
+  setVehicleValidationMessage();
+
+  if (!_isRegistrationMatch()) {
+    await _handleRegistrationMismatch(cleanedRegNumber);
+    return;
+  }
+
+  await _logManualInput(cleanedRegNumber);
+  await _processSuccessfulVehicleEntry();
+}
+
+String _cleanRegistrationNumber(String regNumber) {
+  return regNumber.replaceAll(' ', '').toUpperCase();
+}
+
+  bool _isRegistrationMatch() {
+    return gatePass.vehicleRegNoMatch == true;
+  }
+
+      Future<void> _logManualInput(String regNumber) async {
+        await _incidentManagerService.logManualInput(
+          gatePass.id.toString(), 
+          'Vehicle', 
+          regNumber
+        );
     }
-    registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
-    gatePass.vehicleRegNumberValidation = registrationNumber;
-    setVehicleValidationMessage();
 
-    await _incidentManagerService.logManualInput(
-        gatePass.id.toString(), 'Vehicle', registrationNumber);
-
-    if (gatePass.vehicleRegNoMatch == true) {
+    Future<void> _processSuccessfulVehicleEntry() async {
       _vehicleManualEntryUsed = true;
       _vehicleManualPhotoTaken = false;
+      
       await promptForVehiclePhoto();
-
-      BarcodeScanType nextScanType = BarcodeScanType.vehicleDisc;
-      GlobalKey? nextSection;
-
-      if (gatePass.trailerRegNumberOne != null &&
-          gatePass.trailerRegNumberOne!.isNotEmpty) {
-        nextScanType = BarcodeScanType.trailerOneDisc;
-        nextSection = trailerOneInfoCardKey;
-      } else if (gatePass.trailerRegNumberTwo != null &&
-          gatePass.trailerRegNumberTwo!.isNotEmpty) {
-        nextScanType = BarcodeScanType.trailerTwoDisc;
-        nextSection = trailerTwoInfoCardKey;
-      } else if (gatePass.gatePassBookingType ==
-          GatePassBookingType.containers) {
-        nextSection = containerInfoCardKey;
-      }
-
+      
+      BarcodeScanType nextScanType = _determineNextScanType();
+      GlobalKey? nextSection = _determineNextSection();
+      
       setBarcodeScanType(nextScanType);
+      
       if (nextSection != null) {
         scrollToWidget(nextSection);
       }
-
+      
       _showVehicleManualInput = false;
-    } else {
+      setModelUpdate(gatePass);
+      rebuildUi();
+    }
+
+    BarcodeScanType _determineNextScanType() {
+      if (gatePass.trailerRegNumberOne?.isNotEmpty == true) {
+        return BarcodeScanType.trailerOneDisc;
+      }
+      if (gatePass.trailerRegNumberTwo?.isNotEmpty == true) {
+        return BarcodeScanType.trailerTwoDisc;
+      }
+      return BarcodeScanType.vehicleDisc;
+    }
+
+    GlobalKey? _determineNextSection() {
+      if (gatePass.trailerRegNumberOne?.isNotEmpty == true) {
+        return trailerOneInfoCardKey;
+      }
+      if (gatePass.trailerRegNumberTwo?.isNotEmpty == true) {
+        return trailerTwoInfoCardKey;
+      }
+      if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+        return containerInfoCardKey;
+      }
+      return null;
+    }
+
+    Future<void> _handleRegistrationMismatch(String enteredRegNumber) async {
       var result = await _dialogService.showCustomDialog(
         variant: DialogType.infoAlert,
         data: BasicDialogStatus.error,
         title: "License Mismatch",
-        description: ValidationMessages.regNoMismatch("Vehicle registration",
-            gatePass.vehicleRegNumber, registrationNumber),
+        description: ValidationMessages.regNoMismatch(
+          "Vehicle registration",
+          gatePass.vehicleRegNumber,
+          enteredRegNumber
+        ),
         mainButtonTitle: "Re-enter",
         secondaryButtonTitle: "Reject Entry",
       );
@@ -1043,11 +1081,10 @@ _navigationService.back(result: true);
       } else {
         await rejectEntry();
       }
+      
+      setModelUpdate(gatePass);
+      rebuildUi();
     }
-
-    setModelUpdate(gatePass);
-    rebuildUi();
-  }
 
   Future<void> manualInputTrailerOne(String registrationNumber) async {
     if (registrationNumber.contains(' ')) {
