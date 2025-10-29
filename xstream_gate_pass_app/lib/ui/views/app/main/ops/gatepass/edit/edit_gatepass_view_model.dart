@@ -988,7 +988,32 @@ _navigationService.back(result: true);
     notifyListeners();
   }
 
+String _cleanRegistrationNumber(String regNumber) {
+  return regNumber.replaceAll(' ', '').toUpperCase();
+}
+
+bool _validateRegistrationFormat(String regNumber) {
+  String cleaned = regNumber.replaceAll(' ', '');
+  
+  if (cleaned.isEmpty || cleaned.length < 3 || cleaned.length > 10) {
+    setValidationMessage(ValidationMessages.invalidRegNumberLength);
+    return false;
+  }
+  
+  if (!RegExp(r'^[A-Za-z0-9-]+$').hasMatch(cleaned)) {
+    setValidationMessage(ValidationMessages.invalidRegNumberCharacters);
+    return false;
+  }
+  
+  return true;
+}
+
+
 Future<void> manualInputVehicle(String registrationNumber) async {
+  if (!_validateRegistrationFormat(registrationNumber)) {
+    return;
+  }
+  
   String cleanedRegNumber = _cleanRegistrationNumber(registrationNumber);
   
   gatePass.vehicleRegNumberValidation = cleanedRegNumber;
@@ -1002,11 +1027,6 @@ Future<void> manualInputVehicle(String registrationNumber) async {
   await _logManualInput(cleanedRegNumber);
   await _processSuccessfulVehicleEntry();
 }
-
-String _cleanRegistrationNumber(String regNumber) {
-  return regNumber.replaceAll(' ', '').toUpperCase();
-}
-
   bool _isRegistrationMatch() {
     return gatePass.vehicleRegNoMatch == true;
   }

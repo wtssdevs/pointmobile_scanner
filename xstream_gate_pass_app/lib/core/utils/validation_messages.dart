@@ -24,6 +24,11 @@ class ValidationMessages {
   static const String vehicleRegRequired = AppConst.msgVehicleRegRequired;
   static const String foreignLicensePhotoRequired = AppConst.msgForeignLicensePhotoRequired;
 
+  static const String regNumberRequired = "Vehicle registration is required";
+  static const String invalidRegNumberFormat = "Invalid registration format. Use format like ABC123GP";
+  static const String invalidRegNumberLength = "Registration number must be between 5-10 characters";
+  static const String invalidRegNumberCharacters = "Only letters and numbers allowed";
+
   // Dynamic validation message generators
   static String required(String fieldName) {
     return AppConst.getFieldRequiredMessage(fieldName);

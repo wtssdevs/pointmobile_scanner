@@ -12,6 +12,7 @@ import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
+import 'package:flutter/services.dart';
 
 import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 
@@ -672,15 +673,18 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                                     ),
                                     if (model.showVehicleManualInput)
                                       TextField(
-                                        textCapitalization:
-                                            TextCapitalization.characters,
+                                        textCapitalization: TextCapitalization.characters,
+                                        maxLength: 10,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                                          UpperCaseTextFormatter(),
+                                        ],
                                         decoration: const InputDecoration(
                                           labelText: "Vehicle Registration",
-                                          hintText:
-                                              "Type the vehicle reg (no spaces)",
+                                          hintText: "e.g. ABC123GP or CA123456",
+                                          counterText: "",
                                         ),
-                                        onSubmitted: (val) =>
-                                            model.manualInputVehicle(val),
+                                        onSubmitted: (val) => model.manualInputVehicle(val),
                                       ),
                                   ],
                                   //Trailer One
@@ -753,7 +757,7 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
 
                                   verticalSpaceSmall,
 
- //Trailer Two
+                                  //Trailer Two
                                   BuildInfoCard(
                                     isVisible: model.gatePass.trailerRegNumberTwo != null,
                                     key: model.trailerTwoInfoCardKey,
