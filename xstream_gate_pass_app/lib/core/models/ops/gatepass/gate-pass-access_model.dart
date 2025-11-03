@@ -85,6 +85,14 @@ class GatePassAccess {
   String? branchName;
   String? customerName;
   String? transporterName;
+  bool isManualInput = false;
+  bool isOverride = false;
+  bool? isVehicleManualInput = false;
+  bool? isTrailerOneManualInput = false;
+  bool? isTrailerTwoManualInput = false;
+  bool? isTrailerOneOverride = false;
+  bool? isTrailerTwoOverride = false;
+
 
 //CONTAINERS INFO , NEED TO BE LIST ??
 
@@ -190,6 +198,13 @@ class GatePassAccess {
     this.containerDeliveryType,
     this.gatePassContainerType,
     this.containers,
+    this.isManualInput = false,
+    this.isOverride = false,
+    this.isVehicleManualInput= false,
+    this.isTrailerOneManualInput = false,
+    this.isTrailerTwoManualInput = false,
+    this.isTrailerOneOverride= false,
+    this.isTrailerTwoOverride= false
   });
 
   bool get hasDriverInfo =>
@@ -353,6 +368,9 @@ class GatePassAccess {
         comments: json["comments"],
         rejectReason: json["rejectReason"],
         hasBeenPrinted: json["hasBeenPrinted"] ?? false,
+        isManualInput: json["isManualInput"] ?? false,
+        isOverride: json["isOverride"] ?? false,
+
         externalId: json["externalId"],
         grossWeightIn: json["grossWeightIn"] ?? 0,
         grossWeightOut: json["grossWeightOut"] ?? 0,
@@ -450,6 +468,8 @@ class GatePassAccess {
         "comments": comments,
         "rejectReason": rejectReason,
         "hasBeenPrinted": hasBeenPrinted,
+        "isManualInput": isManualInput,
+        "isOverride": isOverride,
         "externalId": externalId,
         "grossWeightIn": grossWeightIn ?? 0,
         "grossWeightOut": grossWeightOut ?? 0,
@@ -477,6 +497,12 @@ class GatePassAccess {
         "containerDeliveryType": containerDeliveryType?.value ?? 0,
         "gatePassContainerType": gatePassContainerType?.value ?? 0,
         "containers": containers?.map((e) => e.toMap()).toList(),
+        "isVehicleManualInput": isVehicleManualInput,
+        "isTrailerOneManualInput": isTrailerOneManualInput,
+        "isTrailerTwoManualInput": isTrailerTwoManualInput,
+        "isTrailerOneOverride": isTrailerOneOverride,
+        "isTrailerTwoOverride": isTrailerTwoOverride,
+
       };
 
   static fromGatePassVisitorAccess(

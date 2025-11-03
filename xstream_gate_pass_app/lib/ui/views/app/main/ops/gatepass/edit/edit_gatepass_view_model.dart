@@ -76,6 +76,16 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   bool _showTrailerTwoManualInput = false;
   bool get showTrailerTwoManualInput => _showTrailerTwoManualInput;
 
+
+FileStore? _vehicleManualPhotoPath;
+FileStore? get vehicleManualPhotoPath => _vehicleManualPhotoPath;
+
+FileStore? _trailerOneManualPhotoPath;
+FileStore? get trailerOneManualPhotoPath => _trailerOneManualPhotoPath;
+
+FileStore? _trailerTwoManualPhotoPath;
+FileStore? get trailerTwoManualPhotoPath => _trailerTwoManualPhotoPath;
+
   bool get hasVehicleManualInputPermission {
     return hasPermission(
         AppPermissions.mobileOperationsAllowVehicleManualInput);
@@ -117,6 +127,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   FileStore? _foreignLicensePhotoPath;
   FileStore? get foreignLicensePhotoPath => _foreignLicensePhotoPath;
+
+  
 
   bool get hasConnection => _connectionService.hasConnection;
   List<SearchableDropdownMenuItem<int>> get serviceTypes => _masterFilesService.serviceTypes;
@@ -896,21 +908,36 @@ _navigationService.back(result: true);
     }
   }
 
-  Future<void> loadFileStoreImages() async {
-    if (gatePass.id != null && gatePass.id != 0) {
-      _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gateBookingImage, 100);
+Future<void> loadFileStoreImages() async {
+  if (gatePass.id != null && gatePass.id != 0) {
+    _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gateBookingImage, 100);
 
-      final foreignLicensePhotos = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gatePassAccessDriverLicenceImage, 100);
-      if (foreignLicensePhotos.isNotEmpty) {
-        _foreignLicensePhotoTaken = true;
-        _foreignLicensePhotoPath = foreignLicensePhotos.first;
-      } else {
-        _foreignLicensePhotoTaken = false;
-        _foreignLicensePhotoPath = null;
-      }
+    final foreignLicensePhotos = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gatePassAccessDriverLicenceImage, 100);
+    if (foreignLicensePhotos.isNotEmpty) {
+      _foreignLicensePhotoTaken = true;
+      _foreignLicensePhotoPath = foreignLicensePhotos.first;
+    } else {
+      _foreignLicensePhotoTaken = false;
+      _foreignLicensePhotoPath = null;
+    }
+
+    // Load manual input photos - get the most recent photos for each manual entry
+    if (_vehicleManualEntryUsed && _fileStoreItems.isNotEmpty) {
+      // Find the most recent photo for vehicle manual input
+      _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
+    }
+    
+    if (_trailerOneManualEntryUsed && _fileStoreItems.isNotEmpty) {
+      // Find the most recent photo for trailer one manual input
+      _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
+    }
+    
+    if (_trailerTwoManualEntryUsed && _fileStoreItems.isNotEmpty) {
+      // Find the most recent photo for trailer two manual input
+      _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
     }
   }
-
+}
   Future<void> goToCamCaptureContainerNoText() async {
     if (gatePass.id != null && gatePass.id != 0) {
       var contInfo = await _navigationService.navigateToCamContainernoReaderView() as ContainerInfo?;
@@ -1024,24 +1051,18 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     return;
   }
 
-  await _logManualInput(cleanedRegNumber);
   await _processSuccessfulVehicleEntry();
 }
   bool _isRegistrationMatch() {
     return gatePass.vehicleRegNoMatch == true;
   }
 
-      Future<void> _logManualInput(String regNumber) async {
-        await _incidentManagerService.logManualInput(
-          gatePass.id.toString(), 
-          'Vehicle', 
-          regNumber
-        );
-    }
 
     Future<void> _processSuccessfulVehicleEntry() async {
       _vehicleManualEntryUsed = true;
       _vehicleManualPhotoTaken = false;
+      gatePass.isManualInput = true;
+      gatePass.isVehicleManualInput = true;
       
       await promptForVehiclePhoto();
       
@@ -1106,6 +1127,8 @@ Future<void> manualInputVehicle(String registrationNumber) async {
       rebuildUi();
     }
 
+
+
   Future<void> manualInputTrailerOne(String registrationNumber) async {
     if (registrationNumber.contains(' ')) {
       setValidationMessage(ValidationMessages.noSpacesAllowed);
@@ -1116,12 +1139,11 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     gatePass.trailerRegNumberOneValidation = registrationNumber;
 
     setTrailerValidationMessage("One");
-    await _incidentManagerService.logManualInput(
-        gatePass.id.toString(), 'Trailer One', registrationNumber);
 
     if (gatePass.trailerRegNumberOneMatch == true) {
       _trailerOneManualEntryUsed = true;
       _trailerOneManualPhotoTaken = false;
+      gatePass.isTrailerOneManualInput = true;
 
       await promptForTrailerOnePhoto();
 
@@ -1146,6 +1168,8 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     } else {
       if (hasTrailerOverridePermission) {
         await showTrailerOneOverrideDialog(registrationNumber);
+            gatePass.isManualInput = true;
+            gatePass.isOverride = true;
       } else {
         var result = await _dialogService.showCustomDialog(
           variant: DialogType.infoAlert,
@@ -1161,6 +1185,7 @@ Future<void> manualInputVehicle(String registrationNumber) async {
 
         if (result?.confirmed == true) {
           _showTrailerOneManualInput = true;
+          gatePass.isManualInput = true;
         } else {
           await rejectEntry();
         }
@@ -1182,12 +1207,10 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     gatePass.trailerRegNumberTwoValidation = registrationNumber;
     setTrailerValidationMessage("Two");
 
-    await _incidentManagerService.logManualInput(
-        gatePass.id.toString(), 'Trailer Two', registrationNumber);
-
     if (gatePass.trailerRegNumberTwoMatch == true) {
       _trailerTwoManualEntryUsed = true;
       _trailerTwoManualPhotoTaken = false;
+      gatePass.isTrailerTwoManualInput = true;
       await promptForTrailerTwoPhoto();
 
       if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
@@ -1200,6 +1223,8 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     } else {
       if (hasTrailerOverridePermission) {
         await showTrailerTwoOverrideDialog(registrationNumber);
+         gatePass.isManualInput = true;
+        gatePass.isOverride = true;
       } else {
         var result = await _dialogService.showCustomDialog(
           variant: DialogType.infoAlert,
@@ -1215,6 +1240,8 @@ Future<void> manualInputVehicle(String registrationNumber) async {
 
         if (result?.confirmed == true) {
           _showTrailerTwoManualInput = true;
+          gatePass.isManualInput = true;
+          gatePass.isTrailerTwoOverride = true;
         } else {
           await rejectEntry();
         }
@@ -1237,11 +1264,18 @@ Future<void> manualInputVehicle(String registrationNumber) async {
       enteredReg
     ),
     mainButtonTitle: "Override & Proceed",
-    secondaryButtonTitle: "Cancel",
+    secondaryButtonTitle: "Edit",
+    additionalButtonTitle: "Reject Entry",
   );
 
-  if (confirm?.confirmed == true) {
+  if (confirm == null) {
+    _showTrailerOneManualInput = true;
+    scrollToWidget(trailerOneInfoCardKey);
+    rebuildUi();
+    return;
+  }
 
+  if (confirm.confirmed == true) {
     gatePass.trailerRegNumberOne = enteredReg;
 
     var msg = ValidationMessages.regNoMismatch(
@@ -1252,16 +1286,10 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     clearValidationMessage(msg);
     
     clearAllValidationMessage();
-    
-    await _incidentManagerService.logTrailerOverride(
-      gatePass.id.toString(),
-      'Trailer One',
-      gatePass.trailerRegNumberOne ?? "N/A",
-      enteredReg
-    );
-
     _trailerOneManualEntryUsed = true;
+    gatePass.isManualInput = true;
     _trailerOneManualPhotoTaken = false;
+    gatePass.isTrailerOneOverride = true;
 
     await promptForTrailerOnePhoto();
     
@@ -1281,14 +1309,20 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     }
     
     _showTrailerOneManualInput = false;
+  } else if (confirm.responseData == 'secondary') {
+    _showTrailerOneManualInput = true;
+    scrollToWidget(trailerOneInfoCardKey);
+  } else if (confirm.responseData == 'additional') {
+    await rejectEntry();
   } else {
     _showTrailerOneManualInput = true;
+    scrollToWidget(trailerOneInfoCardKey);
   }
   
   rebuildUi();
 }
 
- Future<void> showTrailerTwoOverrideDialog(String enteredReg) async {
+Future<void> showTrailerTwoOverrideDialog(String enteredReg) async {
   var confirm = await _dialogService.showCustomDialog(
     variant: DialogType.infoAlert,
     data: BasicDialogStatus.warning,
@@ -1299,11 +1333,18 @@ Future<void> manualInputVehicle(String registrationNumber) async {
       enteredReg
     ),
     mainButtonTitle: "Override & Proceed",
-    secondaryButtonTitle: "Cancel",
+    secondaryButtonTitle: "Edit",
+    additionalButtonTitle: "Reject Entry",
   );
 
-  if (confirm?.confirmed == true) {
+  if (confirm == null) {
+    _showTrailerTwoManualInput = true;
+    scrollToWidget(trailerTwoInfoCardKey);
+    rebuildUi();
+    return;
+  }
 
+  if (confirm.confirmed == true) {
     gatePass.trailerRegNumberTwo = enteredReg; 
 
     var msg = ValidationMessages.regNoMismatch(
@@ -1314,15 +1355,9 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     clearValidationMessage(msg);
 
     clearAllValidationMessage();
-    
-    await _incidentManagerService.logTrailerOverride(
-      gatePass.id.toString(),
-      'Trailer Two',
-      gatePass.trailerRegNumberTwo ?? "N/A",
-      enteredReg
-    );
 
     _trailerTwoManualEntryUsed = true;
+    gatePass.isManualInput = true;
     _trailerTwoManualPhotoTaken = false;
 
     await promptForTrailerTwoPhoto();
@@ -1334,55 +1369,75 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     }
     
     _showTrailerTwoManualInput = false;
+  } else if (confirm.responseData == 'secondary') {
+    _showTrailerTwoManualInput = true;
+    scrollToWidget(trailerTwoInfoCardKey);
+  } else if (confirm.responseData == 'additional') {
+    await rejectEntry();
   } else {
     _showTrailerTwoManualInput = true;
+    scrollToWidget(trailerTwoInfoCardKey);
   }
   
   rebuildUi();
 }
-
   /// Photo capture methods
-  Future<void> promptForVehiclePhoto() async {
-    await _dialogService.showCustomDialog(
-      variant: DialogType.infoAlert,
-      data: BasicDialogStatus.info,
-      title: "Photo Required",
-      description: ValidationMessages.photoRequiredForManualInput("vehicle"),
-      mainButtonTitle: "Take Photo",
-    );
+Future<void> promptForVehiclePhoto() async {
+  var result = await _dialogService.showCustomDialog(
+    variant: DialogType.infoAlert,
+    data: BasicDialogStatus.info,
+    title: "Photo Required",
+    description: ValidationMessages.photoRequiredForManualInput("vehicle"),
+    mainButtonTitle: "Take Photo",
+    secondaryButtonTitle: "Cancel",
+  );
 
+  if (result?.confirmed == true) {
     await goToCamView(FileStoreType.gateBookingImage);
+    await loadFileStoreImages();
     _vehicleManualPhotoTaken = true;
+    _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
+    rebuildUi();
   }
+}
 
-  Future<void> promptForTrailerOnePhoto() async {
-    await _dialogService.showCustomDialog(
-      variant: DialogType.infoAlert,
-      data: BasicDialogStatus.info,
-      title: "Photo Required",
-      description:
-          ValidationMessages.photoRequiredForManualInput("trailer one"),
-      mainButtonTitle: "Take Photo",
-    );
+Future<void> promptForTrailerOnePhoto() async {
+  var result = await _dialogService.showCustomDialog(
+    variant: DialogType.infoAlert,
+    data: BasicDialogStatus.info,
+    title: "Photo Required",
+    description: ValidationMessages.photoRequiredForManualInput("trailer one"),
+    mainButtonTitle: "Take Photo",
+    secondaryButtonTitle: "Cancel",
+  );
 
+  if (result?.confirmed == true) {
     await goToCamView(FileStoreType.gateBookingImage);
+    await loadFileStoreImages();
     _trailerOneManualPhotoTaken = true;
+    _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
+    rebuildUi();
   }
+}
 
-  Future<void> promptForTrailerTwoPhoto() async {
-    await _dialogService.showCustomDialog(
-      variant: DialogType.infoAlert,
-      data: BasicDialogStatus.info,
-      title: "Photo Required",
-      description:
-          ValidationMessages.photoRequiredForManualInput("trailer two"),
-      mainButtonTitle: "Take Photo",
-    );
+Future<void> promptForTrailerTwoPhoto() async {
+  var result = await _dialogService.showCustomDialog(
+    variant: DialogType.infoAlert,
+    data: BasicDialogStatus.info,
+    title: "Photo Required",
+    description: ValidationMessages.photoRequiredForManualInput("trailer two"),
+    mainButtonTitle: "Take Photo",
+    secondaryButtonTitle: "Cancel",
+  );
 
+  if (result?.confirmed == true) {
     await goToCamView(FileStoreType.gateBookingImage);
+    await loadFileStoreImages();
     _trailerTwoManualPhotoTaken = true;
+    _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
+    rebuildUi();
   }
-
+}
   Future<void> logIncident(String message) async {
     //try to send if fail then we log it to the que
 
