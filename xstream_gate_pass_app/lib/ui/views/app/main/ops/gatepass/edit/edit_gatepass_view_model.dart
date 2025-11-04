@@ -1260,7 +1260,6 @@ Future<void> manualInputVehicle(String registrationNumber) async {
   }
 
   if (confirm.confirmed == true) {
-    gatePass.trailerRegNumberOne = enteredReg;
     gatePass.trailerRegNumberOneValidation = enteredReg;
 
     clearAllValidationMessage();
@@ -1324,7 +1323,6 @@ Future<void> showTrailerTwoOverrideDialog(String enteredReg) async {
   }
 
   if (confirm.confirmed == true) {
-    gatePass.trailerRegNumberTwo = enteredReg;
     gatePass.trailerRegNumberTwoValidation = enteredReg;
 
     clearAllValidationMessage();
