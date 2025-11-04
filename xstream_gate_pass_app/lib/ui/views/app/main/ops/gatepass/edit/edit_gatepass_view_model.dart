@@ -908,36 +908,20 @@ _navigationService.back(result: true);
     }
   }
 
-Future<void> loadFileStoreImages() async {
-  if (gatePass.id != null && gatePass.id != 0) {
-    _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gateBookingImage, 100);
+  Future<void> loadFileStoreImages() async {
+    if (gatePass.id != null && gatePass.id != 0) {
+      _fileStoreItems = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gateBookingImage, 100);
 
-    final foreignLicensePhotos = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gatePassAccessDriverLicenceImage, 100);
-    if (foreignLicensePhotos.isNotEmpty) {
-      _foreignLicensePhotoTaken = true;
-      _foreignLicensePhotoPath = foreignLicensePhotos.first;
-    } else {
-      _foreignLicensePhotoTaken = false;
-      _foreignLicensePhotoPath = null;
-    }
-
-    // Load manual input photos - get the most recent photos for each manual entry
-    if (_vehicleManualEntryUsed && _fileStoreItems.isNotEmpty) {
-      // Find the most recent photo for vehicle manual input
-      _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
-    }
-    
-    if (_trailerOneManualEntryUsed && _fileStoreItems.isNotEmpty) {
-      // Find the most recent photo for trailer one manual input
-      _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
-    }
-    
-    if (_trailerTwoManualEntryUsed && _fileStoreItems.isNotEmpty) {
-      // Find the most recent photo for trailer two manual input
-      _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
+      final foreignLicensePhotos = await _fileStoreRepository.getAll(gatePass.id!, FileStoreType.gatePassAccessDriverLicenceImage, 100);
+      if (foreignLicensePhotos.isNotEmpty) {
+        _foreignLicensePhotoTaken = true;
+        _foreignLicensePhotoPath = foreignLicensePhotos.first;
+      } else {
+        _foreignLicensePhotoTaken = false;
+        _foreignLicensePhotoPath = null;
+      }
     }
   }
-}
   Future<void> goToCamCaptureContainerNoText() async {
     if (gatePass.id != null && gatePass.id != 0) {
       var contInfo = await _navigationService.navigateToCamContainernoReaderView() as ContainerInfo?;
@@ -1129,130 +1113,130 @@ Future<void> manualInputVehicle(String registrationNumber) async {
 
 
 
-  Future<void> manualInputTrailerOne(String registrationNumber) async {
-    if (registrationNumber.contains(' ')) {
-      setValidationMessage(ValidationMessages.noSpacesAllowed);
-      return;
-    }
-
-    registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
-    gatePass.trailerRegNumberOneValidation = registrationNumber;
-
-    setTrailerValidationMessage("One");
-
-    if (gatePass.trailerRegNumberOneMatch == true) {
-      _trailerOneManualEntryUsed = true;
-      _trailerOneManualPhotoTaken = false;
-      gatePass.isTrailerOneManualInput = true;
-
-      await promptForTrailerOnePhoto();
-
-      BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
-      GlobalKey? nextSection;
-
-      if (gatePass.trailerRegNumberTwo != null &&
-          gatePass.trailerRegNumberTwo!.isNotEmpty) {
-        nextScanType = BarcodeScanType.trailerTwoDisc;
-        nextSection = trailerTwoInfoCardKey;
-      } else if (gatePass.gatePassBookingType ==
-          GatePassBookingType.containers) {
-        nextSection = containerInfoCardKey;
+    Future<void> manualInputTrailerOne(String registrationNumber) async {
+      if (registrationNumber.contains(' ')) {
+        setValidationMessage(ValidationMessages.noSpacesAllowed);
+        return;
       }
 
-      setBarcodeScanType(nextScanType);
-      if (nextSection != null) {
-        scrollToWidget(nextSection);
-      }
+      registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
+      gatePass.trailerRegNumberOneValidation = registrationNumber;
 
-      _showTrailerOneManualInput = false;
-    } else {
-      if (hasTrailerOverridePermission) {
-        await showTrailerOneOverrideDialog(registrationNumber);
+      setTrailerValidationMessage("One");
+
+      if (gatePass.trailerRegNumberOneMatch == true) {
+        _trailerOneManualEntryUsed = true;
+        _trailerOneManualPhotoTaken = false;
+        gatePass.isTrailerOneManualInput = true;
+
+        await promptForTrailerOnePhoto();
+
+        BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
+        GlobalKey? nextSection;
+
+        if (gatePass.trailerRegNumberTwo != null &&
+            gatePass.trailerRegNumberTwo!.isNotEmpty) {
+          nextScanType = BarcodeScanType.trailerTwoDisc;
+          nextSection = trailerTwoInfoCardKey;
+        } else if (gatePass.gatePassBookingType ==
+            GatePassBookingType.containers) {
+          nextSection = containerInfoCardKey;
+        }
+
+        setBarcodeScanType(nextScanType);
+        if (nextSection != null) {
+          scrollToWidget(nextSection);
+        }
+
+        _showTrailerOneManualInput = false;
+      } else {
+        if (hasTrailerOverridePermission) {
+          await showTrailerOneOverrideDialog(registrationNumber);
+              gatePass.isManualInput = true;
+              gatePass.isOverride = true;
+        } else {
+          var result = await _dialogService.showCustomDialog(
+            variant: DialogType.infoAlert,
+            data: BasicDialogStatus.error,
+            title: "License Mismatch",
+            description: ValidationMessages.regNoMismatch(
+                "Trailer One registration",
+                gatePass.trailerRegNumberOne,
+                registrationNumber),
+            mainButtonTitle: "Re-enter",
+            secondaryButtonTitle: "Reject Entry",
+          );
+
+          if (result?.confirmed == true) {
+            _showTrailerOneManualInput = true;
             gatePass.isManualInput = true;
-            gatePass.isOverride = true;
-      } else {
-        var result = await _dialogService.showCustomDialog(
-          variant: DialogType.infoAlert,
-          data: BasicDialogStatus.error,
-          title: "License Mismatch",
-          description: ValidationMessages.regNoMismatch(
-              "Trailer One registration",
-              gatePass.trailerRegNumberOne,
-              registrationNumber),
-          mainButtonTitle: "Re-enter",
-          secondaryButtonTitle: "Reject Entry",
-        );
-
-        if (result?.confirmed == true) {
-          _showTrailerOneManualInput = true;
-          gatePass.isManualInput = true;
-        } else {
-          await rejectEntry();
+          } else {
+            await rejectEntry();
+          }
         }
       }
+
+      setModelUpdate(gatePass);
+      rebuildUi();
     }
 
-    setModelUpdate(gatePass);
-    rebuildUi();
-  }
-
-  // Manual Trailer Two Input
-  Future<void> manualInputTrailerTwo(String registrationNumber) async {
-    if (registrationNumber.contains(' ')) {
-      setValidationMessage(ValidationMessages.noSpacesAllowed);
-      return;
-    }
-
-    registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
-    gatePass.trailerRegNumberTwoValidation = registrationNumber;
-    setTrailerValidationMessage("Two");
-
-    if (gatePass.trailerRegNumberTwoMatch == true) {
-      _trailerTwoManualEntryUsed = true;
-      _trailerTwoManualPhotoTaken = false;
-      gatePass.isTrailerTwoManualInput = true;
-      await promptForTrailerTwoPhoto();
-
-      if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
-        scrollToContainerInfo();
-      } else {
-        scrollToFirstError();
+    // Manual Trailer Two Input
+    Future<void> manualInputTrailerTwo(String registrationNumber) async {
+      if (registrationNumber.contains(' ')) {
+        setValidationMessage(ValidationMessages.noSpacesAllowed);
+        return;
       }
 
-      _showTrailerTwoManualInput = false;
-    } else {
-      if (hasTrailerOverridePermission) {
-        await showTrailerTwoOverrideDialog(registrationNumber);
-         gatePass.isManualInput = true;
-        gatePass.isOverride = true;
-      } else {
-        var result = await _dialogService.showCustomDialog(
-          variant: DialogType.infoAlert,
-          data: BasicDialogStatus.error,
-          title: "License Mismatch",
-          description: ValidationMessages.regNoMismatch(
-              "Trailer Two registration",
-              gatePass.trailerRegNumberTwo,
-              registrationNumber),
-          mainButtonTitle: "Re-enter",
-          secondaryButtonTitle: "Reject Entry",
-        );
+      registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
+      gatePass.trailerRegNumberTwoValidation = registrationNumber;
+      setTrailerValidationMessage("Two");
 
-        if (result?.confirmed == true) {
-          _showTrailerTwoManualInput = true;
-          gatePass.isManualInput = true;
-          gatePass.isTrailerTwoOverride = true;
+      if (gatePass.trailerRegNumberTwoMatch == true) {
+        _trailerTwoManualEntryUsed = true;
+        _trailerTwoManualPhotoTaken = false;
+        gatePass.isTrailerTwoManualInput = true;
+        await promptForTrailerTwoPhoto();
+
+        if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+          scrollToContainerInfo();
         } else {
-          await rejectEntry();
+          scrollToFirstError();
+        }
+
+        _showTrailerTwoManualInput = false;
+      } else {
+        if (hasTrailerOverridePermission) {
+          await showTrailerTwoOverrideDialog(registrationNumber);
+          gatePass.isManualInput = true;
+          gatePass.isOverride = true;
+        } else {
+          var result = await _dialogService.showCustomDialog(
+            variant: DialogType.infoAlert,
+            data: BasicDialogStatus.error,
+            title: "License Mismatch",
+            description: ValidationMessages.regNoMismatch(
+                "Trailer Two registration",
+                gatePass.trailerRegNumberTwo,
+                registrationNumber),
+            mainButtonTitle: "Re-enter",
+            secondaryButtonTitle: "Reject Entry",
+          );
+
+          if (result?.confirmed == true) {
+            _showTrailerTwoManualInput = true;
+            gatePass.isManualInput = true;
+            gatePass.isTrailerTwoOverride = true;
+          } else {
+            await rejectEntry();
+          }
         }
       }
+
+      setModelUpdate(gatePass);
+      rebuildUi();
     }
 
-    setModelUpdate(gatePass);
-    rebuildUi();
-  }
-
-  // Trailer Override
+    // Trailer Override
   Future<void> showTrailerOneOverrideDialog(String enteredReg) async {
   var confirm = await _dialogService.showCustomDialog(
     variant: DialogType.infoAlert,
@@ -1277,14 +1261,8 @@ Future<void> manualInputVehicle(String registrationNumber) async {
 
   if (confirm.confirmed == true) {
     gatePass.trailerRegNumberOne = enteredReg;
+    gatePass.trailerRegNumberOneValidation = enteredReg;
 
-    var msg = ValidationMessages.regNoMismatch(
-      "Trailer One registration",
-      gatePass.trailerRegNumberOne,
-      gatePass.trailerRegNumberOneValidation,
-    );
-    clearValidationMessage(msg);
-    
     clearAllValidationMessage();
     _trailerOneManualEntryUsed = true;
     gatePass.isManualInput = true;
@@ -1319,6 +1297,7 @@ Future<void> manualInputVehicle(String registrationNumber) async {
     scrollToWidget(trailerOneInfoCardKey);
   }
   
+  setModelUpdate(gatePass);
   rebuildUi();
 }
 
@@ -1345,20 +1324,15 @@ Future<void> showTrailerTwoOverrideDialog(String enteredReg) async {
   }
 
   if (confirm.confirmed == true) {
-    gatePass.trailerRegNumberTwo = enteredReg; 
-
-    var msg = ValidationMessages.regNoMismatch(
-      "Trailer Two registration",
-      gatePass.trailerRegNumberTwo,
-      gatePass.trailerRegNumberTwoValidation,
-    );
-    clearValidationMessage(msg);
+    gatePass.trailerRegNumberTwo = enteredReg;
+    gatePass.trailerRegNumberTwoValidation = enteredReg;
 
     clearAllValidationMessage();
-
+    _trailerTwoManualPhotoTaken = false;
     _trailerTwoManualEntryUsed = true;
     gatePass.isManualInput = true;
-    _trailerTwoManualPhotoTaken = false;
+    gatePass.isOverride = true; 
+    gatePass.isTrailerTwoOverride = true;
 
     await promptForTrailerTwoPhoto();
     
@@ -1379,65 +1353,108 @@ Future<void> showTrailerTwoOverrideDialog(String enteredReg) async {
     scrollToWidget(trailerTwoInfoCardKey);
   }
   
+  setModelUpdate(gatePass);
   rebuildUi();
 }
   /// Photo capture methods
-Future<void> promptForVehiclePhoto() async {
-  var result = await _dialogService.showCustomDialog(
-    variant: DialogType.infoAlert,
-    data: BasicDialogStatus.info,
-    title: "Photo Required",
-    description: ValidationMessages.photoRequiredForManualInput("vehicle"),
-    mainButtonTitle: "Take Photo",
-    secondaryButtonTitle: "Cancel",
-  );
+    Future<void> promptForVehiclePhoto() async {
+      var result = await _dialogService.showCustomDialog(
+        variant: DialogType.infoAlert,
+        data: BasicDialogStatus.info,
+        title: "Photo Required",
+        description: ValidationMessages.photoRequiredForManualInput("vehicle"),
+        mainButtonTitle: "Take Photo",
+        secondaryButtonTitle: "Cancel",
+      );
 
-  if (result?.confirmed == true) {
-    await goToCamView(FileStoreType.gateBookingImage);
-    await loadFileStoreImages();
-    _vehicleManualPhotoTaken = true;
-    _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
-    rebuildUi();
-  }
-}
+      if (result?.confirmed == true) {
+        var photoCountBefore = _fileStoreItems.length;
+        
+        await _navigationService.navigateTo(
+          Routes.cameraCaptureView,
+          arguments: CameraCaptureViewArguments(
+            refId: gatePass.id!, 
+            referanceId: 0, 
+            fileStoreType: FileStoreType.gateBookingImage,
+          ),
+        );
+        
+        await loadFileStoreImages();
+        
+        if (_fileStoreItems.length > photoCountBefore) {
+          _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
+          _vehicleManualPhotoTaken = true;
+        }
+        
+        rebuildUi();
+      }
+    }
 
-Future<void> promptForTrailerOnePhoto() async {
-  var result = await _dialogService.showCustomDialog(
-    variant: DialogType.infoAlert,
-    data: BasicDialogStatus.info,
-    title: "Photo Required",
-    description: ValidationMessages.photoRequiredForManualInput("trailer one"),
-    mainButtonTitle: "Take Photo",
-    secondaryButtonTitle: "Cancel",
-  );
+    Future<void> promptForTrailerOnePhoto() async {
+      var result = await _dialogService.showCustomDialog(
+        variant: DialogType.infoAlert,
+        data: BasicDialogStatus.info,
+        title: "Photo Required",
+        description: ValidationMessages.photoRequiredForManualInput("trailer one"),
+        mainButtonTitle: "Take Photo",
+        secondaryButtonTitle: "Cancel",
+      );
 
-  if (result?.confirmed == true) {
-    await goToCamView(FileStoreType.gateBookingImage);
-    await loadFileStoreImages();
-    _trailerOneManualPhotoTaken = true;
-    _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
-    rebuildUi();
-  }
-}
+      if (result?.confirmed == true) {
+        var photoCountBefore = _fileStoreItems.length;
+        
+        await _navigationService.navigateTo(
+          Routes.cameraCaptureView,
+          arguments: CameraCaptureViewArguments(
+            refId: gatePass.id!, 
+            referanceId: 0, 
+            fileStoreType: FileStoreType.gateBookingImage,
+          ),
+        );
+        
+        await loadFileStoreImages();
+        
+        if (_fileStoreItems.length > photoCountBefore) {
+          _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
+          _trailerOneManualPhotoTaken = true;
+        }
+        
+        rebuildUi();
+      }
+    }
 
-Future<void> promptForTrailerTwoPhoto() async {
-  var result = await _dialogService.showCustomDialog(
-    variant: DialogType.infoAlert,
-    data: BasicDialogStatus.info,
-    title: "Photo Required",
-    description: ValidationMessages.photoRequiredForManualInput("trailer two"),
-    mainButtonTitle: "Take Photo",
-    secondaryButtonTitle: "Cancel",
-  );
+    Future<void> promptForTrailerTwoPhoto() async {
+      var result = await _dialogService.showCustomDialog(
+        variant: DialogType.infoAlert,
+        data: BasicDialogStatus.info,
+        title: "Photo Required",
+        description: ValidationMessages.photoRequiredForManualInput("trailer two"),
+        mainButtonTitle: "Take Photo",
+        secondaryButtonTitle: "Cancel",
+      );
 
-  if (result?.confirmed == true) {
-    await goToCamView(FileStoreType.gateBookingImage);
-    await loadFileStoreImages();
-    _trailerTwoManualPhotoTaken = true;
-    _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
-    rebuildUi();
-  }
-}
+      if (result?.confirmed == true) {
+        var photoCountBefore = _fileStoreItems.length;
+        
+        await _navigationService.navigateTo(
+          Routes.cameraCaptureView,
+          arguments: CameraCaptureViewArguments(
+            refId: gatePass.id!, 
+            referanceId: 0, 
+            fileStoreType: FileStoreType.gateBookingImage,
+          ),
+        );
+        
+        await loadFileStoreImages();
+        
+        if (_fileStoreItems.length > photoCountBefore) {
+          _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
+          _trailerTwoManualPhotoTaken = true;
+        }
+        
+        rebuildUi();
+      }
+    }
   Future<void> logIncident(String message) async {
     //try to send if fail then we log it to the que
 
@@ -1520,6 +1537,45 @@ Future<void> promptForTrailerTwoPhoto() async {
       );
     }
   }
+
+  void viewVehiclePhoto() async {
+    if (_vehicleManualPhotoPath != null) {
+      await _navigationService.navigateTo(
+        Routes.imagesViewerListView,
+        arguments: ImagesViewerListViewArguments(
+          gatePassId: gatePass.id,
+        ),
+      );
+    } else {
+      await promptForVehiclePhoto();
+    }
+  }
+
+  void viewTrailerOnePhoto() async {
+    if (_trailerOneManualPhotoPath != null) {
+      await _navigationService.navigateTo(
+        Routes.imagesViewerListView,
+        arguments: ImagesViewerListViewArguments(
+          gatePassId: gatePass.id,
+        ),
+      );
+    } else {
+      await promptForTrailerOnePhoto();
+    }
+  }
+
+  void viewTrailerTwoPhoto() async {
+    if (_trailerTwoManualPhotoPath != null) {
+      await _navigationService.navigateTo(
+        Routes.imagesViewerListView,
+        arguments: ImagesViewerListViewArguments(
+          gatePassId: gatePass.id,
+        ),
+      );
+    } else {
+      await promptForTrailerTwoPhoto();
+    }
+  }
 }
 
 extension StringCapitalize on String {
@@ -1528,3 +1584,4 @@ extension StringCapitalize on String {
     return '${this[0].toUpperCase()}${substring(1)}';
   }
 }
+

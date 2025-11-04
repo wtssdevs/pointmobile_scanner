@@ -32,6 +32,8 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/wid
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/gate_pass_status_chip_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_gatepass_view_model.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/listicons/gatepass_list_icon.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/manual_input_field_widget.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/photo_preview_widget.dart';
 
 class GatePassEditView extends StatelessWidget {
   final GatePassAccess gatePass;
@@ -693,120 +695,18 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                                       BuildInfoItem(label: 'Model', value: model.gatePass.vehicleVinNumber ?? 'Not Scanned'),
                                       
                                       // MANUAL INPUT
-// MANUAL INPUT
-if (model.hasVehicleManualInputPermission &&
-    model.gatePass.vehicleRegNumber != null)
-  Padding(
-    padding: const EdgeInsets.only(top: 12.0),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: vehicleRegNumberTextController,
-                textCapitalization: TextCapitalization.characters,
-                maxLength: 10,
-                inputFormatters: [
-                  FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                  FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
-                ],
-                decoration: const InputDecoration(
-                  labelText: "Manual Entry",
-                  hintText: "CA123456 or ABC123GP",
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  isDense: true,
-                  counterText: '',
-                  helperText: 'No spaces, letters and numbers only',
-                  helperStyle: TextStyle(fontSize: 10),
-                ),
-                onSubmitted: (val) {
-                  if (_validateRegistration(val)) {
-                    model.manualInputVehicle(val);
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: model.vehicleManualEntryUsed ? Colors.green : Colors.grey[300],
-              ),
-              child: IconButton(
-                onPressed: () {
-                  final text = vehicleRegNumberTextController.text;
-                  if (_validateRegistration(text)) {
-                    model.manualInputVehicle(text);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Invalid format. Use: CA123456 or ABC123GP'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
-                icon: Icon(
-                  Icons.check,
-                  color: model.vehicleManualEntryUsed ? Colors.white : Colors.grey[600],
-                  size: 20,
-                ),
-                iconSize: 20,
-                padding: const EdgeInsets.all(8),
-                constraints: const BoxConstraints(),
-                tooltip: 'Save',
-              ),
-            ),
-          ],
-        ),
-        // Photo Preview - Outside the Row
-        if (model.vehicleManualEntryUsed && model.vehicleManualPhotoTaken && model.vehicleManualPhotoPath != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: InkWell(
-              onTap: () {
-                model.viewAllForeignLicensePhotos();
-              },
-              child: Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green, width: 2),
-                  image: DecorationImage(
-                    image: FileImage(File(model.vehicleManualPhotoPath!.path)),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.check, color: Colors.white, size: 16),
-                            SizedBox(width: 4),
-                            Text('Photo Captured', style: TextStyle(color: Colors.white, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
-    ),
-  ),
+
+                                    if (model.hasVehicleManualInputPermission &&
+                                        model.gatePass.vehicleRegNumber != null)
+                                      ManualInputFieldWidget(
+                                        controller: vehicleRegNumberTextController,
+                                        isManualEntryUsed: model.vehicleManualEntryUsed,
+                                        isPhotoTaken: model.vehicleManualPhotoTaken,
+                                        photoPath: model.vehicleManualPhotoPath,
+                                        onManualInput: (val) => model.manualInputVehicle(val),
+                                        onViewPhoto: () => model.viewVehiclePhoto(),
+                                        validateRegistration: _validateRegistration,
+                                      ),
                                     ],
                                   ),
                                   BuildInfoCard(
@@ -843,119 +743,18 @@ if (model.hasVehicleManualInputPermission &&
                                           : const SizedBox.shrink(),
                                       
                                       // MANUAL INPUT
-                                      if (model.hasTrailerManualInputPermission &&
-    model.gatePass.trailerRegNumberOne != null)
-  Padding(
-    padding: const EdgeInsets.only(top: 12.0),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: trailerNo1TextController,
-                textCapitalization: TextCapitalization.characters,
-                maxLength: 10,
-                inputFormatters: [
-                  FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                  FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
-                ],
-                decoration: const InputDecoration(
-                  labelText: "Manual Entry",
-                  hintText: "CA123456 or ABC123GP",
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  isDense: true,
-                  counterText: '',
-                  helperText: 'No spaces, letters and numbers only',
-                  helperStyle: TextStyle(fontSize: 10),
-                ),
-                onSubmitted: (val) {
-                  if (_validateRegistration(val)) {
-                    model.manualInputTrailerOne(val);
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: model.trailerOneManualEntryUsed ? Colors.green : Colors.grey[300],
-              ),
-              child: IconButton(
-                onPressed: () {
-                  final text = trailerNo1TextController.text;
-                  if (_validateRegistration(text)) {
-                    model.manualInputTrailerOne(text);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Invalid format. Use: CA123456 or ABC123GP'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
-                icon: Icon(
-                  Icons.check,
-                  color: model.trailerOneManualEntryUsed ? Colors.white : Colors.grey[600],
-                  size: 20,
-                ),
-                iconSize: 20,
-                padding: const EdgeInsets.all(8),
-                constraints: const BoxConstraints(),
-                tooltip: 'Save',
-              ),
-            ),
-          ],
-        ),
-        // Photo Preview
-        if (model.trailerOneManualEntryUsed && model.trailerOneManualPhotoTaken && model.trailerOneManualPhotoPath != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: InkWell(
-              onTap: () {
-                model.viewAllForeignLicensePhotos();
-              },
-              child: Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green, width: 2),
-                  image: DecorationImage(
-                    image: FileImage(File(model.trailerOneManualPhotoPath!.path)),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.check, color: Colors.white, size: 16),
-                            SizedBox(width: 4),
-                            Text('Photo Captured', style: TextStyle(color: Colors.white, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
-    ),
-  ),
+                                    if (model.hasTrailerManualInputPermission &&
+                                        model.gatePass.trailerRegNumberOne != null)
+                                      ManualInputFieldWidget(
+                                        controller: trailerNo1TextController,
+                                        isManualEntryUsed: model.trailerOneManualEntryUsed,
+                                        isPhotoTaken: model.trailerOneManualPhotoTaken,
+                                        photoPath: model.trailerOneManualPhotoPath,
+                                        onManualInput: (val) => model.manualInputTrailerOne(val),
+                                        onViewPhoto: () => model.viewTrailerOnePhoto(),
+                                        validateRegistration: _validateRegistration,
+                                        label: 'Manual Entry (Trailer 1)',
+                                      ),
                                     ],
                                   ),
 
@@ -995,127 +794,21 @@ if (model.hasVehicleManualInputPermission &&
                                       
                                       // MANUAL INPUT
                                      if (model.hasTrailerManualInputPermission &&
-    model.gatePass.trailerRegNumberTwo != null)
-  Padding(
-    padding: const EdgeInsets.only(top: 12.0),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: trailerNo2TextController,
-                textCapitalization: TextCapitalization.characters,
-                maxLength: 10,
-                inputFormatters: [
-                  FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                  FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
-                ],
-                decoration: const InputDecoration(
-                  labelText: "Manual Entry",
-                  hintText: "CA123456 or ABC123GP",
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  isDense: true,
-                  counterText: '',
-                  helperText: 'No spaces, letters and numbers only',
-                  helperStyle: TextStyle(fontSize: 10),
-                ),
-                onSubmitted: (val) {
-                  if (_validateRegistration(val)) {
-                    model.manualInputTrailerTwo(val);
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: model.trailerTwoManualEntryUsed ? Colors.green : Colors.grey[300],
-              ),
-              child: IconButton(
-                onPressed: () {
-                  final text = trailerNo2TextController.text;
-                  if (_validateRegistration(text)) {
-                    model.manualInputTrailerTwo(text);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Invalid format. Use: CA123456 or ABC123GP'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
-                icon: Icon(
-                  Icons.check,
-                  color: model.trailerTwoManualEntryUsed ? Colors.white : Colors.grey[600],
-                  size: 20,
-                ),
-                iconSize: 20,
-                padding: const EdgeInsets.all(8),
-                constraints: const BoxConstraints(),
-                tooltip: 'Save',
-              ),
-            ),
-          ],
-        ),
-        // Photo Preview
-        if (model.trailerTwoManualEntryUsed && model.trailerTwoManualPhotoTaken && model.trailerTwoManualPhotoPath != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: InkWell(
-              onTap: () {
-                model.viewAllForeignLicensePhotos();
-              },
-              child: Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green, width: 2),
-                  image: DecorationImage(
-                    image: FileImage(File(model.trailerTwoManualPhotoPath!.path)),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.check, color: Colors.white, size: 16),
-                            SizedBox(width: 4),
-                            Text('Photo Captured', style: TextStyle(color: Colors.white, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
-    ),
-  ),
+                                        model.gatePass.trailerRegNumberTwo != null)
+                                      ManualInputFieldWidget(
+                                        controller: trailerNo2TextController,
+                                        isManualEntryUsed: model.trailerTwoManualEntryUsed,
+                                        isPhotoTaken: model.trailerTwoManualPhotoTaken,
+                                        photoPath: model.trailerTwoManualPhotoPath,
+                                        onManualInput: (val) => model.manualInputTrailerTwo(val),
+                                        onViewPhoto: () => model.viewTrailerTwoPhoto(),
+                                        validateRegistration: _validateRegistration,
+                                        label: 'Manual Entry (Trailer 2)',
+                                      ),
                                     ],
                                   ),
 
                                   verticalSpaceSmall,
-
-
-
-
-
                                   if (model.gatePass.gatePassBookingType == GatePassBookingType.containers) ...[
                                     BuildInfoCard(
                                       key: model.containerInfoCardKey,
