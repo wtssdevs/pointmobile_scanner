@@ -1,1 +1,1 @@
-enum BasicDialogStatus { success, error, warning }
+enum BasicDialogStatus { success, error, warning, info }

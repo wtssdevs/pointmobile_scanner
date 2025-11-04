@@ -16,6 +16,9 @@ class AppPermissions {
   static const String visitors = "Visitors";
   static const String yardOperations = "YardOperations";
   static const String gateAccess = "GateAccess";
+  static const String allowVehicleManualInput = "AllowVehicleManualInput";
+  static const String allowTrailerManualInput = "AllowTrailerManualInput";
+  static const String allowTrailerOverride = "AllowTrailerOverride";
 
   static const String mobileOperationsCreate =
       views + operations + gatePassAccess + mobileOperations + create;
@@ -53,4 +56,13 @@ class AppPermissions {
 
   static const String mobileOperationsGateAccess =
       views + operations + gatePassAccess + mobileOperations + gateAccess;
+ 
+   static const String mobileOperationsAllowVehicleManualInput =
+      views + operations + gatePassAccess + mobileOperations + allowVehicleManualInput;
+      
+  static const String mobileOperationsAllowTrailerManualInput =
+      views + operations + gatePassAccess + mobileOperations + allowTrailerManualInput;
+      
+  static const String mobileOperationsAllowTrailerOverride =
+      views + operations + gatePassAccess + mobileOperations + allowTrailerOverride;
 }
