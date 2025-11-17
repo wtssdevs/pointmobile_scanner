@@ -43,11 +43,11 @@ class GateAccessMenuViewModel extends BaseViewModel with AppViewBaseHelper {
           icon: FontAwesomeIcons.listUl,
           route: Routes.gatePassView,
           requiredPermission: AppPermissions.mobileOperationsGateAccess),
-      //MenuItem(
-        //  title: translate('Gate Access'),
-         // icon: FontAwesomeIcons.roadBridge,
-          //route: Routes.gatePassView,
-          // requiredPermission: AppPermissions.mobileOperationsGateAccess),
+      MenuItem(
+          title: translate('Gate Access'),
+          icon: FontAwesomeIcons.roadBridge,
+          route: Routes.gateAccessManualListView,
+          requiredPermission: AppPermissions.mobileOperationsYardOperations),
     ];
     rebuildUi();
   }

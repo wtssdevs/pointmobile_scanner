@@ -13,6 +13,7 @@ import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:flutter/services.dart';
+import 'package:collection/collection.dart';
 
 import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 
@@ -39,45 +40,54 @@ class GatePassEditView extends StatelessWidget {
   final GatePassAccess gatePass;
   GatePassEditView({Key? key, required this.gatePass}) : super(key: key);
 
-  final TextEditingController vehicleRegNumberTextController = TextEditingController();
+  final TextEditingController vehicleRegNumberTextController =
+TextEditingController();
   final FocusNode vehicleRegNumberTextFocusNode = FocusNode();
 
-  final TextEditingController vehicleRegNumberValiTextController = TextEditingController();
+  final TextEditingController vehicleRegNumberValiTextController =
+      TextEditingController();
   final FocusNode vehicleRegNumberValiTextFocusNode = FocusNode();
 
-  final TextEditingController trailerNo1TextController = TextEditingController();
+  final TextEditingController trailerNo1TextController =
+      TextEditingController();
   final FocusNode trailerNo1TextFocusNode = FocusNode();
 
-  final TextEditingController trailerNo2TextController = TextEditingController();
+  final TextEditingController trailerNo2TextController =
+      TextEditingController();
   final FocusNode trailerNo2TextFocusNode = FocusNode();
 
   final TextEditingController driverIDTextController = TextEditingController();
   final FocusNode driverIDTextFocusNode = FocusNode();
 
-  final TextEditingController driverLisenceNoTextController = TextEditingController();
+  final TextEditingController driverLisenceNoTextController =
+      TextEditingController();
   final FocusNode driverLisenceNoTextFocusNode = FocusNode();
 
-  final TextEditingController driverNameTextController = TextEditingController();
+  final TextEditingController driverNameTextController =
+      TextEditingController();
   final FocusNode driverdriverNameTextFocusNode = FocusNode();
 
-  final TextEditingController driverGenderTextController = TextEditingController();
+  final TextEditingController driverGenderTextController =
+      TextEditingController();
   final FocusNode driverdriverGenderTextFocusNode = FocusNode();
 
-  final TextEditingController driverLicenseTypeTextController = TextEditingController();
+  final TextEditingController driverLicenseTypeTextController =
+      TextEditingController();
   final FocusNode driverLicenseTypeTextFocusNode = FocusNode();
 
   final formKeyAtGate = GlobalKey<FormState>();
-  onModelSet(GatePassAccess data) {
+    onModelSet(GatePassAccess data) {
     //vehicleRegNumberTextController.text = data.vehicleRegNumber ?? "";
     //trailerNo1TextController.text = data.trailerRegNumberOne ?? "";
     //trailerNo2TextController.text = data.trailerRegNumberTwo ?? "";
-
     driverNameTextController.text = data.driverName ?? "";
+
     driverIDTextController.text = data.driverIdNo ?? "";
     driverLisenceNoTextController.text = data.driverLicenceNo ?? "";
   }
 
-  Future<bool> validateByFormKey(GlobalKey<FormState> formKey, BuildContext context, GatePassEditViewModel model) async {
+  Future<bool> validateByFormKey(GlobalKey<FormState> formKey,
+      BuildContext context, GatePassEditViewModel model) async {
     var isvalid = formKey.currentState!.validate();
     if (isvalid && model.showValidation == false) {
       formKey.currentState!.save();
@@ -90,6 +100,58 @@ class GatePassEditView extends StatelessWidget {
 
   Future<bool> validateForAuthEntry(GatePassEditViewModel model, BuildContext context) async {
     //validate per status
+    if (model.isManualInput) {
+      if (model.gatePass.transporterId == null) {
+        model.setValidationMessage("Transporter is required");
+      } else {
+        model.clearValidationMessage("Transporter is required");
+      }
+      if (model.gatePass.vehicleRegNumber == null &&
+          model.gatePass.vehicleRegNumberValidation == null) {
+        model.setValidationMessage("Vehicle registration is required");
+      } else {
+        model.clearValidationMessage("Vehicle registration is required");
+        if (model.gatePass.vehicleRegNumber == null &&
+            model.gatePass.vehicleRegNumberValidation != null) {
+          model.gatePass.vehicleRegNumber =
+              model.gatePass.vehicleRegNumberValidation;
+        }
+      }
+
+      if (model.gatePass.driverName == null) {
+        model.setValidationMessage("Driver name is required");
+      } else {
+        model.clearValidationMessage("Driver name is required");
+      }
+
+      if (model.gatePass.driverIdNo == null &&
+          model.gatePass.driverIdNoValidation == null) {
+        model.setValidationMessage("Driver ID is required");
+      } else {
+        model.clearValidationMessage("Driver ID is required");
+        // Copy scanned data to main field if not set
+        if (model.gatePass.driverIdNo == null &&
+            model.gatePass.driverIdNoValidation != null) {
+          model.gatePass.driverIdNo = model.gatePass.driverIdNoValidation;
+        }
+      }
+
+      if (model.showValidation) {
+        model.rebuildUi();
+        Fluttertoast.showToast(
+            msg:
+                "Validation Failed! ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ''}",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM_LEFT,
+            timeInSecForIosWeb: 8,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 14.0);
+        return false;
+      }
+
+      return true;
+    }
 
     if (model.gatePass.gatePassBookingType == GatePassBookingType.visitor) {
       if (model.gatePass.vehicleRegNumber == null) {
@@ -111,7 +173,7 @@ class GatePassEditView extends StatelessWidget {
 
       if (model.showValidation) {
         model.rebuildUi();
-   Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
         return false;
       }
 
@@ -137,14 +199,17 @@ class GatePassEditView extends StatelessWidget {
     }
 
     // Foreign license photo validation
-    if (model.gatePass.driverHasForeignID == true && !model.foreignLicensePhotoTaken) {
+    if (model.gatePass.driverHasForeignID == true &&
+        !model.foreignLicensePhotoTaken) {
       model.setValidationMessage("Foreign license photo is required");
     } else {
       model.clearValidationMessage("Foreign license photo is required");
     }
+
     if (model.gatePass.driverHasForeignID == false) {
       model.setDriverValidationMessage();
     }
+
     if (model.vehicleManualEntryUsed && !model.vehicleManualPhotoTaken) {
       model.setValidationMessage("Photo required for manual input Vehicle");
     } else {
@@ -164,18 +229,28 @@ class GatePassEditView extends StatelessWidget {
       model.clearValidationMessage(
           "Photo required for manual input Trailer Two");
     }
+
     model.setVehicleValidationMessage();
 
     if (model.showValidation) {
       model.rebuildUi();
- Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+      Fluttertoast.showToast(
+          msg:
+              "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0);
       return false;
     }
 
     return !model.showValidation;
   }
 
-  Future<bool> validateForm(GatePassEditViewModel model, BuildContext context) async {
+  Future<bool> validateForm(
+      GatePassEditViewModel model, BuildContext context) async {
     //validate per status
 
     if (model.gatePass.gatePassBookingType == GatePassBookingType.visitor) {
@@ -198,7 +273,15 @@ class GatePassEditView extends StatelessWidget {
 
       if (model.showValidation) {
         model.rebuildUi();
- Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+        Fluttertoast.showToast(
+            msg:
+                "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM_LEFT,
+            timeInSecForIosWeb: 8,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 14.0);
         return false;
       }
 
@@ -213,7 +296,8 @@ class GatePassEditView extends StatelessWidget {
     }
 
 //split between foreign license and normal drivers lisence
-    if (model.gatePass.driverHasForeignID == true && !model.foreignLicensePhotoTaken) {
+    if (model.gatePass.driverHasForeignID == true &&
+        !model.foreignLicensePhotoTaken) {
       model.setValidationMessage("Foreign license photo is required");
     } else {
       model.clearValidationMessage("Foreign license photo is required");
@@ -232,7 +316,15 @@ class GatePassEditView extends StatelessWidget {
 
     if (model.showValidation) {
       model.rebuildUi();
-Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+      Fluttertoast.showToast(
+          msg:
+              "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0);
       return false;
     }
 
@@ -270,50 +362,51 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
     model.setModeldata(gatePass);
   }
 
-bool _validateRegistration(String value) {
-  if (value.isEmpty) return false;
-  
-  // Remove any spaces and convert to uppercase
-  final cleanValue = value.replaceAll(' ', '').toUpperCase();
-  
-  // South African registration formats:
-  
-  // Format 1: CA123456 (2 letters, 6 digits) - Old format
-  final format1 = RegExp(r'^[A-Z]{2}\d{6}$');
-  
-  // Format 2: ABC123GP (2-3 letters, 2-4 digits, 2 letters) - Provincial format
-  // Covers: ABC123GP, DW65SFGP, etc.
-  final format2 = RegExp(r'^[A-Z]{2,3}\d{2,4}[A-Z]{2}$');
-  
-  // Format 3: CB12CDGP (2 letters, 2 digits, 2 letters, 2 letters) - New alphanumeric
-  final format3 = RegExp(r'^[A-Z]{2}\d{2}[A-Z]{2}[A-Z]{2}$');
-  
-  // Format 4: AA12345 (2 letters, 5 digits) - Standard format
-  final format4 = RegExp(r'^[A-Z]{2}\d{5}$');
-  
-  // Format 5: ABC123 (3 letters, 3 digits) - Older town format
-  final format5 = RegExp(r'^[A-Z]{3}\d{3}$');
-  
-  // Format 6: A123456 (1 letter, 6 digits) - Very old format
-  final format6 = RegExp(r'^[A-Z]\d{6}$');
-  
-  // Format 7: Personalized (1-7 characters, letters and numbers)
-  final format7 = RegExp(r'^[A-Z0-9]{1,7}$');
-  
-  return format1.hasMatch(cleanValue) || 
-         format2.hasMatch(cleanValue) || 
-         format3.hasMatch(cleanValue) ||
-         format4.hasMatch(cleanValue) ||
-         format5.hasMatch(cleanValue) ||
-         format6.hasMatch(cleanValue) ||
-         format7.hasMatch(cleanValue);
-}
+  bool _validateRegistration(String value) {
+    if (value.isEmpty) return false;
+
+    // Remove any spaces and convert to uppercase
+    final cleanValue = value.replaceAll(' ', '').toUpperCase();
+
+    // South African registration formats:
+
+    // Format 1: CA123456 (2 letters, 6 digits) - Old format
+    final format1 = RegExp(r'^[A-Z]{2}\d{6}$');
+
+    // Format 2: ABC123GP (2-3 letters, 2-4 digits, 2 letters) - Provincial format
+    // Covers: ABC123GP, DW65SFGP, etc.
+    final format2 = RegExp(r'^[A-Z]{2,3}\d{2,4}[A-Z]{2}$');
+
+    // Format 3: CB12CDGP (2 letters, 2 digits, 2 letters, 2 letters) - New alphanumeric
+    final format3 = RegExp(r'^[A-Z]{2}\d{2}[A-Z]{2}[A-Z]{2}$');
+
+    // Format 4: AA12345 (2 letters, 5 digits) - Standard format
+    final format4 = RegExp(r'^[A-Z]{2}\d{5}$');
+
+    // Format 5: ABC123 (3 letters, 3 digits) - Older town format
+    final format5 = RegExp(r'^[A-Z]{3}\d{3}$');
+
+    // Format 6: A123456 (1 letter, 6 digits) - Very old format
+    final format6 = RegExp(r'^[A-Z]\d{6}$');
+
+    // Format 7: Personalized (1-7 characters, letters and numbers)
+    final format7 = RegExp(r'^[A-Z0-9]{1,7}$');
+
+    return format1.hasMatch(cleanValue) ||
+        format2.hasMatch(cleanValue) ||
+        format3.hasMatch(cleanValue) ||
+        format4.hasMatch(cleanValue) ||
+        format5.hasMatch(cleanValue) ||
+        format6.hasMatch(cleanValue) ||
+        format7.hasMatch(cleanValue);
+  }
 
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width * 0.95;
     return ViewModelBuilder<GatePassEditViewModel>.reactive(
-      onViewModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      onViewModelReady: (model) =>
+          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.listenToModelSet(onModelSet);
         model.runStartupLogic();
         if (gatePass.id == 0) {
@@ -332,7 +425,12 @@ bool _validateRegistration(String value) {
           child: Scaffold(
             persistentFooterButtons: [
               Visibility(
-visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.inYard.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value,
+                visible: model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.atGate.value ||
+                    model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.inYard.value ||
+                    model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.pending.value,
                 child: model.isBusy
                     ? const SizedBox.shrink()
                     : ElevatedButton.icon(
@@ -340,7 +438,9 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                           // call method
                           //validate UI first
                           //id is GUID as string ,so need to ehck for empty guid
-                          if (model.gatePass.id != Guid.defaultValue.toString() && model.gatePass.id != "") {
+                          if (model.gatePass.id !=
+                                  Guid.defaultValue.toString() &&
+                              model.gatePass.id != "") {
                             model.rejectEntry();
                           }
                         },
@@ -352,17 +452,24 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                       ),
               ),
               Visibility(
- visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || model.gatePass.gatePassStatus.value == GatePassStatus.pending.value, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
+                visible: model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.atGate.value ||
+                    model.gatePass.gatePassStatus.value ==
+                        GatePassStatus.pending
+                            .value, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
                 child: model.isBusy
                     ? const SizedBox.shrink()
                     : ElevatedButton.icon(
                         onPressed: () async {
                           // valiate first
-                          var isValid = await validateForAuthEntry(model, context);
+                          var isValid =
+                              await validateForAuthEntry(model, context);
                           if (isValid == true) {
                             model.authorizeEntry();
                           } else {
-                            model.scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
+                            model.scrollController.animateTo(0,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeIn);
                           }
                         },
                         icon: const FaIcon(
@@ -373,7 +480,9 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                       ),
               ),
               Visibility(
-                visible: model.gatePass.gatePassStatus.value == GatePassStatus.inYard.index, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
+                visible: model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.inYard
+                        .index, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
                 child: model.isBusy
                     ? const SizedBox.shrink()
                     : ElevatedButton.icon(
@@ -399,11 +508,14 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                 dense: true,
                 horizontalTitleGap: 0.0,
 
-                 contentPadding: const EdgeInsets.only(left: 0.0, right: 0.0, top: 0, bottom: 0),
-                //leading:
-                title: BoxText.label(model.gatePass.transactionNo ?? "", color: Colors.black),
-                subtitle: BoxText.label(model.gatePass.voyageNo ?? "", color: Colors.black),
-                trailing: GateStatusChip(gatePassStatus: model.gatePass.gatePassStatus),
+                contentPadding: const EdgeInsets.only(
+                    left: 0.0, right: 0.0, top: 0, bottom: 0),
+                title: BoxText.label(model.gatePass.transactionNo ?? "",
+                    color: Colors.black),
+                subtitle: BoxText.label(model.gatePass.voyageNo ?? "",
+                    color: Colors.black),
+                trailing: GateStatusChip(
+                    gatePassStatus: model.gatePass.gatePassStatus),
               ),
               titleSpacing: 0.0,
               centerTitle: true,
@@ -467,7 +579,8 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                   //GATE ACCESS
                   Scaffold(
                     floatingActionButton: Visibility(
-                      visible: model.gatePass.gatePassBookingType == GatePassBookingType.containers,
+                      visible: model.gatePass.gatePassBookingType ==
+                          GatePassBookingType.containers,
                       child: FloatingActionButton(
                         onPressed: () => model.goToCamCaptureContainerNoText(),
                         child: const Icon(Icons.camera),
@@ -475,61 +588,100 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                     ),
                     body: SingleChildScrollView(
                         controller: model.scrollController,
-                        child: model.gatePass.gatePassBookingType == GatePassBookingType.visitor || model.gatePass.gatePassBookingType == GatePassBookingType.staff
+                        child: model.gatePass.gatePassBookingType ==
+                                    GatePassBookingType.visitor ||
+                                model.gatePass.gatePassBookingType ==
+                                    GatePassBookingType.staff
                             ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   if (model.showValidation) ...[
                                     verticalSpaceSmall,
                                     BuildErrorsView(
-                                      validationMessages: model.validationMessages,
+                                      validationMessages:
+                                          model.validationMessages,
                                     ),
                                   ],
                                   verticalSpaceSmall,
                                   BuildInfoCard(
                                     width: width,
                                     title: "Visitor Drivers Lisence Card",
-                                    isSelected: model.barcodeScanType == BarcodeScanType.driversCard,
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.driversCard,
                                     onTap: () {
-                                      model.setBarcodeScanType(BarcodeScanType.driversCard);
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.driversCard);
                                     },
                                     hasInfo: model.gatePass.hasDriverInfo,
                                     icon: Icons.credit_card,
                                     color: Colors.blue,
                                     infoList: [
-                                      BuildInfoItem(label: 'Driver Name', value: model.gatePass.driverName ?? 'Not Scanned'),
-                                      BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Not Scanned'),
-                                      BuildInfoItem(label: 'License No', value: model.gatePass.driverLicenceNo ?? 'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'Driver Name',
+                                          value: model.gatePass.driverName ??
+                                              'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'ID Number',
+                                          value: model.gatePass.driverIdNo ??
+                                              'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'License No',
+                                          value:
+                                              model.gatePass.driverLicenceNo ??
+                                                  'Not Scanned'),
                                     ],
                                   ),
                                   verticalSpaceSmall,
                                   BuildInfoCard(
                                     width: width,
                                     title: "Vehicle Lisence Disc",
-                                    isSelected: model.barcodeScanType == BarcodeScanType.vehicleDisc,
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.vehicleDisc,
                                     onTap: () {
-                                      model.setBarcodeScanType(BarcodeScanType.vehicleDisc);
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.vehicleDisc);
                                     },
                                     hasInfo: model.gatePass.hasVehicleInfo,
                                     icon: Icons.directions_car,
                                     color: Colors.green,
                                     infoList: [
-                                      BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
-                                      BuildInfoItem(label: 'Make', value: model.gatePass.vehicleMake ?? 'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'Registration',
+                                          value:
+                                              model.gatePass.vehicleRegNumber ??
+                                                  'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'Make',
+                                          value: model.gatePass.vehicleMake ??
+                                              'Not Scanned'),
                                     ],
                                   ),
                                   verticalSpaceSmall,
                                   BuildInfoCard(
                                     width: width,
                                     title: "Times",
-                                    isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,
+                                    isSelected:
+                                        model.gatePass.timeAtGate != null &&
+                                            model.gatePass.timeIn != null,
                                     hasInfo: true,
                                     icon: Icons.timelapse_sharp,
                                     color: Colors.amber[300]!,
                                     infoList: [
-                                      BuildInfoItem(label: 'Time At Gate', value: model.gatePass.timeAtGate?.toSocialMediaTime() ?? ''),
-                                      BuildInfoItem(label: 'Time In', value: model.gatePass.timeIn?.toSocialMediaTime() ?? ''),
-                                      BuildInfoItem(label: 'Time Out', value: model.gatePass.timeOut?.toSocialMediaTime() ?? ''),
+                                      BuildInfoItem(
+                                          label: 'Time At Gate',
+                                          value: model.gatePass.timeAtGate
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                      BuildInfoItem(
+                                          label: 'Time In',
+                                          value: model.gatePass.timeIn
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                      BuildInfoItem(
+                                          label: 'Time Out',
+                                          value: model.gatePass.timeOut
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
                                     ],
                                   ),
                                   model.gatePass.serviceTypeId != null
@@ -544,7 +696,6 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                                 ],
                               )
                             :
-                            //Else all the normal Gate Pass Access views
                             Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -552,12 +703,14 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                                   if (model.showValidation) ...[
                                     verticalSpaceSmall,
                                     BuildErrorsView(
-                                      validationMessages: model.validationMessages,
+                                      validationMessages:
+                                          model.validationMessages,
                                     ),
                                   ],
                                   verticalSpaceSmall,
                                   BuildInfoCard(
-                                    width: MediaQuery.of(context).size.width * 0.95,
+                                    width: MediaQuery.of(context).size.width *
+                                        0.95,
                                     title: "Main Information",
                                     isSelected: true,
                                     hasInfo: model.gatePass != null,
@@ -565,47 +718,81 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                                     color: Colors.green,
                                     infoList: [
                                       BuildInfoItem(
-                                        label: model.translate("GatePassDeliveryType"),
-                                        value: model.gatePass.gatePassDeliveryType.text,
-                                        validationStatus: ValidationStatus.passed,
-                                        passedIcon: model.gatePass.gatePassDeliveryType == DeliveryType.receive
-                                            ? const Icon(FontAwesomeIcons.arrowsDownToLine, color: Colors.green)
+                                        label: model
+                                            .translate("GatePassDeliveryType"),
+                                        value: model
+                                            .gatePass.gatePassDeliveryType.text,
+                                        validationStatus:
+                                            ValidationStatus.passed,
+                                        passedIcon: model.gatePass
+                                                    .gatePassDeliveryType ==
+                                                DeliveryType.receive
+                                            ? const Icon(
+                                                FontAwesomeIcons
+                                                    .arrowsDownToLine,
+                                                color: Colors.green)
                                             : const Icon(
                                                 FontAwesomeIcons.arrowsUpToLine,
                                                 color: Colors.red,
                                               ),
                                       ),
                                       BuildInfoItem(
-                                        label: model.translate("GatePassBookingType"),
-                                        value: model.gatePass.gatePassBookingType.text,
-                                        validationStatus: ValidationStatus.passed,
-                                        passedIcon: model.gatePass.gatePassBookingType == GatePassBookingType.containers
+                                        label: model
+                                            .translate("GatePassBookingType"),
+                                        value: model
+                                            .gatePass.gatePassBookingType.text,
+                                        validationStatus:
+                                            ValidationStatus.passed,
+                                        passedIcon: model.gatePass
+                                                    .gatePassBookingType ==
+                                                GatePassBookingType.containers
                                             ? const Icon(
-                                                Icons.check_box_outline_blank_sharp,
+                                                Icons
+                                                    .check_box_outline_blank_sharp,
                                                 color: Colors.blue,
                                               )
                                             : Icon(
-                                                model.gatePass.gatePassBookingType.icon,
-                                                color: model.gatePass.gatePassBookingType == GatePassBookingType.containers ? Colors.blue : Colors.brown,
+                                                model.gatePass
+                                                    .gatePassBookingType.icon,
+                                                color: model.gatePass
+                                                            .gatePassBookingType ==
+                                                        GatePassBookingType
+                                                            .containers
+                                                    ? Colors.blue
+                                                    : Colors.brown,
                                               ),
                                       ),
                                       BuildInfoItem(
                                         label: model.translate("TransactionNo"),
-                                       value: model.gatePass.transactionNo ?? '',
+                                        value:
+                                            model.gatePass.transactionNo ?? '',
                                       ),
-                                      BuildInfoItem(label: model.translate("RefNo"), value: model.gatePass.refNo ?? ''),
-                                      BuildInfoItem(label: model.translate("CustomerRefNo"), value: model.gatePass.customerRefNo ?? ''),
-                                      BuildInfoItem(label: model.translate("TicketNo"), value: model.gatePass.ticketNo ?? ''),
-                                      BuildInfoItem(label: model.translate("VoyageNo"), value: model.gatePass.voyageNo ?? ''),
+                                      BuildInfoItem(
+                                          label: model.translate("RefNo"),
+                                          value: model.gatePass.refNo ?? ''),
+                                      BuildInfoItem(
+                                          label:
+                                              model.translate("CustomerRefNo"),
+                                          value: model.gatePass.customerRefNo ??
+                                              ''),
+                                      BuildInfoItem(
+                                          label: model.translate("TicketNo"),
+                                          value: model.gatePass.ticketNo ?? ''),
+                                      BuildInfoItem(
+                                          label: model.translate("VoyageNo"),
+                                          value: model.gatePass.voyageNo ?? ''),
                                     ],
                                   ),
                                   verticalSpaceTiny,
                                   //*********Drivers TEMP Lisence Card******** */
                                   //new widget for driver  foreign lisence ID
                                   ForeignLicensePhotoCard(
-                                    isVisible: model.gatePass.driverHasForeignID == true,
+                                    isVisible:
+                                        model.gatePass.driverHasForeignID ==
+                                            true,
                                     width: width,
-                                    isPhotoTaken: model.foreignLicensePhotoTaken,
+                                    isPhotoTaken:
+                                        model.foreignLicensePhotoTaken,
                                     fileStore: model.foreignLicensePhotoPath,
                                     onTap: () {
                                       model.captureForeignLicensePhoto();
@@ -614,230 +801,1402 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                                       model.viewAllForeignLicensePhotos();
                                     },
                                     infoList: [
-                                      BuildInfoItem(label: 'Driver Name', value: model.gatePass.driverName ?? 'Missing Information'),
-                                      BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Missing Information'),
+                                      BuildInfoItem(
+                                          label: 'Driver Name',
+                                          value: model.gatePass.driverName ??
+                                              'Missing Information'),
+                                      BuildInfoItem(
+                                          label: 'ID Number',
+                                          value: model.gatePass.driverIdNo ??
+                                              'Missing Information'),
                                     ],
                                   ),
 
- !model.gatePass.hasDriverInfo || !model.gatePass.hasVehicleInfo ? BuildScanningView(barcodeScanType: model.barcodeScanType) : const SizedBox.shrink(),
+                                  !model.gatePass.hasDriverInfo ||
+                                          !model.gatePass.hasVehicleInfo
+                                      ? BuildScanningView(
+                                          barcodeScanType:
+                                              model.barcodeScanType)
+                                      : const SizedBox.shrink(),
                                   verticalSpaceSmall,
 
                                   //*********Drivers Lisence Card******** */
                                   BuildInfoCard(
-                                    isVisible: model.gatePass.driverHasForeignID == false,
+                                    isVisible:
+                                        model.gatePass.driverHasForeignID ==
+                                            false,
                                     key: model.driverInfoCardKey,
                                     width: width,
                                     title: "Drivers Lisence Card",
-                                    isSelected: model.barcodeScanType == BarcodeScanType.driversCard,
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.driversCard,
                                     onTap: () {
-                                      model.setBarcodeScanType(BarcodeScanType.driversCard);
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.driversCard);
                                     },
-                                    hasInfo: model.gatePass.hasDriverInfo && model.gatePass.driverIdNoMatch,
+                                    hasInfo: model.gatePass.hasDriverInfo &&
+                                        model.gatePass.driverIdNoMatch,
                                     icon: Icons.credit_card,
                                     color: Colors.blue,
                                     infoList: [
-                                      BuildInfoItem(label: 'Driver Name', value: model.gatePass.driverName ?? 'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'Driver Name',
+                                          value: model.gatePass.driverName ??
+                                              'Not Scanned'),
                                       //BuildInfoItem(label: 'ID Number', value: model.gatePass.driverIdNo ?? 'Not Scanned'),
 
                                       BuildInfoItem(
                                         label: 'ID Number',
-                                        value: model.gatePass.driverIdNo ?? 'Not Scanned',
-                                        validationStatus: model.gatePass.driverIdNoValidation != null && model.gatePass.driverIdNoMatch == false ? ValidationStatus.failed : null,
+                                        value: model.gatePass.driverIdNo ??
+                                            'Not Scanned',
+                                        validationStatus: model.gatePass
+                                                        .driverIdNoValidation !=
+                                                    null &&
+                                                model.gatePass
+                                                        .driverIdNoMatch ==
+                                                    false
+                                            ? ValidationStatus.failed
+                                            : null,
                                         validationMessage: 'ID Number mismatch',
                                       ),
                                       //BuildInfoItem(label: 'Registration', value: model.gatePass.vehicleRegNumber ?? 'Not Scanned'),
-                                      model.gatePass.driverIdNoValidation != null && model.gatePass.driverIdNoMatch == false
+                                      model.gatePass.driverIdNoValidation !=
+                                                  null &&
+                                              model.gatePass.driverIdNoMatch ==
+                                                  false
                                           ? BuildInfoItem(
                                               label: 'Mismatch',
-                                              value: model.gatePass.driverIdNoValidation ?? 'ID Number mismatch',
-                                              validationStatus: ValidationStatus.failed,
+                                              value: model.gatePass
+                                                      .driverIdNoValidation ??
+                                                  'ID Number mismatch',
+                                              validationStatus:
+                                                  ValidationStatus.failed,
                                             )
                                           : const SizedBox.shrink(),
 
-                                      BuildInfoItem(label: 'License No', value: model.gatePass.driverLicenceNo ?? 'Not Scanned'),
-                                      BuildInfoItem(label: 'License Expiry', value: model.gatePass.driverLicenceExpiryDate?.toLocal().toFormattedString() ?? 'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'License No',
+                                          value:
+                                              model.gatePass.driverLicenceNo ??
+                                                  'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'License Expiry',
+                                          value: model.gatePass
+                                                  .driverLicenceExpiryDate
+                                                  ?.toLocal()
+                                                  .toFormattedString() ??
+                                              'Not Scanned'),
                                     ],
                                   ),
+
+                                  if (model.isManualInput) ...[
+                                    verticalSpaceTiny,
+
+                                    Container(
+                                      width: double.infinity,
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: model.logisticsInfoComplete
+                                              ? Colors.green
+                                              : model.shouldShowLogisticsActive
+                                                  ? Colors.blue
+                                                  : Colors.grey[300]!,
+                                          width: (model.logisticsInfoComplete ||
+                                                  model
+                                                      .shouldShowLogisticsActive)
+                                              ? 2
+                                              : 1,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.05),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Header
+                                          Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: model.logisticsInfoComplete
+                                                  ? Colors.green.shade50
+                                                  : model.shouldShowLogisticsActive
+                                                      ? Colors.blue.shade50
+                                                      : Colors.grey.shade50,
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                topLeft: Radius.circular(12),
+                                                topRight: Radius.circular(12),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.local_shipping,
+                                                  color: model
+                                                          .logisticsInfoComplete
+                                                      ? Colors.green.shade700
+                                                      : model.shouldShowLogisticsActive
+                                                          ? Colors.blue.shade700
+                                                          : Colors.grey[600],
+                                                  size: 24,
+                                                ),
+                                                horizontalSpaceSmall,
+                                                Expanded(
+                                                  child: Text(
+                                                    'Logistics Information',
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: model
+                                                              .logisticsInfoComplete
+                                                          ? Colors
+                                                              .green.shade700
+                                                          : model
+                                                                  .shouldShowLogisticsActive
+                                                              ? Colors
+                                                                  .blue.shade700
+                                                              : Colors
+                                                                  .grey[700],
+                                                    ),
+                                                  ),
+                                                ),
+                                                if (model.logisticsInfoComplete)
+                                                  Icon(Icons.check_circle,
+                                                      color: Colors.green,
+                                                      size: 24)
+                                                else if (model
+                                                    .shouldShowLogisticsActive)
+                                                  Icon(Icons.arrow_forward,
+                                                      color: Colors.blue,
+                                                      size: 24),
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                // Transporter Dropdown
+                                                Text(
+                                                  'Transporter *',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                verticalSpaceTiny,
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    border: Border.all(
+                                                        color:
+                                                            Colors.grey[300]!),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: model
+                                                          .transporters.isEmpty
+                                                      ? Padding(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  12),
+                                                          child: Row(
+                                                            children: [
+                                                              SizedBox(
+                                                                width: 16,
+                                                                height: 16,
+                                                                child: CircularProgressIndicator(
+                                                                    strokeWidth:
+                                                                        2),
+                                                              ),
+                                                              horizontalSpaceSmall,
+                                                              Text(
+                                                                  'Loading transporters...'),
+                                                            ],
+                                                          ),
+                                                        )
+                                                      : DropdownButtonFormField<
+                                                          int>(
+                                                          value: model.gatePass
+                                                              .transporterId,
+                                                          decoration:
+                                                              InputDecoration(
+                                                            contentPadding:
+                                                                EdgeInsets
+                                                                    .symmetric(
+                                                                        horizontal:
+                                                                            12,
+                                                                        vertical:
+                                                                            8),
+                                                            border: InputBorder
+                                                                .none,
+                                                            hintText:
+                                                                'Select Transporter',
+                                                            hintStyle: TextStyle(
+                                                                color: Colors
+                                                                    .grey[400]),
+                                                          ),
+                                                          dropdownColor:
+                                                              Colors.white,
+                                                          isExpanded: true,
+                                                          items: model
+                                                              .transporters
+                                                              .map(
+                                                                  (transporter) {
+                                                            return DropdownMenuItem<
+                                                                int>(
+                                                              value: transporter
+                                                                  .id,
+                                                              child: Text(
+                                                                transporter
+                                                                        .name ??
+                                                                    '',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        14),
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                              ),
+                                                            );
+                                                          }).toList(),
+                                                          onChanged: (value) {
+                                                            model
+                                                                .setTransporter(
+                                                                    value);
+                                                          },
+                                                          icon: Icon(
+                                                              Icons
+                                                                  .arrow_drop_down,
+                                                              color: Colors
+                                                                  .grey[600]),
+                                                        ),
+                                                ),
+
+                                                // Customer Dropdown (Optional)
+                                                verticalSpaceSmall,
+                                                Text(
+                                                  'Customer',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                verticalSpaceTiny,
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    border: Border.all(
+                                                        color:
+                                                            Colors.grey[300]!),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: model.customers.isEmpty
+                                                      ? Padding(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  12),
+                                                          child: Row(
+                                                            children: [
+                                                              SizedBox(
+                                                                width: 16,
+                                                                height: 16,
+                                                                child: CircularProgressIndicator(
+                                                                    strokeWidth:
+                                                                        2),
+                                                              ),
+                                                              horizontalSpaceSmall,
+                                                              Text(
+                                                                  'Loading customers...'),
+                                                            ],
+                                                          ),
+                                                        )
+                                                      : DropdownButtonFormField<
+                                                          int>(
+                                                          value: model.gatePass
+                                                              .customerId,
+                                                          decoration:
+                                                              InputDecoration(
+                                                            contentPadding:
+                                                                EdgeInsets
+                                                                    .symmetric(
+                                                                        horizontal:
+                                                                            12,
+                                                                        vertical:
+                                                                            8),
+                                                            border: InputBorder
+                                                                .none,
+                                                            hintText:
+                                                                'Select Customer (Optional)',
+                                                            hintStyle: TextStyle(
+                                                                color: Colors
+                                                                    .grey[400]),
+                                                          ),
+                                                          dropdownColor:
+                                                              Colors.white,
+                                                          isExpanded: true,
+                                                          items: model.customers
+                                                              .map((customer) {
+                                                            return DropdownMenuItem<
+                                                                int>(
+                                                              value:
+                                                                  customer.id,
+                                                              child: Text(
+                                                                customer.name ??
+                                                                    '',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        14),
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                              ),
+                                                            );
+                                                          }).toList(),
+                                                          onChanged: (value) {
+                                                            if (value != null) {
+                                                              var customer = model
+                                                                  .customers
+                                                                  .firstWhereOrNull(
+                                                                      (c) =>
+                                                                          c.id ==
+                                                                          value);
+                                                              if (customer !=
+                                                                  null) {
+                                                                model.setCustomer(
+                                                                    customer);
+                                                              }
+                                                            }
+                                                          },
+                                                          icon: Icon(
+                                                              Icons
+                                                                  .arrow_drop_down,
+                                                              color: Colors
+                                                                  .grey[600]),
+                                                        ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
 
                                   verticalSpaceSmall,
                                   BuildInfoCard(
                                     key: model.vehicleInfoCardKey,
                                     width: width,
                                     title: "Vehicle Lisence Disc",
-                                    isSelected: model.barcodeScanType == BarcodeScanType.vehicleDisc,
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.vehicleDisc,
                                     onTap: () {
-                                      model.setBarcodeScanType(BarcodeScanType.vehicleDisc);
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.vehicleDisc);
                                     },
-                                    hasInfo: model.gatePass.vehicleRegNumber != null && 
-                                    (model.gatePass.vehicleRegNoMatch || model.vehicleManualEntryUsed),
+                                    hasInfo: model.gatePass.vehicleRegNumber !=
+                                            null &&
+                                        (model.gatePass.vehicleRegNoMatch ||
+                                            model.vehicleManualEntryUsed),
                                     icon: Icons.directions_car,
                                     color: Colors.green,
                                     infoList: [
                                       BuildInfoItem(
                                         label: 'Registration',
-                                        value: model.gatePass.vehicleRegNumber ?? 'Not Scanned',
-                                        validationStatus: model.gatePass.vehicleRegNumberValidation != null && 
-                                                        model.gatePass.vehicleRegNoMatch == false 
-                                                        ? ValidationStatus.failed 
-                                                        : null,
-                                        validationMessage: 'Registration number mismatch',
+                                        value:
+                                            model.gatePass.vehicleRegNumber ??
+                                                'Not Scanned',
+                                        validationStatus: model.gatePass
+                                                        .vehicleRegNumberValidation !=
+                                                    null &&
+                                                model.gatePass
+                                                        .vehicleRegNoMatch ==
+                                                    false
+                                            ? ValidationStatus.failed
+                                            : null,
+                                        validationMessage:
+                                            'Registration number mismatch',
                                       ),
-                                      model.gatePass.vehicleRegNumberValidation != null && 
-                                      model.gatePass.vehicleRegNoMatch == false
+                                      model.gatePass.vehicleRegNumberValidation !=
+                                                  null &&
+                                              model.gatePass
+                                                      .vehicleRegNoMatch ==
+                                                  false
                                           ? BuildInfoItem(
                                               label: 'Mismatch',
-                                              value: model.gatePass.vehicleRegNumberValidation ?? 
-                                                    'Registration number mismatch',
-                                              validationStatus: ValidationStatus.failed,
+                                              value: model.gatePass
+                                                      .vehicleRegNumberValidation ??
+                                                  'Registration number mismatch',
+                                              validationStatus:
+                                                  ValidationStatus.failed,
                                             )
                                           : const SizedBox.shrink(),
-                                      BuildInfoItem(label: 'Make', value: model.gatePass.vehicleMake ?? 'Not Scanned'),
-                                      BuildInfoItem(label: 'Model', value: model.gatePass.vehicleVinNumber ?? 'Not Scanned'),
-                                      
+                                      BuildInfoItem(
+                                          label: 'Make',
+                                          value: model.gatePass.vehicleMake ??
+                                              'Not Scanned'),
+                                      BuildInfoItem(
+                                          label: 'Model',
+                                          value:
+                                              model.gatePass.vehicleVinNumber ??
+                                                  'Not Scanned'),
+
                                       // MANUAL INPUT
 
-                                    if (model.hasVehicleManualInputPermission &&
-                                        model.gatePass.vehicleRegNumber != null)
-                                      ManualInputFieldWidget(
-                                        controller: vehicleRegNumberTextController,
-                                        isManualEntryUsed: model.vehicleManualEntryUsed,
-                                        isPhotoTaken: model.vehicleManualPhotoTaken,
-                                        photoPath: model.vehicleManualPhotoPath,
-                                        onManualInput: (val) => model.manualInputVehicle(val),
-                                        onViewPhoto: () => model.viewVehiclePhoto(),
-                                        validateRegistration: _validateRegistration,
-                                      ),
+                                      if (model
+                                              .hasVehicleManualInputPermission &&
+                                          model.gatePass.vehicleRegNumber !=
+                                              null)
+                                        ManualInputFieldWidget(
+                                          controller:
+                                              vehicleRegNumberTextController,
+                                          isManualEntryUsed:
+                                              model.vehicleManualEntryUsed,
+                                          isPhotoTaken:
+                                              model.vehicleManualPhotoTaken,
+                                          photoPath:
+                                              model.vehicleManualPhotoPath,
+                                          onManualInput: (val) =>
+                                              model.manualInputVehicle(val),
+                                          onViewPhoto: () =>
+                                              model.viewVehiclePhoto(),
+                                          validateRegistration:
+                                              _validateRegistration,
+                                        ),
                                     ],
                                   ),
                                   BuildInfoCard(
-                                    isVisible: model.gatePass.trailerRegNumberOne != null,
+                                    isVisible:
+                                        model.gatePass.trailerRegNumberOne !=
+                                            null,
                                     key: model.trailerOneInfoCardKey,
                                     width: width,
                                     title: "Trailer One Disc",
-                                    isSelected: model.barcodeScanType == BarcodeScanType.trailerOneDisc,
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.trailerOneDisc,
                                     onTap: () {
-                                      model.setBarcodeScanType(BarcodeScanType.trailerOneDisc);
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.trailerOneDisc);
                                     },
-                                    hasInfo: model.gatePass.trailerRegNumberOne != null && 
-                                            model.gatePass.trailerRegNumberOneMatch,
+                                    hasInfo: model
+                                                .gatePass.trailerRegNumberOne !=
+                                            null &&
+                                        model.gatePass.trailerRegNumberOneMatch,
                                     icon: FontAwesomeIcons.trailer,
                                     color: Colors.green,
                                     infoList: [
                                       BuildInfoItem(
                                         label: 'Registration',
-                                        value: model.gatePass.trailerRegNumberOne ?? 'Not Scanned',
-                                        validationStatus: model.gatePass.trailerRegNumberOneValidation != null && 
-                                                        model.gatePass.trailerRegNumberOneMatch == false 
-                                                        ? ValidationStatus.failed 
-                                                        : null,
-                                        validationMessage: 'Registration number mismatch',
+                                        value: model
+                                                .gatePass.trailerRegNumberOne ??
+                                            'Not Scanned',
+                                        validationStatus: model.gatePass
+                                                        .trailerRegNumberOneValidation !=
+                                                    null &&
+                                                model.gatePass
+                                                        .trailerRegNumberOneMatch ==
+                                                    false
+                                            ? ValidationStatus.failed
+                                            : null,
+                                        validationMessage:
+                                            'Registration number mismatch',
                                       ),
-                                      model.gatePass.trailerRegNumberOneValidation != null && 
-                                      model.gatePass.trailerRegNumberOneMatch == false
+                                      model.gatePass.trailerRegNumberOneValidation !=
+                                                  null &&
+                                              model.gatePass
+                                                      .trailerRegNumberOneMatch ==
+                                                  false
                                           ? BuildInfoItem(
                                               label: 'Mismatch',
-                                              value: model.gatePass.trailerRegNumberOneValidation ?? 
-                                                    'Registration number mismatch',
-                                              validationStatus: ValidationStatus.failed,
+                                              value: model.gatePass
+                                                      .trailerRegNumberOneValidation ??
+                                                  'Registration number mismatch',
+                                              validationStatus:
+                                                  ValidationStatus.failed,
                                             )
                                           : const SizedBox.shrink(),
-                                      
+
                                       // MANUAL INPUT
-                                    if (model.hasTrailerManualInputPermission &&
-                                        model.gatePass.trailerRegNumberOne != null)
-                                      ManualInputFieldWidget(
-                                        controller: trailerNo1TextController,
-                                        isManualEntryUsed: model.trailerOneManualEntryUsed,
-                                        isPhotoTaken: model.trailerOneManualPhotoTaken,
-                                        photoPath: model.trailerOneManualPhotoPath,
-                                        onManualInput: (val) => model.manualInputTrailerOne(val),
-                                        onViewPhoto: () => model.viewTrailerOnePhoto(),
-                                        validateRegistration: _validateRegistration,
-                                        label: 'Manual Entry (Trailer 1)',
-                                      ),
+                                      if (model
+                                              .hasTrailerManualInputPermission &&
+                                          model.gatePass.trailerRegNumberOne !=
+                                              null)
+                                        ManualInputFieldWidget(
+                                          controller: trailerNo1TextController,
+                                          isManualEntryUsed:
+                                              model.trailerOneManualEntryUsed,
+                                          isPhotoTaken:
+                                              model.trailerOneManualPhotoTaken,
+                                          photoPath:
+                                              model.trailerOneManualPhotoPath,
+                                          onManualInput: (val) =>
+                                              model.manualInputTrailerOne(val),
+                                          onViewPhoto: () =>
+                                              model.viewTrailerOnePhoto(),
+                                          validateRegistration:
+                                              _validateRegistration,
+                                          label: 'Manual Entry (Trailer 1)',
+                                        ),
                                     ],
                                   ),
 
                                   verticalSpaceSmall,
                                   BuildInfoCard(
-                                    isVisible: model.gatePass.trailerRegNumberTwo != null,
+                                    isVisible:
+                                        model.gatePass.trailerRegNumberTwo !=
+                                            null,
                                     key: model.trailerTwoInfoCardKey,
                                     width: width,
                                     title: "Trailer Two Disc",
-                                    isSelected: model.barcodeScanType == BarcodeScanType.trailerTwoDisc,
+                                    isSelected: model.barcodeScanType ==
+                                        BarcodeScanType.trailerTwoDisc,
                                     onTap: () {
-                                      model.setBarcodeScanType(BarcodeScanType.trailerTwoDisc);
+                                      model.setBarcodeScanType(
+                                          BarcodeScanType.trailerTwoDisc);
                                     },
-                                    hasInfo: model.gatePass.trailerRegNumberTwo != null && 
-                                            model.gatePass.trailerRegNumberTwoMatch,
+                                    hasInfo: model
+                                                .gatePass.trailerRegNumberTwo !=
+                                            null &&
+                                        model.gatePass.trailerRegNumberTwoMatch,
                                     icon: FontAwesomeIcons.trailer,
                                     color: Colors.green,
                                     infoList: [
                                       BuildInfoItem(
                                         label: 'Registration',
-                                        value: model.gatePass.trailerRegNumberTwo ?? 'Not Scanned',
-                                        validationStatus: model.gatePass.trailerRegNumberTwoValidation != null && 
-                                                        model.gatePass.trailerRegNumberTwoMatch == false 
-                                                        ? ValidationStatus.failed 
-                                                        : null,
-                                        validationMessage: 'Registration number mismatch',
+                                        value: model
+                                                .gatePass.trailerRegNumberTwo ??
+                                            'Not Scanned',
+                                        validationStatus: model.gatePass
+                                                        .trailerRegNumberTwoValidation !=
+                                                    null &&
+                                                model.gatePass
+                                                        .trailerRegNumberTwoMatch ==
+                                                    false
+                                            ? ValidationStatus.failed
+                                            : null,
+                                        validationMessage:
+                                            'Registration number mismatch',
                                       ),
-                                      model.gatePass.trailerRegNumberTwoValidation != null && 
-                                      model.gatePass.trailerRegNumberTwoMatch == false
+                                      model.gatePass.trailerRegNumberTwoValidation !=
+                                                  null &&
+                                              model.gatePass
+                                                      .trailerRegNumberTwoMatch ==
+                                                  false
                                           ? BuildInfoItem(
                                               label: 'Mismatch',
-                                              value: model.gatePass.trailerRegNumberTwoValidation ?? 
-                                                    'Registration number mismatch',
-                                              validationStatus: ValidationStatus.failed,
+                                              value: model.gatePass
+                                                      .trailerRegNumberTwoValidation ??
+                                                  'Registration number mismatch',
+                                              validationStatus:
+                                                  ValidationStatus.failed,
                                             )
                                           : const SizedBox.shrink(),
-                                      
+
                                       // MANUAL INPUT
-                                     if (model.hasTrailerManualInputPermission &&
-                                        model.gatePass.trailerRegNumberTwo != null)
-                                      ManualInputFieldWidget(
-                                        controller: trailerNo2TextController,
-                                        isManualEntryUsed: model.trailerTwoManualEntryUsed,
-                                        isPhotoTaken: model.trailerTwoManualPhotoTaken,
-                                        photoPath: model.trailerTwoManualPhotoPath,
-                                        onManualInput: (val) => model.manualInputTrailerTwo(val),
-                                        onViewPhoto: () => model.viewTrailerTwoPhoto(),
-                                        validateRegistration: _validateRegistration,
-                                        label: 'Manual Entry (Trailer 2)',
-                                      ),
+                                      if (model
+                                              .hasTrailerManualInputPermission &&
+                                          model.gatePass.trailerRegNumberTwo !=
+                                              null)
+                                        ManualInputFieldWidget(
+                                          controller: trailerNo2TextController,
+                                          isManualEntryUsed:
+                                              model.trailerTwoManualEntryUsed,
+                                          isPhotoTaken:
+                                              model.trailerTwoManualPhotoTaken,
+                                          photoPath:
+                                              model.trailerTwoManualPhotoPath,
+                                          onManualInput: (val) =>
+                                              model.manualInputTrailerTwo(val),
+                                          onViewPhoto: () =>
+                                              model.viewTrailerTwoPhoto(),
+                                          validateRegistration:
+                                              _validateRegistration,
+                                          label: 'Manual Entry (Trailer 2)',
+                                        ),
                                     ],
                                   ),
 
                                   verticalSpaceSmall,
-                                  if (model.gatePass.gatePassBookingType == GatePassBookingType.containers) ...[
-                                    BuildInfoCard(
-                                      key: model.containerInfoCardKey,
-                                      width: width,
-                                      title: "Container Info",
-                                      isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,
-                                      hasInfo: model.gatePass.containerNumber != null,
-                                      icon: Icons.confirmation_num,
-                                      color: Colors.blueGrey[300]!,
-                                      infoList: [
-                                        BuildInfoItem(label: 'Container No', value: model.gatePass.containerNumber ?? ''),
-                                        BuildInfoItem(label: 'Size', value: model.gatePass.containerSize ?? ''),
-                                        BuildInfoItem(label: 'Type', value: model.gatePass.containerType ?? ''),
-                                        //BuildInfoItem(label: 'ISO Type', value: model.gatePass.containerIsoType ?? ''),
-                                      ],
-                                    ),
+                                  if (model.gatePass.gatePassBookingType ==
+                                      GatePassBookingType.containers) ...[
                                     verticalSpaceSmall,
+
+                                    // Container Details Card for Manual Entries
+                                    if (model.isManualInput) ...[
+                                      Container(
+                                        width: double.infinity,
+
+                                        key: model.containerInfoCardKey,
+                                        margin: const EdgeInsets.symmetric(
+                                            horizontal: 16),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            // Green if completed, Blue if active/next, Grey if not ready
+                                            color: model.containerInfoComplete
+                                                ? Colors.green
+                                                : model.shouldShowContainerActive
+                                                    ? Colors.blue
+                                                    : Colors.grey[300]!,
+                                            width: (model
+                                                        .containerInfoComplete ||
+                                                    model
+                                                        .shouldShowContainerActive)
+                                                ? 2
+                                                : 1,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.05),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // Header
+                                            Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: model
+                                                        .containerInfoComplete
+                                                    ? Colors.green.shade50
+                                                    : model.shouldShowContainerActive
+                                                        ? Colors.blue.shade50
+                                                        : Colors.grey.shade50,
+                                                borderRadius:
+                                                    const BorderRadius.only(
+                                                  topLeft: Radius.circular(12),
+                                                  topRight: Radius.circular(12),
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.inventory_2,
+                                                    color: model
+                                                            .containerInfoComplete
+                                                        ? Colors.green.shade700
+                                                        : model
+                                                                .shouldShowContainerActive
+                                                            ? Colors
+                                                                .blue.shade700
+                                                            : Colors.grey[600],
+                                                    size: 24,
+                                                  ),
+                                                  horizontalSpaceSmall,
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Container Information',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: model
+                                                                .containerInfoComplete
+                                                            ? Colors
+                                                                .green.shade700
+                                                            : model
+                                                                    .shouldShowContainerActive
+                                                                ? Colors.blue
+                                                                    .shade700
+                                                                : Colors
+                                                                    .grey[700],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  if (model
+                                                      .containerInfoComplete)
+                                                    Icon(Icons.check_circle,
+                                                        color: Colors.green,
+                                                        size: 24)
+                                                  else if (model
+                                                      .shouldShowContainerActive)
+                                                    Icon(Icons.arrow_forward,
+                                                        color: Colors.blue,
+                                                        size: 24),
+                                                ],
+                                              ),
+                                            ),
+
+                                            Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Container Number *',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                  verticalSpaceTiny,
+                                                  TextField(
+                                                    controller:
+                                                        TextEditingController(
+                                                      text: model.gatePass
+                                                              .containerNumber ??
+                                                          '',
+                                                    ),
+                                                    decoration: InputDecoration(
+                                                      hintText:
+                                                          'Enter Container Number or Scan',
+                                                      border:
+                                                          OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                      ),
+                                                      contentPadding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 12,
+                                                              vertical: 12),
+                                                      suffixIcon: IconButton(
+                                                        icon: Icon(
+                                                            Icons.camera_alt,
+                                                            color: Colors.blue),
+                                                        onPressed: () => model
+                                                            .goToCamCaptureContainerNoText(),
+                                                        tooltip:
+                                                            'Scan Container',
+                                                      ),
+                                                    ),
+                                                    textCapitalization:
+                                                        TextCapitalization
+                                                            .characters,
+                                                    onChanged: (value) {
+                                                      model.gatePass
+                                                              .containerNumber =
+                                                          value.toUpperCase();
+                                                      model.notifyListeners();
+                                                    },
+                                                  ),
+
+                                                  if (model.gatePass
+                                                          .containerSize !=
+                                                      null) ...[
+                                                    verticalSpaceTiny,
+                                                    BuildInfoItem(
+                                                      label: 'Container Size',
+                                                      value: model.gatePass
+                                                              .containerSize ??
+                                                          '',
+                                                    ),
+                                                  ],
+
+                                                  if (model.gatePass
+                                                          .containerType !=
+                                                      null) ...[
+                                                    verticalSpaceTiny,
+                                                    BuildInfoItem(
+                                                      label: 'Container Type',
+                                                      value: model.gatePass
+                                                              .containerType ??
+                                                          '',
+                                                    ),
+                                                  ],
+
+                                                  verticalSpaceSmall,
+                                                  Text(
+                                                    'Delivery Type *',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                  verticalSpaceTiny,
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child:
+                                                            _buildRadioOption(
+                                                          context: context,
+                                                          title: 'Receive',
+                                                          icon: Icons
+                                                              .arrow_downward,
+                                                          value: DeliveryType
+                                                              .receive,
+                                                          groupValue: model
+                                                              .gatePass
+                                                              .containerDeliveryType,
+                                                          onChanged: (value) {
+                                                            model.gatePass
+                                                                    .containerDeliveryType =
+                                                                value;
+                                                            model
+                                                                .notifyListeners();
+                                                          },
+                                                        ),
+                                                      ),
+                                                      horizontalSpaceSmall,
+                                                      Expanded(
+                                                        child:
+                                                            _buildRadioOption(
+                                                          context: context,
+                                                          title: 'Dispatch',
+                                                          icon: Icons
+                                                              .arrow_upward,
+                                                          value: DeliveryType
+                                                              .dispatch,
+                                                          groupValue: model
+                                                              .gatePass
+                                                              .containerDeliveryType,
+                                                          onChanged: (value) {
+                                                            model.gatePass
+                                                                    .containerDeliveryType =
+                                                                value;
+                                                            model
+                                                                .notifyListeners();
+                                                          },
+                                                        ),
+                                                      ),
+                                                      horizontalSpaceSmall,
+                                                      Expanded(
+                                                        child:
+                                                            _buildRadioOption(
+                                                          context: context,
+                                                          title: 'Other',
+                                                          icon:
+                                                              Icons.more_horiz,
+                                                          value: DeliveryType
+                                                              .other,
+                                                          groupValue: model
+                                                              .gatePass
+                                                              .containerDeliveryType,
+                                                          onChanged: (value) {
+                                                            model.gatePass
+                                                                    .containerDeliveryType =
+                                                                value;
+                                                            model
+                                                                .notifyListeners();
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+
+                                                  verticalSpaceSmall,
+                                                  Text(
+                                                    'Cargo Type *',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                  verticalSpaceTiny,
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child:
+                                                            _buildRadioOption(
+                                                          context: context,
+                                                          title: 'Empty',
+                                                          icon: Icons.inbox,
+                                                          value:
+                                                              GatePassContainerType
+                                                                  .empty,
+                                                          groupValue: model
+                                                              .gatePass
+                                                              .gatePassContainerType,
+                                                          onChanged: (value) {
+                                                            model.gatePass
+                                                                    .gatePassContainerType =
+                                                                value;
+                                                            model
+                                                                .notifyListeners();
+                                                          },
+                                                        ),
+                                                      ),
+                                                      horizontalSpaceSmall,
+                                                      Expanded(
+                                                        child:
+                                                            _buildRadioOption(
+                                                          context: context,
+                                                          title: 'Unpack Full',
+                                                          icon: Icons.inventory,
+                                                          value:
+                                                              GatePassContainerType
+                                                                  .unpackFull,
+                                                          groupValue: model
+                                                              .gatePass
+                                                              .gatePassContainerType,
+                                                          onChanged: (value) {
+                                                            model.gatePass
+                                                                    .gatePassContainerType =
+                                                                value;
+                                                            model
+                                                                .notifyListeners();
+                                                          },
+                                                        ),
+                                                      ),
+                                                      horizontalSpaceSmall,
+                                                      Expanded(
+                                                        child:
+                                                            _buildRadioOption(
+                                                          context: context,
+                                                          title: 'Store Full',
+                                                          icon: Icons.warehouse,
+                                                          value:
+                                                              GatePassContainerType
+                                                                  .storeFull,
+                                                          groupValue: model
+                                                              .gatePass
+                                                              .gatePassContainerType,
+                                                          onChanged: (value) {
+                                                            model.gatePass
+                                                                    .gatePassContainerType =
+                                                                value;
+                                                            model
+                                                                .notifyListeners();
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+
+                                                  verticalSpaceSmall,
+                                                  Text(
+                                                    'Shipping Line *',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                  verticalSpaceTiny,
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      border: Border.all(
+                                                          color: Colors
+                                                              .grey[300]!),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    child: model.shippingLines
+                                                            .isEmpty
+                                                        ? Padding(
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                    12),
+                                                            child: Row(
+                                                              children: [
+                                                                SizedBox(
+                                                                  width: 16,
+                                                                  height: 16,
+                                                                  child: CircularProgressIndicator(
+                                                                      strokeWidth:
+                                                                          2),
+                                                                ),
+                                                                horizontalSpaceSmall,
+                                                                Text(
+                                                                    'Loading shipping lines...'),
+                                                              ],
+                                                            ),
+                                                          )
+                                                        : DropdownButtonFormField<
+                                                            int>(
+                                                            value: model
+                                                                    .shippingLines
+                                                                    .where((s) =>
+                                                                        s.name ==
+                                                                        model
+                                                                            .gatePass
+                                                                            .containerShippingLine)
+                                                                    .isNotEmpty
+                                                                ? model
+                                                                    .shippingLines
+                                                                    .firstWhere((s) =>
+                                                                        s.name ==
+                                                                        model
+                                                                            .gatePass
+                                                                            .containerShippingLine)
+                                                                    .id
+                                                                : null,
+                                                            decoration:
+                                                                InputDecoration(
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          12,
+                                                                      vertical:
+                                                                          8),
+                                                              border:
+                                                                  InputBorder
+                                                                      .none,
+                                                              hintText:
+                                                                  'Select Shipping Line',
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      400]),
+                                                            ),
+                                                            dropdownColor:
+                                                                Colors.white,
+                                                            isExpanded: true,
+                                                            items: model
+                                                                .shippingLines
+                                                                .map(
+                                                                    (shippingLine) {
+                                                              return DropdownMenuItem<
+                                                                  int>(
+                                                                value:
+                                                                    shippingLine
+                                                                        .id,
+                                                                child: Text(
+                                                                  shippingLine
+                                                                          .name ??
+                                                                      '',
+                                                                  style: TextStyle(
+                                                                      fontSize:
+                                                                          14),
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                ),
+                                                              );
+                                                            }).toList(),
+                                                            onChanged: (value) {
+                                                              model
+                                                                  .setShippingLine(
+                                                                      value);
+                                                            },
+                                                            icon: Icon(
+                                                                Icons
+                                                                    .arrow_drop_down,
+                                                                color: Colors
+                                                                    .grey[600]),
+                                                          ),
+                                                  ),
+
+                                                  verticalSpaceSmall,
+                                                  Text(
+                                                    'Container Customer',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                  verticalSpaceTiny,
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      border: Border.all(
+                                                          color: Colors
+                                                              .grey[300]!),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    child: model
+                                                            .containerCustomers
+                                                            .isEmpty
+                                                        ? Padding(
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                    12),
+                                                            child: Row(
+                                                              children: [
+                                                                SizedBox(
+                                                                  width: 16,
+                                                                  height: 16,
+                                                                  child: CircularProgressIndicator(
+                                                                      strokeWidth:
+                                                                          2),
+                                                                ),
+                                                                horizontalSpaceSmall,
+                                                                Text(
+                                                                    'Loading container customers...'),
+                                                              ],
+                                                            ),
+                                                          )
+                                                        : DropdownButtonFormField<
+                                                            int>(
+                                                            value: model
+                                                                    .containerCustomers
+                                                                    .where((c) =>
+                                                                        c.name ==
+                                                                        model
+                                                                            .gatePass
+                                                                            .containerCustomer)
+                                                                    .isNotEmpty
+                                                                ? model
+                                                                    .containerCustomers
+                                                                    .firstWhere((c) =>
+                                                                        c.name ==
+                                                                        model
+                                                                            .gatePass
+                                                                            .containerCustomer)
+                                                                    .id
+                                                                : null,
+                                                            decoration:
+                                                                InputDecoration(
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          12,
+                                                                      vertical:
+                                                                          8),
+                                                              border:
+                                                                  InputBorder
+                                                                      .none,
+                                                              hintText:
+                                                                  'Select Container Customer (Optional)',
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      400]),
+                                                            ),
+                                                            dropdownColor:
+                                                                Colors.white,
+                                                            isExpanded: true,
+                                                            items: model
+                                                                .containerCustomers
+                                                                .map(
+                                                                    (customer) {
+                                                              return DropdownMenuItem<
+                                                                  int>(
+                                                                value:
+                                                                    customer.id,
+                                                                child: Text(
+                                                                  customer.name ??
+                                                                      '',
+                                                                  style: TextStyle(
+                                                                      fontSize:
+                                                                          14),
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                ),
+                                                              );
+                                                            }).toList(),
+                                                            onChanged: (value) {
+                                                              model
+                                                                  .setContainerCustomer(
+                                                                      value);
+                                                            },
+                                                            icon: Icon(
+                                                                Icons
+                                                                    .arrow_drop_down,
+                                                                color: Colors
+                                                                    .grey[600]),
+                                                          ),
+                                                  ),
+                                                  verticalSpaceSmall,
+                                                  Text(
+                                                    'Container Depot',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                  verticalSpaceTiny,
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      border: Border.all(
+                                                          color: Colors
+                                                              .grey[300]!),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    child: model.containerDepots
+                                                            .isEmpty
+                                                        ? Padding(
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                    12),
+                                                            child: Row(
+                                                              children: [
+                                                                SizedBox(
+                                                                  width: 16,
+                                                                  height: 16,
+                                                                  child: CircularProgressIndicator(
+                                                                      strokeWidth:
+                                                                          2),
+                                                                ),
+                                                                horizontalSpaceSmall,
+                                                                Text(
+                                                                    'Loading container depots...'),
+                                                              ],
+                                                            ),
+                                                          )
+                                                        : DropdownButtonFormField<
+                                                            int>(
+                                                            value: model
+                                                                    .containerDepots
+                                                                    .where((d) =>
+                                                                        d.name ==
+                                                                        model
+                                                                            .gatePass
+                                                                            .containerDepot)
+                                                                    .isNotEmpty
+                                                                ? model
+                                                                    .containerDepots
+                                                                    .firstWhere((d) =>
+                                                                        d.name ==
+                                                                        model
+                                                                            .gatePass
+                                                                            .containerDepot)
+                                                                    .id
+                                                                : null,
+                                                            decoration:
+                                                                InputDecoration(
+                                                              contentPadding:
+                                                                  EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          12,
+                                                                      vertical:
+                                                                          8),
+                                                              border:
+                                                                  InputBorder
+                                                                      .none,
+                                                              hintText:
+                                                                  'Select Container Depot (Optional)',
+                                                              hintStyle: TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      400]),
+                                                            ),
+                                                            dropdownColor:
+                                                                Colors.white,
+                                                            isExpanded: true,
+                                                            items: model
+                                                                .containerDepots
+                                                                .map((depot) {
+                                                              return DropdownMenuItem<
+                                                                  int>(
+                                                                value: depot.id,
+                                                                child: Text(
+                                                                  depot.name ??
+                                                                      '',
+                                                                  style: TextStyle(
+                                                                      fontSize:
+                                                                          14),
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                ),
+                                                              );
+                                                            }).toList(),
+                                                            onChanged: (value) {
+                                                              model
+                                                                  .setContainerDepot(
+                                                                      value);
+                                                            },
+                                                            icon: Icon(
+                                                                Icons
+                                                                    .arrow_drop_down,
+                                                                color: Colors
+                                                                    .grey[600]),
+                                                          ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      verticalSpaceSmall,
+                                    ]
+                                    else ...[
+                                      BuildInfoCard(
+                                        key: model.containerInfoCardKey,
+                                        width: width,
+                                        title: "Container Info",
+                                        isSelected:
+                                            model.gatePass.timeAtGate != null &&
+                                                model.gatePass.timeIn != null,
+                                        hasInfo:
+                                            model.gatePass.containerNumber !=
+                                                null,
+                                        icon: Icons.confirmation_num,
+                                        color: Colors.blueGrey[300]!,
+                                        infoList: [
+                                          BuildInfoItem(
+                                              label: 'Container No',
+                                              value: model.gatePass
+                                                      .containerNumber ??
+                                                  ''),
+                                          BuildInfoItem(
+                                              label: 'Size',
+                                              value: model
+                                                      .gatePass.containerSize ??
+                                                  ''),
+                                          BuildInfoItem(
+                                              label: 'Type',
+                                              value: model
+                                                      .gatePass.containerType ??
+                                                  ''),
+                                        ],
+                                      ),
+                                    ],
                                   ],
                                   BuildInfoCard(
                                     width: width,
                                     title: "Times",
-                                    isSelected: model.gatePass.timeAtGate != null && model.gatePass.timeIn != null,
+                                    isSelected:
+                                        model.gatePass.timeAtGate != null &&
+                                            model.gatePass.timeIn != null,
                                     hasInfo: true,
                                     icon: Icons.timelapse_sharp,
                                     color: Colors.amber[300]!,
                                     infoList: [
-                                      BuildInfoItem(label: 'Time At Gate', value: model.gatePass.timeAtGate?.toSocialMediaTime() ?? ''),
-                                      BuildInfoItem(label: 'Time In', value: model.gatePass.timeIn?.toSocialMediaTime() ?? ''),
-                                      BuildInfoItem(label: 'Time Out', value: model.gatePass.timeOut?.toSocialMediaTime() ?? ''),
+                                      BuildInfoItem(
+                                          label: 'Time At Gate',
+                                          value: model.gatePass.timeAtGate
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                      BuildInfoItem(
+                                          label: 'Time In',
+                                          value: model.gatePass.timeIn
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
+                                      BuildInfoItem(
+                                          label: 'Time Out',
+                                          value: model.gatePass.timeOut
+                                                  ?.toSocialMediaTime() ??
+                                              ''),
                                     ],
                                   ),
                                   model.gatePass.serviceTypeId != null
@@ -1355,7 +2714,8 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                         SpeedDialChild(
                           child: const Icon(Icons.camera_alt_outlined),
                           label: 'Take Photo',
-                          onTap: () => model.goToCamView(FileStoreType.gateBookingImage),
+                          onTap: () =>
+                              model.goToCamView(FileStoreType.gateBookingImage),
                         ),
                         // SpeedDialChild(
                         //   child: const Icon(Icons.document_scanner_outlined),
@@ -1377,7 +2737,8 @@ visible: model.gatePass.gatePassStatus.value == GatePassStatus.atGate.value || m
                     ),
                     body: GridView.builder(
                       padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         mainAxisSpacing: 1,
                         crossAxisSpacing: 1,
@@ -1510,4 +2871,49 @@ class BuildErrorsView extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildRadioOption<T>({
+  required BuildContext context,
+  required String title,
+  required IconData icon,
+  required T value,
+  required T? groupValue,
+  required Function(T?) onChanged,
+}) {
+  final isSelected = groupValue == value;
+  return InkWell(
+    onTap: () => onChanged(value),
+    borderRadius: BorderRadius.circular(8),
+    child: Container(
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.blue.shade50 : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSelected ? Colors.blue : Colors.grey.shade300,
+          width: isSelected ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? Colors.blue : Colors.grey,
+            size: 20,
+          ),
+          SizedBox(height: 4),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              color: isSelected ? Colors.blue.shade700 : Colors.grey[700],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

@@ -12,6 +12,7 @@ import 'package:xstream_gate_pass_app/core/models/scanning/loadcon_qrcode_model.
 import 'package:xstream_gate_pass_app/core/models/scanning/staff_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/scanning/stockpile_loading_slip_qrcode_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
+import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
 import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
@@ -415,6 +416,27 @@ class GatePassService {
     }
   }
 
+  Future<GatePassAccess?> createGatePass(GatePassAccess gatePassAccess) async {
+    var jsonData = gatePassAccess.toJson();
+    var baseResponse = await _apiManager.post(
+        '/api/services/app/GatePassAccess/Create',
+        showLoader: true,
+        data: jsonData);
+
+    if (baseResponse == null) return null;
+
+    if (baseResponse is Map<String, dynamic>) {
+      if (baseResponse.containsKey('result') &&
+          baseResponse['result'] != null) {
+        return GatePassAccess.fromJson(baseResponse['result']);
+      } else if (baseResponse.containsKey('id')) {
+        return GatePassAccess.fromJson(baseResponse);
+      }
+    }
+
+    return null;
+  }
+
   Future<bool> setCmsGatePassEvent(
       StockpileLoadingSlipQrCodeModel entity) async {
     var baseResponse = await _apiManager.post(AppConst.setCmsGatePassEvent,
@@ -508,7 +530,9 @@ class GatePassService {
 
         // Handle UserFriendlyException
         if (apiResponse.error != null) {
-          final message = apiResponse.result!['details'] ?? apiResponse.result!['message'] ?? "Reject failed.";
+          final message = apiResponse.result!['details'] ??
+              apiResponse.result!['message'] ??
+              "Reject failed.";
 
           await locator<DialogService>().showCustomDialog(
             variant: DialogType.infoAlert,
@@ -526,7 +550,6 @@ class GatePassService {
       return null;
     }
   }
-
 
   Future<GatePassAccess?> saveManualInput({
     required String gatePassId,
@@ -564,5 +587,142 @@ class GatePassService {
       log.e('Error saving manual input: $e');
       return null;
     }
+  }
+
+  Future<List<GatePassAccess>> getManualEntries() async {
+    var response = await _apiManager.post(
+      '/api/services/app/GatePassAccess/GetManualEntries',
+      showLoader: true,
+      data: {
+        'maxResultCount': 100,
+        'skipCount': 0,
+      },
+    );
+
+    if (response != null) {
+      var apiResponse = ApiResponse.fromJson(response);
+      if (apiResponse.success == true && apiResponse.result != null) {
+        var items = apiResponse.result['items'] as List? ?? [];
+        return items.map((item) => GatePassAccess.fromJson(item)).toList();
+      }
+    }
+    return [];
+  }
+
+  Future<List<BaseLookup>> getTransporters() async {
+    var baseResponse = await _apiManager.get(
+      '/api/services/app/Transporter/GetTransportersForLookup',
+      showLoader: false,
+    );
+
+    return _parseLookupResponse(baseResponse);
+  }
+
+  Future<List<BaseLookup>> getShippingLines() async {
+    var baseResponse = await _apiManager.get(
+      '/api/services/app/Shippingline/GetLookup',
+      showLoader: false,
+    );
+
+    return _parseLookupResponse(baseResponse, includeCodeAndDisplayName: true);
+  }
+
+  Future<List<BaseLookup>> getCustomers() async {
+    var baseResponse = await _apiManager.get(
+      '/api/services/app/Customer/GetLookup',
+      showLoader: false,
+    );
+
+    return _parseLookupResponse(baseResponse);
+  }
+
+  Future<List<BaseLookup>> getContainerCustomers() async {
+    return await getCustomers();
+  }
+
+  Future<List<BaseLookup>> getContainerDepots() async {
+    var baseResponse = await _apiManager.get(
+      '/api/services/app/Depot/GetAll',
+      showLoader: false,
+    );
+
+    if (baseResponse == null) return [];
+
+    List<dynamic> data = [];
+
+    if (baseResponse is Map && baseResponse.containsKey('result')) {
+      var result = baseResponse['result'];
+      data = result is Map && result.containsKey('items')
+          ? result['items'] as List? ?? []
+          : result is List
+              ? result
+              : [];
+    } else if (baseResponse is Map && baseResponse.containsKey('data')) {
+      data = baseResponse['data'] as List? ?? [];
+    } else if (baseResponse is List) {
+      data = baseResponse;
+    }
+
+    return _parseBaseLookupList(data, includeCodeAndDisplayName: true);
+  }
+
+  Future<GatePassAccess?> getGatePassWithContainers(String gatePassId) async {
+    try {
+      var baseResponse = await _apiManager.get(
+        '/api/services/app/GatePassAccess/GetForEditById',
+        showLoader: false,
+        queryParameters: {'id': gatePassId},
+      );
+
+      if (baseResponse == null) return null;
+
+      if (baseResponse is Map<String, dynamic>) {
+        if (baseResponse.containsKey('result') &&
+            baseResponse['result'] != null) {
+          return GatePassAccess.fromJson(baseResponse['result']);
+        } else if (baseResponse.containsKey('id')) {
+          return GatePassAccess.fromJson(baseResponse);
+        }
+      }
+
+      return null;
+    } catch (e, stackTrace) {
+      log.e('Error getting gate pass: $e');
+      log.e('Stack trace: $stackTrace');
+      return null;
+    }
+  }
+
+  List<BaseLookup> _parseLookupResponse(dynamic baseResponse,
+      {bool includeCodeAndDisplayName = false}) {
+    if (baseResponse == null) return [];
+
+    List<dynamic> data = [];
+
+    if (baseResponse is List) {
+      data = baseResponse;
+    } else if (baseResponse is Map && baseResponse.containsKey('result')) {
+      data = baseResponse['result'] as List? ?? [];
+    } else if (baseResponse is Map && baseResponse.containsKey('data')) {
+      data = baseResponse['data'] as List? ?? [];
+    }
+
+    return _parseBaseLookupList(data,
+        includeCodeAndDisplayName: includeCodeAndDisplayName);
+  }
+
+  List<BaseLookup> _parseBaseLookupList(List<dynamic> data,
+      {bool includeCodeAndDisplayName = false}) {
+    return data.where((item) => item != null && item is Map).map((item) {
+      return BaseLookup(
+        id: item['id'] is int
+            ? item['id']
+            : int.tryParse(item['id'].toString()),
+        name: item['name']?.toString() ?? '',
+        code: includeCodeAndDisplayName ? item['code']?.toString() : null,
+        displayName:
+            includeCodeAndDisplayName ? item['name']?.toString() ?? '' : null,
+      );
+    }).toList();
   }
 }

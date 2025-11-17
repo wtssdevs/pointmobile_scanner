@@ -5,17 +5,17 @@
 // **************************************************************************
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flutter/cupertino.dart' as _i24;
-import 'package:flutter/foundation.dart' as _i25;
-import 'package:flutter/material.dart' as _i23;
+import 'package:flutter/cupertino.dart' as _i25;
+import 'package:flutter/foundation.dart' as _i26;
+import 'package:flutter/material.dart' as _i24;
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart' as _i1;
-import 'package:stacked_services/stacked_services.dart' as _i29;
-import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart' as _i27;
+import 'package:stacked_services/stacked_services.dart' as _i30;
+import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart' as _i28;
 import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart'
-    as _i26;
+    as _i27;
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart'
-    as _i28;
+    as _i29;
 import 'package:xstream_gate_pass_app/ui/views/account/login/login_view.dart'
     as _i5;
 import 'package:xstream_gate_pass_app/ui/views/app/main/account/account_view.dart'
@@ -25,6 +25,8 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/account/config/device_sc
 import 'package:xstream_gate_pass_app/ui/views/app/main/home_view.dart' as _i3;
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/check_list/check_list_view.dart'
     as _i22;
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_manual_list/gate_access_manual_list_view.dart'
+    as _i23;
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/gate_access_menu_view.dart'
     as _i14;
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_pre_booking/gate_access_pre_booking_view.dart'
@@ -102,6 +104,8 @@ class Routes {
 
   static const checkListView = '/check-list-view';
 
+  static const gateAccessManualListView = '/gate-access-manual-list-view';
+
   static const all = <String>{
     startUpView,
     homeView,
@@ -124,6 +128,7 @@ class Routes {
     gateAccessYardOpsSelectView,
     imagesViewerListView,
     checkListView,
+    gateAccessManualListView,
   };
 }
 
@@ -213,11 +218,15 @@ class StackedRouter extends _i1.RouterBase {
       Routes.checkListView,
       page: _i22.CheckListView,
     ),
+    _i1.RouteDef(
+      Routes.gateAccessManualListView,
+      page: _i23.GateAccessManualListView,
+    ),
   ];
 
   final _pagesMap = <Type, _i1.StackedRouteFactory>{
     _i2.StartUpView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i2.StartUpView(),
         settings: data,
       );
@@ -226,14 +235,14 @@ class StackedRouter extends _i1.RouterBase {
       final args = data.getArgs<HomeViewArguments>(
         orElse: () => const HomeViewArguments(),
       );
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) =>
             _i3.HomeView(key: args.key, tabIndex: args.tabIndex),
         settings: data,
       );
     },
     _i4.TermsAndPrivacyView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i4.TermsAndPrivacyView(),
         settings: data,
       );
@@ -242,40 +251,40 @@ class StackedRouter extends _i1.RouterBase {
       final args = data.getArgs<LoginViewArguments>(
         orElse: () => const LoginViewArguments(),
       );
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => _i5.LoginView(key: args.key),
         settings: data,
       );
     },
     _i6.GatePassView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i6.GatePassView(),
         settings: data,
       );
     },
     _i7.GatePassEditView: (data) {
       final args = data.getArgs<GatePassEditViewArguments>(nullOk: false);
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) =>
             _i7.GatePassEditView(key: args.key, gatePass: args.gatePass),
         settings: data,
       );
     },
     _i8.AccountView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i8.AccountView(),
         settings: data,
       );
     },
     _i9.DataSyncView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i9.DataSyncView(),
         settings: data,
       );
     },
     _i10.CameraCaptureView: (data) {
       final args = data.getArgs<CameraCaptureViewArguments>(nullOk: false);
-      return _i24.CupertinoPageRoute<dynamic>(
+      return _i25.CupertinoPageRoute<dynamic>(
         builder: (context) => _i10.CameraCaptureView(
             key: args.key,
             refId: args.refId,
@@ -286,69 +295,69 @@ class StackedRouter extends _i1.RouterBase {
     },
     _i11.ImageEditorView: (data) {
       final args = data.getArgs<ImageEditorViewArguments>(nullOk: false);
-      return _i24.CupertinoPageRoute<dynamic>(
+      return _i25.CupertinoPageRoute<dynamic>(
         builder: (context) =>
             _i11.ImageEditorView(key: args.key, filePath: args.filePath),
         settings: data,
       );
     },
     _i12.CamBarcodeReader: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i12.CamBarcodeReader(),
         settings: data,
       );
     },
     _i13.DeviceScanSettingsView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i13.DeviceScanSettingsView(),
         settings: data,
       );
     },
     _i14.GateAccessMenuView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i14.GateAccessMenuView(),
         settings: data,
       );
     },
     _i15.GateAccessPreBookingView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i15.GateAccessPreBookingView(),
         settings: data,
       );
     },
     _i16.GateAccessStaffListView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i16.GateAccessStaffListView(),
         settings: data,
       );
     },
     _i17.GateAccessVisitorsListView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i17.GateAccessVisitorsListView(),
         settings: data,
       );
     },
     _i18.GateAccessYardOpsView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i18.GateAccessYardOpsView(),
         settings: data,
       );
     },
     _i19.CamContainernoReaderView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i19.CamContainernoReaderView(),
         settings: data,
       );
     },
     _i20.GateAccessYardOpsSelectView: (data) {
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => const _i20.GateAccessYardOpsSelectView(),
         settings: data,
       );
     },
     _i21.ImagesViewerListView: (data) {
       final args = data.getArgs<ImagesViewerListViewArguments>(nullOk: false);
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) => _i21.ImagesViewerListView(
             key: args.key, gatePassId: args.gatePassId),
         settings: data,
@@ -356,9 +365,15 @@ class StackedRouter extends _i1.RouterBase {
     },
     _i22.CheckListView: (data) {
       final args = data.getArgs<CheckListViewArguments>(nullOk: false);
-      return _i23.MaterialPageRoute<dynamic>(
+      return _i24.MaterialPageRoute<dynamic>(
         builder: (context) =>
             _i22.CheckListView(key: args.key, filterParams: args.filterParams),
+        settings: data,
+      );
+    },
+    _i23.GateAccessManualListView: (data) {
+      return _i24.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i23.GateAccessManualListView(),
         settings: data,
       );
     },
@@ -377,7 +392,7 @@ class HomeViewArguments {
     this.tabIndex,
   });
 
-  final _i25.Key? key;
+  final _i26.Key? key;
 
   final int? tabIndex;
 
@@ -401,7 +416,7 @@ class HomeViewArguments {
 class LoginViewArguments {
   const LoginViewArguments({this.key});
 
-  final _i25.Key? key;
+  final _i26.Key? key;
 
   @override
   String toString() {
@@ -426,9 +441,9 @@ class GatePassEditViewArguments {
     required this.gatePass,
   });
 
-  final _i25.Key? key;
+  final _i26.Key? key;
 
-  final _i26.GatePassAccess gatePass;
+  final _i27.GatePassAccess gatePass;
 
   @override
   String toString() {
@@ -455,13 +470,13 @@ class CameraCaptureViewArguments {
     required this.fileStoreType,
   });
 
-  final _i25.Key? key;
+  final _i26.Key? key;
 
   final String refId;
 
   final int referanceId;
 
-  final _i27.FileStoreType fileStoreType;
+  final _i28.FileStoreType fileStoreType;
 
   @override
   String toString() {
@@ -492,7 +507,7 @@ class ImageEditorViewArguments {
     required this.filePath,
   });
 
-  final _i25.Key? key;
+  final _i26.Key? key;
 
   final String filePath;
 
@@ -519,7 +534,7 @@ class ImagesViewerListViewArguments {
     required this.gatePassId,
   });
 
-  final _i25.Key? key;
+  final _i26.Key? key;
 
   final String gatePassId;
 
@@ -546,9 +561,9 @@ class CheckListViewArguments {
     required this.filterParams,
   });
 
-  final _i25.Key? key;
+  final _i26.Key? key;
 
-  final _i28.FilterParams filterParams;
+  final _i29.FilterParams filterParams;
 
   @override
   String toString() {
@@ -567,7 +582,7 @@ class CheckListViewArguments {
   }
 }
 
-extension NavigatorStateExtension on _i29.NavigationService {
+extension NavigatorStateExtension on _i30.NavigationService {
   Future<dynamic> navigateToStartUpView([
     int? routerId,
     bool preventDuplicates = true,
@@ -583,7 +598,7 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> navigateToHomeView({
-    _i25.Key? key,
+    _i26.Key? key,
     int? tabIndex,
     int? routerId,
     bool preventDuplicates = true,
@@ -614,7 +629,7 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> navigateToLoginView({
-    _i25.Key? key,
+    _i26.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -644,8 +659,8 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> navigateToGatePassEditView({
-    _i25.Key? key,
-    required _i26.GatePassAccess gatePass,
+    _i26.Key? key,
+    required _i27.GatePassAccess gatePass,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -689,10 +704,10 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> navigateToCameraCaptureView({
-    _i25.Key? key,
+    _i26.Key? key,
     required String refId,
     required int referanceId,
-    required _i27.FileStoreType fileStoreType,
+    required _i28.FileStoreType fileStoreType,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -712,7 +727,7 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> navigateToImageEditorView({
-    _i25.Key? key,
+    _i26.Key? key,
     required String filePath,
     int? routerId,
     bool preventDuplicates = true,
@@ -855,7 +870,7 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> navigateToImagesViewerListView({
-    _i25.Key? key,
+    _i26.Key? key,
     required String gatePassId,
     int? routerId,
     bool preventDuplicates = true,
@@ -873,8 +888,8 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> navigateToCheckListView({
-    _i25.Key? key,
-    required _i28.FilterParams filterParams,
+    _i26.Key? key,
+    required _i29.FilterParams filterParams,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -883,6 +898,20 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }) async {
     return navigateTo<dynamic>(Routes.checkListView,
         arguments: CheckListViewArguments(key: key, filterParams: filterParams),
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> navigateToGateAccessManualListView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return navigateTo<dynamic>(Routes.gateAccessManualListView,
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,
@@ -904,7 +933,7 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> replaceWithHomeView({
-    _i25.Key? key,
+    _i26.Key? key,
     int? tabIndex,
     int? routerId,
     bool preventDuplicates = true,
@@ -935,7 +964,7 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> replaceWithLoginView({
-    _i25.Key? key,
+    _i26.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -965,8 +994,8 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> replaceWithGatePassEditView({
-    _i25.Key? key,
-    required _i26.GatePassAccess gatePass,
+    _i26.Key? key,
+    required _i27.GatePassAccess gatePass,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -1010,10 +1039,10 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> replaceWithCameraCaptureView({
-    _i25.Key? key,
+    _i26.Key? key,
     required String refId,
     required int referanceId,
-    required _i27.FileStoreType fileStoreType,
+    required _i28.FileStoreType fileStoreType,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -1033,7 +1062,7 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> replaceWithImageEditorView({
-    _i25.Key? key,
+    _i26.Key? key,
     required String filePath,
     int? routerId,
     bool preventDuplicates = true,
@@ -1176,7 +1205,7 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> replaceWithImagesViewerListView({
-    _i25.Key? key,
+    _i26.Key? key,
     required String gatePassId,
     int? routerId,
     bool preventDuplicates = true,
@@ -1194,8 +1223,8 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }
 
   Future<dynamic> replaceWithCheckListView({
-    _i25.Key? key,
-    required _i28.FilterParams filterParams,
+    _i26.Key? key,
+    required _i29.FilterParams filterParams,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -1204,6 +1233,20 @@ extension NavigatorStateExtension on _i29.NavigationService {
   }) async {
     return replaceWith<dynamic>(Routes.checkListView,
         arguments: CheckListViewArguments(key: key, filterParams: filterParams),
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> replaceWithGateAccessManualListView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return replaceWith<dynamic>(Routes.gateAccessManualListView,
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,

@@ -76,6 +76,8 @@ $ ./gradlew  app:dependencies
 # Stacked Commands
 
 Made any changes to the cofiguration
+dart pub global activate stacked_cli
+
 stacked generate
 
 stacked create view login

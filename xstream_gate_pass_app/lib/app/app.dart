@@ -51,6 +51,8 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/im
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/check_list/check_list_view.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_manual_list/gate_access_manual_list_view.dart';
+import 'package:xstream_gate_pass_app/ui/bottom_sheets/manual_entry_selection/manual_entry_selection_sheet.dart';
 // @stacked-import
 
 @StackedApp(
@@ -76,6 +78,7 @@ import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/chec
     MaterialRoute(page: GateAccessYardOpsSelectView),
     MaterialRoute(page: ImagesViewerListView),
     MaterialRoute(page: CheckListView),
+    MaterialRoute(page: GateAccessManualListView),
 // @stacked-route
   ],
   dependencies: [
@@ -119,10 +122,12 @@ import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/chec
     StackedBottomsheet(classType: NoticeSheet),
     StackedBottomsheet(classType: GateAccessVisitorSheet),
     StackedBottomsheet(classType: GateAccessPreBookingSheet),
+    StackedBottomsheet(classType: ManualEntrySelectionSheet),
 // @stacked-bottom-sheet
   ],
   dialogs: [
     StackedDialog(classType: InfoAlertDialog),
+
     // @stacked-dialog
   ],
   logger: StackedLogger(),

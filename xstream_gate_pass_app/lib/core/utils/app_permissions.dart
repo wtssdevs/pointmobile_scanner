@@ -56,13 +56,22 @@ class AppPermissions {
 
   static const String mobileOperationsGateAccess =
       views + operations + gatePassAccess + mobileOperations + gateAccess;
- 
-   static const String mobileOperationsAllowVehicleManualInput =
-      views + operations + gatePassAccess + mobileOperations + allowVehicleManualInput;
-      
-  static const String mobileOperationsAllowTrailerManualInput =
-      views + operations + gatePassAccess + mobileOperations + allowTrailerManualInput;
-      
-  static const String mobileOperationsAllowTrailerOverride =
-      views + operations + gatePassAccess + mobileOperations + allowTrailerOverride;
+
+  static const String mobileOperationsAllowVehicleManualInput = views +
+      operations +
+      gatePassAccess +
+      mobileOperations +
+      allowVehicleManualInput;
+
+  static const String mobileOperationsAllowTrailerManualInput = views +
+      operations +
+      gatePassAccess +
+      mobileOperations +
+      allowTrailerManualInput;
+
+  static const String mobileOperationsAllowTrailerOverride = views +
+      operations +
+      gatePassAccess +
+      mobileOperations +
+      allowTrailerOverride;
 }

@@ -93,7 +93,6 @@ class GatePassAccess {
   bool? isTrailerOneOverride = false;
   bool? isTrailerTwoOverride = false;
 
-
 //CONTAINERS INFO , NEED TO BE LIST ??
 
   String? containerId;
@@ -107,6 +106,9 @@ class GatePassAccess {
   String? containerDepot;
   DeliveryType? containerDeliveryType;
   GatePassContainerType? gatePassContainerType;
+  int? containerShippingLineId;
+  int? containerCustomerId;
+  int? containerDepotId;
 
   List<GatePassAccessContainerModel>? containers = [];
 
@@ -200,11 +202,14 @@ class GatePassAccess {
     this.containers,
     this.isManualInput = false,
     this.isOverride = false,
-    this.isVehicleManualInput= false,
+    this.isVehicleManualInput = false,
     this.isTrailerOneManualInput = false,
     this.isTrailerTwoManualInput = false,
-    this.isTrailerOneOverride= false,
-    this.isTrailerTwoOverride= false
+    this.isTrailerOneOverride = false,
+    this.isTrailerTwoOverride = false,
+    this.containerShippingLineId,
+    this.containerCustomerId,
+    this.containerDepotId,
   });
 
   bool get hasDriverInfo =>
@@ -257,11 +262,16 @@ class GatePassAccess {
             containerShippingLine: containerShippingLine,
             containerDepot: containerDepot,
             containerDeliveryType: containerDeliveryType,
+            deliveryType: containerDeliveryType?.value,
             gatePassContainerType: gatePassContainerType,
             gatePassAccessId: id,
             branchId: branchId,
             containerSetNo: 1,
             tenantId: tenantId,
+            weight: 0.0,
+            shippingLineId: containerShippingLineId,
+            customerId: containerCustomerId,
+            depotId: containerDepotId,
           ),
         );
       } else {
@@ -277,11 +287,16 @@ class GatePassAccess {
           containerShippingLine: containerShippingLine,
           containerDepot: containerDepot,
           containerDeliveryType: containerDeliveryType,
+          deliveryType: containerDeliveryType?.value,
           gatePassContainerType: gatePassContainerType,
           gatePassAccessId: id,
           branchId: branchId,
           containerSetNo: 1,
           tenantId: tenantId,
+          weight: 0.0,
+          shippingLineId: containerShippingLineId,
+          customerId: containerCustomerId,
+          depotId: containerDepotId,
         );
       }
     }
@@ -372,16 +387,36 @@ class GatePassAccess {
         isOverride: json["isOverride"] ?? false,
 
         externalId: json["externalId"],
-        grossWeightIn: json["grossWeightIn"] ?? 0,
-        grossWeightOut: json["grossWeightOut"] ?? 0,
-        tareWeightIn: json["tareWeightIn"] ?? 0,
-        tareWeightOut: json["tareWeightOut"] ?? 0,
-        netWeightIn: json["netWeightIn"] ?? 0,
-        netWeightOut: json["netWeightOut"] ?? 0,
-        varianceIn: json["varianceIn"] ?? 0,
-        varianceOut: json["varianceOut"] ?? 0,
-        productVariance: json["productVariance"] ?? 0,
-        totalProductGrossWeight: json["totalProductGrossWeight"] ?? 0,
+        grossWeightIn: json["grossWeightIn"] != null
+            ? (json["grossWeightIn"] as num).toDouble()
+            : 0.0,
+        grossWeightOut: json["grossWeightOut"] != null
+            ? (json["grossWeightOut"] as num).toDouble()
+            : 0.0,
+        tareWeightIn: json["tareWeightIn"] != null
+            ? (json["tareWeightIn"] as num).toDouble()
+            : 0.0,
+        tareWeightOut: json["tareWeightOut"] != null
+            ? (json["tareWeightOut"] as num).toDouble()
+            : 0.0,
+        netWeightIn: json["netWeightIn"] != null
+            ? (json["netWeightIn"] as num).toDouble()
+            : 0.0,
+        netWeightOut: json["netWeightOut"] != null
+            ? (json["netWeightOut"] as num).toDouble()
+            : 0.0,
+        varianceIn: json["varianceIn"] != null
+            ? (json["varianceIn"] as num).toDouble()
+            : 0.0,
+        varianceOut: json["varianceOut"] != null
+            ? (json["varianceOut"] as num).toDouble()
+            : 0.0,
+        productVariance: json["productVariance"] != null
+            ? (json["productVariance"] as num).toDouble()
+            : 0.0,
+        totalProductGrossWeight: json["totalProductGrassWeightIn"] != null
+            ? (json["totalProductGrossWeight"] as num).toDouble()
+            : 0.0,
         transporterId: json["transporterId"],
         customerId: json["customerId"],
         branchId: json["branchId"],
@@ -398,9 +433,12 @@ class GatePassAccess {
         containerCustomer: json["containerCustomer"],
         containerShippingLine: json["containerShippingLine"],
         containerDepot: json["containerDepot"],
-        containerDeliveryType: DeliveryType.fromValue(json['containerDeliveryType']),
-        gatePassContainerType: GatePassContainerType
-            .fromValue(json['gatePassContainerType']),
+        containerDeliveryType:
+            DeliveryType.fromValue(json['containerDeliveryType']),
+
+        containerShippingLineId: json["containerShippingLineId"],
+        containerCustomerId: json["containerCustomerId"],
+        containerDepotId: json["containerDepotId"],
 
         containers: json["containers"] != null
             ? List<GatePassAccessContainerModel>.from(json["containers"]
@@ -496,13 +534,15 @@ class GatePassAccess {
         "containerDepot": containerDepot,
         "containerDeliveryType": containerDeliveryType?.value ?? 0,
         "gatePassContainerType": gatePassContainerType?.value ?? 0,
-        "containers": containers?.map((e) => e.toMap()).toList(),
         "isVehicleManualInput": isVehicleManualInput,
         "isTrailerOneManualInput": isTrailerOneManualInput,
         "isTrailerTwoManualInput": isTrailerTwoManualInput,
         "isTrailerOneOverride": isTrailerOneOverride,
         "isTrailerTwoOverride": isTrailerTwoOverride,
-
+        "containerShippingLineId": containerShippingLineId,
+        "containerCustomerId": containerCustomerId,
+        "containerDepotId": containerDepotId,
+        "containers": containers?.map((e) => e.toMap()).toList(),
       };
 
   static fromGatePassVisitorAccess(

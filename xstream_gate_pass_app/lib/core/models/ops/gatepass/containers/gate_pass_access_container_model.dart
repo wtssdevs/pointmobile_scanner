@@ -75,7 +75,7 @@ class GatePassAccessContainerModel {
     this.sealNumberThree,
     this.sealNumberFour,
     this.description,
-    this.weight,
+    this.weight = 0.0,
     this.isDisabled = false,
     this.shippingLineId,
     this.customerId,
@@ -130,40 +130,59 @@ class GatePassAccessContainerModel {
       branchId: json["branchId"],
       depotId: json["depotId"],
       gatePassAccessId: json["gatePassAccessId"],
-      containerDeliveryType: DeliveryType.values[
-          asT<int?>(json['containerDeliveryType']) ?? DeliveryType.other.value],
+      containerDeliveryType: json['deliveryType'] != null
+          ? DeliveryType.values[
+              asT<int?>(json['deliveryType']) ?? DeliveryType.other.value]
+          : (json['containerDeliveryType'] != null
+              ? DeliveryType.values[asT<int?>(json['containerDeliveryType']) ??
+                  DeliveryType.other.value]
+              : null),
+
       gatePassContainerType: GatePassContainerType.values[
           asT<int?>(json['gatePassContainerType']) ??
               GatePassContainerType.none.value],
     );
   }
 
-  Map<String, dynamic> toMap() {
-    var output = {
-      "id": id,
-      "tenantId": tenantId,
-      //"externalContainerId": externalContainerId,
-      "containerNumber": containerNumber,
-      "deliveryType": containerDeliveryType?.value,
-      "containerSetNo": containerSetNo,
-      "gatePassContainerType": gatePassContainerType?.value,
-      "goodsDeliveryNo": goodsDeliveryNo,
-      "sealNumberOne": sealNumberOne,
-      "sealNumberTwo": sealNumberTwo,
-      "sealNumberThree": sealNumberThree,
-      "sealNumberFour": sealNumberFour,
-      //"description": description,
-      //"weight": weight,
-      //"isDisabled": isDisabled,
-      //"shippingLineId": shippingLineId,
-      //"customerId": customerId,
-      "containerSizeId": containerSizeId,
-      "containerTypeId": containerTypeId,
-      "branchId": branchId,
-      //"depotId": depotId,
-      "gatePassAccessId": gatePassAccessId,
-    };
+Map<String, dynamic> toMap() {
+  var output = {
+    "id": id,
+    "tenantId": tenantId ?? 0,
+    "externalContainerId": externalContainerId,
+    "containerNumber": containerNumber,
+    "deliveryType": deliveryType ?? containerDeliveryType?.value ?? 0,
+    "containerSetNo": containerSetNo ?? 1,
+    "gatePassContainerType": gatePassContainerType?.value ?? 0,
+    "goodsDeliveryNo": goodsDeliveryNo,
+    "sealNumberOne": sealNumberOne,
+    "sealNumberTwo": sealNumberTwo,
+    "sealNumberThree": sealNumberThree,
+    "sealNumberFour": sealNumberFour,
+    "description": description,
+    "weight": weight ?? 0.0,  
+    "isDisabled": isDisabled,
+    "shippingLineId": shippingLineId ?? 0,
+    "customerId": customerId, 
+    "containerSizeId": containerSizeId ?? 0,
+    "containerTypeId": containerTypeId ?? 0,
+    "branchId": branchId ?? 0,
+    "depotId": depotId,  
+    "gatePassAccessId": gatePassAccessId,
+  };
 
-    return output;
+  if (customerId != null && customerId != 0) {
+    output["customerId"] = customerId;
   }
+  if (containerSizeId != null && containerSizeId != 0) {
+    output["containerSizeId"] = containerSizeId;
+  }
+  if (containerTypeId != null && containerTypeId != 0) {
+    output["containerTypeId"] = containerTypeId;
+  }
+  if (depotId != null && depotId != 0) {
+    output["depotId"] = depotId;
+  }
+
+  return output;
+}
 }
