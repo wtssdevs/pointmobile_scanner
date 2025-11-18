@@ -243,7 +243,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
     await initialize();
 
-     if (gatePass.gatePassStatus == GatePassStatus.inYard) {
+    if (gatePass.gatePassStatus == GatePassStatus.inYard) {
       _isExitMode = true;
     }
   }
@@ -1052,9 +1052,11 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   Future<void> loadFileStoreImages() async {
     if (gatePass.id != null && gatePass.id != 0) {
+      // Load general gate booking images
       _fileStoreItems = await _fileStoreRepository.getAll(
           gatePass.id!, FileStoreType.gateBookingImage, 100);
 
+      // Load foreign license photos
       final foreignLicensePhotos = await _fileStoreRepository.getAll(
           gatePass.id!, FileStoreType.gatePassAccessDriverLicenceImage, 100);
       if (foreignLicensePhotos.isNotEmpty) {
@@ -1064,19 +1066,44 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         _foreignLicensePhotoTaken = false;
         _foreignLicensePhotoPath = null;
       }
-      if (_vehicleManualEntryUsed && _fileStoreItems.isNotEmpty) {
-        _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
-        _vehicleManualPhotoTaken = _vehicleManualPhotoPath != null;
+
+      // Load vehicle manual entry photos
+      if (_vehicleManualEntryUsed) {
+        final vehiclePhotos = await _fileStoreRepository.getAll(
+            gatePass.id!, FileStoreType.gatePassVehicleImage, 100);
+        if (vehiclePhotos.isNotEmpty) {
+          _vehicleManualPhotoPath = vehiclePhotos.last;
+          _vehicleManualPhotoTaken = true;
+        } else {
+          _vehicleManualPhotoPath = null;
+          _vehicleManualPhotoTaken = false;
+        }
       }
 
-      if (_trailerOneManualEntryUsed && _fileStoreItems.isNotEmpty) {
-        _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
-        _trailerOneManualPhotoTaken = _trailerOneManualPhotoPath != null;
+      // Load trailer one manual entry photos
+      if (_trailerOneManualEntryUsed) {
+        final trailerOnePhotos = await _fileStoreRepository.getAll(
+            gatePass.id!, FileStoreType.gatePassTrailerOneImage, 100);
+        if (trailerOnePhotos.isNotEmpty) {
+          _trailerOneManualPhotoPath = trailerOnePhotos.last;
+          _trailerOneManualPhotoTaken = true;
+        } else {
+          _trailerOneManualPhotoPath = null;
+          _trailerOneManualPhotoTaken = false;
+        }
       }
 
-      if (_trailerTwoManualEntryUsed && _fileStoreItems.isNotEmpty) {
-        _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
-        _trailerTwoManualPhotoTaken = _trailerTwoManualPhotoPath != null;
+      // Load trailer two manual entry photos 
+      if (_trailerTwoManualEntryUsed) {
+        final trailerTwoPhotos = await _fileStoreRepository.getAll(
+            gatePass.id!, FileStoreType.gatePassTrailerTwoImage, 100);
+        if (trailerTwoPhotos.isNotEmpty) {
+          _trailerTwoManualPhotoPath = trailerTwoPhotos.last;
+          _trailerTwoManualPhotoTaken = true;
+        } else {
+          _trailerTwoManualPhotoPath = null;
+          _trailerTwoManualPhotoTaken = false;
+        }
       }
     }
   }
@@ -1552,7 +1579,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         arguments: CameraCaptureViewArguments(
           refId: gatePass.id!,
           referanceId: 0,
-          fileStoreType: FileStoreType.gateBookingImage,
+          fileStoreType: FileStoreType.gatePassVehicleImage,
         ),
       );
 
@@ -1586,7 +1613,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         arguments: CameraCaptureViewArguments(
           refId: gatePass.id!,
           referanceId: 0,
-          fileStoreType: FileStoreType.gateBookingImage,
+          fileStoreType: FileStoreType.gatePassTrailerOneImage,
         ),
       );
 
@@ -1620,7 +1647,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         arguments: CameraCaptureViewArguments(
           refId: gatePass.id!,
           referanceId: 0,
-          fileStoreType: FileStoreType.gateBookingImage,
+          fileStoreType: FileStoreType.gatePassTrailerTwoImage,
         ),
       );
 

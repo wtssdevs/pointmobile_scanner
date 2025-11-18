@@ -9,11 +9,17 @@ enum FileStoreType {
   // Types
   gatePassAccess(32),
   tenant(64),
+  vehicle(128),           
+  trailerOne(256),        
+  trailerTwo(512),        
   // Combinations
   gateBookingImage(34), // 32 | 2 (gatePassAccess | image)
   gateBookingDocument(40), // 32 | 8 (gatePassAccess | document)
   gateBookingVideo(48), // 32 | 16 (gatePassAccess | video)
   gatePassAccessDriverLicenceImage(162), // Foreign license photo capture
+  gatePassVehicleImage(130),      // 128 | 2 (vehicle | image)
+  gatePassTrailerOneImage(258),   // 256 | 2 (trailerOne | image)
+  gatePassTrailerTwoImage(514),   // 512 | 2 (trailerTwo | image)
 
   checklistQuestionImage(770), // CheckListItem + CheckListItemQuestion + Image,//256 +512+2 = 770
 
