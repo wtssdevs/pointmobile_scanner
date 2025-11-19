@@ -616,9 +616,37 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     gatePass.vehicleMake = vehicleLicenseData.make;
     gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
 
-    setVehicleValidationMessage();
+    if (_isExitMode) {
+      if (!_sameReg(
+          gatePass.vehicleRegNumber, vehicleLicenseData.licensePlateNo)) {
+        var msg =
+            "Vehicle registration on EXIT does not match: Expected ${gatePass.vehicleRegNumber}, Scanned ${vehicleLicenseData.licensePlateNo}";
+        setValidationMessage(msg);
+        logIncident("EXIT MISMATCH: " + msg);
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.error,
+          title: "Exit Verification Failed",
+          description:
+              "Vehicle registration does not match entry record.\nExpected: ${gatePass.vehicleRegNumber}\nScanned: ${vehicleLicenseData.licensePlateNo}",
+          mainButtonTitle: "Ok",
+        );
+        return;
+      } else {
+        clearAllValidationMessage();
+        if (gatePass.vehicleRegNumber == null ||
+            gatePass.vehicleRegNumber!.isEmpty) {
+          gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
+        }
+      }
+    } else {
+      setVehicleValidationMessage();
+    }
+
     gatePass.vehicleVinNumber = vehicleLicenseData.vin;
     gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
+    gatePass.branchId = currentUser?.userBranches[0].id ?? gatePass.branchId;
 
     if (vehicleLicenseData.expiryDate != null &&
         vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
@@ -651,29 +679,57 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     }
   }
 
-  // Process trailer one license data
-  Future<void> processTrailerOneLicenseData(
+  // Process trailer one license data 
+   Future<void> processTrailerOneLicenseData(
       LicenseDiskData vehicleLicenseData) async {
     gatePass.trailerRegNumberOneValidation = vehicleLicenseData.licensePlateNo;
-
+    
     // Check if trailer one reg matches scanned data
 
     // Set validation message
-    setTrailerValidationMessage("One");
+
+    if (_isExitMode) {
+      if (!_sameReg(
+          gatePass.trailerRegNumberOne, vehicleLicenseData.licensePlateNo)) {
+        var msg =
+            "Trailer One registration on EXIT does not match: Expected ${gatePass.trailerRegNumberOne}, Scanned ${vehicleLicenseData.licensePlateNo}";
+        setValidationMessage(msg);
+        logIncident("EXIT MISMATCH: " + msg);
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.error,
+          title: "Exit Verification Failed",
+          description: msg,
+          mainButtonTitle: "Ok",
+        );
+        return;
+      } else {
+        clearAllValidationMessage();
+        if (gatePass.trailerRegNumberOne == null ||
+            gatePass.trailerRegNumberOne!.isEmpty) {
+          gatePass.trailerRegNumberOne = vehicleLicenseData.licensePlateNo;
+        }
+      }
+    } else {
+      setTrailerValidationMessage("One");
+    }
+
     if (vehicleLicenseData.expiryDate != null &&
         vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
       logIncident(
           "Trailer One (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
     }
 
-    if (gatePass.trailerRegNumberOneMatch == false &&
+    if (!_isExitMode &&
+        gatePass.trailerRegNumberOneMatch == false &&
         hasTrailerManualInputPermission) {
       _showTrailerOneManualInput = true;
       scrollToWidget(trailerOneInfoCardKey);
       return;
     }
     // Determine next scan target
-    BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc; // Default
+    BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
     GlobalKey? nextSection;
 
     if (gatePass.trailerRegNumberTwo != null &&
@@ -683,7 +739,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     } else if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
       nextSection = containerInfoCardKey;
     }
-
+    
     // Set next scan type and scroll to appropriate section
     setBarcodeScanType(nextScanType);
 
@@ -699,10 +755,36 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Future<void> processTrailerTwoLicenseData(
       LicenseDiskData vehicleLicenseData) async {
     gatePass.trailerRegNumberTwoValidation = vehicleLicenseData.licensePlateNo;
-
+        
     // Check if trailer two reg matches scanned data
     // Set validation message
-    setTrailerValidationMessage("Two");
+
+    if (_isExitMode) {
+      if (!_sameReg(
+          gatePass.trailerRegNumberTwo, vehicleLicenseData.licensePlateNo)) {
+        var msg =
+            "Trailer Two registration on EXIT does not match: Expected ${gatePass.trailerRegNumberTwo}, Scanned ${vehicleLicenseData.licensePlateNo}";
+        setValidationMessage(msg);
+        logIncident("EXIT MISMATCH: " + msg);
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.error,
+          title: "Exit Verification Failed",
+          description: msg,
+          mainButtonTitle: "Ok",
+        );
+        return;
+      } else {
+        clearAllValidationMessage();
+        if (gatePass.trailerRegNumberTwo == null ||
+            gatePass.trailerRegNumberTwo!.isEmpty) {
+          gatePass.trailerRegNumberTwo = vehicleLicenseData.licensePlateNo;
+        }
+      }
+    } else {
+      setTrailerValidationMessage("Two");
+    }
 
     if (vehicleLicenseData.expiryDate != null &&
         vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
@@ -710,7 +792,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
           "Trailer Two (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
     }
 
-    if (gatePass.trailerRegNumberTwoMatch == false &&
+    if (!_isExitMode &&
+        gatePass.trailerRegNumberTwoMatch == false &&
         hasTrailerManualInputPermission) {
       _showTrailerTwoManualInput = true;
       scrollToWidget(trailerTwoInfoCardKey);
@@ -725,8 +808,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
       scrollToContainerInfo();
     } else {
-      //go back to top
-      scrollToFirstError();
+        //go back to top
+        scrollToFirstError();
     }
   }
 
@@ -1094,7 +1177,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         }
       }
 
-      // Load trailer two manual entry photos 
+      // Load trailer two manual entry photos
       if (_trailerTwoManualEntryUsed) {
         final trailerTwoPhotos = await _fileStoreRepository.getAll(
             gatePass.id!, FileStoreType.gatePassTrailerTwoImage, 100);
@@ -1124,7 +1207,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   Future<void> goToCamView(FileStoreType fileStoreType) async {
-     closeKeyboard();
+    closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       await _navigationService.navigateTo(
@@ -1267,6 +1350,9 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     gatePass.isManualInput = true;
     gatePass.isVehicleManualInput = true;
 
+    if (_isExitMode) {
+      _vehicleScannedOnExit = true;
+    }
     await promptForVehiclePhoto();
 
     BarcodeScanType nextScanType = _determineNextScanType();
@@ -1343,6 +1429,9 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       _trailerOneManualPhotoTaken = false;
       gatePass.isTrailerOneManualInput = true;
 
+      if (_isExitMode) {
+        _trailerOneScannedOnExit = true;
+      }
       await promptForTrailerOnePhoto();
 
       BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
@@ -1409,6 +1498,10 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       _trailerTwoManualEntryUsed = true;
       _trailerTwoManualPhotoTaken = false;
       gatePass.isTrailerTwoManualInput = true;
+
+      if (_isExitMode) {
+        _trailerOneScannedOnExit = true;
+      }
       await promptForTrailerTwoPhoto();
 
       if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
@@ -1508,7 +1601,9 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       _showTrailerOneManualInput = true;
       scrollToWidget(trailerOneInfoCardKey);
     }
-
+    if (_isExitMode) {
+      _trailerOneScannedOnExit = true;
+    }
     setModelUpdate(gatePass);
     rebuildUi();
   }
@@ -1560,7 +1655,9 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       _showTrailerTwoManualInput = true;
       scrollToWidget(trailerTwoInfoCardKey);
     }
-
+    if (_isExitMode) {
+      _trailerTwoScannedOnExit = true;
+    }
     setModelUpdate(gatePass);
     rebuildUi();
   }
@@ -1794,9 +1891,9 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   void closeKeyboard() {
-  FocusManager.instance.primaryFocus?.unfocus();
-  SystemChannels.textInput.invokeMethod('TextInput.hide');
-}
+    FocusManager.instance.primaryFocus?.unfocus();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+  }
 }
 
 extension StringCapitalize on String {
