@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/timestamp.dart';
+import 'package:flutter/services.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
@@ -1109,6 +1110,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   Future<void> goToCamCaptureContainerNoText() async {
+    closeKeyboard();
     if (gatePass.id != null && gatePass.id != 0) {
       var contInfo = await _navigationService
           .navigateToCamContainernoReaderView() as ContainerInfo?;
@@ -1122,6 +1124,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   Future<void> goToCamView(FileStoreType fileStoreType) async {
+     closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       await _navigationService.navigateTo(
@@ -1137,6 +1140,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   Future<void> captureForeignLicensePhoto() async {
+    closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       await _navigationService.navigateTo(
@@ -1197,6 +1201,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   Future<void> openImagePicker() async {
+    closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       var selectedImages = await _mediaService.pickMultiImages();
@@ -1735,6 +1740,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   void viewAllForeignLicensePhotos() async {
+    closeKeyboard();
     if (_foreignLicensePhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1746,6 +1752,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   void viewVehiclePhoto() async {
+    closeKeyboard();
     if (_vehicleManualPhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1759,6 +1766,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   void viewTrailerOnePhoto() async {
+    closeKeyboard();
     if (_trailerOneManualPhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1772,6 +1780,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   void viewTrailerTwoPhoto() async {
+    closeKeyboard();
     if (_trailerTwoManualPhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1783,6 +1792,11 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       await promptForTrailerTwoPhoto();
     }
   }
+
+  void closeKeyboard() {
+  FocusManager.instance.primaryFocus?.unfocus();
+  SystemChannels.textInput.invokeMethod('TextInput.hide');
+}
 }
 
 extension StringCapitalize on String {
