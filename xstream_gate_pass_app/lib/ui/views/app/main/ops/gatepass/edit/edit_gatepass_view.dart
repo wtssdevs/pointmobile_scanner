@@ -1286,8 +1286,8 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                   ),
                                   BuildInfoCard(
                                     isVisible:
-                                        model.gatePass.trailerRegNumberOne !=
-                                            null,
+                                        model.gatePass.trailerRegNumberOne != null ||
+                                          model.isManualInput,
                                     key: model.trailerOneInfoCardKey,
                                     width: width,
                                     title: "Trailer One Disc",
@@ -1339,7 +1339,7 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                       if (model
                                               .hasTrailerManualInputPermission &&
                                           model.gatePass.trailerRegNumberOne !=
-                                              null)
+                                              null|| model.isManualInput)
                                         ManualInputFieldWidget(
                                           controller: trailerNo1TextController,
                                           isManualEntryUsed:
@@ -1362,8 +1362,8 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                   verticalSpaceSmall,
                                   BuildInfoCard(
                                     isVisible:
-                                        model.gatePass.trailerRegNumberTwo !=
-                                            null,
+                                    model.gatePass.trailerRegNumberTwo != null ||
+                                          model.isManualInput,
                                     key: model.trailerTwoInfoCardKey,
                                     width: width,
                                     title: "Trailer Two Disc",
@@ -1415,7 +1415,7 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                       if (model
                                               .hasTrailerManualInputPermission &&
                                           model.gatePass.trailerRegNumberTwo !=
-                                              null)
+                                              null|| model.isManualInput)
                                         ManualInputFieldWidget(
                                           controller: trailerNo2TextController,
                                           isManualEntryUsed:

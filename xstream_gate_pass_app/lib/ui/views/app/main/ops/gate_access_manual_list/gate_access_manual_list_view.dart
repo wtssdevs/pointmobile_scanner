@@ -141,31 +141,37 @@ class _ManualEntryCard extends StatelessWidget {
     required this.onTap,
   });
 
-  Color _getStatusColor() {
-    switch (gatePass.gatePassStatus) {
-      case GatePassStatus.pending:
-        return Colors.orange;
-      case GatePassStatus.atGate:
-        return Colors.blue;
-      case GatePassStatus.inYard:
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
+ Color _getStatusColor() {
+  switch (gatePass.gatePassStatus) {
+    case GatePassStatus.pending:
+      return Colors.orange;
+    case GatePassStatus.atGate:
+      return Colors.blue;
+    case GatePassStatus.inYard:
+      return Colors.green;
+    case GatePassStatus.leftTheYard:
+      return Colors.grey; 
+    case GatePassStatus.rejectedEntry:
+      return Colors.red;
   }
+}
 
-  String _getStatusText() {
-    switch (gatePass.gatePassStatus) {
-      case GatePassStatus.pending:
-        return 'Pending';
-      case GatePassStatus.atGate:
-        return 'At Gate';
-      case GatePassStatus.inYard:
-        return 'In Yard';
-      default:
-        return 'Unknown';
-    }
+
+String _getStatusText() {
+  switch (gatePass.gatePassStatus) {
+    case GatePassStatus.pending:
+      return 'Pending';
+    case GatePassStatus.atGate:
+      return 'At Gate';
+    case GatePassStatus.inYard:
+      return 'In Yard';
+    case GatePassStatus.leftTheYard:
+      return 'Left The Yard';
+    case GatePassStatus.rejectedEntry:
+      return 'Rejected';
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
