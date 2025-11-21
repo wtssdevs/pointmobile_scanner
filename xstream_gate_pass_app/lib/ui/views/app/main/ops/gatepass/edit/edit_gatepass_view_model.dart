@@ -259,7 +259,83 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     scrollController.animateTo(0, duration: const Duration(milliseconds: 400), curve: Curves.easeIn);
   }
 
-  Future<void> runStartupLogic() async {
+Future<void> runStartupLogic() async {
+  if (isManualInput && (gatePass.id == null || gatePass.id.isEmpty || gatePass.id == Guid.defaultValue.toString())) {
+    
+    log.i('Creating new manual gate pass at startup with initial ID');
+    
+    gatePass.id = Guid.newGuidAsString;
+    gatePass.isActive = true;
+    gatePass.canRelease = false;
+    gatePass.timeAtGate = DateTime.now();
+    gatePass.isManualInput = true;
+    gatePass.isHazardous = false;
+    gatePass.hasBeenPrinted = false;
+    gatePass.timeInYardDuration = 0;
+    gatePass.isOverride ??= false;
+    gatePass.isVehicleManualInput ??= false;
+    gatePass.isTrailerOneManualInput ??= false;
+    gatePass.isTrailerTwoManualInput ??= false;
+    gatePass.isTrailerOneOverride ??= false;
+    gatePass.isTrailerTwoOverride ??= false;
+    gatePass.driverHasForeignID ??= false;
+    gatePass.grossWeightIn ??= 0;
+    gatePass.grossWeightOut ??= 0;
+    gatePass.tareWeightIn ??= 0;
+    gatePass.tareWeightOut ??= 0;
+    gatePass.netWeightIn ??= 0;
+    gatePass.netWeightOut ??= 0;
+    gatePass.varianceIn ??= 0;
+    gatePass.varianceOut ??= 0;
+    gatePass.productVariance ??= 0;
+    gatePass.totalProductGrossWeight ??= 0;
+    gatePass.vehicleTare ??= 0;
+    
+    gatePass.gatePassStatus = GatePassStatus.pending;
+    
+    if (currentUser?.userBranches != null && currentUser!.userBranches.isNotEmpty) {
+      gatePass.branchId = currentUser!.userBranches.first.id!;
+    }
+    
+    if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      gatePass.containerId = "00000000-0000-0000-0000-000000000000";
+      gatePass.handleContainers();
+    }
+    
+    try {
+      var createdGatePass = await _gatePassService.createGatePass(gatePass);
+      
+      if (createdGatePass != null) {
+        _gatePass = createdGatePass;
+        log.i('Manual gatepass created successfully with ID: ${_gatePass.id}');
+      } else {
+        log.e('Failed to create manual gatepass in backend');
+        Fluttertoast.showToast(
+          msg: "Failed to create gate pass. Please try again.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0,
+        );
+        _navigationService.back();
+        return;
+      }
+    } catch (e) {
+      log.e('Error creating manual gatepass: $e');
+      Fluttertoast.showToast(
+        msg: "Error creating gate pass: ${e.toString()}",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM_LEFT,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 14.0,
+      );
+      _navigationService.back();
+      return;
+    }
+  }
+  
   if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
     await loadShippingLines();
     await loadContainerCustomers();
@@ -288,10 +364,10 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
   
   notifyListeners();
-  
-  //_customers = await _masterFilesService.getAllLocalDetainOptions("");
 
-  //setCustomValidations();
+   //_customers = await _masterFilesService.getAllLocalDetainOptions("");
+
+    //setCustomValidations();
   if (gatePass.driverHasForeignID == true) {
     setBarcodeScanType(BarcodeScanType.vehicleDisc);
   } else {
@@ -902,139 +978,104 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     notifyListeners();
   }
 
-  Future<void> authorizeEntry() async {
-    if (!_connectionService.hasConnection) {
-      var confirm = await _dialogService.showCustomDialog(
-        variant: DialogType.infoAlert,
-        data: BasicDialogStatus.warning,
-        title: "Internet Connection Failure",
-        description: 'Could not authorize for entry,Please check you internet connection and try again',
-        mainButtonTitle: "Ok",
-      );
-
-      return;
-    }
-    setBusy(true);
-
-    // For manual entries
-    if (isManualInput) {
-      if (gatePass.driverIdNo == null &&
-          gatePass.driverIdNoValidation != null) {
-        gatePass.driverIdNo = gatePass.driverIdNoValidation;
-      }
-      if (gatePass.vehicleRegNumber == null &&
-          gatePass.vehicleRegNumberValidation != null) {
-        gatePass.vehicleRegNumber = gatePass.vehicleRegNumberValidation;
-      }
-
-      // Create the gatepass first if it's a new manual entry
-      if (gatePass.id == Guid.defaultValue.toString() || gatePass.id.isEmpty) {
-        log.i('Creating new manual gate pass before authorization');
-
-        gatePass.id = Guid.newGuidAsString;
-        gatePass.isActive = true;
-        gatePass.canRelease = false;
-        gatePass.timeAtGate = DateTime.now();
-        gatePass.isManualInput = true;
-        gatePass.isHazardous = false;
-        gatePass.hasBeenPrinted = false;
-        gatePass.timeInYardDuration = 0;
-        gatePass.isOverride ??= false;
-        gatePass.isVehicleManualInput ??= false;
-        gatePass.isTrailerOneManualInput ??= false;
-        gatePass.isTrailerTwoManualInput ??= false;
-        gatePass.isTrailerOneOverride ??= false;
-        gatePass.isTrailerTwoOverride ??= false;
-        gatePass.driverHasForeignID ??= false;
-        gatePass.grossWeightIn ??= 0;
-        gatePass.grossWeightOut ??= 0;
-        gatePass.tareWeightIn ??= 0;
-        gatePass.tareWeightOut ??= 0;
-        gatePass.netWeightIn ??= 0;
-        gatePass.netWeightOut ??= 0;
-        gatePass.varianceIn ??= 0;
-        gatePass.varianceOut ??= 0;
-        gatePass.productVariance ??= 0;
-        gatePass.totalProductGrossWeight ??= 0;
-        gatePass.vehicleTare ??= 0;
-
-        if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
-          gatePass.containerId =
-              "00000000-0000-0000-0000-000000000000"; 
-          gatePass.handleContainers();
-
-          if (gatePass.containers != null && gatePass.containers!.isNotEmpty) {
-           }
-        }
-
-        var createdGatePass = await _gatePassService.createGatePass(gatePass);
-
-        if (createdGatePass == null) {
-          Fluttertoast.showToast(
-              msg: "Failed to create gate pass. Please try again.",
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM_LEFT,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 14.0);
-          setBusy(false);
-          return;
-        }
-
-        _gatePass = createdGatePass;
-      }
-    }
-    gatePass.timeInYardDuration ??= 0;
-
-    //confirmation before we authorize
+Future<void> authorizeEntry() async {
+  if (!_connectionService.hasConnection) {
     var confirm = await _dialogService.showCustomDialog(
       variant: DialogType.infoAlert,
       data: BasicDialogStatus.warning,
-      title: "Confirm Entry",
-      description: 'Are you sure you want to authorize this Gate Pass?',
-      mainButtonTitle: "Confirm",
-      secondaryButtonTitle: "Cancel",
+      title: "Internet Connection Failure",
+       description: 'Could not authorize for entry,Please check you internet connection and try again',
+      mainButtonTitle: "Ok",
     );
-    if (confirm != null && confirm.confirmed == false) {
+
+    return;
+  }
+  setBusy(true);
+
+    // For manual entries
+      if (isManualInput) {
+    if (gatePass.driverIdNo == null && gatePass.driverIdNoValidation != null) {
+      gatePass.driverIdNo = gatePass.driverIdNoValidation;
+    }
+    if (gatePass.vehicleRegNumber == null && gatePass.vehicleRegNumberValidation != null) {
+      gatePass.vehicleRegNumber = gatePass.vehicleRegNumberValidation;
+    }
+    if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      if (gatePass.containerId == null || gatePass.containerId!.isEmpty) {
+        gatePass.containerId = Guid.newGuidAsString;
+      }
+      gatePass.handleContainers();
+    }
+   
+    var updatedGatePass = await _gatePassService.update(gatePass);
+    
+    if (updatedGatePass != null) {
+      _gatePass = updatedGatePass;
+    } else {
+      Fluttertoast.showToast(
+        msg: "Failed to update gate pass. Please try again.",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM_LEFT,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 14.0,
+      );
       setBusy(false);
       return;
     }
+  }
+  
+  gatePass.timeInYardDuration ??= 0;
+
+    //confirmation before we authorize
+  var confirm = await _dialogService.showCustomDialog(
+    variant: DialogType.infoAlert,
+    data: BasicDialogStatus.warning,
+    title: "Confirm Entry",
+    description: 'Are you sure you want to authorize this Gate Pass?',
+    mainButtonTitle: "Confirm",
+    secondaryButtonTitle: "Cancel",
+  );
+  if (confirm != null && confirm.confirmed == false) {
+    setBusy(false);
+    return;
+  }
 
     //check for entry checklist
-    var checkListCompleted = await findChecklistTemplate();
+  var checkListCompleted = await findChecklistTemplate();
 
-    if (checkListCompleted == false) {
-      setBusy(false);
-      return; // If checklist is not completed, do not proceed with authorization
+  if (checkListCompleted == false) {
+    setBusy(false);
+    return;// If checklist is not completed, do not proceed with authorization
       // Checklist is complete, proceed with authorization
     }
+  
+  var response = await _gatePassService.authorizeForEntry(gatePass);
+  if (response != null) {
+    _gatePass = response;
 
-    var reponse = await _gatePassService.authorizeForEntry(gatePass);
-    if (reponse != null) {
-      _gatePass = reponse;
-
-      Fluttertoast.showToast(
-          msg: "Authorize for Entry was successful! ",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 14.0);
-      _navigationService.back(result: true);
-    } else {
+    Fluttertoast.showToast(
+      msg: "Authorize for Entry was successful! ",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM_LEFT,
+      timeInSecForIosWeb: 8,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 14.0);
+    _navigationService.back(result: true);
+  } else {
       //error could not save
       Fluttertoast.showToast(
           msg: "Save Failed!,Please try again or contact your system admin. ",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 14.0);
-    }
-    setBusy(false);
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM_LEFT,
+      timeInSecForIosWeb: 8,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 14.0);
   }
+  setBusy(false);
+}
 
   Future<void> authorizeExit() async {
     if (!_connectionService.hasConnection) {
@@ -1679,103 +1720,103 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
     /// Photo capture methods
   Future<void> promptForVehiclePhoto() async {
-    var result = await _dialogService.showCustomDialog(
-      variant: DialogType.infoAlert,
-      data: BasicDialogStatus.info,
-      title: "Photo Required",
-      description: ValidationMessages.photoRequiredForManualInput("vehicle"),
-      mainButtonTitle: "Take Photo",
-      secondaryButtonTitle: "Cancel",
+  var result = await _dialogService.showCustomDialog(
+    variant: DialogType.infoAlert,
+    data: BasicDialogStatus.info,
+    title: "Photo Required",
+    description: ValidationMessages.photoRequiredForManualInput("vehicle"),
+    mainButtonTitle: "Take Photo",
+    secondaryButtonTitle: "Cancel",
+  );
+
+  if (result?.confirmed == true) {
+    var photoCountBefore = _fileStoreItems.length;
+
+    await _navigationService.navigateTo(
+      Routes.cameraCaptureView,
+      arguments: CameraCaptureViewArguments(
+        refId: gatePass.id!,  
+        referanceId: 0,
+        fileStoreType: FileStoreType.gateBookingImage,
+      ),
     );
 
-    if (result?.confirmed == true) {
-      var photoCountBefore = _fileStoreItems.length;
+    await loadFileStoreImages();
 
-      await _navigationService.navigateTo(
-        Routes.cameraCaptureView,
-        arguments: CameraCaptureViewArguments(
-          refId: gatePass.id!,
-          referanceId: 0,
-          fileStoreType: FileStoreType.gateBookingImage,
-        ),
-      );
-
-      await loadFileStoreImages();
-
-      if (_fileStoreItems.length > photoCountBefore) {
-        _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
-        _vehicleManualPhotoTaken = true;
-      }
-
-      rebuildUi();
+    if (_fileStoreItems.length > photoCountBefore) {
+      _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
+      _vehicleManualPhotoTaken = true;
     }
-  }
 
-  Future<void> promptForTrailerOnePhoto() async {
-    var result = await _dialogService.showCustomDialog(
-      variant: DialogType.infoAlert,
-      data: BasicDialogStatus.info,
-      title: "Photo Required",
-      description: ValidationMessages.photoRequiredForManualInput("trailer one"),
-      mainButtonTitle: "Take Photo",
-      secondaryButtonTitle: "Cancel",
+    rebuildUi();
+  }
+}
+
+Future<void> promptForTrailerOnePhoto() async {
+  var result = await _dialogService.showCustomDialog(
+    variant: DialogType.infoAlert,
+    data: BasicDialogStatus.info,
+    title: "Photo Required",
+    description: ValidationMessages.photoRequiredForManualInput("trailer one"),
+    mainButtonTitle: "Take Photo",
+    secondaryButtonTitle: "Cancel",
+  );
+
+  if (result?.confirmed == true) {
+    var photoCountBefore = _fileStoreItems.length;
+
+    await _navigationService.navigateTo(
+      Routes.cameraCaptureView,
+      arguments: CameraCaptureViewArguments(
+        refId: gatePass.id!,
+        referanceId: 0,
+        fileStoreType: FileStoreType.gateBookingImage,
+      ),
     );
 
-    if (result?.confirmed == true) {
-      var photoCountBefore = _fileStoreItems.length;
+    await loadFileStoreImages();
 
-      await _navigationService.navigateTo(
-        Routes.cameraCaptureView,
-        arguments: CameraCaptureViewArguments(
-          refId: gatePass.id!,
-          referanceId: 0,
-          fileStoreType: FileStoreType.gateBookingImage,
-        ),
-      );
-
-      await loadFileStoreImages();
-
-      if (_fileStoreItems.length > photoCountBefore) {
-        _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
-        _trailerOneManualPhotoTaken = true;
-      }
-
-      rebuildUi();
+    if (_fileStoreItems.length > photoCountBefore) {
+      _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
+      _trailerOneManualPhotoTaken = true;
     }
-  }
 
-  Future<void> promptForTrailerTwoPhoto() async {
-    var result = await _dialogService.showCustomDialog(
-      variant: DialogType.infoAlert,
-      data: BasicDialogStatus.info,
-      title: "Photo Required",
-      description: ValidationMessages.photoRequiredForManualInput("trailer two"),
-      mainButtonTitle: "Take Photo",
-      secondaryButtonTitle: "Cancel",
+    rebuildUi();
+  }
+}
+
+Future<void> promptForTrailerTwoPhoto() async {
+  var result = await _dialogService.showCustomDialog(
+    variant: DialogType.infoAlert,
+    data: BasicDialogStatus.info,
+    title: "Photo Required",
+    description: ValidationMessages.photoRequiredForManualInput("trailer two"),
+    mainButtonTitle: "Take Photo",
+    secondaryButtonTitle: "Cancel",
+  );
+
+  if (result?.confirmed == true) {
+    var photoCountBefore = _fileStoreItems.length;
+
+    await _navigationService.navigateTo(
+      Routes.cameraCaptureView,
+      arguments: CameraCaptureViewArguments(
+        refId: gatePass.id!,
+        referanceId: 0,
+        fileStoreType: FileStoreType.gateBookingImage,
+      ),
     );
 
-    if (result?.confirmed == true) {
-      var photoCountBefore = _fileStoreItems.length;
+    await loadFileStoreImages();
 
-      await _navigationService.navigateTo(
-        Routes.cameraCaptureView,
-        arguments: CameraCaptureViewArguments(
-          refId: gatePass.id!,
-          referanceId: 0,
-          fileStoreType: FileStoreType.gateBookingImage,
-        ),
-      );
-
-      await loadFileStoreImages();
-
-      if (_fileStoreItems.length > photoCountBefore) {
-        _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
-        _trailerTwoManualPhotoTaken = true;
-      }
-
-      rebuildUi();
+    if (_fileStoreItems.length > photoCountBefore) {
+      _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
+      _trailerTwoManualPhotoTaken = true;
     }
+
+    rebuildUi();
   }
+}
     Future<void> logIncident(String message) async {
     //try to send if fail then we log it to the que
 

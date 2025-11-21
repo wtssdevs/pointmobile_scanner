@@ -494,24 +494,42 @@ class GatePassService {
     }
   }
 
-  Future<GatePassAccess?> update(GatePassAccess entity) async {
-    try {
-      var baseResponse = await _apiManager.post(AppConst.UpdateGatePass,
-          showLoader: true, data: entity.toJson());
-      if (baseResponse != null) {
-        var apiResponse = ApiResponse.fromJson(baseResponse);
-        if (apiResponse.success != null) {
-          return GatePassAccess.fromJson(apiResponse.result);
-        }
+Future<GatePassAccess?> update(GatePassAccess entity) async {
+  try {
+    log.i('Attempting to update gatepass: ${entity.id}');
 
-        return null;
-      }
-      return null;
-    } catch (e) {
-      log.e(e.toString());
+    final dto = entity.toJson();
+    log.i('Sending update data: $dto');
+
+    final baseResponse = await _apiManager.put(
+      AppConst.UpdateGatePass,    
+      showLoader: true,
+      data: dto,
+    );
+
+    if (baseResponse == null) {
       return null;
     }
+
+    log.i('Update response received: $baseResponse');
+
+    final apiResponse = ApiResponse.fromJson(baseResponse);
+
+    if (apiResponse.success == true && apiResponse.result != null) {
+      return GatePassAccess.fromJson(apiResponse.result);
+    }
+
+    if (apiResponse.error != null) {
+      log.e('Update failed with error: ${apiResponse.error}');
+    }
+
+    return null;
+  } catch (e) {
+    log.e('Update exception: $e');
+    return null;
   }
+}
+
 
   Future<GatePassAccess?> rejectForEntry(GatePassAccess entity) async {
     try {
@@ -589,33 +607,56 @@ class GatePassService {
     }
   }
 
-  Future<List<GatePassAccess>> getManualEntries() async {
-    var response = await _apiManager.post(
-      '/api/services/app/GatePassAccess/GetManualEntries',
+  Future<List<GatePassAccess>> getManualEntries({int? branchId}) async {
+    var response = await _apiManager.get(
+      '/api/services/app/MobileGatePassAccess/GetManualEntries',
       showLoader: true,
-      data: {
-        'maxResultCount': 100,
-        'skipCount': 0,
+      queryParameters: {
+        'PageNumber': 1,
+        'PageSize': 100,
+        'BranchId': branchId ?? 0,
       },
     );
 
     if (response != null) {
-      var apiResponse = ApiResponse.fromJson(response);
-      if (apiResponse.success == true && apiResponse.result != null) {
-        var items = apiResponse.result['items'] as List? ?? [];
-        return items.map((item) => GatePassAccess.fromJson(item)).toList();
-      }
+      var items = response['items'] as List? ?? [];
+      return items.map((item) => GatePassAccess.fromJson(item)).toList();
     }
     return [];
   }
 
-  Future<List<BaseLookup>> getTransporters() async {
+  Future<List<BaseLookup>> getTransporters({String? searchValue}) async {
     var baseResponse = await _apiManager.get(
       '/api/services/app/Transporter/GetTransportersForLookup',
       showLoader: false,
+      queryParameters: {
+        'PageNumber': 1,
+        'PageSize': 10000,
+        if (searchValue != null && searchValue.isNotEmpty)
+          'SearchValue': searchValue,
+      },
     );
 
-    return _parseLookupResponse(baseResponse);
+    if (baseResponse == null) return [];
+
+    List<dynamic> data = [];
+
+    if (baseResponse is Map && baseResponse.containsKey('items')) {
+      data = baseResponse['items'] as List? ?? [];
+    } else if (baseResponse is Map && baseResponse.containsKey('result')) {
+      var result = baseResponse['result'];
+      data = result is Map && result.containsKey('items')
+          ? result['items'] as List? ?? []
+          : result is List
+              ? result
+              : [];
+    } else if (baseResponse is Map && baseResponse.containsKey('data')) {
+      data = baseResponse['data'] as List? ?? [];
+    } else if (baseResponse is List) {
+      data = baseResponse;
+    }
+
+    return _parseLookupResponse(data);
   }
 
   Future<List<BaseLookup>> getShippingLines() async {
