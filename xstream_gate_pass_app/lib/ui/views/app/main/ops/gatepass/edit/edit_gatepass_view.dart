@@ -7,6 +7,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';
+import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
@@ -229,7 +230,29 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
       model.clearValidationMessage(
           "Photo required for manual input Trailer Two");
     }
-
+    // Validate Trailer One if it exists
+    if (model.gatePass.trailerRegNumberOne != null && 
+        model.gatePass.trailerRegNumberOne!.isNotEmpty) {
+      model.setTrailerValidationMessage("One");
+      
+      if (model.gatePass.trailerRegNumberOneMatch == false && 
+          !model.trailerOneManualEntryUsed) {
+        model.setValidationMessage("Trailer One registration must be scanned or manually entered");
+      } else {
+        model.clearValidationMessage("Trailer One registration must be scanned or manually entered");
+      }
+    }
+    if (model.gatePass.trailerRegNumberTwo != null && 
+        model.gatePass.trailerRegNumberTwo!.isNotEmpty) {
+      model.setTrailerValidationMessage("Two");
+      
+      if (model.gatePass.trailerRegNumberTwoMatch == false && 
+          !model.trailerTwoManualEntryUsed) {
+        model.setValidationMessage("Trailer Two registration must be scanned or manually entered");
+      } else {
+        model.clearValidationMessage("Trailer Two registration must be scanned or manually entered");
+      }
+    }
     model.setVehicleValidationMessage();
 
     if (model.showValidation) {
@@ -249,8 +272,66 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
     return !model.showValidation;
   }
 
-  Future<bool> validateForm(
-      GatePassEditViewModel model, BuildContext context) async {
+Future<bool> validateForAuthExit(GatePassEditViewModel model, BuildContext context) async {
+   
+    model.clearAllValidationMessage();
+
+    // Check if driver was scanned on exit (if not foreign ID)
+    if (model.gatePass.driverHasForeignID == false) {
+      if (!model.driverScannedOnExit) {
+        model.setValidationMessage("Please scan the driver's license");
+      } else {
+        model.clearValidationMessage("Please scan the driver's license");
+      }
+    }
+
+    // Check if vehicle was scanned on exit
+    if (!model.vehicleScannedOnExit) {
+      model.setValidationMessage("Please scan the vehicle license disc");
+    } else {
+      model.clearValidationMessage("Please scan the vehicle license disc");
+    }
+
+    // Check if trailer one needs to be scanned
+    if (model.gatePass.trailerRegNumberOne != null && 
+        model.gatePass.trailerRegNumberOne!.isNotEmpty) {
+      if (!model.trailerOneScannedOnExit) {
+        model.setValidationMessage("Please scan Trailer One license disc");
+      } else {
+        model.clearValidationMessage("Please scan Trailer One license disc");
+      }
+    }
+
+    // Check if trailer two needs to be scanned
+    if (model.gatePass.trailerRegNumberTwo != null && 
+        model.gatePass.trailerRegNumberTwo!.isNotEmpty) {
+      if (!model.trailerTwoScannedOnExit) {
+        model.setValidationMessage("Please scan Trailer Two license disc");
+      } else {
+        model.clearValidationMessage("Please scan Trailer Two license disc");
+      }
+    }
+
+if (model.showValidation) {
+      model.rebuildUi();
+      
+      Fluttertoast.showToast(
+        msg: "Exit Validation Failed! ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", 
+        toastLength: Toast.LENGTH_LONG, 
+        gravity: ToastGravity.BOTTOM_LEFT, 
+        timeInSecForIosWeb: 8, 
+        backgroundColor: Colors.red, 
+        textColor: Colors.white, 
+        fontSize: 14.0
+      );
+      
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<bool> validateForm(GatePassEditViewModel model, BuildContext context) async {
     //validate per status
 
     if (model.gatePass.gatePassBookingType == GatePassBookingType.visitor) {
@@ -479,25 +560,27 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                         label: const Text("Authorize Entry"), // <-- Text
                       ),
               ),
-              Visibility(
+Visibility(
                 visible: model.gatePass.gatePassStatus.value ==
                     GatePassStatus.inYard
-                        .index, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
+                        .index,
                 child: model.isBusy
                     ? const SizedBox.shrink()
                     : ElevatedButton.icon(
                         onPressed: () async {
-                          // valiate first
-                          var isValid = await validateForm(model, context);
+                          // Validate exit scans
+                          var isValid = await validateForAuthExit(model, context);
                           if (isValid == true) {
                             model.authorizeExit();
+                          } else {
+                            model.scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
                           }
                         },
                         icon: const FaIcon(
                           FontAwesomeIcons.rightFromBracket,
                           color: Colors.green,
                         ),
-                        label: const Text("Authorize Exit"), // <-- Text
+                        label: const Text("Authorize Exit"),
                       ),
               ),
             ],

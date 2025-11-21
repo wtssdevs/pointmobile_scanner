@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/timestamp.dart';
+import 'package:flutter/services.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
@@ -52,8 +53,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   Function? _onModelSet;
 
   final log = getLogger('GatePassEditViewModel');
-  final LocalStorageService _localStorageService =
-      locator<LocalStorageService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
   final GatePassService _gatePassService = locator<GatePassService>();
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
@@ -207,6 +207,22 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   bool get trailerTwoManualEntryUsed => _trailerTwoManualEntryUsed;
   bool get trailerTwoManualPhotoTaken => _trailerTwoManualPhotoTaken;
 
+  bool _isExitMode = false;
+  bool get isExitMode => _isExitMode;
+
+  // Exit scan tracking
+  bool _driverScannedOnExit = false;
+  bool get driverScannedOnExit => _driverScannedOnExit;
+
+  bool _vehicleScannedOnExit = false;
+  bool get vehicleScannedOnExit => _vehicleScannedOnExit;
+
+  bool _trailerOneScannedOnExit = false;
+  bool get trailerOneScannedOnExit => _trailerOneScannedOnExit;
+
+  bool _trailerTwoScannedOnExit = false;
+  bool get trailerTwoScannedOnExit => _trailerTwoScannedOnExit;
+
   List<BaseLookup> _customers = <BaseLookup>[];
   List<BaseLookup> get customers => _customers;
   Future<void> initialize() async {
@@ -227,7 +243,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     await dispose();
   }
 
-  void scrollToWidget(GlobalKey key, {Duration duration = const Duration(milliseconds: 400)}) {
+  void scrollToWidget(GlobalKey key,
+      {Duration duration = const Duration(milliseconds: 400)}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (key.currentContext != null) {
         Scrollable.ensureVisible(
@@ -256,7 +273,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
 // Example of scrolling to a section based on validation errors
   void scrollToFirstError() {
-    scrollController.animateTo(0, duration: const Duration(milliseconds: 400), curve: Curves.easeIn);
+    scrollController.animateTo(0,
+        duration: const Duration(milliseconds: 400), curve: Curves.easeIn);
   }
 
 Future<void> runStartupLogic() async {
@@ -374,8 +392,12 @@ Future<void> runStartupLogic() async {
     setBarcodeScanType(BarcodeScanType.driversCard);
   }
 
-  await initialize();
-}
+    await initialize();
+
+    if (gatePass.gatePassStatus == GatePassStatus.inYard) {
+      _isExitMode = true;
+    }
+  }
 
   void toggleVehicleManualInput() {
     _showVehicleManualInput = !_showVehicleManualInput;
@@ -406,104 +428,110 @@ Future<void> runStartupLogic() async {
       deliveryType = gatePass.gatePassDeliveryType;
       bookingType = gatePass.gatePassBookingType;
 
-      final resolveResult = await _checkListService.resolveChecklistType(
-        gatePass.gatePassStatus.name.capitalize(),
-      );
+        final resolveResult = await _checkListService.resolveChecklistType(
+          gatePass.gatePassStatus.name.capitalize(),
+        );
 
-      if (resolveResult == null ||
-          resolveResult.checklistType == null ||
-          resolveResult.deliveryType == null) {
-        log.e(
+        if (resolveResult == null ||
+            resolveResult.checklistType == null ||
+            resolveResult.deliveryType == null) {
+          log.e(
+            
             'Checklist type resolution failed for status: ${gatePass.gatePassStatus}');
-        return false;
+          return false;
+        }
+
+        checklistType = ChecklistType.values.firstWhere(
+          (e) => e.value == int.tryParse(resolveResult.checklistType ?? ''),
+          orElse: () {
+            log.e('Unknown checklistType: ${resolveResult.checklistType}');
+            return ChecklistType.gatePassAccess;
+          },
+        );
       }
 
-      checklistType = ChecklistType.values.firstWhere(
-        (e) => e.value == int.tryParse(resolveResult.checklistType ?? ''),
-        orElse: () {
-          log.e('Unknown checklistType: ${resolveResult.checklistType}');
-          return ChecklistType.gatePassAccess;
-        },
-      );
-    }
-
-    final checkListFindTemplateModel =
+      final checkListFindTemplateModel =
+       
         await _checkListService.findChecklistTemplate(
-      FilterParams(
-        branchId: currentUser?.userBranches.first.id,
-        gateAccessBookingType: bookingType,
-        gatePassAccessId: gatePass.id,
-        gateAccessDeliveryType: deliveryType,
-        checklistType: checklistType,
-      ),
-    );
-
-    if (checkListFindTemplateModel.hasTemplate == true) {
-      if (checkListFindTemplateModel.isCompleted == true) {
-        return true;
-      }
-
-      return await gotoCheckListView(checkListFindTemplateModel,
-          isReject: isReject);
-    }
-    return true;
-  }
-
-  Future<bool> gotoCheckListView(
-      CheckListFindTemplateModel checkListFindTemplateModel,
-      {bool isReject = false}) async {
-    late final ChecklistType checklistType;
-    late final DeliveryType deliveryType;
-    late final GatePassBookingType bookingType;
-
-    if (isReject) {
-      checklistType = ChecklistType.reject;
-      deliveryType = gatePass.gatePassDeliveryType;
-      bookingType = gatePass.gatePassBookingType;
-    } else {
-      deliveryType = gatePass.gatePassDeliveryType;
-      bookingType = gatePass.gatePassBookingType;
-
-      final resolveResult = await _checkListService.resolveChecklistType(
-        gatePass.gatePassStatus.name.capitalize(),
-      );
-
-      if (resolveResult == null ||
-          resolveResult.checklistType == null ||
-          resolveResult.deliveryType == null) {
-        log.e(
-            'Checklist type resolution failed in gotoCheckListView for status: ${gatePass.gatePassStatus}');
-        return false;
-      }
-
-      checklistType = ChecklistType.values.firstWhere(
-        (e) => e.value == int.tryParse(resolveResult.checklistType ?? ''),
-        orElse: () {
-          log.e('Unknown checklistType: ${resolveResult.checklistType}');
-          return ChecklistType.gatePassAccess;
-        },
-      );
-    }
-
-    final currentChecklistId = checkListFindTemplateModel.checklistId;
-
-    final completed = await _navigationService.navigateTo(
-      Routes.checkListView,
-      arguments: CheckListViewArguments(
-        filterParams: FilterParams(
+        FilterParams(
           branchId: currentUser?.userBranches.first.id,
           gateAccessBookingType: bookingType,
           gatePassAccessId: gatePass.id,
           gateAccessDeliveryType: deliveryType,
           checklistType: checklistType,
-          templateId: checkListFindTemplateModel.templateId,
-          id: currentChecklistId,
         ),
-      ),
-    );
+      );
 
-    return completed == true;
-  }
+      if (checkListFindTemplateModel.hasTemplate == true) {
+        if (checkListFindTemplateModel.isCompleted == true) {
+          return true;
+        }
+
+        return await gotoCheckListView(checkListFindTemplateModel,
+         
+          isReject: isReject);
+      }
+      return true;
+    }
+
+    Future<bool> gotoCheckListView(
+      
+      CheckListFindTemplateModel checkListFindTemplateModel,
+     
+      {bool isReject = false}) async {
+      late final ChecklistType checklistType;
+      late final DeliveryType deliveryType;
+      late final GatePassBookingType bookingType;
+
+      if (isReject) {
+        checklistType = ChecklistType.reject;
+        deliveryType = gatePass.gatePassDeliveryType;
+        bookingType = gatePass.gatePassBookingType;
+      } else {
+        deliveryType = gatePass.gatePassDeliveryType;
+        bookingType = gatePass.gatePassBookingType;
+
+        final resolveResult = await _checkListService.resolveChecklistType(
+          gatePass.gatePassStatus.name.capitalize(),
+        );
+
+        if (resolveResult == null ||
+            resolveResult.checklistType == null ||
+            resolveResult.deliveryType == null) {
+          log.e(
+            
+            'Checklist type resolution failed in gotoCheckListView for status: ${gatePass.gatePassStatus}');
+          return false;
+        }
+
+        checklistType = ChecklistType.values.firstWhere(
+          (e) => e.value == int.tryParse(resolveResult.checklistType ?? ''),
+          orElse: () {
+            log.e('Unknown checklistType: ${resolveResult.checklistType}');
+            return ChecklistType.gatePassAccess;
+          },
+        );
+      }
+
+      final currentChecklistId = checkListFindTemplateModel.checklistId;
+
+      final completed = await _navigationService.navigateTo(
+        Routes.checkListView,
+        arguments: CheckListViewArguments(
+          filterParams: FilterParams(
+            branchId: currentUser?.userBranches.first.id,
+            gateAccessBookingType: bookingType,
+            gatePassAccessId: gatePass.id,
+            gateAccessDeliveryType: deliveryType,
+            checklistType: checklistType,
+            templateId: checkListFindTemplateModel.templateId,
+            id: currentChecklistId,
+          ),
+        ),
+      );
+
+      return completed == true;
+    }
 
   Future<void> startScanListener() async {
     setModelUpdate(_gatePass);
@@ -514,6 +542,7 @@ Future<void> runStartupLogic() async {
 
     // Also listen to license disk data for vehicle scans
     streamSubscription =
+       
         _scanningService.licenseStream.asBroadcastStream().listen((data) async {
       log.i("Drivers Card data received");
       // Process the driversCard  data here
@@ -522,7 +551,9 @@ Future<void> runStartupLogic() async {
     });
     // Also listen to license disk data for vehicle scans
     streamSubscriptionForDisc = _scanningService.licenseDiskDataStream
+        
         .asBroadcastStream()
+        
         .listen((licenseDiskData) async {
       log.i("Vehicle Lisence Plate data received");
       // Process the license disk data here
@@ -537,6 +568,7 @@ Future<void> runStartupLogic() async {
       return;
     }
     var msg = ValidationMessages.getDriverIdMismatchMessage(
+        
         gatePass.driverIdNo, gatePass.driverIdNoValidation);
     if (gatePass.driverIdNoMatch == false) {
       setValidationMessage(msg);
@@ -559,6 +591,7 @@ Future<void> runStartupLogic() async {
     }
 
     var msg = ValidationMessages.regNoMismatch("Vehicle registration",
+       
         gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
     if (gatePass.vehicleRegNoMatch == false) {
       setValidationMessage(msg);
@@ -580,6 +613,7 @@ Future<void> runStartupLogic() async {
         return;
       }
       var msg = ValidationMessages.regNoMismatch("Trailer One registration",
+         
           gatePass.trailerRegNumberOne, gatePass.trailerRegNumberOneValidation);
       if (gatePass.trailerRegNumberOneMatch == false) {
         setValidationMessage(msg);
@@ -660,6 +694,7 @@ Future<void> runStartupLogic() async {
   // }
 
   Future<void> processScanData(RsaDriversLicense? rsaDriversLicense,
+     
       LicenseDiskData? vehicleLicenseData) async {
     clearAllValidationMessage();
     try {
@@ -668,24 +703,40 @@ Future<void> runStartupLogic() async {
         case BarcodeScanType.driversCard:
           if (rsaDriversLicense != null) {
             await processDriversLicenseData(rsaDriversLicense);
+            // Mark driver as scanned on exit if in exit mode
+            if (_isExitMode) {
+              _driverScannedOnExit = true;
+            }
           }
           break;
 
         case BarcodeScanType.vehicleDisc:
           if (vehicleLicenseData != null) {
             await processVehicleLicenseData(vehicleLicenseData);
+            // Mark vehicle as scanned on exit if in exit mode
+            if (_isExitMode) {
+              _vehicleScannedOnExit = true;
+            }
           }
           break;
 
         case BarcodeScanType.trailerOneDisc:
           if (vehicleLicenseData != null) {
             await processTrailerOneLicenseData(vehicleLicenseData);
+            // Mark trailer one as scanned on exit if in exit mode
+            if (_isExitMode) {
+              _trailerOneScannedOnExit = true;
+            }
           }
           break;
 
         case BarcodeScanType.trailerTwoDisc:
           if (vehicleLicenseData != null) {
             await processTrailerTwoLicenseData(vehicleLicenseData);
+            // Mark trailer two as scanned on exit if in exit mode
+            if (_isExitMode) {
+              _trailerTwoScannedOnExit = true;
+            }
           }
           break;
 
@@ -697,14 +748,17 @@ Future<void> runStartupLogic() async {
       setModelUpdate(_gatePass);
       rebuildUi();
     } catch (e) {
-      setValidationMessage(ValidationMessages.scanProcessingFailed(e.toString()));
+      setValidationMessage(
+          ValidationMessages.scanProcessingFailed(e.toString()));
       rebuildUi();
     }
   }
 
   // Process driver's license data
-  Future<void> processDriversLicenseData(RsaDriversLicense driversLicense) async {
-    gatePass.driverName ='${driversLicense.firstNames} ${driversLicense.surname}';
+  Future<void> processDriversLicenseData(
+      RsaDriversLicense driversLicense) async {
+    gatePass.driverName =
+       '${driversLicense.firstNames} ${driversLicense.surname}';
     gatePass.driverIdNoValidation = driversLicense.idNumber;
     if (isManualInput) {gatePass.driverIdNo = driversLicense.idNumber;}
     setDriverValidationMessage();
@@ -717,13 +771,17 @@ Future<void> runStartupLogic() async {
 
     //check if the drivers license has expired ,if true then we log an incident
     if (driversLicense.validTo != null &&
+       
         driversLicense.validTo.isBefore(DateTime.now())) {
       logIncident(
+          
           "Driver (${driversLicense.firstNames} ${driversLicense.surname}, ${driversLicense.idNumber}) with license (${driversLicense.licenseNumber}) expired on ${driversLicense.validTo}. Please check the driver's license validity. ");
     }
     if (driversLicense.prdpExpiry != null &&
+       
         driversLicense.prdpExpiry!.isBefore(DateTime.now())) {
       logIncident(
+          
           "Driver (${driversLicense.firstNames} ${driversLicense.surname}, ${driversLicense.idNumber}) with PRDP expired on ${driversLicense.prdpExpiry}. Please check the driver's PRDP validity. ");
     }
     // Navigate to appropriate section
@@ -738,6 +796,7 @@ Future<void> runStartupLogic() async {
 
   // Process vehicle license data
   Future<void> processVehicleLicenseData(
+      
       LicenseDiskData vehicleLicenseData) async {
     gatePass.vehicleEngineNumber = vehicleLicenseData.engineNumber;
     gatePass.vehicleMake = vehicleLicenseData.make;
@@ -745,13 +804,43 @@ Future<void> runStartupLogic() async {
     if (isManualInput) {
       gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
     }
-    setVehicleValidationMessage();
+    if (_isExitMode) {
+      if (!_sameReg(
+          gatePass.vehicleRegNumber, vehicleLicenseData.licensePlateNo)) {
+        var msg =
+            "Vehicle registration on EXIT does not match: Expected ${gatePass.vehicleRegNumber}, Scanned ${vehicleLicenseData.licensePlateNo}";
+        setValidationMessage(msg);
+        logIncident("EXIT MISMATCH: " + msg);
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.error,
+          title: "Exit Verification Failed",
+          description:
+              "Vehicle registration does not match entry record.\nExpected: ${gatePass.vehicleRegNumber}\nScanned: ${vehicleLicenseData.licensePlateNo}",
+          mainButtonTitle: "Ok",
+        );
+        return;
+      } else {
+        clearAllValidationMessage();
+        if (gatePass.vehicleRegNumber == null ||
+            gatePass.vehicleRegNumber!.isEmpty) {
+          gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
+        }
+      }
+    } else {
+      setVehicleValidationMessage();
+    }
+
     gatePass.vehicleVinNumber = vehicleLicenseData.vin;
     gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
+    gatePass.branchId = currentUser?.userBranches[0].id ?? gatePass.branchId;
 
     if (vehicleLicenseData.expiryDate != null &&
+       
         vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
       logIncident(
+          
           "Vehicle (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
     }
     // Determine next scan target based on trailer existence
@@ -759,10 +848,12 @@ Future<void> runStartupLogic() async {
     GlobalKey? nextSection;
 
     if (gatePass.trailerRegNumberOne != null &&
+       
         gatePass.trailerRegNumberOne!.isNotEmpty) {
       nextScanType = BarcodeScanType.trailerOneDisc;
       nextSection = trailerOneInfoCardKey;
     } else if (gatePass.trailerRegNumberTwo != null &&
+       
         gatePass.trailerRegNumberTwo!.isNotEmpty) {
       nextScanType = BarcodeScanType.trailerTwoDisc;
       nextSection = trailerTwoInfoCardKey;
@@ -780,29 +871,60 @@ Future<void> runStartupLogic() async {
     }
   }
 
-  // Process trailer one license data
-  Future<void> processTrailerOneLicenseData(
+  // Process trailer one license data 
+   Future<void> processTrailerOneLicenseData(
+      
       LicenseDiskData vehicleLicenseData) async {
     gatePass.trailerRegNumberOneValidation = vehicleLicenseData.licensePlateNo;
-
+    
     // Check if trailer one reg matches scanned data
 
     // Set validation message
-    setTrailerValidationMessage("One");
+
+    if (_isExitMode) {
+      if (!_sameReg(
+          gatePass.trailerRegNumberOne, vehicleLicenseData.licensePlateNo)) {
+        var msg =
+            "Trailer One registration on EXIT does not match: Expected ${gatePass.trailerRegNumberOne}, Scanned ${vehicleLicenseData.licensePlateNo}";
+        setValidationMessage(msg);
+        logIncident("EXIT MISMATCH: " + msg);
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.error,
+          title: "Exit Verification Failed",
+          description: msg,
+          mainButtonTitle: "Ok",
+        );
+        return;
+      } else {
+        clearAllValidationMessage();
+        if (gatePass.trailerRegNumberOne == null ||
+            gatePass.trailerRegNumberOne!.isEmpty) {
+          gatePass.trailerRegNumberOne = vehicleLicenseData.licensePlateNo;
+        }
+      }
+    } else {
+      setTrailerValidationMessage("One");
+    }
+
     if (vehicleLicenseData.expiryDate != null &&
+       
         vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
       logIncident(
+          
           "Trailer One (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
     }
 
-    if (gatePass.trailerRegNumberOneMatch == false &&
+    if (!_isExitMode &&
+        gatePass.trailerRegNumberOneMatch == false &&
         hasTrailerManualInputPermission) {
       _showTrailerOneManualInput = true;
       scrollToWidget(trailerOneInfoCardKey);
       return;
     }
     // Determine next scan target
-    BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc; // Default
+    BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
     GlobalKey? nextSection;
 
     if (gatePass.trailerRegNumberTwo != null &&
@@ -812,7 +934,7 @@ Future<void> runStartupLogic() async {
     } else if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
       nextSection = containerInfoCardKey;
     }
-
+    
     // Set next scan type and scroll to appropriate section
     setBarcodeScanType(nextScanType);
 
@@ -828,10 +950,36 @@ Future<void> runStartupLogic() async {
   Future<void> processTrailerTwoLicenseData(
       LicenseDiskData vehicleLicenseData) async {
     gatePass.trailerRegNumberTwoValidation = vehicleLicenseData.licensePlateNo;
-
+        
     // Check if trailer two reg matches scanned data
     // Set validation message
-    setTrailerValidationMessage("Two");
+
+    if (_isExitMode) {
+      if (!_sameReg(
+          gatePass.trailerRegNumberTwo, vehicleLicenseData.licensePlateNo)) {
+        var msg =
+            "Trailer Two registration on EXIT does not match: Expected ${gatePass.trailerRegNumberTwo}, Scanned ${vehicleLicenseData.licensePlateNo}";
+        setValidationMessage(msg);
+        logIncident("EXIT MISMATCH: " + msg);
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.error,
+          title: "Exit Verification Failed",
+          description: msg,
+          mainButtonTitle: "Ok",
+        );
+        return;
+      } else {
+        clearAllValidationMessage();
+        if (gatePass.trailerRegNumberTwo == null ||
+            gatePass.trailerRegNumberTwo!.isEmpty) {
+          gatePass.trailerRegNumberTwo = vehicleLicenseData.licensePlateNo;
+        }
+      }
+    } else {
+      setTrailerValidationMessage("Two");
+    }
 
     if (vehicleLicenseData.expiryDate != null &&
         vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
@@ -839,7 +987,8 @@ Future<void> runStartupLogic() async {
           "Trailer Two (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
     }
 
-    if (gatePass.trailerRegNumberTwoMatch == false &&
+    if (!_isExitMode &&
+        gatePass.trailerRegNumberTwoMatch == false &&
         hasTrailerManualInputPermission) {
       _showTrailerTwoManualInput = true;
       scrollToWidget(trailerTwoInfoCardKey);
@@ -854,8 +1003,8 @@ Future<void> runStartupLogic() async {
     if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
       scrollToContainerInfo();
     } else {
-      //go back to top
-      scrollToFirstError();
+        //go back to top
+        scrollToFirstError();
     }
   }
 
@@ -930,7 +1079,8 @@ Future<void> runStartupLogic() async {
         variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description: 'Could not Save,Please check you internet connection and try again',
+        description:
+            'Could not Save,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
@@ -954,22 +1104,36 @@ Future<void> runStartupLogic() async {
     if (reponse != null) {
       _gatePass = reponse;
       Fluttertoast.showToast(
+          
           msg: "Save was successful! ",
+         
           toastLength: Toast.LENGTH_SHORT,
+         
           gravity: ToastGravity.BOTTOM_LEFT,
+         
           timeInSecForIosWeb: 8,
+         
           backgroundColor: Colors.green,
+         
           textColor: Colors.white,
+         
           fontSize: 14.0);
     } else {
       //error could not save
       Fluttertoast.showToast(
+          
           msg: "Save Failed!,Please try again or contact your system admin. ",
+         
           toastLength: Toast.LENGTH_LONG,
+         
           gravity: ToastGravity.BOTTOM_LEFT,
+         
           timeInSecForIosWeb: 8,
+         
           backgroundColor: Colors.red,
+         
           textColor: Colors.white,
+         
           fontSize: 14.0);
     }
 
@@ -984,7 +1148,8 @@ Future<void> authorizeEntry() async {
       variant: DialogType.infoAlert,
       data: BasicDialogStatus.warning,
       title: "Internet Connection Failure",
-       description: 'Could not authorize for entry,Please check you internet connection and try again',
+       description:
+            'Could not authorize for entry,Please check you internet connection and try again',
       mainButtonTitle: "Ok",
     );
 
@@ -1055,35 +1220,62 @@ Future<void> authorizeEntry() async {
     _gatePass = response;
 
     Fluttertoast.showToast(
-      msg: "Authorize for Entry was successful! ",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM_LEFT,
-      timeInSecForIosWeb: 8,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-      fontSize: 14.0);
+      
+          msg: "Authorize for Entry was successful! ",
+     
+          toastLength: Toast.LENGTH_SHORT,
+     
+          gravity: ToastGravity.BOTTOM_LEFT,
+     
+          timeInSecForIosWeb: 8,
+     
+          backgroundColor: Colors.green,
+     
+          textColor: Colors.white,
+     
+          fontSize: 14.0);
     _navigationService.back(result: true);
   } else {
       //error could not save
       Fluttertoast.showToast(
+          
           msg: "Save Failed!,Please try again or contact your system admin. ",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM_LEFT,
-      timeInSecForIosWeb: 8,
-      backgroundColor: Colors.red,
-      textColor: Colors.white,
-      fontSize: 14.0);
+     
+          toastLength: Toast.LENGTH_LONG,
+     
+          gravity: ToastGravity.BOTTOM_LEFT,
+     
+          timeInSecForIosWeb: 8,
+     
+          backgroundColor: Colors.red,
+     
+          textColor: Colors.white,
+     
+          fontSize: 14.0);
   }
   setBusy(false);
 }
 
   Future<void> authorizeExit() async {
+    if (!_isExitMode) {
+      await _dialogService.showCustomDialog(
+        variant: DialogType.infoAlert,
+        data: BasicDialogStatus.warning,
+        title: "Exit Scan Required",
+        description:
+            'Please scan the driver and vehicle on exit before authorizing.',
+        mainButtonTitle: "Ok",
+      );
+      return;
+    }
+
     if (!_connectionService.hasConnection) {
       await _dialogService.showCustomDialog(
         variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description: 'Could not authorize for entry,Please check you internet connection and try again',
+        description:
+            'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
@@ -1116,26 +1308,40 @@ Future<void> authorizeEntry() async {
       _gatePass = reponse;
       setBusy(false);
       Fluttertoast.showToast(
+          
           msg: "Authorize for Exit was successful! ",
+         
           toastLength: Toast.LENGTH_SHORT,
+         
           gravity: ToastGravity.BOTTOM_LEFT,
+         
           timeInSecForIosWeb: 8,
+         
           backgroundColor: Colors.green,
+         
           textColor: Colors.white,
+         
           fontSize: 14.0);
     } else {
       //error could not save
       Fluttertoast.showToast(
+          
           msg: "Save Failed!,Please try again or contact your system admin. ",
+         
           toastLength: Toast.LENGTH_LONG,
+         
           gravity: ToastGravity.BOTTOM_LEFT,
+         
           timeInSecForIosWeb: 8,
+         
           backgroundColor: Colors.red,
+         
           textColor: Colors.white,
+         
           fontSize: 14.0);
     }
 
-    _navigationService.back(result: true);
+        _navigationService.back(result: true);
   }
 
   Future<void> rejectEntry() async {
@@ -1144,7 +1350,8 @@ Future<void> authorizeEntry() async {
         variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description: 'Could not authorize for entry,Please check you internet connection and try again',
+        description:
+            'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
@@ -1174,21 +1381,35 @@ Future<void> authorizeEntry() async {
     if (reponse != null) {
       _gatePass = reponse;
       Fluttertoast.showToast(
+          
           msg: "Save was successful! ",
+         
           toastLength: Toast.LENGTH_SHORT,
+         
           gravity: ToastGravity.BOTTOM_LEFT,
+         
           timeInSecForIosWeb: 8,
+         
           backgroundColor: Colors.green,
+         
           textColor: Colors.white,
+         
           fontSize: 14.0);
     } else {
       Fluttertoast.showToast(
+          
           msg: "Save Failed!,Please try again or contact your system admin. ",
+         
           toastLength: Toast.LENGTH_LONG,
+         
           gravity: ToastGravity.BOTTOM_LEFT,
+         
           timeInSecForIosWeb: 8,
+         
           backgroundColor: Colors.red,
+         
           textColor: Colors.white,
+         
           fontSize: 14.0);
     }
 
@@ -1210,10 +1431,14 @@ Future<void> authorizeEntry() async {
 
   Future<void> loadFileStoreImages() async {
     if (gatePass.id != null && gatePass.id != 0) {
+      // Load general gate booking images
       _fileStoreItems = await _fileStoreRepository.getAll(
+          
           gatePass.id!, FileStoreType.gateBookingImage, 100);
 
+      // Load foreign license photos
       final foreignLicensePhotos = await _fileStoreRepository.getAll(
+          
           gatePass.id!, FileStoreType.gatePassAccessDriverLicenceImage, 100);
       if (foreignLicensePhotos.isNotEmpty) {
         _foreignLicensePhotoTaken = true;
@@ -1222,11 +1447,53 @@ Future<void> authorizeEntry() async {
         _foreignLicensePhotoTaken = false;
         _foreignLicensePhotoPath = null;
       }
+
+      // Load vehicle manual entry photos
+      if (_vehicleManualEntryUsed) {
+        final vehiclePhotos = await _fileStoreRepository.getAll(
+            gatePass.id!, FileStoreType.gatePassVehicleImage, 100);
+        if (vehiclePhotos.isNotEmpty) {
+          _vehicleManualPhotoPath = vehiclePhotos.last;
+          _vehicleManualPhotoTaken = true;
+        } else {
+          _vehicleManualPhotoPath = null;
+          _vehicleManualPhotoTaken = false;
+        }
+      }
+
+      // Load trailer one manual entry photos
+      if (_trailerOneManualEntryUsed) {
+        final trailerOnePhotos = await _fileStoreRepository.getAll(
+            gatePass.id!, FileStoreType.gatePassTrailerOneImage, 100);
+        if (trailerOnePhotos.isNotEmpty) {
+          _trailerOneManualPhotoPath = trailerOnePhotos.last;
+          _trailerOneManualPhotoTaken = true;
+        } else {
+          _trailerOneManualPhotoPath = null;
+          _trailerOneManualPhotoTaken = false;
+        }
+      }
+
+      // Load trailer two manual entry photos
+      if (_trailerTwoManualEntryUsed) {
+        final trailerTwoPhotos = await _fileStoreRepository.getAll(
+            gatePass.id!, FileStoreType.gatePassTrailerTwoImage, 100);
+        if (trailerTwoPhotos.isNotEmpty) {
+          _trailerTwoManualPhotoPath = trailerTwoPhotos.last;
+          _trailerTwoManualPhotoTaken = true;
+        } else {
+          _trailerTwoManualPhotoPath = null;
+          _trailerTwoManualPhotoTaken = false;
+        }
+      }
     }
   }
+
   Future<void> goToCamCaptureContainerNoText() async {
+    closeKeyboard();
     if (gatePass.id != null && gatePass.id != 0) {
       var contInfo = await _navigationService
+          
           .navigateToCamContainernoReaderView() as ContainerInfo?;
       if (contInfo != null) {
         gatePass.containerNumber = contInfo.containerNumber;
@@ -1276,11 +1543,13 @@ Future<void> authorizeEntry() async {
   }
 
   Future<void> goToCamView(FileStoreType fileStoreType) async {
+    closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       await _navigationService.navigateTo(
         Routes.cameraCaptureView,
         arguments: CameraCaptureViewArguments(
+            
             refId: gatePass.id!, referanceId: 0, fileStoreType: fileStoreType),
       );
 
@@ -1291,13 +1560,17 @@ Future<void> authorizeEntry() async {
   }
 
   Future<void> captureForeignLicensePhoto() async {
+    closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       await _navigationService.navigateTo(
         Routes.cameraCaptureView,
         arguments: CameraCaptureViewArguments(
+            
             refId: gatePass.id,
+           
             referanceId: 0,
+           
             fileStoreType: FileStoreType.gatePassAccessDriverLicenceImage),
       );
 
@@ -1308,28 +1581,44 @@ Future<void> authorizeEntry() async {
   }
 
   Future<void> saveImageToLocalDb(
+      
       {required File galleryFile, required String tempFilePath}) async {
     await _fileStoreRepository.insert(
       FileStore(
+          
           desc: "",
+         
           referanceId: 0,
+         
           filestoreType: FileStoreType.image.value,
+         
           path: galleryFile.path,
+         
           tempPath: tempFilePath,
+         
           fileName: galleryFile.path,
+         
           createdDateTime: Timestamp.now(),
+         
           refId: gatePass.id!),
     );
   }
 
   Future<void> deleteImage(FileStore fileItem) async {
     var confirm = await _dialogService.showCustomDialog(
+        
         variant: DialogType.infoAlert,
+       
         data: BasicDialogStatus.warning,
+       
         title: "Delete Image?.",
+       
         description: 'Are you sure you want to Delete this image?',
+       
         mainButtonTitle: "Confirm",
+       
         takesInput: false,
+       
         secondaryButtonTitle: "Cancel");
 
     if (confirm != null && confirm.confirmed) {
@@ -1337,13 +1626,21 @@ Future<void> authorizeEntry() async {
 
       //server side delete of image
       await _workerQueManager.enqueSingle(BackgroundJobInfo(
+          
           refTransactionId: gatePass.id,
+         
           jobType: BackgroundJobType.syncImages.index,
+         
           jobArgs: fileItem.fileName,
+         
           lastTryTime: Timestamp.now(),
+         
           creationTime: Timestamp.now(),
+         
           nextTryTime: Timestamp.now(),
+         
           id: "",
+         
           isAbandoned: false));
     }
     await loadFileStoreImages();
@@ -1351,6 +1648,7 @@ Future<void> authorizeEntry() async {
   }
 
   Future<void> openImagePicker() async {
+    closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       var selectedImages = await _mediaService.pickMultiImages();
@@ -1368,9 +1666,9 @@ Future<void> authorizeEntry() async {
     notifyListeners();
   }
 
-  String _cleanRegistrationNumber(String regNumber) {
-    return regNumber.replaceAll(' ', '').toUpperCase();
-  }
+    String _cleanRegistrationNumber(String regNumber) {
+      return regNumber.replaceAll(' ', '').toUpperCase();
+    }
 
   bool _validateRegistrationFormat(String regNumber) {
     String cleaned = regNumber.replaceAll(' ', '');
@@ -1404,12 +1702,11 @@ Future<void> authorizeEntry() async {
       return;
     }
 
-    await _processSuccessfulVehicleEntry();
-  }
+  await _processSuccessfulVehicleEntry();
+}
   bool _isRegistrationMatch() {
     return gatePass.vehicleRegNoMatch == true;
   }
-
 
   Future<void> _processSuccessfulVehicleEntry() async {
     _vehicleManualEntryUsed = true;
@@ -1417,6 +1714,9 @@ Future<void> authorizeEntry() async {
     gatePass.isManualInput = true;
     gatePass.isVehicleManualInput = true;
 
+    if (_isExitMode) {
+      _vehicleScannedOnExit = true;
+    }
     await promptForVehiclePhoto();
 
     BarcodeScanType nextScanType = _determineNextScanType();
@@ -1497,6 +1797,9 @@ Future<void> authorizeEntry() async {
       _trailerOneManualPhotoTaken = false;
       gatePass.isTrailerOneManualInput = true;
 
+      if (_isExitMode) {
+        _trailerOneScannedOnExit = true;
+      }
       await promptForTrailerOnePhoto();
 
       BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
@@ -1559,11 +1862,11 @@ Future<void> authorizeEntry() async {
     gatePass.trailerRegNumberTwoValidation = registrationNumber;
     setTrailerValidationMessage("Two");
 
-    if (gatePass.trailerRegNumberTwoMatch == true) {
-      _trailerTwoManualEntryUsed = true;
-      _trailerTwoManualPhotoTaken = false;
-      gatePass.isTrailerTwoManualInput = true;
-      await promptForTrailerTwoPhoto();
+      if (gatePass.trailerRegNumberTwoMatch == true) {
+        _trailerTwoManualEntryUsed = true;
+        _trailerTwoManualPhotoTaken = false;
+        gatePass.isTrailerTwoManualInput = true;
+        await promptForTrailerTwoPhoto();
 
       if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
         scrollToContainerInfo();
@@ -1647,25 +1950,25 @@ Future<void> authorizeEntry() async {
         nextSection = containerInfoCardKey;
       }
 
-      setBarcodeScanType(nextScanType);
-      if (nextSection != null) {
-        scrollToWidget(nextSection);
-      }
-
-      _showTrailerOneManualInput = false;
-    } else if (confirm.responseData == 'secondary') {
-      _showTrailerOneManualInput = true;
-      scrollToWidget(trailerOneInfoCardKey);
-    } else if (confirm.responseData == 'additional') {
-      await rejectEntry();
-    } else {
-      _showTrailerOneManualInput = true;
-      scrollToWidget(trailerOneInfoCardKey);
+    setBarcodeScanType(nextScanType);
+    if (nextSection != null) {
+      scrollToWidget(nextSection);
     }
-
-    setModelUpdate(gatePass);
-    rebuildUi();
+    
+    _showTrailerOneManualInput = false;
+  } else if (confirm.responseData == 'secondary') {
+    _showTrailerOneManualInput = true;
+    scrollToWidget(trailerOneInfoCardKey);
+  } else if (confirm.responseData == 'additional') {
+    await rejectEntry();
+  } else {
+    _showTrailerOneManualInput = true;
+    scrollToWidget(trailerOneInfoCardKey);
   }
+  
+  setModelUpdate(gatePass);
+  rebuildUi();
+}
 
   Future<void> showTrailerTwoOverrideDialog(String enteredReg) async {
     var confirm = await _dialogService.showCustomDialog(
@@ -1714,110 +2017,116 @@ Future<void> authorizeEntry() async {
       _showTrailerTwoManualInput = true;
       scrollToWidget(trailerTwoInfoCardKey);
     }
-
+    if (_isExitMode) {
+      _trailerTwoScannedOnExit = true;
+    }
     setModelUpdate(gatePass);
     rebuildUi();
   }
-    /// Photo capture methods
+
+  /// Photo capture methods
   Future<void> promptForVehiclePhoto() async {
-  var result = await _dialogService.showCustomDialog(
-    variant: DialogType.infoAlert,
-    data: BasicDialogStatus.info,
-    title: "Photo Required",
-    description: ValidationMessages.photoRequiredForManualInput("vehicle"),
-    mainButtonTitle: "Take Photo",
-    secondaryButtonTitle: "Cancel",
-  );
-
-  if (result?.confirmed == true) {
-    var photoCountBefore = _fileStoreItems.length;
-
-    await _navigationService.navigateTo(
-      Routes.cameraCaptureView,
-      arguments: CameraCaptureViewArguments(
-        refId: gatePass.id!,  
-        referanceId: 0,
-        fileStoreType: FileStoreType.gateBookingImage,
-      ),
+    var result = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.info,
+      title: "Photo Required",
+      description: ValidationMessages.photoRequiredForManualInput("vehicle"),
+      mainButtonTitle: "Take Photo",
+      secondaryButtonTitle: "Cancel",
     );
 
-    await loadFileStoreImages();
-
-    if (_fileStoreItems.length > photoCountBefore) {
-      _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
-      _vehicleManualPhotoTaken = true;
+      if (result?.confirmed == true) {
+        var photoCountBefore = _fileStoreItems.length;
+        
+        await _navigationService.navigateTo(
+          Routes.cameraCaptureView,
+          arguments: CameraCaptureViewArguments(
+            refId: gatePass.id!, 
+            referanceId: 0, 
+            fileStoreType: FileStoreType.gateBookingImage,
+          ),
+        );
+        
+        await loadFileStoreImages();
+        
+        if (_fileStoreItems.length > photoCountBefore) {
+          _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
+          _vehicleManualPhotoTaken = true;
+        }
+        
+        rebuildUi();
+      }
     }
 
-    rebuildUi();
-  }
-}
-
-Future<void> promptForTrailerOnePhoto() async {
-  var result = await _dialogService.showCustomDialog(
-    variant: DialogType.infoAlert,
-    data: BasicDialogStatus.info,
-    title: "Photo Required",
-    description: ValidationMessages.photoRequiredForManualInput("trailer one"),
-    mainButtonTitle: "Take Photo",
-    secondaryButtonTitle: "Cancel",
-  );
-
-  if (result?.confirmed == true) {
-    var photoCountBefore = _fileStoreItems.length;
-
-    await _navigationService.navigateTo(
-      Routes.cameraCaptureView,
-      arguments: CameraCaptureViewArguments(
-        refId: gatePass.id!,
-        referanceId: 0,
-        fileStoreType: FileStoreType.gateBookingImage,
-      ),
+  Future<void> promptForTrailerOnePhoto() async {
+    var result = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.info,
+      title: "Photo Required",
+      description:
+          ValidationMessages.photoRequiredForManualInput("trailer one"),
+      mainButtonTitle: "Take Photo",
+      secondaryButtonTitle: "Cancel",
     );
 
-    await loadFileStoreImages();
+    if (result?.confirmed == true) {
+      var photoCountBefore = _fileStoreItems.length;
 
-    if (_fileStoreItems.length > photoCountBefore) {
-      _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
-      _trailerOneManualPhotoTaken = true;
+      await _navigationService.navigateTo(
+        Routes.cameraCaptureView,
+        arguments: CameraCaptureViewArguments(
+          refId: gatePass.id!,
+          referanceId: 0,
+          fileStoreType: FileStoreType.gatePassTrailerOneImage,
+        ),
+      );
+
+      await loadFileStoreImages();
+
+      if (_fileStoreItems.length > photoCountBefore) {
+        _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
+        _trailerOneManualPhotoTaken = true;
+      }
+
+      rebuildUi();
     }
-
-    rebuildUi();
   }
-}
 
-Future<void> promptForTrailerTwoPhoto() async {
-  var result = await _dialogService.showCustomDialog(
-    variant: DialogType.infoAlert,
-    data: BasicDialogStatus.info,
-    title: "Photo Required",
-    description: ValidationMessages.photoRequiredForManualInput("trailer two"),
-    mainButtonTitle: "Take Photo",
-    secondaryButtonTitle: "Cancel",
-  );
-
-  if (result?.confirmed == true) {
-    var photoCountBefore = _fileStoreItems.length;
-
-    await _navigationService.navigateTo(
-      Routes.cameraCaptureView,
-      arguments: CameraCaptureViewArguments(
-        refId: gatePass.id!,
-        referanceId: 0,
-        fileStoreType: FileStoreType.gateBookingImage,
-      ),
+  Future<void> promptForTrailerTwoPhoto() async {
+    var result = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.info,
+      title: "Photo Required",
+      description:
+          ValidationMessages.photoRequiredForManualInput("trailer two"),
+      mainButtonTitle: "Take Photo",
+      secondaryButtonTitle: "Cancel",
     );
 
-    await loadFileStoreImages();
+    if (result?.confirmed == true) {
+      var photoCountBefore = _fileStoreItems.length;
 
-    if (_fileStoreItems.length > photoCountBefore) {
-      _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
-      _trailerTwoManualPhotoTaken = true;
+      await _navigationService.navigateTo(
+        Routes.cameraCaptureView,
+        arguments: CameraCaptureViewArguments(
+          refId: gatePass.id!,
+          referanceId: 0,
+          fileStoreType: FileStoreType.gatePassTrailerTwoImage,
+        ),
+      );
+
+      await loadFileStoreImages();
+
+      if (_fileStoreItems.length > photoCountBefore) {
+        _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
+        _trailerTwoManualPhotoTaken = true;
+      }
+
+      rebuildUi();
     }
-
-    rebuildUi();
   }
-}
-    Future<void> logIncident(String message) async {
+
+  Future<void> logIncident(String message) async {
     //try to send if fail then we log it to the que
 
     var newIncident = Incident(
@@ -1890,6 +2199,7 @@ Future<void> promptForTrailerTwoPhoto() async {
   }
 
   void viewAllForeignLicensePhotos() async {
+    closeKeyboard();
     if (_foreignLicensePhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1915,6 +2225,7 @@ Future<void> promptForTrailerTwoPhoto() async {
   }
 
   void viewVehiclePhoto() async {
+    closeKeyboard();
     if (_vehicleManualPhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1928,6 +2239,7 @@ Future<void> promptForTrailerTwoPhoto() async {
   }
 
   void viewTrailerOnePhoto() async {
+    closeKeyboard();
     if (_trailerOneManualPhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1941,6 +2253,7 @@ Future<void> promptForTrailerTwoPhoto() async {
   }
 
   void viewTrailerTwoPhoto() async {
+    closeKeyboard();
     if (_trailerTwoManualPhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -2205,6 +2518,11 @@ Future<void> promptForTrailerTwoPhoto() async {
       gatePass.gatePassContainerType = firstContainer.gatePassContainerType;
       notifyListeners();
     }
+  }
+
+  void closeKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
   }
 }
 
