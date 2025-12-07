@@ -95,9 +95,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   FileStore? get trailerTwoManualPhotoPath => _trailerTwoManualPhotoPath;
 
   bool get isManualInput =>
-      gatePass.isManualInput == true ||
-      gatePass.externalId == null ||
-      gatePass.externalId!.isEmpty;
+      gatePass.externalId == null || gatePass.externalId!.isEmpty;
   bool get hasPreBooking => !isManualInput;
 
   bool get isManualEntryWizard => isManualInput && !_isExitMode;
@@ -325,12 +323,10 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   Future<void> runStartupLogic() async {
-    if ((gatePass.externalId == null || gatePass.externalId!.isEmpty) &&
+    if (isManualInput &&
         (gatePass.id == null ||
             gatePass.id.isEmpty ||
             gatePass.id == Guid.defaultValue.toString())) {
-      log.i('Creating new manual gate pass at startup with initial ID');
-
       gatePass.id = Guid.newGuidAsString;
       gatePass.isActive = true;
       gatePass.canRelease = false;
@@ -374,10 +370,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
         if (createdGatePass != null) {
           _gatePass = createdGatePass;
-          log.i(
-              'Manual gatepass created successfully with ID: ${_gatePass.id}');
         } else {
-          log.e('Failed to create manual gatepass in backend');
           Fluttertoast.showToast(
             msg: "Failed to create gate pass. Please try again.",
             toastLength: Toast.LENGTH_LONG,
@@ -390,7 +383,6 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
           return;
         }
       } catch (e) {
-        log.e('Error creating manual gatepass: $e');
         Fluttertoast.showToast(
           msg: "Error creating gate pass: ${e.toString()}",
           toastLength: Toast.LENGTH_LONG,
@@ -589,7 +581,6 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     // Also listen to license disk data for vehicle scans
     streamSubscription =
         _scanningService.licenseStream.asBroadcastStream().listen((data) async {
-      log.i("Drivers Card data received");
       // Process the driversCard  data here
       // This would populate a GatePassVisitorAccess from the driversCard data
       processScanData(data, null);
@@ -598,7 +589,6 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     streamSubscriptionForDisc = _scanningService.licenseDiskDataStream
         .asBroadcastStream()
         .listen((licenseDiskData) async {
-      log.i("Vehicle Lisence Plate data received");
       // Process the license disk data here
       // This would populate a GatePassVisitorAccess from the license disk data
       processScanData(null, licenseDiskData);
@@ -627,10 +617,11 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       return;
     }
 
-    var msg = ValidationMessages.regNoMismatch("Vehicle registration",
-        gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
-
-    if (msg.isNotEmpty) {
+    bool regsMatch = _sameReg(gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
+   
+    if (!regsMatch) {
+      var msg = ValidationMessages.regNoMismatch("Vehicle registration",
+          gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
       setValidationMessage(msg);
       if (gatePass.vehicleRegNumber == null ||
           gatePass.vehicleRegNumber!.isEmpty) {
@@ -638,7 +629,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       }
       logIncident(msg);
     } else {
-      clearValidationMessage(msg);
+      clearValidationMessage("Vehicle details do not match");
     }
   }
 
@@ -649,6 +640,12 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         clearValidationMessage("Trailer one details do not match");
         return;
       }
+      
+      if (gatePass.isTrailerOneOverride == true) {
+        clearValidationMessage("Trailer one details do not match");
+        return;
+      }
+      
       var msg = ValidationMessages.regNoMismatch("Trailer One registration",
           gatePass.trailerRegNumberOne, gatePass.trailerRegNumberOneValidation);
       if (gatePass.trailerRegNumberOneMatch == false) {
@@ -666,6 +663,12 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         clearValidationMessage("Trailer two details do not match");
         return;
       }
+      
+      if (gatePass.isTrailerTwoOverride == true) {
+        clearValidationMessage("Trailer two details do not match");
+        return;
+      }
+      
       var msg = ValidationMessages.regNoMismatch(
         "Trailer Two registration",
         gatePass.trailerRegNumberTwo,
@@ -841,10 +844,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         );
         scrollToWidget(timesInfoCardKey);
       } else if (gatePass.gatePassBookingType ==
-              GatePassBookingType.containers &&
-          isManualInput &&
-          !_isExitMode) {
-        scrollToWidget(containerInfoCardKey);
+              GatePassBookingType.containers) {
+         scrollToWidget(containerInfoCardKey);
       } else {
         scrollToWidget(timesInfoCardKey);
       }
@@ -1018,28 +1019,9 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
     setVehicleValidationMessage();
 
-    BarcodeScanType nextScanType = BarcodeScanType.vehicleDisc;
-    GlobalKey? nextSection;
-
-    if (gatePass.trailerRegNumberOne != null &&
-        gatePass.trailerRegNumberOne!.isNotEmpty) {
-      nextScanType = BarcodeScanType.trailerOneDisc;
-      nextSection = trailerOneInfoCardKey;
-    } else if (gatePass.trailerRegNumberTwo != null &&
-        gatePass.trailerRegNumberTwo!.isNotEmpty) {
-      nextScanType = BarcodeScanType.trailerTwoDisc;
-      nextSection = trailerTwoInfoCardKey;
-    } else if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
-      nextSection = containerInfoCardKey;
-    }
-
-    // Set next scan type and scroll to appropriate section
-    setBarcodeScanType(nextScanType);
-
+    
     if (showValidation) {
       scrollToFirstError();
-    } else if (nextSection != null) {
-      scrollToWidget(nextSection);
     }
   }
 
@@ -1108,66 +1090,10 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       scrollToWidget(trailerOneInfoCardKey);
       return;
     }
-    if (isManualEntryWizard && !_isExitMode) {
-      if (showValidation) {
-        rebuildUi();
-        scrollToFirstError();
-      }
-      return;
-    }
-
-    BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
-    GlobalKey? nextSection;
-
-    if (gatePass.trailerRegNumberTwo != null &&
-        gatePass.trailerRegNumberTwo!.isNotEmpty) {
-      nextScanType = BarcodeScanType.trailerTwoDisc;
-      nextSection = trailerTwoInfoCardKey;
-
-      Fluttertoast.showToast(
-        msg: "Ready to scan Trailer Two",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        backgroundColor: Colors.blue,
-        textColor: Colors.white,
-      );
-    } else if (_isExitMode) {
-      Fluttertoast.showToast(
-        msg: "Exit scanning complete. Ready to authorize exit.",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-      );
-      scrollToFirstError();
-    } else if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
-      nextSection = containerInfoCardKey;
-
-      Fluttertoast.showToast(
-        msg: "Please enter container details",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        backgroundColor: Colors.blue,
-        textColor: Colors.white,
-      );
-    } else {
-      Fluttertoast.showToast(
-        msg: "Scanning complete. Ready to authorize.",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-      );
-      scrollToFirstError();
-    }
-
-    setBarcodeScanType(nextScanType);
-
+    
     if (showValidation) {
       rebuildUi();
       scrollToFirstError();
-    } else if (nextSection != null) {
-      scrollToWidget(nextSection);
     }
   }
 
@@ -2488,7 +2414,6 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       couldSend = true;
     } catch (e) {
       couldSend = false;
-      log.e("Error checking connection: $e");
     }
 
     if (couldSend == false) {
@@ -2809,12 +2734,10 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       _cachedShippingLines = _shippingLines;
       _shippingLineCacheTime = DateTime.now();
 
-      log.i('Loaded ${_shippingLines.length} shipping lines');
       // REMOVE THIS LINE: _shippingLines = [];
 
       notifyListeners();
     } catch (e) {
-      log.e('Error loading shipping lines: $e');
       _shippingLines = [];
       notifyListeners();
     }
