@@ -36,6 +36,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_g
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/listicons/gatepass_list_icon.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/manual_input_field_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/photo_preview_widget.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/nav_action_button.dart';
 
 class GatePassEditView extends StatelessWidget {
   final GatePassAccess gatePass;
@@ -540,87 +541,66 @@ class GatePassEditView extends StatelessWidget {
         child: DefaultTabController(
           length: 2,
           child: Scaffold(
-            persistentFooterButtons: [
-              Visibility(
-                visible: !model.isExitMode &&
-                    (model.gatePass.gatePassStatus.value ==
-                            GatePassStatus.atGate.value ||
-                        model.gatePass.gatePassStatus.value ==
-                            GatePassStatus.pending.value),
-                child: model.isBusy
-                    ? const SizedBox.shrink()
-                    : ElevatedButton.icon(
-                        onPressed: () async {
-                          // call method
-                          //validate UI first
-                          //id is GUID as string ,so need to ehck for empty guid
-                          if (model.gatePass.id !=
-                                  Guid.defaultValue.toString() &&
-                              model.gatePass.id != "") {
-                            model.rejectEntry();
-                          }
-                        },
-                        icon: const FaIcon(
-                          FontAwesomeIcons.ban,
-                          color: Colors.red,
-                        ),
-                        label: const Text('Reject Entry'), // <-- Text
-                      ),
-              ),
-              Visibility(
-                visible: model.gatePass.gatePassStatus.value ==
-                        GatePassStatus.atGate.value ||
-                    model.gatePass.gatePassStatus.value ==
-                        GatePassStatus.pending
-                            .value, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
-                child: model.isBusy
-                    ? const SizedBox.shrink()
-                    : ElevatedButton.icon(
-                        onPressed: () async {
-                          // valiate first
-                          var isValid =
-                              await validateForAuthEntry(model, context);
-                          if (isValid == true) {
-                            model.authorizeEntry();
-                          } else {
-                            model.scrollController.animateTo(0,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeIn);
-                          }
-                        },
-                        icon: const FaIcon(
-                          FontAwesomeIcons.rightToBracket,
-                          color: Colors.blue,
-                        ),
-                        label: const Text("Authorize Entry"), // <-- Text
-                      ),
-              ),
-              Visibility(
-                visible: model.gatePass.gatePassStatus.value ==
-                    GatePassStatus.inYard.index,
-                child: model.isBusy
-                    ? const SizedBox.shrink()
-                    : ElevatedButton.icon(
-                        onPressed: () async {
-                          // Validate exit scans
-                          var isValid =
-                              await validateForAuthExit(model, context);
-                          if (isValid == true) {
-                            model.authorizeExit();
-                          } else {
-                            model.scrollController.animateTo(0,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeIn);
-                          }
-                        },
-                        icon: const FaIcon(
-                          FontAwesomeIcons.rightFromBracket,
-                          color: Colors.green,
-                        ),
-                        label: const Text("Authorize Exit"),
-                      ),
-              ),
-            ],
+    persistentFooterButtons: [
+  Row(
+    children: [
+      NavActionButton(
+        label: "Reject Entry",
+        icon: FontAwesomeIcons.ban,
+        color: Colors.red,
+        onTap: () async {
+          if (model.gatePass.id != Guid.defaultValue.toString() &&
+              model.gatePass.id != "") {
+            model.rejectEntry();
+          }
+        },
+        isVisible: !model.isExitMode &&
+            !model.isBusy &&
+            (model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.atGate.value ||
+                model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.pending.value),
+      ),
+      NavActionButton(
+        label: "Authorize Entry",
+        icon: FontAwesomeIcons.rightToBracket,
+        color: Colors.blue,
+        onTap: () async {
+          var isValid = await validateForAuthEntry(model, context);
+          if (isValid == true) {
+            model.authorizeEntry();
+          } else {
+            model.scrollController.animateTo(0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeIn);
+          }
+        },
+        isVisible: !model.isBusy &&
+            (model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.atGate.value ||
+                model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.pending.value),
+      ),
+      NavActionButton(
+        label: "Authorize Exit",
+        icon: FontAwesomeIcons.rightFromBracket,
+        color: Colors.green,
+        onTap: () async {
+          var isValid = await validateForAuthExit(model, context);
+          if (isValid == true) {
+            model.authorizeExit();
+          } else {
+            model.scrollController.animateTo(0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeIn);
+          }
+        },
+        isVisible: !model.isBusy &&
+            model.gatePass.gatePassStatus.value == GatePassStatus.inYard.index,
+      ),
+    ],
+  ),
+],
             appBar: AppBar(
               elevation: 6,
 

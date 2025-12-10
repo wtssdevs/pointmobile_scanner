@@ -4,6 +4,7 @@ import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
 import 'gate_access_manual_list_viewmodel.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/nav_action_button.dart';
 
 class GateAccessManualListView extends StatelessWidget {
   const GateAccessManualListView({Key? key}) : super(key: key);
@@ -83,46 +84,21 @@ class GateAccessManualListView extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => model.showCheckInOptions(),
-                  icon: const Icon(Icons.login, size: 28),
-                  label: const Text(
-                    'Check In',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+              NavActionButton(
+                label: "Check In",
+                icon: Icons.login,
+                color: Colors.green,
+                onTap: () => model.showCheckInOptions(),
+                isVisible: true,
               ),
-              horizontalSpaceSmall,
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: model.hasInYardEntries
-                      ? () => model.showCheckOutOptions()
-                      : null,
-                  icon: const Icon(Icons.logout, size: 28),
-                  label: const Text(
-                    'Check Out',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey[300],
-                    disabledForegroundColor: Colors.grey[600],
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+              NavActionButton(
+                label: "Check Out",
+                icon: Icons.logout,
+                color: Colors.red,
+                onTap: model.hasInYardEntries
+                    ? () => model.showCheckOutOptions()
+                    : () {},
+                isVisible: true,
               ),
             ],
           ),
@@ -141,38 +117,186 @@ class _ManualEntryCard extends StatelessWidget {
     required this.onTap,
   });
 
- Color _getStatusColor() {
+  Color _getStatusBackgroundColor() {
+    switch (gatePass.gatePassStatus) {
+      case GatePassStatus.pending:
+        return Colors.grey.shade300; 
+      case GatePassStatus.atGate:
+        return Colors.orange.shade100;
+      case GatePassStatus.inYard:
+        return Colors.grey.shade300; 
+      case GatePassStatus.leftTheYard:
+        return Colors.green.shade100;
+      case GatePassStatus.rejectedEntry:
+        return Colors.red.shade100;
+      default:
+        return Colors.grey.shade100;
+    }
+  }
+
+  Color _getStatusTextColor() {
+    switch (gatePass.gatePassStatus) {
+      case GatePassStatus.pending:
+        return Colors.black87; 
+      case GatePassStatus.atGate:
+        return Colors.orange.shade700;
+      case GatePassStatus.inYard:
+        return Colors.black87; 
+      case GatePassStatus.leftTheYard:
+        return Colors.green.shade700;
+      case GatePassStatus.rejectedEntry:
+        return Colors.red.shade700;
+      default:
+        return Colors.grey.shade700;
+    }
+  }
+
+  Widget _getStatusIcon() {
+    switch (gatePass.gatePassStatus) {
+      case GatePassStatus.pending:
+            return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade700,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade700,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade700,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
+        );
+      case GatePassStatus.atGate:
+        return Icon(
+          Icons.access_time,
+          size: 16,
+          color: _getStatusTextColor(),
+        );
+      case GatePassStatus.inYard:
+        return Icon(
+          Icons.keyboard_double_arrow_down,
+          size: 16,
+          color: Colors.red.shade700,
+        );
+      case GatePassStatus.leftTheYard:
+        return Icon(
+          Icons.check_circle_outline,
+          size: 16,
+          color: _getStatusTextColor(),
+        );
+      case GatePassStatus.rejectedEntry:
+        return Icon(
+          Icons.cancel_outlined,
+          size: 16,
+          color: _getStatusTextColor(),
+        );
+      default:
+        return Icon(
+          Icons.help_outline,
+          size: 16,
+          color: _getStatusTextColor(),
+        );
+    }
+  }
+
+  String _getStatusText() {
+    switch (gatePass.gatePassStatus) {
+      case GatePassStatus.pending:
+        return 'Pending';
+      case GatePassStatus.atGate:
+        return 'At Gate';
+      case GatePassStatus.inYard:
+        return 'In Yard';
+      case GatePassStatus.leftTheYard:
+        return 'Left Yard';
+      case GatePassStatus.rejectedEntry:
+        return 'Rejected';
+      default:
+        return 'Unknown';
+    }
+  }
+
+Color _getTruckIconBackgroundColor() {
+  return Colors.grey.shade300; 
+}
+
+Color _getTruckIconColor() {
   switch (gatePass.gatePassStatus) {
     case GatePassStatus.pending:
-      return Colors.orange;
+      return Colors.blue.shade700;
     case GatePassStatus.atGate:
-      return Colors.blue;
+      return Colors.orange.shade700; 
     case GatePassStatus.inYard:
-      return Colors.green;
+      return Colors.red.shade700; 
     case GatePassStatus.leftTheYard:
-      return Colors.grey; 
+      return Colors.green.shade700; 
     case GatePassStatus.rejectedEntry:
-      return Colors.red;
+      return Colors.red.shade700; 
+    default:
+      return Colors.grey.shade700;
   }
 }
 
-
-String _getStatusText() {
+Widget _getLeftIconWidget() {
   switch (gatePass.gatePassStatus) {
     case GatePassStatus.pending:
-      return 'Pending';
+
+      return Icon(
+        Icons.hourglass_empty,
+        color: _getTruckIconColor(),
+        size: 28,
+      );
     case GatePassStatus.atGate:
-      return 'At Gate';
+      return Icon(
+        Icons.access_time,
+        color: _getTruckIconColor(),
+        size: 28,
+      );
     case GatePassStatus.inYard:
-      return 'In Yard';
+      return Icon(
+        Icons.warehouse,
+        color: _getTruckIconColor(),
+        size: 28,
+      );
     case GatePassStatus.leftTheYard:
-      return 'Left The Yard';
+      return Icon(
+        Icons.local_shipping,
+        color: _getTruckIconColor(),
+        size: 28,
+      );
     case GatePassStatus.rejectedEntry:
-      return 'Rejected';
+      return Icon(
+        Icons.cancel,
+        color: _getTruckIconColor(),
+        size: 28,
+      );
+    default:
+      return Icon(
+        Icons.help,
+        color: _getTruckIconColor(),
+        size: 28,
+      );
   }
 }
-
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -189,15 +313,11 @@ String _getStatusText() {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: _getStatusColor().withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(25),
+                  color: _getTruckIconBackgroundColor(),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  gatePass.gatePassStatus == GatePassStatus.inYard
-                      ? Icons.check_circle
-                      : Icons.access_time,
-                  color: _getStatusColor(),
-                  size: 28,
+                child: Center(
+                  child: _getLeftIconWidget(),
                 ),
               ),
               horizontalSpaceSmall,
@@ -214,37 +334,57 @@ String _getStatusText() {
                     ),
                     verticalSpaceTiny,
                     Text(
-                      gatePass.transactionNo ?? 'No Transaction',
+                      'Transaction No: ${gatePass.transactionNo ?? 'N/A'}',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey[600],
+                        color: Colors.blue.shade600,
                       ),
                     ),
-                    verticalSpaceTiny,
-                    Text(
-                      'Time In: ${gatePass.timeIn?.toLocal().toString().substring(11, 16) ?? 'N/A'}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
+                    if (gatePass.gatePassStatus == GatePassStatus.inYard &&
+                        gatePass.timeIn != null) ...[
+                      verticalSpaceTiny,
+                      Text(
+                        'Time In: ${gatePass.timeIn!.toLocal().toString().substring(0, 16).replaceAll('T', ' ')}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
                       ),
-                    ),
+                    ],
+                    if (gatePass.transporterName != null &&
+                        gatePass.transporterName!.isNotEmpty) ...[
+                      verticalSpaceTiny,
+                      Text(
+                        'Transporter: ${gatePass.transporterName}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(),
-                  borderRadius: BorderRadius.circular(12),
+                  color: _getStatusBackgroundColor(),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  _getStatusText(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _getStatusIcon(),
+                    const SizedBox(width: 6),
+                    Text(
+                      _getStatusText(),
+                      style: TextStyle(
+                        color: _getStatusTextColor(),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
