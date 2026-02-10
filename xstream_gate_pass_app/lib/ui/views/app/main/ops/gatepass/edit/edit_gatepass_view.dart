@@ -1618,25 +1618,171 @@ class GatePassEditView extends StatelessWidget {
                                             ),
                                           ),
 
-                                          // Container Size/Type Info
-                                          if (model.gatePass.containerSize !=
-                                              null) ...[
-                                            BuildInfoItem(
-                                              label: 'Container Size',
-                                              value: model
-                                                      .gatePass.containerSize ??
-                                                  '',
+                                          // Container Size Dropdown
+                                          Container(
+                                            margin: const EdgeInsets.only(
+                                                bottom: 12),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Container Size *',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                verticalSpaceTiny,
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    border: Border.all(
+                                                        color:
+                                                            Colors.grey[300]!),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: DropdownButtonFormField<
+                                                      String>(
+                                                    value: model
+                                                            .containerSizeOptions
+                                                            .where((option) =>
+                                                                option.label ==
+                                                                model.gatePass
+                                                                    .containerSize)
+                                                            .isNotEmpty
+                                                        ? model.gatePass
+                                                            .containerSize
+                                                        : null,
+                                                    decoration:
+                                                        InputDecoration(
+                                                      contentPadding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 12,
+                                                              vertical: 8),
+                                                      border: InputBorder.none,
+                                                      hintText:
+                                                          'Select Container Size',
+                                                      hintStyle: TextStyle(
+                                                          color:
+                                                              Colors.grey[400]),
+                                                    ),
+                                                    dropdownColor: Colors.white,
+                                                    isExpanded: true,
+                                                    items: model
+                                                        .containerSizeOptions
+                                                        .map((option) {
+                                                      return DropdownMenuItem<
+                                                          String>(
+                                                        value: option.label,
+                                                        child: Text(
+                                                          option.label,
+                                                          style: TextStyle(
+                                                              fontSize: 14),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      );
+                                                    }).toList(),
+                                                    onChanged: (value) {
+                                                      model.setContainerSize(
+                                                          value);
+                                                    },
+                                                    icon: Icon(
+                                                        Icons.arrow_drop_down,
+                                                        color:
+                                                            Colors.grey[600]),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                          if (model.gatePass.containerType !=
-                                              null) ...[
-                                            BuildInfoItem(
-                                              label: 'Container Type',
-                                              value: model
-                                                      .gatePass.containerType ??
-                                                  '',
+                                          ),
+
+                                          // Container Type Dropdown
+                                          Container(
+                                            margin: const EdgeInsets.only(
+                                                bottom: 12),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Container Type *',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                verticalSpaceTiny,
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    border: Border.all(
+                                                        color:
+                                                            Colors.grey[300]!),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: DropdownButtonFormField<
+                                                      String>(
+                                                    value: model
+                                                            .containerTypeOptions
+                                                            .where((option) =>
+                                                                option.code ==
+                                                                model
+                                                                    .selectedContainerTypeCode)
+                                                            .isNotEmpty
+                                                        ? model
+                                                            .selectedContainerTypeCode
+                                                        : null,
+                                                    decoration:
+                                                        InputDecoration(
+                                                      contentPadding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 12,
+                                                              vertical: 8),
+                                                      border: InputBorder.none,
+                                                      hintText:
+                                                          'Select Container Type',
+                                                      hintStyle: TextStyle(
+                                                          color:
+                                                              Colors.grey[400]),
+                                                    ),
+                                                    dropdownColor: Colors.white,
+                                                    isExpanded: true,
+                                                    items: model
+                                                        .containerTypeOptions
+                                                        .map((option) {
+                                                      return DropdownMenuItem<
+                                                          String>(
+                                                        value: option.code,
+                                                        child: Text(
+                                                          option.label,
+                                                          style: TextStyle(
+                                                              fontSize: 14),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      );
+                                                    }).toList(),
+                                                    onChanged: (value) {
+                                                      model.setContainerType(
+                                                          value);
+                                                    },
+                                                    icon: Icon(
+                                                        Icons.arrow_drop_down,
+                                                        color:
+                                                            Colors.grey[600]),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ],
+                                          ),
 
                                           // Delivery Type Radio Buttons
                                           Container(

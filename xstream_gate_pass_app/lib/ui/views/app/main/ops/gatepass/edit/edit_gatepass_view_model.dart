@@ -49,7 +49,78 @@ import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base
 import 'package:xstream_gate_pass_app/core/utils/app_permissions.dart';
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
 
+class ContainerDropdownOption {
+  final String label;
+  final String code;
+  final int id;
+
+  const ContainerDropdownOption({
+    required this.label,
+    required this.code,
+    required this.id,
+  });
+}
+
+
 class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
+    static const List<ContainerDropdownOption> _fallbackContainerSizeOptions = [
+    ContainerDropdownOption(label: '20 FT', code: '20', id: 1),
+    ContainerDropdownOption(label: '22 FT', code: '22', id: 1),
+    ContainerDropdownOption(label: '40 FT', code: '40', id: 2),
+    ContainerDropdownOption(label: '45 FT', code: '45', id: 3),
+  ];
+
+  static const List<ContainerDropdownOption> _fallbackContainerTypeOptions = [
+    ContainerDropdownOption(label: 'General Purpose (GP)', code: 'GP', id: 1),
+    ContainerDropdownOption(label: 'Reefer (RT/RC/RS)', code: 'RT', id: 2),
+    ContainerDropdownOption(label: 'Tank (TD/TG/TN)', code: 'TD', id: 3),
+    ContainerDropdownOption(label: 'Open Top (UT/UP)', code: 'UT', id: 4),
+    ContainerDropdownOption(label: 'Flat/Platform (PF/PC/PS/PL)', code: 'PF', id: 5),
+  ];
+
+  List<ContainerDropdownOption> get containerSizeOptions {
+    final sizeLabels = _isoTypeService.isoTypes
+        .map((iso) => iso.size)
+        .where((size) => size.isNotEmpty)
+        .map(_containerSizeLabelFromCode)
+        .toSet()
+        .toList()
+      ..sort();
+
+    if (sizeLabels.isEmpty) {
+      return _fallbackContainerSizeOptions;
+    }
+
+    return sizeLabels.map((label) {
+      return ContainerDropdownOption(
+        label: label,
+        code: _containerSizeCodeFromLabel(label) ?? label,
+        id: _containerSizeIdFromLabel(label),
+      );
+    }).toList();
+  }
+
+  List<ContainerDropdownOption> get containerTypeOptions {
+    final types = _isoTypeService.isoTypes
+        .map((iso) => iso.type)
+        .where((type) => type.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    if (types.isEmpty) {
+      return _fallbackContainerTypeOptions;
+    }
+
+    return types.map((type) {
+      final label = _containerTypeLabelFromCode(type);
+      return ContainerDropdownOption(
+        label: label,
+        code: type,
+        id: _containerTypeIdForCode(type),
+      );
+    }).toList();
+  }
   GatePassEditViewModel(this._gatePass);
   GatePassAccess _gatePass;
   GatePassAccess get gatePass => _gatePass;
@@ -1905,6 +1976,179 @@ Future<void> authorizeEntry() async {
         notifyListeners();
       }
     }
+  }
+String? get selectedContainerTypeCode =>
+      _extractContainerTypeCode(gatePass.containerType);
+
+  void setContainerSize(String? sizeLabel) {
+    if (sizeLabel == null || sizeLabel.isEmpty) {
+      gatePass.containerSize = null;
+      gatePass.containerSizeId = null;
+    } else {
+      gatePass.containerSize = sizeLabel;
+      gatePass.containerSizeId = _containerSizeIdFromLabel(sizeLabel);
+    }
+
+    _syncContainerTypeWithSize();
+    notifyListeners();
+  }
+
+  void setContainerType(String? typeCode) {
+    if (typeCode == null || typeCode.isEmpty) {
+      gatePass.containerType = null;
+      gatePass.containerTypeId = null;
+      notifyListeners();
+      return;
+    }
+
+    gatePass.containerTypeId = _containerTypeIdForCode(typeCode);
+    gatePass.containerType = _composeContainerType(typeCode);
+    notifyListeners();
+  }
+
+  void _syncContainerTypeWithSize() {
+    final typeCode = _extractContainerTypeCode(gatePass.containerType);
+    if (typeCode == null || typeCode.isEmpty) {
+      return;
+    }
+    gatePass.containerType = _composeContainerType(typeCode);
+  }
+
+  String _composeContainerType(String typeCode) {
+    final sizeCode = _containerSizeCodeFromLabel(gatePass.containerSize);
+    if (sizeCode == null || sizeCode.isEmpty) {
+      return typeCode;
+    }
+    return '$sizeCode$typeCode';
+  }
+
+  int _containerSizeIdFromLabel(String label) {
+    switch (label) {
+      case '20 FT':
+      case '22 FT':
+        return 1;
+      case '40 FT':
+        return 2;
+      case '45 FT':
+        return 3;
+      default:
+        return 0;
+    }
+  }
+
+  String _containerSizeLabelFromCode(String sizeCode) {
+    switch (sizeCode) {
+      case '20':
+        return '20 FT';
+      case '22':
+        return '22 FT';
+      case '42':
+        return '40 FT';
+      case '45':
+        return '45 FT';
+      case '25':
+      case '26':
+      case '28':
+      case '2E':
+        return '20 FT';
+      case '4C':
+        return '40 FT';
+      case 'L0':
+      case 'L2':
+      case 'L5':
+        return '45 FT';
+    }
+
+    if (sizeCode.startsWith('2')) {
+      return '20 FT';
+    }
+    if (sizeCode.startsWith('4')) {
+      return '40 FT';
+    }
+
+    final numericSize = int.tryParse(sizeCode);
+    if (numericSize != null) {
+      return '$numericSize FT';
+    }
+    return sizeCode;
+  }
+
+  String _containerTypeLabelFromCode(String typeCode) {
+    switch (typeCode.toUpperCase()) {
+      case 'GP':
+        return 'General Purpose (GP)';
+      case 'RT':
+      case 'RC':
+      case 'RS':
+        return 'Reefer ($typeCode)';
+      case 'TD':
+      case 'TG':
+      case 'TN':
+        return 'Tank ($typeCode)';
+      case 'UT':
+      case 'UP':
+        return 'Open Top ($typeCode)';
+      case 'PF':
+      case 'PC':
+      case 'PS':
+      case 'PL':
+        return 'Flat/Platform ($typeCode)';
+      default:
+        return typeCode;
+    }
+  }
+
+  int _containerTypeIdForCode(String typeCode) {
+    switch (typeCode.toUpperCase()) {
+      case 'GP':
+        return 1;
+      case 'RT':
+      case 'RC':
+      case 'RS':
+        return 2;
+      case 'TD':
+      case 'TG':
+      case 'TN':
+        return 3;
+      case 'UT':
+      case 'UP':
+        return 4;
+      case 'PF':
+      case 'PC':
+      case 'PS':
+      case 'PL':
+        return 5;
+      default:
+        return 1;
+    }
+  }
+
+  String? _containerSizeCodeFromLabel(String? label) {
+    switch (label) {
+      case '20 FT':
+        return '20';
+      case '22 FT':
+        return '22';
+      case '40 FT':
+        return '40';
+      case '45 FT':
+        return '45';
+      default:
+        return null;
+    }
+  }
+
+  String? _extractContainerTypeCode(String? containerType) {
+    if (containerType == null || containerType.isEmpty) {
+      return null;
+    }
+
+    final normalized = containerType.toUpperCase();
+    if (normalized.length <= 2) {
+      return normalized;
+    }
+
+    return normalized.substring(normalized.length - 2);
   }
 
   Future<void> goToCamView(FileStoreType fileStoreType) async {
