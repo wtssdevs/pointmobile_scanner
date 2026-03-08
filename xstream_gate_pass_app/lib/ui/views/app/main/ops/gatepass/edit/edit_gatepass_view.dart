@@ -76,6 +76,7 @@ class GatePassEditView extends StatelessWidget {
   final TextEditingController driverLicenseTypeTextController =
       TextEditingController();
   final FocusNode driverLicenseTypeTextFocusNode = FocusNode();
+  final FocusNode containerNumberTextFocusNode = FocusNode();
 
   final formKeyAtGate = GlobalKey<FormState>();
   onModelSet(GatePassAccess data) {
@@ -1401,6 +1402,29 @@ class GatePassEditView extends StatelessWidget {
                                                         onChanged: (value) {
                                                           model.setTransporter(
                                                               value);
+                                                              if (value != null &&
+                                                              model
+                                                                      .gatePass
+                                                                      .gatePassBookingType ==
+                                                                  GatePassBookingType
+                                                                      .containers &&
+                                                              model
+                                                                  .isManualInput &&
+                                                              !model
+                                                                  .isExitMode) {
+                                                            WidgetsBinding
+                                                                .instance
+                                                                .addPostFrameCallback(
+                                                                    (_) {
+                                                              if (containerNumberTextFocusNode
+                                                                  .canRequestFocus) {
+                                                                FocusScope.of(
+                                                                        context)
+                                                                    .requestFocus(
+                                                                        containerNumberTextFocusNode);
+                                                              }
+                                                            });
+                                                          }
                                                         },
                                                         icon: Icon(
                                                             Icons
@@ -1566,6 +1590,8 @@ class GatePassEditView extends StatelessWidget {
                                                 TextField(
                                                   controller: model
                                                       .containerNumberController,
+                                                      focusNode:
+                                                      containerNumberTextFocusNode,
                                                   decoration: InputDecoration(
                                                     hintText:
                                                         'Enter Container Number or Scan',
