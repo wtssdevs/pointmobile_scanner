@@ -101,6 +101,7 @@ class GatePassAccess {
   int? containerSizeId;
   int? containerTypeId;
   String? containerType;
+  String? containerIsoCode;
   String? containerCustomer;
   String? containerShippingLine;
   String? containerDepot;
@@ -192,6 +193,7 @@ class GatePassAccess {
     this.containerNumber,
     this.containerSize,
     this.containerType,
+    this.containerIsoCode,
     this.containerSizeId,
     this.containerTypeId,
     this.containerCustomer,
@@ -257,7 +259,9 @@ class GatePassAccess {
             containerSize: containerSize,
             containerSizeId: containerSizeId,
             containerType: containerType,
+            containerIsoCode: containerIsoCode,
             containerTypeId: containerTypeId,
+            description: containerIsoCode ?? containerType,
             containerCustomer: containerCustomer,
             containerShippingLine: containerShippingLine,
             containerDepot: containerDepot,
@@ -282,7 +286,9 @@ class GatePassAccess {
           containerSize: containerSize,
           containerSizeId: containerSizeId,
           containerType: containerType,
+          containerIsoCode: containerIsoCode,
           containerTypeId: containerTypeId,
+          description: containerIsoCode ?? containerType,
           containerCustomer: containerCustomer,
           containerShippingLine: containerShippingLine,
           containerDepot: containerDepot,
@@ -428,6 +434,7 @@ class GatePassAccess {
         containerSize: json["containerSize"],
         containerSizeId: json["containerSizeId"],
         containerType: json["containerType"],
+        containerIsoCode: json["containerIsoCode"] ?? json["containerType"],
         containerTypeId: json["containerTypeId"],
 
         containerCustomer: json["containerCustomer"],
@@ -528,7 +535,8 @@ class GatePassAccess {
         "containerId": containerId,
         "containerNumber": containerNumber,
         "containerSize": containerSize,
-        "containerType": containerType,
+        "containerType": containerIsoCode ?? containerType,
+        "containerIsoCode": containerIsoCode,
         "containerCustomer": containerCustomer,
         "containerShippingLine": containerShippingLine,
         "containerDepot": containerDepot,

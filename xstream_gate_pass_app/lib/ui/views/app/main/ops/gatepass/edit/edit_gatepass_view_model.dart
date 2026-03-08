@@ -1551,6 +1551,7 @@ Future<void> authorizeEntry() async {
     String? savedContainerNumber = gatePass.containerNumber;
     String? savedContainerSize = gatePass.containerSize;
     String? savedContainerType = gatePass.containerType;
+    String? savedContainerIsoCode = gatePass.containerIsoCode;
     int? savedContainerSizeId = gatePass.containerSizeId;
     int? savedContainerTypeId = gatePass.containerTypeId;
     String? savedContainerShippingLine = gatePass.containerShippingLine;
@@ -1575,6 +1576,7 @@ Future<void> authorizeEntry() async {
         gatePass.containerNumber = savedContainerNumber;
         gatePass.containerSize = savedContainerSize;
         gatePass.containerType = savedContainerType;
+        gatePass.containerIsoCode = savedContainerIsoCode;
         gatePass.containerSizeId = savedContainerSizeId;
         gatePass.containerTypeId = savedContainerTypeId;
         gatePass.containerShippingLine = savedContainerShippingLine;
@@ -1795,6 +1797,7 @@ Future<void> authorizeEntry() async {
 
       if (contInfo != null) {
         gatePass.containerNumber = contInfo.containerNumber;
+        gatePass.containerIsoCode = contInfo.isoType.isNotEmpty ? contInfo.isoType : null;
         containerNumberController.text = contInfo.containerNumber ?? '';
         if (gatePass.containerId == null || gatePass.containerId!.isEmpty) {
           gatePass.containerId = Guid.newGuidAsString;
@@ -3312,6 +3315,7 @@ String? get selectedContainerTypeCode =>
       gatePass.containerSize = firstContainer.containerSize;
       gatePass.containerSizeId = firstContainer.containerSizeId;
       gatePass.containerType = firstContainer.containerType;
+      gatePass.containerIsoCode = firstContainer.containerIsoCode ?? firstContainer.containerType;
       gatePass.containerTypeId = firstContainer.containerTypeId;
 
       // Set IDs first

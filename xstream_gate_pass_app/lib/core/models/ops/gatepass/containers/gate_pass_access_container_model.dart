@@ -54,6 +54,7 @@ class GatePassAccessContainerModel {
   // Additional properties from the existing class that might be needed
   String? containerSize;
   String? containerType;
+  String? containerIsoCode;
   String? containerCustomer;
   String? containerShippingLine;
   String? containerDepot;
@@ -86,6 +87,7 @@ class GatePassAccessContainerModel {
     this.gatePassAccessId,
     this.containerSize,
     this.containerType,
+    this.containerIsoCode,
     this.containerCustomer,
     this.containerShippingLine,
     this.containerDepot,
@@ -121,6 +123,8 @@ class GatePassAccessContainerModel {
       containerSizeId: json["containerSizeId"],
 
       containerTypeId: json["containerTypeId"],
+      containerType: json["containerType"],
+      containerIsoCode: json["containerIsoCode"] ?? json["containerType"],
 
       // this.containerSize,
       //this.containerType,
@@ -165,6 +169,8 @@ Map<String, dynamic> toMap() {
     "customerId": customerId, 
     "containerSizeId": containerSizeId ?? 0,
     "containerTypeId": containerTypeId ?? 0,
+    "containerType": containerIsoCode ?? containerType,
+    "containerIsoCode": containerIsoCode,
     "branchId": branchId ?? 0,
     "depotId": depotId,  
     "gatePassAccessId": gatePassAccessId,

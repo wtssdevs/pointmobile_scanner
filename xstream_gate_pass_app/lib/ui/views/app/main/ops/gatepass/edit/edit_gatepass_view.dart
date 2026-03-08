@@ -1618,6 +1618,43 @@ class GatePassEditView extends StatelessWidget {
                                             ),
                                           ),
 
+                                          Container(
+                                            margin: const EdgeInsets.only(
+                                                bottom: 12),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "Detected ISO Code",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                verticalSpaceTiny,
+                                                Container(
+                                                  width: double.infinity,
+                                                  padding: const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 12),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey[100],
+                                                    border: Border.all(
+                                                        color: Colors.grey[300]!),
+                                                    borderRadius:
+                                                        BorderRadius.circular(8),
+                                                  ),
+                                                  child: Text(
+                                                    model.gatePass.containerIsoCode ?? '',
+                                                    style: const TextStyle(fontSize: 14),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+
                                           // Container Size Dropdown
                                           Container(
                                             margin: const EdgeInsets.only(
