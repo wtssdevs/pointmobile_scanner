@@ -107,6 +107,7 @@ class GatePassEditView extends StatelessWidget {
     if (model.isManualInput) {
       if (model.isManualEntryWizard &&
           !model.isExitMode &&
+          model.gatePass.gatePassBookingType != GatePassBookingType.visitor &&
           !model.manualEntryScanComplete) {
         Fluttertoast.showToast(
             msg:
@@ -120,11 +121,6 @@ class GatePassEditView extends StatelessWidget {
       }
     }
     if (model.isManualInput) {
-      if (model.gatePass.transporterId == null) {
-        model.setValidationMessage("Transporter is required");
-      } else {
-        model.clearValidationMessage("Transporter is required");
-      }
       if (model.gatePass.vehicleRegNumber == null &&
           model.gatePass.vehicleRegNumberValidation == null) {
         model.setValidationMessage("Vehicle registration is required");
@@ -143,15 +139,23 @@ class GatePassEditView extends StatelessWidget {
         model.clearValidationMessage("Driver name is required");
       }
 
-      if (model.gatePass.driverIdNo == null &&
-          model.gatePass.driverIdNoValidation == null) {
-        model.setValidationMessage("Driver ID is required");
-      } else {
-        model.clearValidationMessage("Driver ID is required");
-        // Copy scanned data to main field if not set
+      if (model.gatePass.gatePassBookingType != GatePassBookingType.visitor) {
+        if (model.gatePass.transporterId == null) {
+          model.setValidationMessage("Transporter is required");
+        } else {
+          model.clearValidationMessage("Transporter is required");
+        }
+
         if (model.gatePass.driverIdNo == null &&
-            model.gatePass.driverIdNoValidation != null) {
-          model.gatePass.driverIdNo = model.gatePass.driverIdNoValidation;
+            model.gatePass.driverIdNoValidation == null) {
+          model.setValidationMessage("Driver ID is required");
+        } else {
+          model.clearValidationMessage("Driver ID is required");
+          // Copy scanned data to main field if not set
+          if (model.gatePass.driverIdNo == null &&
+              model.gatePass.driverIdNoValidation != null) {
+            model.gatePass.driverIdNo = model.gatePass.driverIdNoValidation;
+          }
         }
       }
 

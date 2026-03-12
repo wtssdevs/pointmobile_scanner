@@ -122,13 +122,17 @@ class GatePassViewModel extends BaseViewModel with AppViewBaseHelper {
       final previouslyFetchedItemsCount =
           pagingController.itemList?.length ?? 0;
 
+      var visibleItems = _pagedList.items
+                .where((item) => item.gatePassStatus != GatePassStatus.pending)
+                .toList();
+
       final isLastPage = _pagedList.isLastPage(previouslyFetchedItemsCount);
 
       if (isLastPage) {
-        pagingController.appendLastPage(_pagedList.items);
+        pagingController.appendLastPage(visibleItems);
       } else {
         _nextPage = pageKey + 1;
-        pagingController.appendPage(_pagedList.items, _nextPage);
+        pagingController.appendPage(visibleItems, _nextPage);
       }
       log.i("fetchPage | newItems: ${_pagedList.items.length} ");
     } catch (error) {

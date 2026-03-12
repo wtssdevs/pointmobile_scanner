@@ -170,6 +170,9 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   bool get isManualInput =>
       gatePass.externalId == null || gatePass.externalId!.isEmpty;
+
+  bool get isVisitor =>
+      gatePass.gatePassBookingType == GatePassBookingType.visitor;
   bool get hasPreBooking => !isManualInput;
 
   bool get isManualEntryWizard => isManualInput && !_isExitMode;
@@ -1509,7 +1512,8 @@ Future<void> authorizeEntry() async {
     }
 
     // Check transporter
-    if (gatePass.transporterId == null) {
+    if (gatePass.gatePassBookingType != GatePassBookingType.visitor &&
+        gatePass.transporterId == null) {
       scrollToWidget(logisticsInfoCardKey);
       Fluttertoast.showToast(
         msg: "Please select a transporter before authorizing entry",
@@ -2997,7 +3001,7 @@ String? get selectedContainerTypeCode =>
     // Now set the transporter
     gatePass.transporterId = transporterId;
 
-    if (isManualInput) {
+    if (isManualInput && !isVisitor) {
       if (transporterId != null) {
         clearValidationMessage("Transporter is required for manual entries");
 

@@ -586,6 +586,7 @@ class GatePassAccess {
       vehicleVinNumber: gatePassVisitorAccess.vehicleVinNumber,
       vehicleEngineNumber: gatePassVisitorAccess.vehicleEngineNumber,
       vehicleMake: gatePassVisitorAccess.vehicleMake,
+      extensionData: gatePassVisitorAccess.extensionData,
     );
   }
 }

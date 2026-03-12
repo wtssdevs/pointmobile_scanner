@@ -31,25 +31,23 @@ class GateAccessManualListViewModel extends BaseViewModel {
     await refreshList();
   }
 
-Future<void> refreshList() async {
+  Future<void> refreshList() async {
   setBusy(true);
 
-      var allEntries = await _gatePassService.getManualEntries();
-    
+ 
 
-    
-    if (allEntries.isNotEmpty) {
+  var allEntries = await _gatePassService.getManualEntries();
 
-    }
-    
-    _manualEntries = allEntries;  
-    
+  _manualEntries = allEntries
+      .where((entry) => entry.gatePassStatus != GatePassStatus.pending)
+      .toList();
 
-  
+
   setBusy(false);
   notifyListeners();
+
+  }
   
-}
   Future<void> showCheckInOptions() async {
     final result = await _bottomSheetService.showCustomSheet(
       variant: BottomSheetType.manualEntrySelection,
