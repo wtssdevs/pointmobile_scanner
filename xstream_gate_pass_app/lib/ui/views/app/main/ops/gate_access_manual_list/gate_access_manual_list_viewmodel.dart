@@ -1,5 +1,6 @@
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/app/app.bottomsheets.dart';
@@ -10,7 +11,6 @@ import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
-import 'package:xstream_gate_pass_app/app/app.logger.dart';
 
 class GateAccessManualListViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
@@ -18,34 +18,64 @@ class GateAccessManualListViewModel extends BaseViewModel {
   final _gatePassService = locator<GatePassService>();
   final _localStorageService = locator<LocalStorageService>();
 
- 
-  List<GatePassAccess> _manualEntries = [];  
-  List<GatePassAccess> get manualEntries => _manualEntries;  
+  final TextEditingController filterController = TextEditingController();
+  List<GatePassAccess> _allManualEntries = [];
+  List<GatePassAccess> _manualEntries = [];
+  List<GatePassAccess> get manualEntries => _manualEntries;
+  String _activeVehicleSearchQuery = '';
 
   bool get hasInYardEntries =>
       manualEntries.any((e) => e.gatePassStatus == GatePassStatus.inYard);
-      
-        get log => null;
 
   Future<void> initialize() async {
     await refreshList();
   }
 
   Future<void> refreshList() async {
-  setBusy(true);
+    setBusy(true);
 
- 
+    var allEntries = await _gatePassService.getManualEntries();
 
-  var allEntries = await _gatePassService.getManualEntries();
+  _manualEntries = allEntries.where((entry) {
+    final isOperationalBooking =
+        entry.gatePassBookingType == GatePassBookingType.breakBulk ||
+            entry.gatePassBookingType == GatePassBookingType.containers;
+    final isCurrentlyInYard = entry.gatePassStatus == GatePassStatus.inYard;
 
-  _manualEntries = allEntries
-      .where((entry) => entry.gatePassStatus != GatePassStatus.pending)
-      .toList();
+    return isOperationalBooking && isCurrentlyInYard;
+  }).toList();
 
+    _applyFilters();
 
-  setBusy(false);
-  notifyListeners();
+    setBusy(false);
+    notifyListeners();
+  }
 
+  void onFilterValueChanged(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      _activeVehicleSearchQuery = '';
+      _applyFilters();
+      notifyListeners();
+    }
+  }
+
+  void findByVehicleRegNumber() {
+    _activeVehicleSearchQuery = filterController.text.trim().toLowerCase();
+    _applyFilters();
+    notifyListeners();
+  }
+
+  void _applyFilters() {
+    final query = _activeVehicleSearchQuery;
+    if (query.isEmpty) {
+      _manualEntries = List<GatePassAccess>.from(_allManualEntries);
+      return;
+    }
+
+    _manualEntries = _allManualEntries.where((entry) {
+      final vehicleReg = (entry.vehicleRegNumber ?? '').toLowerCase();
+      return vehicleReg.contains(query);
+    }).toList();
   }
   
   Future<void> showCheckInOptions() async {
@@ -141,5 +171,11 @@ class GateAccessManualListViewModel extends BaseViewModel {
     if (result != null) {
       await refreshList();
     }
+  }
+
+  @override
+  void dispose() {
+    filterController.dispose();
+    super.dispose();
   }
 }

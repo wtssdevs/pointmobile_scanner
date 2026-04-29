@@ -2423,7 +2423,8 @@ class GatePassEditView extends StatelessWidget {
                                           BuildInfoItem(
                                               label: 'Type',
                                               value: model
-                                                      .gatePass.containerType ??
+                                                      .selectedContainerTypeCode ??
+                                                  model.gatePass.containerType ??
                                                   ''),
                                         ],
                                       ),

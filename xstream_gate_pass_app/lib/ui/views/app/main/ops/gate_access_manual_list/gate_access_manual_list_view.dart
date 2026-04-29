@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart';
+import 'package:xstream_gate_pass_app/core/utils/app_permissions.dart';
+import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/ui_helpers.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/Widgets/finder_app_bar.dart';
 import 'gate_access_manual_list_viewmodel.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/nav_action_button.dart';
 
@@ -11,17 +15,34 @@ class GateAccessManualListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double searchWidth =
+        getDeviceType(MediaQuery.of(context)) == DeviceScreenType.tablet
+            ? MediaQuery.of(context).size.height * 0.8
+            : MediaQuery.of(context).size.height * 0.5;
     return ViewModelBuilder<GateAccessManualListViewModel>.reactive(
       viewModelBuilder: () => GateAccessManualListViewModel(),
       onViewModelReady: (model) => model.initialize(),
       builder: (context, model, child) => Scaffold(
         appBar: AppBar(
-          title: const Text('Manual Entries'),
-          centerTitle: true,
+          leadingWidth: 25,
+          title: FinderAppBar(
+            controller: model.filterController,
+            searchWidth: searchWidth,
+            onChanged: model.onFilterValueChanged,
+            placeholder: 'Search',
+          ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () => model.refreshList(),
+              iconSize: 28,
+              onPressed: model.findByVehicleRegNumber,
+              icon: const FaIcon(FontAwesomeIcons.truck),
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.refresh,
+                color: kcPrimaryColor,
+              ),
+              onPressed: model.refreshList,
             ),
           ],
         ),
