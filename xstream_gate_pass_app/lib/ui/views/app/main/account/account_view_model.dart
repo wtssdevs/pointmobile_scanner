@@ -7,10 +7,11 @@ import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 
+import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart';
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
-import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/models/account/GetCurrentLoginInformation.dart';
 import 'package:xstream_gate_pass_app/core/models/device/device_config.dart';
+import 'package:xstream_gate_pass_app/core/services/services/account/auth_session_coordinator.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
@@ -23,6 +24,7 @@ class AccountViewModel extends BaseViewModel {
       locator<LocalStorageService>();
   final _connectionService = locator<ConnectionService>();
   final _authenticationService = locator<AuthenticationService>();
+  final _authSessionCoordinator = locator<AuthSessionCoordinator>();
   final _backgroundJobInfoRepository = locator<BackgroundJobInfoRepository>();
   final DialogService _dialogService = locator<DialogService>();
 
@@ -80,8 +82,11 @@ class AccountViewModel extends BaseViewModel {
   }
 
   void handelLogout() async {
-    _localStorageService.logout();
-    _navigationService.clearStackAndShow(Routes.loginView);
+    await _authSessionCoordinator.logoutPortal(AuthPortal.xac);
+  }
+
+  Future<void> switchToCms() async {
+    await _authSessionCoordinator.switchToPortal(AuthPortal.cms);
   }
 
   logout() async {

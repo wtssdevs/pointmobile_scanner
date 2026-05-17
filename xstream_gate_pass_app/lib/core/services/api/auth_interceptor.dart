@@ -37,27 +37,26 @@ class AuthInterceptor extends InterceptorsWrapper {
   ) async {
     // //Getting cached Access Token, or getting it from storage and caching it
 
-    if (options.path == "/api/TokenAuth/Authenticate" ||
-        options.path == AppConst.authentication) {
+    final requiresAuth = options.extra[AppConst.requiresAuthExtraKey] != false &&
+        options.headers['requires-token'] != 'false';
+
+    options.headers.remove('requires-token');
+    options.headers.remove('requiresToken');
+    options.headers["Accept"] = "application/json";
+
+    if (!requiresAuth) {
       return handler.next(options);
     }
 
     var token = await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
 
     var authHeader = options.headers["authorization"];
-    if (authHeader == null && token != null) {
-      options.headers["authorization"] = "Bearer $token";
+    if (authHeader == null && token != null && token.accessToken != null) {
+      options.headers["authorization"] = "Bearer ${token.accessToken}";
+      if (token.tenantId != null) {
+        options.headers["Abp-TenantId"] = token.tenantId;
+      }
     }
-    options.headers["Accept"] = "application/json";
-
-    if (options.headers['requires-token'] == 'false') {
-      // if the request doesn't need token, then just continue to the next
-      // interceptor
-      options.headers.remove('requiresToken'); //remove the auxiliary header
-      return handler.next(options);
-    }
-
-    options.headers.addAll({'authorization': 'Bearer ${token!}'});
     return handler.next(options);
   }
 }

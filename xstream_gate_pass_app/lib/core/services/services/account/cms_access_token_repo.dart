@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
@@ -15,16 +16,18 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 
 @InitializableSingleton()
-class AccessTokenRepo {
-  final log = getLogger('AccessTokenRepo');
+class CmsAccessTokenRepo {
+  final log = getLogger('CmsAccessTokenRepo');
   final _environmentService = locator<EnvironmentService>();
   final LocalStorageService _localStorageService =
       locator<LocalStorageService>();
+
   Future<void> init() async {
     log.d('Initialized');
   }
 
   Completer<AuthenticateResultModel?>? _refreshTokenCompleter;
+
   Future<AuthenticateResultModel?> getAccessTokenFromStorageOrRefresh() async {
     if (_refreshTokenCompleter != null) {
       return _refreshTokenCompleter!.future;
@@ -45,31 +48,30 @@ class AccessTokenRepo {
   }
 
   void logOutCurrentUser() async {
-    _localStorageService.logoutPortal(AuthPortal.xac);
-    await locator<AuthSessionCoordinator>().routeAfterPortalLogout(AuthPortal.xac);
+    _localStorageService.logoutPortal(AuthPortal.cms);
+    await locator<AuthSessionCoordinator>().routeAfterPortalLogout(AuthPortal.cms);
   }
 
   Future<AuthenticateResultModel?> processAuthenticateResult(
       AuthenticateResultModel authenticateResultModel,
       UserCredential userCredential) async {
-    if (authenticateResultModel.accessToken!.isNotEmpty) {
-      // Successfully logged in
-
+    if (authenticateResultModel.accessToken != null &&
+        authenticateResultModel.accessToken!.isNotEmpty) {
       authenticateResultModel.userNameOrEmailAddress =
           userCredential.userNameOrEmailAddress;
       authenticateResultModel.password = userCredential.password;
+      authenticateResultModel.tenancyName = userCredential.tenancyName;
       userCredential.tenantId ??= authenticateResultModel.tenantId;
       authenticateResultModel.setUserCredentials(
           tenancyName: userCredential.tenancyName,
           userNameOrEmailAddress: userCredential.userNameOrEmailAddress,
           password: userCredential.password,
-          tenantId: userCredential.tenantId);
+          tenantId: userCredential.tenantId ?? authenticateResultModel.tenantId);
 
-        _localStorageService.setAuthTokenForPortal(
-          AuthPortal.xac, authenticateResultModel);
-        _localStorageService.saveIsLoggedInForPortal(AuthPortal.xac, true);
-        _localStorageService.setLastSessionPortal(AuthPortal.xac);
-      _localStorageService.clearForgotPassword();
+      _localStorageService.setAuthTokenForPortal(
+          AuthPortal.cms, authenticateResultModel);
+      _localStorageService.saveIsLoggedInForPortal(AuthPortal.cms, true);
+      _localStorageService.setLastSessionPortal(AuthPortal.cms);
     } else {
       logOutCurrentUser();
     }
@@ -77,11 +79,29 @@ class AccessTokenRepo {
     return authenticateResultModel;
   }
 
+  AuthenticateResultModel buildAuthenticateResultModel(
+      dynamic result, UserCredential userCredential) {
+    AuthenticateResultModel authenticateResultModel;
+
+    if (result is String) {
+      authenticateResultModel = AuthenticateResultModel(accessToken: result);
+    } else if (result is Map<String, dynamic>) {
+      authenticateResultModel = AuthenticateResultModel.fromJson(result);
+    } else {
+      authenticateResultModel = AuthenticateResultModel();
+    }
+
+    authenticateResultModel.tenantId ??=
+        userCredential.tenantId ?? _readTenantIdFromToken(authenticateResultModel.accessToken);
+    authenticateResultModel.userId ??=
+        _readUserIdFromToken(authenticateResultModel.accessToken);
+
+    return authenticateResultModel;
+  }
+
   Future<AuthenticateResultModel?> _refreshToken() async {
     try {
-      // do actual refresh token logic here
-      var token = _localStorageService.getAuthTokenForPortal(AuthPortal.xac);
-      //get user credentials from storage
+      var token = _localStorageService.getAuthTokenForPortal(AuthPortal.cms);
       if (token == null ||
           token.accessToken == null ||
           token.autTokenIsEmpty()) {
@@ -89,7 +109,6 @@ class AccessTokenRepo {
         return null;
       }
 
-      //check if token has not expired
       if (!tokenHasExpired(token.accessToken)) {
         return token;
       }
@@ -110,14 +129,12 @@ class AccessTokenRepo {
       );
 
       final options = BaseOptions(
-        baseUrl: _environmentService.getBaseUrl(AuthPortal.xac),
+        baseUrl: _environmentService.getBaseUrl(AuthPortal.cms),
         connectTimeout: const Duration(seconds: 60),
         receiveTimeout: const Duration(seconds: 60),
       );
 
       var dioClient = Dio(options);
-
-      //TODO add error handler here
 
       var response = await dioClient.post(AppConst.authentication,
           data: userCredential.toJson());
@@ -126,7 +143,7 @@ class AccessTokenRepo {
 
       if (apiResponse.success != null && apiResponse.success == true) {
         var authenticateResultModel =
-            AuthenticateResultModel.fromJson(apiResponse.result);
+            buildAuthenticateResultModel(apiResponse.result, userCredential);
 
         return await processAuthenticateResult(
             authenticateResultModel, userCredential);
@@ -140,5 +157,48 @@ class AccessTokenRepo {
       logOutCurrentUser();
       return null;
     }
+  }
+
+  int? _readTenantIdFromToken(String? accessToken) {
+    return _readIntClaim(accessToken, [
+      'tenantId',
+      'TenantId',
+      'http://www.aspnetboilerplate.com/identity/claims/tenantId',
+    ]);
+  }
+
+  int? _readUserIdFromToken(String? accessToken) {
+    return _readIntClaim(accessToken, [
+      'userId',
+      'UserId',
+      'sub',
+      'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+    ]);
+  }
+
+  int? _readIntClaim(String? accessToken, List<String> keys) {
+    if (accessToken == null || accessToken.isEmpty) {
+      return null;
+    }
+
+    try {
+      final claims = JwtDecoder.decode(accessToken);
+      for (final key in keys) {
+        final value = claims[key];
+        if (value is int) {
+          return value;
+        }
+        if (value is String) {
+          final parsed = int.tryParse(value);
+          if (parsed != null) {
+            return parsed;
+          }
+        }
+      }
+    } catch (e) {
+      log.i(e);
+    }
+
+    return null;
   }
 }

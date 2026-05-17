@@ -1,0 +1,88 @@
+import 'package:dio/dio.dart' as DioClient;
+import 'package:stacked/stacked_annotations.dart';
+import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/app/app.logger.dart';
+import 'package:xstream_gate_pass_app/core/app_const.dart';
+import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart';
+import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart';
+import 'package:xstream_gate_pass_app/core/models/account/GetCurrentLoginInformation.dart';
+import 'package:xstream_gate_pass_app/core/models/account/UserCredential.dart';
+import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
+import 'package:xstream_gate_pass_app/core/services/api/cms_api_manager.dart';
+import 'package:xstream_gate_pass_app/core/services/services/account/cms_access_token_repo.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
+
+@LazySingleton()
+class CmsAuthenticationService {
+  final log = getLogger('CmsAuthenticationService');
+  final CmsApiManager _apiManager = locator<CmsApiManager>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
+  final CmsAccessTokenRepo _accessTokenRepo = locator<CmsAccessTokenRepo>();
+
+  Future<AuthenticateResultModel?> login({
+    required UserCredential userCredential,
+  }) async {
+    var authResponse = await _apiManager.post(
+      AppConst.authentication,
+      data: userCredential.toJson(),
+      options: DioClient.Options(
+        extra: {AppConst.requiresAuthExtraKey: false},
+      ),
+      showLoader: true,
+    );
+    var apiResponse = ApiResponse.fromJson(authResponse);
+
+    var authenticateResultModel =
+        _accessTokenRepo.buildAuthenticateResultModel(
+            apiResponse.result, userCredential);
+
+    await processAuthenticateResult(authenticateResultModel, userCredential);
+    return authenticateResultModel;
+  }
+
+  Future processAuthenticateResult(
+      AuthenticateResultModel authenticateResultModel,
+      UserCredential userCredential) async {
+    await _accessTokenRepo.processAuthenticateResult(
+        authenticateResultModel, userCredential);
+  }
+
+  void logOutCurrentUser() {
+    _localStorageService.logoutPortal(AuthPortal.cms);
+    _localStorageService.saveIsLoggedInForPortal(AuthPortal.cms, false);
+  }
+
+  Future<bool> refreshToken() async {
+    final token = await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
+    return token != null && token.accessToken != null && token.accessToken!.isNotEmpty;
+  }
+
+  Future<CurrentLoginInformation?> getUserLoginInfo(
+      [bool forceUpdate = false]) async {
+    try {
+      if (forceUpdate == false) {
+        var localprofile =
+            _localStorageService.getUserLoginInfoForPortal(AuthPortal.cms);
+        if (localprofile != null) {
+          return localprofile;
+        }
+      }
+
+      var authResult = await _apiManager.get(
+          AppConst.getCurrentLoginInformations,
+          showLoader: false);
+      if (authResult != null) {
+        var userLoginInfo =
+            CurrentLoginInformation.fromJson(authResult['result']);
+        _localStorageService.setUserLoginInfoForPortal(
+            AuthPortal.cms, userLoginInfo);
+        return userLoginInfo;
+      }
+      return null;
+    } catch (e) {
+      log.i("$e");
+      return null;
+    }
+  }
+}

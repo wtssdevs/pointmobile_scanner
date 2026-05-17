@@ -76,6 +76,19 @@ class AccountView extends StatelessWidget {
                   Card(
                     elevation: 8,
                     child: ListTile(
+                      leading: const Icon(
+                        Icons.swap_horiz,
+                        color: Colors.black,
+                      ),
+                      onTap: model.switchToCms,
+                      title: const BoxText.tileTitle(
+                        "Switch to CMS",
+                      ),
+                    ),
+                  ),
+                  Card(
+                    elevation: 8,
+                    child: ListTile(
                       leading: Icon(
                         model.hasConnection == false
                             ? Icons.offline_bolt
@@ -119,7 +132,7 @@ class AccountView extends StatelessWidget {
                     child: Column(
                       children: [
                         const ListTile(
-                          leading: const Icon(
+                          leading: Icon(
                             Icons.barcode_reader,
                             color: Colors.red,
                           ),

@@ -9,6 +9,18 @@ class AppConst {
   static const String is_logged_in = "isLoggedIn";
   static const String auth_token = "authToken";
   static const String access_token = "accessToken";
+    static const String requiresAuthExtraKey = "requiresAuth";
+    static const String lastSessionPortal = "lastSessionPortal";
+    static const String xac_auth_token = "xac_authToken";
+    static const String cms_auth_token = "cms_authToken";
+    static const String xac_is_logged_in = "xac_isLoggedIn";
+    static const String cms_is_logged_in = "cms_isLoggedIn";
+    static const String xac_tenantId = "xac_tenantId";
+    static const String cms_tenantId = "cms_tenantId";
+    static const String xac_currentUserProfile = "xac_currentUserProfile";
+    static const String cms_currentUserProfile = "cms_currentUserProfile";
+    static const String xac_tenantCode = "xac_tenantCode";
+    static const String cms_tenantCode = "cms_tenantCode";
   static const String current_language = "current_language";
   static const String current_UserProfile = "current_UserProfile";
   static const String is_OTP_Pin_Request = "is_OTP_Pin_Request";
@@ -23,6 +35,8 @@ class AppConst {
   static const String NoKey = 'NO_KEY';
   static const String API_Base_Url = 'API_Base_Url_Key';
   static const String Base_hostname = 'Base_hostname';
+    static const String CMS_API_Base_Url = 'CMS_API_Base_Url_Key';
+    static const String CMS_Base_hostname = 'CMS_Base_hostname';
 
   static const String DB_BackgroundJobInfo = "BackgroundJobInfo";
   static const String DB_FileStore = "FileStore";
@@ -37,6 +51,8 @@ class AppConst {
 
   static const String isTenantAvailable =
       "/api/services/app/Account/IsTenantAvailable";
+  static const String getCurrentLoginInformations =
+      "/api/services/app/Session/GetCurrentLoginInformations";
 
   //API Methods
 

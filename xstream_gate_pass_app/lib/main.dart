@@ -17,14 +17,13 @@ import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart';
-import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_isolate_initializer.dart';
+import 'package:xstream_gate_pass_app/ui/shared/style/setup_snackbar_ui.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback =
-          ((X509Certificate cert, String host, int port) {
+      ..badCertificateCallback = ((X509Certificate cert, String host, int port) {
         final isValidHost = AppConst.isSSLHostAllowed(host);
         //print("Host validation result for $host: $isValidHost");
         return isValidHost;
@@ -44,12 +43,7 @@ Future main() async {
 
   //Initialize Logging
   await FlutterLogs.initLogs(
-    logLevelsEnabled: [
-      LogLevel.INFO,
-      LogLevel.WARNING,
-      LogLevel.ERROR,
-      LogLevel.SEVERE
-    ],
+    logLevelsEnabled: [LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR, LogLevel.SEVERE],
     timeStampFormat: TimeStampFormat.TIME_FORMAT_READABLE,
     directoryStructure: DirectoryStructure.FOR_DATE,
     logTypesEnabled: ["device", "network", "errors"],
@@ -69,6 +63,7 @@ Future main() async {
   await setupLocator();
   setupDialogUi();
   setupBottomSheetUi();
+  setupSnackbarUi();
   locator<EnvironmentService>().setBasics();
   await locator<ConnectionService>().initialize();
 

@@ -1,13 +1,14 @@
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
+import 'package:xstream_gate_pass_app/core/services/api/cms_api_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/database/sembast_store.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart';
+import 'package:xstream_gate_pass_app/core/services/services/account/auth_session_coordinator.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/account/cms_access_token_repo.dart';
+import 'package:xstream_gate_pass_app/core/services/services/account/cms_authentication_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
-import 'package:xstream_gate_pass_app/core/services/services/background/background_processing_config.dart';
-import 'package:xstream_gate_pass_app/core/services/services/background/background_processing_migration_service.dart';
-import 'package:xstream_gate_pass_app/core/services/services/background/background_processing_monitor.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_isolate_initializer.dart';
@@ -23,7 +24,7 @@ import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/overlays/overlay_service.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/notice/notice_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/dialogs/info_alert/info_alert_dialog.dart';
-import 'package:xstream_gate_pass_app/ui/views/account/login/login_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/account/dual_login/dual_login_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/account/account_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/home_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_gatepass_view.dart';
@@ -53,14 +54,16 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/check_list/check_lis
 import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_manual_list/gate_access_manual_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/manual_entry_selection/manual_entry_selection_sheet.dart';
+import 'package:xstream_gate_pass_app/ui/views/cms/main/cms_home_view.dart';
 // @stacked-import
 
 @StackedApp(
   routes: [
     MaterialRoute(page: StartUpView, initial: true),
     MaterialRoute(page: HomeView),
+    MaterialRoute(page: CmsHomeView),
     MaterialRoute(page: TermsAndPrivacyView),
-    MaterialRoute(page: LoginView),
+    MaterialRoute(page: DualLoginView),
     MaterialRoute(page: GatePassView),
     MaterialRoute(page: GatePassEditView),
     MaterialRoute(page: AccountView),
@@ -88,12 +91,16 @@ import 'package:xstream_gate_pass_app/ui/bottom_sheets/manual_entry_selection/ma
     InitializableSingleton(classType: ConnectionService),
     Singleton(classType: NavigationService),
     InitializableSingleton(classType: AccessTokenRepo),
+    InitializableSingleton(classType: CmsAccessTokenRepo),
 
     InitializableSingleton(classType: AppDatabase),
     LazySingleton(classType: DialogService),
 
     InitializableSingleton(classType: ApiManager),
+  InitializableSingleton(classType: CmsApiManager),
     LazySingleton(classType: AuthenticationService),
+  LazySingleton(classType: CmsAuthenticationService),
+  LazySingleton(classType: AuthSessionCoordinator),
     LazySingleton(classType: ScanningService),
     LazySingleton(classType: GatePassService),
     LazySingleton(classType: MasterFilesService),
