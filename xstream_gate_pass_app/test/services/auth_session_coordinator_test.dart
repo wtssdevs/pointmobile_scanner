@@ -29,8 +29,7 @@ void main() {
 
     test('uses last CMS session when it is locally valid offline', () async {
       when(localStorageService.getLastSessionPortal()).thenReturn(AuthPortal.cms);
-      when(localStorageService.isLoggedInForPortal(AuthPortal.cms))
-          .thenReturn(true);
+      when(localStorageService.isLoggedInForPortal(AuthPortal.cms)).thenReturn(true);
       when(localStorageService.getAuthTokenForPortal(AuthPortal.cms)).thenReturn(
         AuthenticateResultModel(
           accessToken: 'cms-token',
@@ -55,6 +54,40 @@ void main() {
         arguments: captureAnyNamed('arguments'),
       )).captured.single as DualLoginViewArguments;
 
+      expect(captured.initialPortal, AuthPortal.cms);
+    });
+
+    test('falls back to CMS when hinted XAC session is invalid offline', () async {
+      when(localStorageService.getLastSessionPortal()).thenReturn(AuthPortal.xac);
+      when(localStorageService.isLoggedInForPortal(AuthPortal.xac)).thenReturn(true);
+      when(localStorageService.getAuthTokenForPortal(AuthPortal.xac)).thenReturn(null);
+      when(localStorageService.isLoggedInForPortal(AuthPortal.cms)).thenReturn(true);
+      when(localStorageService.getAuthTokenForPortal(AuthPortal.cms)).thenReturn(
+        AuthenticateResultModel(
+          accessToken: 'cms-token',
+          tenancyName: 'cms',
+          userNameOrEmailAddress: 'user',
+          password: 'password',
+        ),
+      );
+      when(connectionService.hasConnection).thenReturn(false);
+
+      final portal = await AuthSessionCoordinator().resolveStartupPortal();
+
+      expect(portal, AuthPortal.cms);
+      verify(localStorageService.setLastSessionPortal(AuthPortal.cms)).called(1);
+    });
+
+    test('routes to target login when switching to a logged-out portal', () async {
+      when(localStorageService.isLoggedInForPortal(AuthPortal.cms)).thenReturn(false);
+
+      await AuthSessionCoordinator().switchToPortal(AuthPortal.cms);
+
+      verify(localStorageService.logoutPortal(AuthPortal.cms)).called(1);
+      final captured = verify(navigationService.clearStackAndShow(
+        Routes.dualLoginView,
+        arguments: captureAnyNamed('arguments'),
+      )).captured.single as DualLoginViewArguments;
       expect(captured.initialPortal, AuthPortal.cms);
     });
   });
