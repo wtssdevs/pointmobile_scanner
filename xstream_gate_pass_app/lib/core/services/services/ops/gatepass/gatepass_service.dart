@@ -214,7 +214,10 @@ class GatePassService {
         queryParameters['transactionNo'] = filterParams.transactionNo;
         isFilterApplied = true;
       }
-
+      if ((filterParams.branchId ?? 0) > 0) {
+        queryParameters['branchId'] = filterParams.branchId;
+        isFilterApplied = true;
+      }
       if (filterParams.pageSize > 0) {
         queryParameters['pageSize'] = filterParams.pageSize;
       }

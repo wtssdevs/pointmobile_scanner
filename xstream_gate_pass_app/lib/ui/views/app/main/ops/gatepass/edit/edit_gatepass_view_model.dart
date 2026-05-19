@@ -1045,7 +1045,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     gatePass.vehicleMake = vehicleLicenseData.make;
     gatePass.vehicleVinNumber = vehicleLicenseData.vin;
     gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
-    gatePass.branchId = currentUser?.userBranches[0].id ?? gatePass.branchId;
+    gatePass.branchId = getSelectedScannerBranchId();
 
     if (vehicleLicenseData.expiryDate != null &&
         vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {

@@ -1,9 +1,9 @@
+import 'package:flutter/widgets.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:xstream_gate_pass_app/app/app.bottomsheets.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
-import 'package:xstream_gate_pass_app/app/app.bottomsheets.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_type.dart';
@@ -11,8 +11,9 @@ import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_
 import 'package:xstream_gate_pass_app/core/services/services/ops/gatepass/gatepass_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
+import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
 
-class GateAccessManualListViewModel extends BaseViewModel {
+class GateAccessManualListViewModel extends BaseViewModel with AppViewBaseHelper {
   final _navigationService = locator<NavigationService>();
   final _bottomSheetService = locator<BottomSheetService>();
   final _gatePassService = locator<GatePassService>();
@@ -34,16 +35,17 @@ class GateAccessManualListViewModel extends BaseViewModel {
   Future<void> refreshList() async {
     setBusy(true);
 
-    var allEntries = await _gatePassService.getManualEntries();
+    final selectedBranchId = getSelectedScannerBranchId();
+    var allEntries = await _gatePassService.getManualEntries(branchId: selectedBranchId);
 
-  _manualEntries = allEntries.where((entry) {
-    final isOperationalBooking =
-        entry.gatePassBookingType == GatePassBookingType.breakBulk ||
-            entry.gatePassBookingType == GatePassBookingType.containers;
-    final isCurrentlyInYard = entry.gatePassStatus == GatePassStatus.inYard;
+    _allManualEntries = allEntries.where((entry) {
+      final isOperationalBooking =
+          entry.gatePassBookingType == GatePassBookingType.breakBulk ||
+              entry.gatePassBookingType == GatePassBookingType.containers;
+      final isCurrentlyInYard = entry.gatePassStatus == GatePassStatus.inYard;
 
-    return isOperationalBooking && isCurrentlyInYard;
-  }).toList();
+      return isOperationalBooking && isCurrentlyInYard;
+    }).toList();
 
     _applyFilters();
 
@@ -77,7 +79,7 @@ class GateAccessManualListViewModel extends BaseViewModel {
       return vehicleReg.contains(query);
     }).toList();
   }
-  
+
   Future<void> showCheckInOptions() async {
     final result = await _bottomSheetService.showCustomSheet(
       variant: BottomSheetType.manualEntrySelection,
@@ -128,7 +130,7 @@ class GateAccessManualListViewModel extends BaseViewModel {
 
     int branchId = 0;
     if (userInfo.user!.userBranches.isNotEmpty) {
-      branchId = userInfo.user!.userBranches.first.id ?? 0;
+      branchId = getSelectedScannerBranchId();
     }
 
     final tenantId = userInfo.tenant?.id ?? 0;

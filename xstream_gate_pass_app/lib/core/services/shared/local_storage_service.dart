@@ -53,6 +53,14 @@ class LocalStorageService {
     _saveToDisk(AppConst.tenantId, value);
   }
 
+  int getScannerBranchId() {
+    return _getIntFromDisk(AppConst.scannerBranchId) ?? 0;
+  }
+
+  void setScannerBranchId(int value) {
+    _saveToDisk(AppConst.scannerBranchId, value);
+  }
+
   int? get getTenantId {
     var tenantId = _getIntFromDisk(AppConst.tenantId);
     if (tenantId == null) {

@@ -73,7 +73,7 @@ class GateAccessYardOpsViewModel extends BaseViewModel with AppViewBaseHelper {
       validationErrors = [];
       setIsBusyProcessingScan(true, rebuildThisUi: true);
       loadingSlipQrData!.stockpileAction = action;
-      var branchId = currentUser?.userBranches[0].id ?? 0;
+      var branchId = getSelectedScannerBranchId();
       loadingSlipQrData!.branchId = branchId;
       var reponse =
           await _gatePassService.setCmsGatePassEvent(loadingSlipQrData!);

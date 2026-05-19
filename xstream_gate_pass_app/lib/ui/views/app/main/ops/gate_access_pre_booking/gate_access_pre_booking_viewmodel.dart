@@ -87,7 +87,7 @@ class GateAccessPreBookingViewModel extends BaseViewModel
 
       // Show loading indicator
       //setBusy(true);
-      var branchId = currentUser?.userBranches[0].id ?? 0;
+      var branchId = getSelectedScannerBranchId();
 
       var filter =
           FilterParams(voyageNo: voageNoController.text, branchId: branchId);
@@ -172,7 +172,7 @@ class GateAccessPreBookingViewModel extends BaseViewModel
 
       // Show loading indicator
       //setBusy(true);
-      var branchId = currentUser?.userBranches[0].id ?? 0;
+      var branchId = getSelectedScannerBranchId();
       scannedQrData!.branchId = branchId;
       var reponse = await _gatePassService.findPreBookedLoad(scannedQrData!);
       //setBusy(false);

@@ -118,13 +118,26 @@ class GatePassViewModel extends BaseViewModel with AppViewBaseHelper {
       }
       _filterParams.pageNumber = _nextPage;
       _filterParams.pageSize = _pagedList.pageSize;
+      _filterParams.branchId = getSelectedScannerBranchId();
       _pagedList = await _gatePassService.getPagedFilteredList(filterParams);
       final previouslyFetchedItemsCount =
           pagingController.itemList?.length ?? 0;
 
       var visibleItems = _pagedList.items
-                .where((item) => item.gatePassStatus != GatePassStatus.pending)
-                .toList();
+          .where((item) => item.gatePassStatus != GatePassStatus.rejectedEntry)
+          .toList()
+        ..sort((a, b) {
+          final aInYard = a.gatePassStatus == GatePassStatus.inYard;
+          final bInYard = b.gatePassStatus == GatePassStatus.inYard;
+
+          if (aInYard == bInYard) {
+            final aTime = a.timeAtGate ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final bTime = b.timeAtGate ?? DateTime.fromMillisecondsSinceEpoch(0);
+            return bTime.compareTo(aTime);
+          }
+
+          return aInYard ? -1 : 1;
+        });
 
       final isLastPage = _pagedList.isLastPage(previouslyFetchedItemsCount);
 
@@ -219,7 +232,7 @@ Future goToDetail(GatePassAccess entity) async {
         gatePass: GatePassAccess(
           id: "",
           gatePassStatus: GatePassStatus.atGate,
-          branchId: currentUser?.userBranches.first.id ?? 0,
+          branchId: getSelectedScannerBranchId(),
           gatePassBookingType: GatePassBookingType.none,
           gatePassDeliveryType: DeliveryType.receive,
         ),
