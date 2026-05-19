@@ -417,7 +417,7 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
         model.onDispose();
       },
       builder: (context, model, child) => PopScope(
-        onPopInvokedWithResult: (r, d) async {
+        onPopInvoked: (didPop) async {
           model.routePop();
         },
         child: DefaultTabController(

@@ -8,6 +8,7 @@ import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterfiles_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
@@ -26,6 +27,8 @@ class WorkerQueManager {
   final _fileStoreManager = locator<FileStoreManager>();
   final _masterFilesService = locator<MasterFilesService>();
   final _incidentManagerService = locator<IncidentManagerService>();
+  final _cmsInspectionLinePhotoQueueService =
+      locator<CmsInspectionLinePhotoQueueService>();
 
   final int maxConcurrentTasks = 1;
   int runningTasks = 0;
@@ -165,6 +168,21 @@ class WorkerQueManager {
         case BackgroundJobType.createIncident:
           await _incidentManagerService.createIncident(jobInfo.jobArgs);
           deleteJob = true;
+          break;
+
+        case BackgroundJobType.syncCmsInspectionLinePhotos:
+          final inspectionId = asT<int>(jobInfo.jobArgs) ??
+              int.tryParse(jobInfo.jobArgs?.toString() ?? '');
+          deleteJob = true;
+          if (inspectionId != null && inspectionId > 0) {
+            final remainingUploads = await _cmsInspectionLinePhotoQueueService
+                .uploadPendingForInspection(inspectionId);
+            deleteJob = remainingUploads == 0;
+            if (!deleteJob) {
+              jobInfo.errorMessage =
+                  '$remainingUploads CMS inspection line photo upload(s) still need retry.';
+            }
+          }
           break;
 
         case BackgroundJobType.syncImages:

@@ -22,6 +22,13 @@ import '../core/services/services/account/cms_access_token_repo.dart';
 import '../core/services/services/account/cms_authentication_service.dart';
 import '../core/services/services/background/background_job_info_repository.dart';
 import '../core/services/services/background/workqueue_manager.dart';
+import '../core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
+import '../core/services/services/cms/cms_master_files_repository.dart';
+import '../core/services/services/cms/cms_master_files_sync_service.dart';
+import '../core/services/services/cms/cms_mobile_file_store_service.dart';
+import '../core/services/services/cms/cms_mobile_inspections_service.dart';
+import '../core/services/services/cms/cms_session_repository.dart';
+import '../core/services/services/cms/cms_session_service.dart';
 import '../core/services/services/filestore/filestore_isolate_initializer.dart';
 import '../core/services/services/filestore/filestore_manager.dart';
 import '../core/services/services/filestore/filestore_repository.dart';
@@ -86,6 +93,13 @@ Future<void> setupLocator({
 
   locator.registerLazySingleton(() => AuthenticationService());
   locator.registerLazySingleton(() => CmsAuthenticationService());
+  locator.registerLazySingleton(() => CmsSessionRepository());
+  locator.registerLazySingleton(() => CmsSessionService());
+  locator.registerLazySingleton(() => CmsMasterFilesRepository());
+  locator.registerLazySingleton(() => CmsMasterFilesSyncService());
+  locator.registerLazySingleton(() => CmsInspectionLinePhotoQueueService());
+  locator.registerLazySingleton(() => CmsMobileFileStoreService());
+  locator.registerLazySingleton(() => CmsMobileInspectionsService());
   locator.registerLazySingleton(() => AuthSessionCoordinator());
   locator.registerLazySingleton(() => ScanningService());
   locator.registerLazySingleton(() => GatePassService());

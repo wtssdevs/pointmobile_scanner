@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
 import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
-import 'package:xstream_gate_pass_app/core/services/services/background/isolate/isolate_pool_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_processing_config.dart';
-import 'package:xstream_gate_pass_app/core/services/services/background/enhanced_workqueue_manager.dart';
 import 'package:sembast/timestamp.dart';
 
 /// Test suite for enterprise background processing with isolates
@@ -38,13 +36,19 @@ void main() {
     });
 
     test('BackgroundJobInfo - Serialization', () {
+      final lastTryTime =
+          Timestamp.fromDateTime(DateTime.utc(2026, 5, 19, 10, 0));
+      final nextTryTime =
+          Timestamp.fromDateTime(DateTime.utc(2026, 5, 19, 10, 5));
+      final creationTime =
+          Timestamp.fromDateTime(DateTime.utc(2026, 5, 19, 9, 45));
       final jobInfo = BackgroundJobInfo(
         id: 'test-job-123',
         jobType: BackgroundJobType.syncMasterfiles.index,
         jobArgs: 'test-args',
-        lastTryTime: Timestamp.now(),
-        creationTime: Timestamp.now(),
-        nextTryTime: Timestamp.now(),
+        lastTryTime: lastTryTime,
+        creationTime: creationTime,
+        nextTryTime: nextTryTime,
         isAbandoned: false,
       );
 
@@ -52,12 +56,21 @@ void main() {
       expect(json['id'], equals('test-job-123'));
       expect(json['jobType'], equals(BackgroundJobType.syncMasterfiles.index));
       expect(json['jobArgs'], equals('test-args'));
+      expect(json['lastTryTime'], equals(lastTryTime.toIso8601String()));
+      expect(json['nextTryTime'], equals(nextTryTime.toIso8601String()));
+      expect(json['creationTime'], equals(creationTime.toIso8601String()));
       expect(json['isAbandoned'], isFalse);
 
       final restored = BackgroundJobInfo.fromJson(json);
       expect(restored.id, equals(jobInfo.id));
       expect(restored.jobType, equals(jobInfo.jobType));
       expect(restored.getJobType, equals(BackgroundJobType.syncMasterfiles));
+      expect(restored.lastTryTime.toIso8601String(),
+          equals(lastTryTime.toIso8601String()));
+      expect(restored.nextTryTime.toIso8601String(),
+          equals(nextTryTime.toIso8601String()));
+      expect(restored.creationTime.toIso8601String(),
+          equals(creationTime.toIso8601String()));
     });
 
     test('BackgroundJobInfo - Job Type Mapping', () {
@@ -102,6 +115,7 @@ void main() {
       // Test abandonment after max retries
       jobInfo.tryCount = 25; // Above threshold
       final abandonedTryCount = jobInfo.calculateTryCount();
+      expect(abandonedTryCount, equals(25));
       expect(jobInfo.isAbandoned, isTrue);
     });
 
@@ -154,6 +168,7 @@ void main() {
 
       // Test would go here - requires importing message classes
       // This validates the isolate communication protocol
+      expect(jobInfo.id, equals('msg-test'));
     });
   });
 

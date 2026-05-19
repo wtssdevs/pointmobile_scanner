@@ -1,0 +1,210 @@
+import 'package:flutter/material.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspectable_container.dart';
+import 'package:xstream_gate_pass_app/core/utils/helper.dart';
+import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
+
+class CmsInspectableContainerCard extends StatelessWidget {
+  const CmsInspectableContainerCard({
+    super.key,
+    required this.container,
+    required this.actionLabel,
+    required this.canOpen,
+    this.onTap,
+  });
+
+  final CmsInspectableContainer container;
+  final String actionLabel;
+  final bool canOpen;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: canOpen ? onTap : null,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          container.containerNo,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          container.transactionNo,
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _StatusPill(status: container.cardStatus),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
+                children: [
+                  _InfoChip(
+                    icon: Icons.business_outlined,
+                    label: container.shippingLineCode ?? container.shippingLineName ?? 'Shipping line n/a',
+                  ),
+                  _InfoChip(
+                    icon: Icons.inventory_2_outlined,
+                    label: [container.containerSize, container.containerType, container.containerIsoType]
+                        .whereType<String>()
+                        .where((item) => item.isNotEmpty)
+                        .join(' • '),
+                  ),
+                  _InfoChip(
+                    icon: Icons.fact_check_outlined,
+                    label: container.conditionTypeDisplayName ?? container.statusDisplayName ?? 'Condition pending',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      container.depotArrivalDateTime != null
+                          ? 'Depot arrival ${container.depotArrivalDateTime!.toFormattedString()}'
+                          : 'Depot arrival pending',
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: canOpen ? onTap : null,
+                    icon: Icon(container.canResumeInspection ? Icons.play_arrow_rounded : Icons.add_task_rounded),
+                    label: Text(actionLabel),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: container.canResumeInspection ? kcPrimaryColor : Colors.teal,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    if (label.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.blueGrey[700]),
+          const SizedBox(width: 6),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 180),
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.blueGrey[800],
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final normalized = status.toLowerCase();
+    final Color backgroundColor;
+    final Color foregroundColor;
+
+    switch (normalized) {
+      case 'inprogress':
+        backgroundColor = kcPrimaryColor.withOpacity(0.14);
+        foregroundColor = kcPrimaryColor;
+        break;
+      case 'completed':
+        backgroundColor = Colors.green.withOpacity(0.14);
+        foregroundColor = Colors.green[800]!;
+        break;
+      case 'blocked':
+        backgroundColor = Colors.orange.withOpacity(0.16);
+        foregroundColor = Colors.orange[900]!;
+        break;
+      case 'ready':
+      default:
+        backgroundColor = Colors.teal.withOpacity(0.14);
+        foregroundColor = Colors.teal[800]!;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: foregroundColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}

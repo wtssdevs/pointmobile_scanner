@@ -8,6 +8,13 @@ import 'package:xstream_gate_pass_app/core/services/services/account/auth_sessio
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/cms_access_token_repo.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/cms_authentication_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_repository.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_sync_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_file_store_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_repository.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
@@ -44,6 +51,7 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_staff_li
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors_list/gate_access_visitors_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_visitor/gate_access_visitor_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_pre_booking/gate_access_pre_booking_sheet.dart';
+import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_inspection_line_editor/cms_inspection_line_editor_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops/gate_access_yard_ops_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_containerno_reader/cam_containerno_reader_view.dart';
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
@@ -55,6 +63,9 @@ import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/chec
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_manual_list/gate_access_manual_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/manual_entry_selection/manual_entry_selection_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/main/cms_home_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/cms/inspections/detail/cms_inspection_detail_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/cms/inspections/list/cms_container_inspections_list_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/cms/settings/cms_settings_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -62,6 +73,9 @@ import 'package:xstream_gate_pass_app/ui/views/cms/main/cms_home_view.dart';
     MaterialRoute(page: StartUpView, initial: true),
     MaterialRoute(page: HomeView),
     MaterialRoute(page: CmsHomeView),
+    MaterialRoute(page: CmsSettingsView),
+    MaterialRoute(page: CmsContainerInspectionsListView),
+    MaterialRoute(page: CmsInspectionDetailView),
     MaterialRoute(page: TermsAndPrivacyView),
     MaterialRoute(page: DualLoginView),
     MaterialRoute(page: GatePassView),
@@ -97,10 +111,17 @@ import 'package:xstream_gate_pass_app/ui/views/cms/main/cms_home_view.dart';
     LazySingleton(classType: DialogService),
 
     InitializableSingleton(classType: ApiManager),
-  InitializableSingleton(classType: CmsApiManager),
+    InitializableSingleton(classType: CmsApiManager),
     LazySingleton(classType: AuthenticationService),
-  LazySingleton(classType: CmsAuthenticationService),
-  LazySingleton(classType: AuthSessionCoordinator),
+    LazySingleton(classType: CmsAuthenticationService),
+    LazySingleton(classType: CmsSessionRepository),
+    LazySingleton(classType: CmsSessionService),
+    LazySingleton(classType: CmsMasterFilesRepository),
+    LazySingleton(classType: CmsMasterFilesSyncService),
+    LazySingleton(classType: CmsInspectionLinePhotoQueueService),
+    LazySingleton(classType: CmsMobileFileStoreService),
+    LazySingleton(classType: CmsMobileInspectionsService),
+    LazySingleton(classType: AuthSessionCoordinator),
     LazySingleton(classType: ScanningService),
     LazySingleton(classType: GatePassService),
     LazySingleton(classType: MasterFilesService),
@@ -130,6 +151,7 @@ import 'package:xstream_gate_pass_app/ui/views/cms/main/cms_home_view.dart';
     StackedBottomsheet(classType: GateAccessVisitorSheet),
     StackedBottomsheet(classType: GateAccessPreBookingSheet),
     StackedBottomsheet(classType: ManualEntrySelectionSheet),
+    StackedBottomsheet(classType: CmsInspectionLineEditorSheet),
 // @stacked-bottom-sheet
   ],
   dialogs: [

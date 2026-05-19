@@ -5,63 +5,69 @@
 // **************************************************************************
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flutter/cupertino.dart' as _i26;
-import 'package:flutter/foundation.dart' as _i27;
-import 'package:flutter/material.dart' as _i25;
+import 'package:flutter/cupertino.dart' as _i29;
+import 'package:flutter/foundation.dart' as _i30;
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as _i28;
 import 'package:stacked/stacked.dart' as _i1;
-import 'package:stacked_services/stacked_services.dart' as _i32;
-import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart' as _i28;
-import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart' as _i30;
+import 'package:stacked_services/stacked_services.dart' as _i35;
+import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart' as _i31;
+import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart' as _i33;
 import 'package:xstream_gate_pass_app/core/models/ops/gatepass/gate-pass-access_model.dart'
-    as _i29;
+    as _i32;
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart'
-    as _i31;
+    as _i34;
 import 'package:xstream_gate_pass_app/ui/views/account/dual_login/dual_login_view.dart'
-    as _i6;
-import 'package:xstream_gate_pass_app/ui/views/app/main/account/account_view.dart'
     as _i9;
+import 'package:xstream_gate_pass_app/ui/views/app/main/account/account_view.dart'
+    as _i12;
 import 'package:xstream_gate_pass_app/ui/views/app/main/account/config/device_scan_settings/device_scan_settings_view.dart'
-    as _i14;
+    as _i17;
 import 'package:xstream_gate_pass_app/ui/views/app/main/home_view.dart' as _i3;
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/check_list/check_list_view.dart'
-    as _i23;
+    as _i26;
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_manual_list/gate_access_manual_list_view.dart'
-    as _i24;
+    as _i27;
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/gate_access_menu_view.dart'
-    as _i15;
-import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_pre_booking/gate_access_pre_booking_view.dart'
-    as _i16;
-import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_staff_list/gate_access_staff_list_view.dart'
-    as _i17;
-import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors_list/gate_access_visitors_list_view.dart'
     as _i18;
-import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops/gate_access_yard_ops_view.dart'
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_pre_booking/gate_access_pre_booking_view.dart'
     as _i19;
-import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops_select/gate_access_yard_ops_select_view.dart'
-    as _i21;
-import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_gatepass_view.dart'
-    as _i8;
-import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/gatepass_view.dart'
-    as _i7;
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_barcode_reader/cam_barcode_reader_view.dart'
-    as _i13;
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_containerno_reader/cam_containerno_reader_view.dart'
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_staff_list/gate_access_staff_list_view.dart'
     as _i20;
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/camera_capture_view.dart'
-    as _i11;
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/editor/image_editor_view.dart'
-    as _i12;
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/images_viewer_list/images_viewer_list_view.dart'
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors_list/gate_access_visitors_list_view.dart'
+    as _i21;
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops/gate_access_yard_ops_view.dart'
     as _i22;
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops_select/gate_access_yard_ops_select_view.dart'
+    as _i24;
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_gatepass_view.dart'
+    as _i11;
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/gatepass_view.dart'
+    as _i10;
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_barcode_reader/cam_barcode_reader_view.dart'
+    as _i16;
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_containerno_reader/cam_containerno_reader_view.dart'
+    as _i23;
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/camera_capture_view.dart'
+    as _i14;
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/editor/image_editor_view.dart'
+    as _i15;
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/images_viewer_list/images_viewer_list_view.dart'
+    as _i25;
+import 'package:xstream_gate_pass_app/ui/views/cms/inspections/detail/cms_inspection_detail_view.dart'
+    as _i7;
+import 'package:xstream_gate_pass_app/ui/views/cms/inspections/list/cms_container_inspections_list_view.dart'
+    as _i6;
 import 'package:xstream_gate_pass_app/ui/views/cms/main/cms_home_view.dart'
     as _i4;
+import 'package:xstream_gate_pass_app/ui/views/cms/settings/cms_settings_view.dart'
+    as _i5;
 import 'package:xstream_gate_pass_app/ui/views/shared/data_sync/data_sync_view.dart'
-    as _i10;
+    as _i13;
 import 'package:xstream_gate_pass_app/ui/views/startup/startup_view.dart'
     as _i2;
 import 'package:xstream_gate_pass_app/ui/views/startup/termsandprivacy/terms_and_privacy_view.dart'
-    as _i5;
+    as _i8;
 
 class Routes {
   static const startUpView = '/';
@@ -69,6 +75,13 @@ class Routes {
   static const homeView = '/home-view';
 
   static const cmsHomeView = '/cms-home-view';
+
+  static const cmsSettingsView = '/cms-settings-view';
+
+  static const cmsContainerInspectionsListView =
+      '/cms-container-inspections-list-view';
+
+  static const cmsInspectionDetailView = '/cms-inspection-detail-view';
 
   static const termsAndPrivacyView = '/terms-and-privacy-view';
 
@@ -115,6 +128,9 @@ class Routes {
     startUpView,
     homeView,
     cmsHomeView,
+    cmsSettingsView,
+    cmsContainerInspectionsListView,
+    cmsInspectionDetailView,
     termsAndPrivacyView,
     dualLoginView,
     gatePassView,
@@ -153,90 +169,102 @@ class StackedRouter extends _i1.RouterBase {
       page: _i4.CmsHomeView,
     ),
     _i1.RouteDef(
+      Routes.cmsSettingsView,
+      page: _i5.CmsSettingsView,
+    ),
+    _i1.RouteDef(
+      Routes.cmsContainerInspectionsListView,
+      page: _i6.CmsContainerInspectionsListView,
+    ),
+    _i1.RouteDef(
+      Routes.cmsInspectionDetailView,
+      page: _i7.CmsInspectionDetailView,
+    ),
+    _i1.RouteDef(
       Routes.termsAndPrivacyView,
-      page: _i5.TermsAndPrivacyView,
+      page: _i8.TermsAndPrivacyView,
     ),
     _i1.RouteDef(
       Routes.dualLoginView,
-      page: _i6.DualLoginView,
+      page: _i9.DualLoginView,
     ),
     _i1.RouteDef(
       Routes.gatePassView,
-      page: _i7.GatePassView,
+      page: _i10.GatePassView,
     ),
     _i1.RouteDef(
       Routes.gatePassEditView,
-      page: _i8.GatePassEditView,
+      page: _i11.GatePassEditView,
     ),
     _i1.RouteDef(
       Routes.accountView,
-      page: _i9.AccountView,
+      page: _i12.AccountView,
     ),
     _i1.RouteDef(
       Routes.dataSyncView,
-      page: _i10.DataSyncView,
+      page: _i13.DataSyncView,
     ),
     _i1.RouteDef(
       Routes.cameraCaptureView,
-      page: _i11.CameraCaptureView,
+      page: _i14.CameraCaptureView,
     ),
     _i1.RouteDef(
       Routes.imageEditorView,
-      page: _i12.ImageEditorView,
+      page: _i15.ImageEditorView,
     ),
     _i1.RouteDef(
       Routes.camBarcodeReader,
-      page: _i13.CamBarcodeReader,
+      page: _i16.CamBarcodeReader,
     ),
     _i1.RouteDef(
       Routes.deviceScanSettingsView,
-      page: _i14.DeviceScanSettingsView,
+      page: _i17.DeviceScanSettingsView,
     ),
     _i1.RouteDef(
       Routes.gateAccessMenuView,
-      page: _i15.GateAccessMenuView,
+      page: _i18.GateAccessMenuView,
     ),
     _i1.RouteDef(
       Routes.gateAccessPreBookingView,
-      page: _i16.GateAccessPreBookingView,
+      page: _i19.GateAccessPreBookingView,
     ),
     _i1.RouteDef(
       Routes.gateAccessStaffListView,
-      page: _i17.GateAccessStaffListView,
+      page: _i20.GateAccessStaffListView,
     ),
     _i1.RouteDef(
       Routes.gateAccessVisitorsListView,
-      page: _i18.GateAccessVisitorsListView,
+      page: _i21.GateAccessVisitorsListView,
     ),
     _i1.RouteDef(
       Routes.gateAccessYardOpsView,
-      page: _i19.GateAccessYardOpsView,
+      page: _i22.GateAccessYardOpsView,
     ),
     _i1.RouteDef(
       Routes.camContainernoReaderView,
-      page: _i20.CamContainernoReaderView,
+      page: _i23.CamContainernoReaderView,
     ),
     _i1.RouteDef(
       Routes.gateAccessYardOpsSelectView,
-      page: _i21.GateAccessYardOpsSelectView,
+      page: _i24.GateAccessYardOpsSelectView,
     ),
     _i1.RouteDef(
       Routes.imagesViewerListView,
-      page: _i22.ImagesViewerListView,
+      page: _i25.ImagesViewerListView,
     ),
     _i1.RouteDef(
       Routes.checkListView,
-      page: _i23.CheckListView,
+      page: _i26.CheckListView,
     ),
     _i1.RouteDef(
       Routes.gateAccessManualListView,
-      page: _i24.GateAccessManualListView,
+      page: _i27.GateAccessManualListView,
     ),
   ];
 
   final _pagesMap = <Type, _i1.StackedRouteFactory>{
     _i2.StartUpView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
+      return _i28.MaterialPageRoute<dynamic>(
         builder: (context) => const _i2.StartUpView(),
         settings: data,
       );
@@ -245,64 +273,88 @@ class StackedRouter extends _i1.RouterBase {
       final args = data.getArgs<HomeViewArguments>(
         orElse: () => const HomeViewArguments(),
       );
-      return _i25.MaterialPageRoute<dynamic>(
+      return _i28.MaterialPageRoute<dynamic>(
         builder: (context) =>
             _i3.HomeView(key: args.key, tabIndex: args.tabIndex),
         settings: data,
       );
     },
     _i4.CmsHomeView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
+      return _i28.MaterialPageRoute<dynamic>(
         builder: (context) => const _i4.CmsHomeView(),
         settings: data,
       );
     },
-    _i5.TermsAndPrivacyView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i5.TermsAndPrivacyView(),
+    _i5.CmsSettingsView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i5.CmsSettingsView(),
         settings: data,
       );
     },
-    _i6.DualLoginView: (data) {
+    _i6.CmsContainerInspectionsListView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i6.CmsContainerInspectionsListView(),
+        settings: data,
+      );
+    },
+    _i7.CmsInspectionDetailView: (data) {
+      final args = data.getArgs<CmsInspectionDetailViewArguments>(
+        orElse: () => const CmsInspectionDetailViewArguments(),
+      );
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => _i7.CmsInspectionDetailView(
+            key: args.key,
+            inspectionId: args.inspectionId,
+            containerId: args.containerId),
+        settings: data,
+      );
+    },
+    _i8.TermsAndPrivacyView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i8.TermsAndPrivacyView(),
+        settings: data,
+      );
+    },
+    _i9.DualLoginView: (data) {
       final args = data.getArgs<DualLoginViewArguments>(
         orElse: () => const DualLoginViewArguments(),
       );
-      return _i25.MaterialPageRoute<dynamic>(
+      return _i28.MaterialPageRoute<dynamic>(
         builder: (context) =>
-            _i6.DualLoginView(key: args.key, initialPortal: args.initialPortal),
+            _i9.DualLoginView(key: args.key, initialPortal: args.initialPortal),
         settings: data,
       );
     },
-    _i7.GatePassView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i7.GatePassView(),
+    _i10.GatePassView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i10.GatePassView(),
         settings: data,
       );
     },
-    _i8.GatePassEditView: (data) {
+    _i11.GatePassEditView: (data) {
       final args = data.getArgs<GatePassEditViewArguments>(nullOk: false);
-      return _i25.MaterialPageRoute<dynamic>(
+      return _i28.MaterialPageRoute<dynamic>(
         builder: (context) =>
-            _i8.GatePassEditView(key: args.key, gatePass: args.gatePass),
+            _i11.GatePassEditView(key: args.key, gatePass: args.gatePass),
         settings: data,
       );
     },
-    _i9.AccountView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i9.AccountView(),
+    _i12.AccountView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i12.AccountView(),
         settings: data,
       );
     },
-    _i10.DataSyncView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i10.DataSyncView(),
+    _i13.DataSyncView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i13.DataSyncView(),
         settings: data,
       );
     },
-    _i11.CameraCaptureView: (data) {
+    _i14.CameraCaptureView: (data) {
       final args = data.getArgs<CameraCaptureViewArguments>(nullOk: false);
-      return _i26.CupertinoPageRoute<dynamic>(
-        builder: (context) => _i11.CameraCaptureView(
+      return _i29.CupertinoPageRoute<dynamic>(
+        builder: (context) => _i14.CameraCaptureView(
             key: args.key,
             refId: args.refId,
             referanceId: args.referanceId,
@@ -310,87 +362,87 @@ class StackedRouter extends _i1.RouterBase {
         settings: data,
       );
     },
-    _i12.ImageEditorView: (data) {
+    _i15.ImageEditorView: (data) {
       final args = data.getArgs<ImageEditorViewArguments>(nullOk: false);
-      return _i26.CupertinoPageRoute<dynamic>(
+      return _i29.CupertinoPageRoute<dynamic>(
         builder: (context) =>
-            _i12.ImageEditorView(key: args.key, filePath: args.filePath),
+            _i15.ImageEditorView(key: args.key, filePath: args.filePath),
         settings: data,
       );
     },
-    _i13.CamBarcodeReader: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i13.CamBarcodeReader(),
+    _i16.CamBarcodeReader: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i16.CamBarcodeReader(),
         settings: data,
       );
     },
-    _i14.DeviceScanSettingsView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i14.DeviceScanSettingsView(),
+    _i17.DeviceScanSettingsView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i17.DeviceScanSettingsView(),
         settings: data,
       );
     },
-    _i15.GateAccessMenuView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i15.GateAccessMenuView(),
+    _i18.GateAccessMenuView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i18.GateAccessMenuView(),
         settings: data,
       );
     },
-    _i16.GateAccessPreBookingView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i16.GateAccessPreBookingView(),
+    _i19.GateAccessPreBookingView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i19.GateAccessPreBookingView(),
         settings: data,
       );
     },
-    _i17.GateAccessStaffListView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i17.GateAccessStaffListView(),
+    _i20.GateAccessStaffListView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i20.GateAccessStaffListView(),
         settings: data,
       );
     },
-    _i18.GateAccessVisitorsListView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i18.GateAccessVisitorsListView(),
+    _i21.GateAccessVisitorsListView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i21.GateAccessVisitorsListView(),
         settings: data,
       );
     },
-    _i19.GateAccessYardOpsView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i19.GateAccessYardOpsView(),
+    _i22.GateAccessYardOpsView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i22.GateAccessYardOpsView(),
         settings: data,
       );
     },
-    _i20.CamContainernoReaderView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i20.CamContainernoReaderView(),
+    _i23.CamContainernoReaderView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i23.CamContainernoReaderView(),
         settings: data,
       );
     },
-    _i21.GateAccessYardOpsSelectView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i21.GateAccessYardOpsSelectView(),
+    _i24.GateAccessYardOpsSelectView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i24.GateAccessYardOpsSelectView(),
         settings: data,
       );
     },
-    _i22.ImagesViewerListView: (data) {
+    _i25.ImagesViewerListView: (data) {
       final args = data.getArgs<ImagesViewerListViewArguments>(nullOk: false);
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => _i22.ImagesViewerListView(
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => _i25.ImagesViewerListView(
             key: args.key, gatePassId: args.gatePassId),
         settings: data,
       );
     },
-    _i23.CheckListView: (data) {
+    _i26.CheckListView: (data) {
       final args = data.getArgs<CheckListViewArguments>(nullOk: false);
-      return _i25.MaterialPageRoute<dynamic>(
+      return _i28.MaterialPageRoute<dynamic>(
         builder: (context) =>
-            _i23.CheckListView(key: args.key, filterParams: args.filterParams),
+            _i26.CheckListView(key: args.key, filterParams: args.filterParams),
         settings: data,
       );
     },
-    _i24.GateAccessManualListView: (data) {
-      return _i25.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i24.GateAccessManualListView(),
+    _i27.GateAccessManualListView: (data) {
+      return _i28.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i27.GateAccessManualListView(),
         settings: data,
       );
     },
@@ -409,7 +461,7 @@ class HomeViewArguments {
     this.tabIndex,
   });
 
-  final _i27.Key? key;
+  final _i30.Key? key;
 
   final int? tabIndex;
 
@@ -430,15 +482,47 @@ class HomeViewArguments {
   }
 }
 
+class CmsInspectionDetailViewArguments {
+  const CmsInspectionDetailViewArguments({
+    this.key,
+    this.inspectionId,
+    this.containerId,
+  });
+
+  final _i30.Key? key;
+
+  final int? inspectionId;
+
+  final int? containerId;
+
+  @override
+  String toString() {
+    return '{"key": "$key", "inspectionId": "$inspectionId", "containerId": "$containerId"}';
+  }
+
+  @override
+  bool operator ==(covariant CmsInspectionDetailViewArguments other) {
+    if (identical(this, other)) return true;
+    return other.key == key &&
+        other.inspectionId == inspectionId &&
+        other.containerId == containerId;
+  }
+
+  @override
+  int get hashCode {
+    return key.hashCode ^ inspectionId.hashCode ^ containerId.hashCode;
+  }
+}
+
 class DualLoginViewArguments {
   const DualLoginViewArguments({
     this.key,
-    this.initialPortal = _i28.AuthPortal.xac,
+    this.initialPortal = _i31.AuthPortal.xac,
   });
 
-  final _i27.Key? key;
+  final _i30.Key? key;
 
-  final _i28.AuthPortal initialPortal;
+  final _i31.AuthPortal initialPortal;
 
   @override
   String toString() {
@@ -463,9 +547,9 @@ class GatePassEditViewArguments {
     required this.gatePass,
   });
 
-  final _i27.Key? key;
+  final _i30.Key? key;
 
-  final _i29.GatePassAccess gatePass;
+  final _i32.GatePassAccess gatePass;
 
   @override
   String toString() {
@@ -492,13 +576,13 @@ class CameraCaptureViewArguments {
     required this.fileStoreType,
   });
 
-  final _i27.Key? key;
+  final _i30.Key? key;
 
   final String refId;
 
   final int referanceId;
 
-  final _i30.FileStoreType fileStoreType;
+  final _i33.FileStoreType fileStoreType;
 
   @override
   String toString() {
@@ -529,7 +613,7 @@ class ImageEditorViewArguments {
     required this.filePath,
   });
 
-  final _i27.Key? key;
+  final _i30.Key? key;
 
   final String filePath;
 
@@ -556,7 +640,7 @@ class ImagesViewerListViewArguments {
     required this.gatePassId,
   });
 
-  final _i27.Key? key;
+  final _i30.Key? key;
 
   final String gatePassId;
 
@@ -583,9 +667,9 @@ class CheckListViewArguments {
     required this.filterParams,
   });
 
-  final _i27.Key? key;
+  final _i30.Key? key;
 
-  final _i31.FilterParams filterParams;
+  final _i34.FilterParams filterParams;
 
   @override
   String toString() {
@@ -604,7 +688,7 @@ class CheckListViewArguments {
   }
 }
 
-extension NavigatorStateExtension on _i32.NavigationService {
+extension NavigatorStateExtension on _i35.NavigationService {
   Future<dynamic> navigateToStartUpView([
     int? routerId,
     bool preventDuplicates = true,
@@ -620,7 +704,7 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> navigateToHomeView({
-    _i27.Key? key,
+    _i30.Key? key,
     int? tabIndex,
     int? routerId,
     bool preventDuplicates = true,
@@ -650,6 +734,53 @@ extension NavigatorStateExtension on _i32.NavigationService {
         transition: transition);
   }
 
+  Future<dynamic> navigateToCmsSettingsView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return navigateTo<dynamic>(Routes.cmsSettingsView,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> navigateToCmsContainerInspectionsListView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return navigateTo<dynamic>(Routes.cmsContainerInspectionsListView,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> navigateToCmsInspectionDetailView({
+    _i30.Key? key,
+    int? inspectionId,
+    int? containerId,
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  }) async {
+    return navigateTo<dynamic>(Routes.cmsInspectionDetailView,
+        arguments: CmsInspectionDetailViewArguments(
+            key: key, inspectionId: inspectionId, containerId: containerId),
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
   Future<dynamic> navigateToTermsAndPrivacyView([
     int? routerId,
     bool preventDuplicates = true,
@@ -665,8 +796,8 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> navigateToDualLoginView({
-    _i27.Key? key,
-    _i28.AuthPortal initialPortal = _i28.AuthPortal.xac,
+    _i30.Key? key,
+    _i31.AuthPortal initialPortal = _i31.AuthPortal.xac,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -697,8 +828,8 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> navigateToGatePassEditView({
-    _i27.Key? key,
-    required _i29.GatePassAccess gatePass,
+    _i30.Key? key,
+    required _i32.GatePassAccess gatePass,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -742,10 +873,10 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> navigateToCameraCaptureView({
-    _i27.Key? key,
+    _i30.Key? key,
     required String refId,
     required int referanceId,
-    required _i30.FileStoreType fileStoreType,
+    required _i33.FileStoreType fileStoreType,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -765,7 +896,7 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> navigateToImageEditorView({
-    _i27.Key? key,
+    _i30.Key? key,
     required String filePath,
     int? routerId,
     bool preventDuplicates = true,
@@ -908,7 +1039,7 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> navigateToImagesViewerListView({
-    _i27.Key? key,
+    _i30.Key? key,
     required String gatePassId,
     int? routerId,
     bool preventDuplicates = true,
@@ -926,8 +1057,8 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> navigateToCheckListView({
-    _i27.Key? key,
-    required _i31.FilterParams filterParams,
+    _i30.Key? key,
+    required _i34.FilterParams filterParams,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -971,7 +1102,7 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> replaceWithHomeView({
-    _i27.Key? key,
+    _i30.Key? key,
     int? tabIndex,
     int? routerId,
     bool preventDuplicates = true,
@@ -1001,6 +1132,53 @@ extension NavigatorStateExtension on _i32.NavigationService {
         transition: transition);
   }
 
+  Future<dynamic> replaceWithCmsSettingsView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return replaceWith<dynamic>(Routes.cmsSettingsView,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> replaceWithCmsContainerInspectionsListView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return replaceWith<dynamic>(Routes.cmsContainerInspectionsListView,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> replaceWithCmsInspectionDetailView({
+    _i30.Key? key,
+    int? inspectionId,
+    int? containerId,
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  }) async {
+    return replaceWith<dynamic>(Routes.cmsInspectionDetailView,
+        arguments: CmsInspectionDetailViewArguments(
+            key: key, inspectionId: inspectionId, containerId: containerId),
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
   Future<dynamic> replaceWithTermsAndPrivacyView([
     int? routerId,
     bool preventDuplicates = true,
@@ -1016,8 +1194,8 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> replaceWithDualLoginView({
-    _i27.Key? key,
-    _i28.AuthPortal initialPortal = _i28.AuthPortal.xac,
+    _i30.Key? key,
+    _i31.AuthPortal initialPortal = _i31.AuthPortal.xac,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -1048,8 +1226,8 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> replaceWithGatePassEditView({
-    _i27.Key? key,
-    required _i29.GatePassAccess gatePass,
+    _i30.Key? key,
+    required _i32.GatePassAccess gatePass,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -1093,10 +1271,10 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> replaceWithCameraCaptureView({
-    _i27.Key? key,
+    _i30.Key? key,
     required String refId,
     required int referanceId,
-    required _i30.FileStoreType fileStoreType,
+    required _i33.FileStoreType fileStoreType,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -1116,7 +1294,7 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> replaceWithImageEditorView({
-    _i27.Key? key,
+    _i30.Key? key,
     required String filePath,
     int? routerId,
     bool preventDuplicates = true,
@@ -1259,7 +1437,7 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> replaceWithImagesViewerListView({
-    _i27.Key? key,
+    _i30.Key? key,
     required String gatePassId,
     int? routerId,
     bool preventDuplicates = true,
@@ -1277,8 +1455,8 @@ extension NavigatorStateExtension on _i32.NavigationService {
   }
 
   Future<dynamic> replaceWithCheckListView({
-    _i27.Key? key,
-    required _i31.FilterParams filterParams,
+    _i30.Key? key,
+    required _i34.FilterParams filterParams,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,

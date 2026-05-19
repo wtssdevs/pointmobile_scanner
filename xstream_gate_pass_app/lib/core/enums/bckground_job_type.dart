@@ -5,7 +5,8 @@ enum BackgroundJobType {
   clearCache(3, displayName: "Clear Cache"),
   emailLog(4, displayName: "Email Log"),
 
-  createIncident(5, displayName: "Create Incident");
+  createIncident(5, displayName: "Create Incident"),
+  syncCmsInspectionLinePhotos(6, displayName: "CMS inspection photos");
 
   const BackgroundJobType(
     int value, {

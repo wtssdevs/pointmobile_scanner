@@ -100,6 +100,8 @@ class BackgroundJobInfo {
         return BackgroundJobType.emailLog;
       case 5:
         return BackgroundJobType.createIncident;
+      case 6:
+        return BackgroundJobType.syncCmsInspectionLinePhotos;
       default:
         return BackgroundJobType.none;
     }
@@ -114,8 +116,8 @@ class BackgroundJobInfo {
         'jobArgs': jobArgs,
         'tryCount': tryCount,
         'lastTryTime': lastTryTime.toIso8601String(),
-        'nextTryTime': lastTryTime.toIso8601String(),
-        'creationTime': lastTryTime.toIso8601String(),
+        'nextTryTime': nextTryTime.toIso8601String(),
+        'creationTime': creationTime.toIso8601String(),
         'isAbandoned': isAbandoned,
         'jobType': jobType,
         'refTransactionId': refTransactionId,

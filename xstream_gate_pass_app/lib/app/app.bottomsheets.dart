@@ -7,6 +7,7 @@
 import 'package:stacked_services/stacked_services.dart';
 
 import 'app.locator.dart';
+import '../ui/bottom_sheets/cms_inspection_line_editor/cms_inspection_line_editor_sheet.dart';
 import '../ui/bottom_sheets/gate_access_pre_booking/gate_access_pre_booking_sheet.dart';
 import '../ui/bottom_sheets/gate_access_visitor/gate_access_visitor_sheet.dart';
 import '../ui/bottom_sheets/manual_entry_selection/manual_entry_selection_sheet.dart';
@@ -17,6 +18,7 @@ enum BottomSheetType {
   gateAccessVisitor,
   gateAccessPreBooking,
   manualEntrySelection,
+  cmsInspectionLineEditor,
 }
 
 void setupBottomSheetUi() {
@@ -31,6 +33,8 @@ void setupBottomSheetUi() {
         GateAccessPreBookingSheet(request: request, completer: completer),
     BottomSheetType.manualEntrySelection: (context, request, completer) =>
         ManualEntrySelectionSheet(request: request, completer: completer),
+    BottomSheetType.cmsInspectionLineEditor: (context, request, completer) =>
+        CmsInspectionLineEditorSheet(request: request, completer: completer),
   };
 
   bottomsheetService.setCustomSheetBuilders(builders);

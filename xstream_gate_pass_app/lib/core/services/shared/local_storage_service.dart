@@ -31,8 +31,7 @@ class LocalStorageService {
   DeviceConfig get getDeviceConfig {
     var deviceConfig = _getFromDisk(AppConst.deviceConfig);
     if (deviceConfig == null) {
-      var newDeviceConfig =
-          DeviceConfig(deviceScanningMode: DeviceModelScanningMode.pm84);
+      var newDeviceConfig = DeviceConfig(deviceScanningMode: DeviceModelScanningMode.pm84);
       _saveToDisk(AppConst.deviceConfig, json.encode(newDeviceConfig.toJson()));
       return newDeviceConfig;
     }
@@ -75,8 +74,7 @@ class LocalStorageService {
     return tenantId;
   }
 
-  AuthenticateResultModel? get getAuthToken =>
-      getAuthTokenForPortal(AuthPortal.xac);
+  AuthenticateResultModel? get getAuthToken => getAuthTokenForPortal(AuthPortal.xac);
 
   AuthenticateResultModel? getAuthTokenForPortal(AuthPortal portal) {
     var authToken = _getFromDisk(_authTokenKey(portal));
@@ -93,11 +91,9 @@ class LocalStorageService {
     return AuthenticateResultModel.fromJson(json.decode(authToken));
   }
 
-  void setAuthToken(AuthenticateResultModel authToken) =>
-      setAuthTokenForPortal(AuthPortal.xac, authToken);
+  void setAuthToken(AuthenticateResultModel authToken) => setAuthTokenForPortal(AuthPortal.xac, authToken);
 
-  void setAuthTokenForPortal(
-      AuthPortal portal, AuthenticateResultModel authToken) {
+  void setAuthTokenForPortal(AuthPortal portal, AuthenticateResultModel authToken) {
     final jsonAuthToken = json.encode(authToken.toJson());
     _saveToDisk(_authTokenKey(portal), jsonAuthToken);
     saveIsLoggedInForPortal(portal, true);
@@ -128,6 +124,10 @@ class LocalStorageService {
       clearForgotPassword();
       _preferences!.remove(AppConst.current_UserProfile);
     }
+    if (portal == AuthPortal.cms) {
+      _preferences!.remove(AppConst.cms_currentLoginInformation);
+      _preferences!.remove(AppConst.cms_currentLoginInformationRefreshedAt);
+    }
     _preferences!.remove(_userProfileKey(portal));
   }
 
@@ -141,8 +141,7 @@ class LocalStorageService {
     _preferences!.remove(AppConst.is_OTP_Pin_Request);
   }
 
-  CurrentLoginInformation? get getUserLoginInfo =>
-      getUserLoginInfoForPortal(AuthPortal.xac);
+  CurrentLoginInformation? get getUserLoginInfo => getUserLoginInfoForPortal(AuthPortal.xac);
 
   CurrentLoginInformation? getUserLoginInfoForPortal(AuthPortal portal) {
     var userLoginInfo = _getFromDisk(_userProfileKey(portal));
@@ -166,11 +165,9 @@ class LocalStorageService {
     return userLoginInfo.user;
   }
 
-  void setUserLoginInfo(CurrentLoginInformation userLoginInfo) =>
-      setUserLoginInfoForPortal(AuthPortal.xac, userLoginInfo);
+  void setUserLoginInfo(CurrentLoginInformation userLoginInfo) => setUserLoginInfoForPortal(AuthPortal.xac, userLoginInfo);
 
-  void setUserLoginInfoForPortal(
-      AuthPortal portal, CurrentLoginInformation userLoginInfo) {
+  void setUserLoginInfoForPortal(AuthPortal portal, CurrentLoginInformation userLoginInfo) {
     final jsonUserLoginInfo = json.encode(userLoginInfo.toJson());
     _saveToDisk(_userProfileKey(portal), jsonUserLoginInfo);
     if (portal == AuthPortal.xac) {
@@ -191,8 +188,7 @@ class LocalStorageService {
     return loggedIn == true;
   }
 
-  void saveIsLoggedIn(bool value) =>
-      saveIsLoggedInForPortal(AuthPortal.xac, value);
+  void saveIsLoggedIn(bool value) => saveIsLoggedInForPortal(AuthPortal.xac, value);
 
   void saveIsLoggedInForPortal(AuthPortal portal, bool value) {
     _saveToDisk(_isLoggedInKey(portal), value);
@@ -353,24 +349,15 @@ class LocalStorageService {
     return value;
   }
 
-    String _authTokenKey(AuthPortal portal) => portal == AuthPortal.cms
-      ? AppConst.cms_auth_token
-      : AppConst.xac_auth_token;
+  String _authTokenKey(AuthPortal portal) => portal == AuthPortal.cms ? AppConst.cms_auth_token : AppConst.xac_auth_token;
 
-    String _isLoggedInKey(AuthPortal portal) => portal == AuthPortal.cms
-      ? AppConst.cms_is_logged_in
-      : AppConst.xac_is_logged_in;
+  String _isLoggedInKey(AuthPortal portal) => portal == AuthPortal.cms ? AppConst.cms_is_logged_in : AppConst.xac_is_logged_in;
 
-    String _tenantIdKey(AuthPortal portal) =>
-      portal == AuthPortal.cms ? AppConst.cms_tenantId : AppConst.xac_tenantId;
+  String _tenantIdKey(AuthPortal portal) => portal == AuthPortal.cms ? AppConst.cms_tenantId : AppConst.xac_tenantId;
 
-    String _userProfileKey(AuthPortal portal) => portal == AuthPortal.cms
-      ? AppConst.cms_currentUserProfile
-      : AppConst.xac_currentUserProfile;
+  String _userProfileKey(AuthPortal portal) => portal == AuthPortal.cms ? AppConst.cms_currentUserProfile : AppConst.xac_currentUserProfile;
 
-    String _tenantCodeKey(AuthPortal portal) => portal == AuthPortal.cms
-      ? AppConst.cms_tenantCode
-      : AppConst.xac_tenantCode;
+  String _tenantCodeKey(AuthPortal portal) => portal == AuthPortal.cms ? AppConst.cms_tenantCode : AppConst.xac_tenantCode;
 
   dynamic _getFromDisk(String key) {
     var value = _preferences!.get(key);
@@ -399,7 +386,6 @@ class LocalStorageService {
   }
 
   void setForgotPassword(ForgotPassword forgotPasswordReponse) {
-    _saveToDisk(
-        AppConst.is_OTP_Pin_Request, json.encode(forgotPasswordReponse.toJson()));
+    _saveToDisk(AppConst.is_OTP_Pin_Request, json.encode(forgotPasswordReponse.toJson()));
   }
 }

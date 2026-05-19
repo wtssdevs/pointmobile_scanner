@@ -1,0 +1,128 @@
+import 'package:xstream_gate_pass_app/core/models/cms/cms_json_utils.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_edit.dart';
+
+class CmsInspectionEdit {
+  CmsInspectionEdit({
+    this.id = 0,
+    this.inspectionDateTime,
+    this.depotArrivalDateTime,
+    this.manufacturedDate,
+    this.refNo,
+    this.transactionNo,
+    this.inspectedBy,
+    this.comments,
+    this.containerNo,
+    this.containerSize,
+    this.isRfContainer = false,
+    this.containterType,
+    this.inspectionCompleted = false,
+    this.maxGrossWeight,
+    this.shippingLineId,
+    this.shippingLineName,
+    this.transporterName,
+    this.conditionTypeId,
+    this.conditionName,
+    this.containerId,
+    this.repairStartDate,
+    this.repairCompletedDate,
+    this.depotId,
+    this.statusId,
+    this.displayStatus,
+    this.inspectionTypeName,
+    List<CmsInspectionLineEdit>? items,
+  }) : items = items ?? <CmsInspectionLineEdit>[];
+
+  factory CmsInspectionEdit.fromJson(Map<String, dynamic> json) {
+    return CmsInspectionEdit(
+      id: cmsParseInt(json['id']) ?? 0,
+      inspectionDateTime: cmsParseDateTime(json['inspectionDateTime']),
+      depotArrivalDateTime: cmsParseDateTime(json['depotArrivalDateTime']),
+      manufacturedDate: cmsParseDateTime(json['manufacturedDate']),
+      refNo: cmsParseString(json['refNo']),
+      transactionNo: cmsParseString(json['transactionNo']),
+      inspectedBy: cmsParseString(json['inspectedBy']),
+      comments: cmsParseString(json['comments']),
+      containerNo: cmsParseString(json['containerNo']),
+      containerSize: cmsParseString(json['containerSize']),
+      isRfContainer: cmsParseBool(json['isRFContainer']) ?? false,
+      containterType: cmsParseString(json['containterType']),
+      inspectionCompleted: cmsParseBool(json['inspectionCompleted']) ?? false,
+      maxGrossWeight: cmsParseDouble(json['maxGrossWeight']),
+      shippingLineId: cmsParseInt(json['shippingLineID']),
+      shippingLineName: cmsParseString(json['shippingLineName']),
+      transporterName: cmsParseString(json['transporterName']),
+      conditionTypeId: cmsParseInt(json['conditionTypeId']),
+      conditionName: cmsParseString(json['conditionName']),
+      containerId: cmsParseInt(json['containerId']),
+      repairStartDate: cmsParseDateTime(json['repairStartDate']),
+      repairCompletedDate: cmsParseDateTime(json['repairCompletedDate']),
+      depotId: cmsParseInt(json['depotID']),
+      statusId: cmsParseInt(json['statusID']),
+      displayStatus: cmsParseString(json['displayStatus']),
+      inspectionTypeName: cmsParseString(json['inspectionTypeName']),
+      items: cmsParseMapList(json['items']).map(CmsInspectionLineEdit.fromJson).toList(growable: true),
+    );
+  }
+
+  int id;
+  DateTime? inspectionDateTime;
+  DateTime? depotArrivalDateTime;
+  DateTime? manufacturedDate;
+  String? refNo;
+  String? transactionNo;
+  String? inspectedBy;
+  String? comments;
+  String? containerNo;
+  String? containerSize;
+  bool isRfContainer;
+  String? containterType;
+  bool inspectionCompleted;
+  double? maxGrossWeight;
+  int? shippingLineId;
+  String? shippingLineName;
+  String? transporterName;
+  int? conditionTypeId;
+  String? conditionName;
+  int? containerId;
+  DateTime? repairStartDate;
+  DateTime? repairCompletedDate;
+  int? depotId;
+  int? statusId;
+  String? displayStatus;
+  String? inspectionTypeName;
+  List<CmsInspectionLineEdit> items;
+
+  CmsInspectionEdit clone() => CmsInspectionEdit.fromJson(toJson());
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'inspectionDateTime': inspectionDateTime?.toIso8601String(),
+      'depotArrivalDateTime': depotArrivalDateTime?.toIso8601String(),
+      'manufacturedDate': manufacturedDate?.toIso8601String(),
+      'refNo': refNo,
+      'transactionNo': transactionNo,
+      'inspectedBy': inspectedBy,
+      'comments': comments,
+      'containerNo': containerNo,
+      'containerSize': containerSize,
+      'isRFContainer': isRfContainer,
+      'containterType': containterType,
+      'inspectionCompleted': inspectionCompleted,
+      'maxGrossWeight': maxGrossWeight,
+      'shippingLineID': shippingLineId,
+      'shippingLineName': shippingLineName,
+      'transporterName': transporterName,
+      'conditionTypeId': conditionTypeId,
+      'conditionName': conditionName,
+      'containerId': containerId,
+      'repairStartDate': repairStartDate?.toIso8601String(),
+      'repairCompletedDate': repairCompletedDate?.toIso8601String(),
+      'depotID': depotId,
+      'statusID': statusId,
+      'displayStatus': displayStatus,
+      'inspectionTypeName': inspectionTypeName,
+      'items': items.map((item) => item.toJson()).toList(growable: false),
+    };
+  }
+}
