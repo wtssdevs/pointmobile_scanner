@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart' as DioClient;
+import 'package:dio/dio.dart' as dio_client;
 import 'package:stacked/stacked_annotations.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
@@ -25,9 +25,9 @@ class CmsAuthenticationService {
     required UserCredential userCredential,
   }) async {
     var authResponse = await _apiManager.post(
-      AppConst.authentication,
+      AppConst.cms_authentication,
       data: userCredential.toJson(),
-      options: DioClient.Options(
+      options: dio_client.Options(
         extra: {AppConst.requiresAuthExtraKey: false},
       ),
       showLoader: true,

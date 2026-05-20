@@ -3,6 +3,7 @@ import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_item_code.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_location.dart';
 import 'package:xstream_gate_pass_app/core/services/database/sembast_store.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_lookup_data_source.dart';
@@ -33,9 +34,12 @@ void main() {
       await repository.upsertMany(
         CmsMasterFileStores.locations,
         const [
-          InspectionLocation(id: 1, tenantId: 7, code: 'AA', name: 'Alpha Roof'),
-          InspectionLocation(id: 2, tenantId: 7, code: 'AB', name: 'Alpha Side'),
-          InspectionLocation(id: 3, tenantId: 7, code: 'BA', name: 'Beta Floor'),
+          InspectionLocation(
+              id: 1, tenantId: 7, code: 'AA', name: 'Alpha Roof'),
+          InspectionLocation(
+              id: 2, tenantId: 7, code: 'AB', name: 'Alpha Side'),
+          InspectionLocation(
+              id: 3, tenantId: 7, code: 'BA', name: 'Beta Floor'),
         ],
         context,
       );
@@ -62,6 +66,29 @@ void main() {
       expect(selected, isA<SearchableDropdownMenuItem<int>>());
       expect(selected?.value, 3);
       expect(selected?.label, 'BA - Beta Floor');
+    });
+
+    test('returns item-code lookup items from local sync storage', () async {
+      await repository.upsertMany(
+        CmsMasterFileStores.itemCodes,
+        const [
+          CmsItemCode(
+              id: 10, tenantId: 7, code: 'PN-10', description: 'Roof patch'),
+          CmsItemCode(
+              id: 11, tenantId: 7, code: 'PN-11', description: 'Door seal'),
+        ],
+        context,
+      );
+      final itemCodeDataSource = CmsLookupDataSource<CmsItemCode>(
+        repository: repository,
+        store: CmsMasterFileStores.itemCodes,
+        context: context,
+      );
+
+      final results = await itemCodeDataSource.paginatedRequest(1, 'door');
+
+      expect(results.single.value, 11);
+      expect(results.single.label, 'PN-11 - Door seal');
     });
   });
 }

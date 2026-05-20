@@ -131,6 +131,27 @@ Map<String, dynamic> buildInspectionItemJson(
   return json;
 }
 
+Map<String, dynamic> buildItemCodeJson(
+  int id, {
+  String? code,
+  String? description,
+  dynamic quantity = 1,
+  dynamic unitPrice = 10,
+  dynamic labourRate,
+  dynamic grossWeight = 2.5,
+}) {
+  return {
+    'id': id,
+    'tenantId': 7,
+    'code': code ?? 'PART$id',
+    'description': description ?? 'Part $id',
+    'quantity': quantity,
+    'unitPrice': unitPrice,
+    'labourRate': labourRate,
+    'grossWeight': grossWeight,
+  };
+}
+
 List<Map<String, dynamic>> buildInspectionLocationPage({
   required int skip,
   required int take,

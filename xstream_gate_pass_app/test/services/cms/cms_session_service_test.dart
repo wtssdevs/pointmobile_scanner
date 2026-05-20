@@ -31,11 +31,13 @@ void main() {
     tearDown(() => locator.reset());
 
     test('refreshes from ABP result and persists rich + legacy session', () async {
-      when(cmsApiManager.get(
+      when(cmsApiManager.post(
         AppConst.getCurrentLoginInformations,
+        data: anyNamed('data'),
         queryParameters: anyNamed('queryParameters'),
         options: anyNamed('options'),
         cancelToken: anyNamed('cancelToken'),
+        onSendProgress: anyNamed('onSendProgress'),
         onReceiveProgress: anyNamed('onReceiveProgress'),
         showLoader: anyNamed('showLoader'),
       )).thenAnswer((_) async => {'result': buildCmsSessionJson()});
@@ -54,11 +56,13 @@ void main() {
       await repository.save(buildCmsSessionModel());
       service = CmsSessionService();
 
-      when(cmsApiManager.get(
+      when(cmsApiManager.post(
         AppConst.getCurrentLoginInformations,
+        data: anyNamed('data'),
         queryParameters: anyNamed('queryParameters'),
         options: anyNamed('options'),
         cancelToken: anyNamed('cancelToken'),
+        onSendProgress: anyNamed('onSendProgress'),
         onReceiveProgress: anyNamed('onReceiveProgress'),
         showLoader: anyNamed('showLoader'),
       )).thenThrow(Exception('offline'));
@@ -67,6 +71,40 @@ void main() {
 
       expect(session?.tenant?.tenancyName, 'tenant-a');
       expect(service.getCachedLegacyProfile()?.tenant.tenancyName, 'tenant-a');
+    });
+
+    test('uses POST for the CMS session refresh endpoint', () async {
+      when(cmsApiManager.post(
+        AppConst.getCurrentLoginInformations,
+        data: anyNamed('data'),
+        queryParameters: anyNamed('queryParameters'),
+        options: anyNamed('options'),
+        cancelToken: anyNamed('cancelToken'),
+        onSendProgress: anyNamed('onSendProgress'),
+        onReceiveProgress: anyNamed('onReceiveProgress'),
+        showLoader: anyNamed('showLoader'),
+      )).thenAnswer((_) async => {'result': buildCmsSessionJson()});
+
+      await service.refreshFromServer(showLoader: true);
+
+      verify(cmsApiManager.post(
+        AppConst.getCurrentLoginInformations,
+        data: anyNamed('data'),
+        queryParameters: anyNamed('queryParameters'),
+        options: anyNamed('options'),
+        cancelToken: anyNamed('cancelToken'),
+        onSendProgress: anyNamed('onSendProgress'),
+        onReceiveProgress: anyNamed('onReceiveProgress'),
+        showLoader: true,
+      )).called(1);
+      verifyNever(cmsApiManager.get(
+        any,
+        queryParameters: anyNamed('queryParameters'),
+        options: anyNamed('options'),
+        cancelToken: anyNamed('cancelToken'),
+        onReceiveProgress: anyNamed('onReceiveProgress'),
+        showLoader: anyNamed('showLoader'),
+      ));
     });
   });
 }

@@ -17,8 +17,8 @@ class CmsSessionService {
     bool showLoader = false,
   }) async {
     try {
-      final response = await _apiManager.get(
-        AppConst.getCurrentLoginInformations,
+      final response = await _apiManager.post(
+        "/api/services/app/Session/GetCurrentLoginInformations",
         showLoader: showLoader,
       );
 

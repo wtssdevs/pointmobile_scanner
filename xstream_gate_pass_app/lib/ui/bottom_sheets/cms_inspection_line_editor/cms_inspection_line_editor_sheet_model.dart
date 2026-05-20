@@ -5,6 +5,7 @@ import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/account/cms_current_login_information.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_edit.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_panel_definition.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_item_code.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_action.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_damage.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_item.dart';
@@ -17,31 +18,35 @@ import 'package:xstream_gate_pass_app/core/services/services/cms/cms_sync_models
 class CmsInspectionLineEditorSheetModel extends BaseViewModel {
   final log = getLogger('CmsInspectionLineEditorSheetModel');
   final CmsSessionService _cmsSessionService = locator<CmsSessionService>();
-  final CmsMasterFilesRepository _cmsMasterFilesRepository = locator<CmsMasterFilesRepository>();
+  final CmsMasterFilesRepository _cmsMasterFilesRepository =
+      locator<CmsMasterFilesRepository>();
 
   final TextEditingController qtyController = TextEditingController();
   final TextEditingController costController = TextEditingController();
   final TextEditingController labourQtyController = TextEditingController();
   final TextEditingController labourRateController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController partNumberController = TextEditingController();
 
   bool _hasInitialised = false;
   bool _showAdvancedFields = false;
   String? _validationMessage;
+  int? _shippingLineId;
   late CmsInspectionLineEdit _line;
   late CmsLookupDataSource<InspectionLocation> locationDataSource;
   late CmsLookupDataSource<InspectionItem> itemDataSource;
   late CmsLookupDataSource<InspectionAction> actionDataSource;
   late CmsLookupDataSource<InspectionDamage> damageDataSource;
+  late CmsLookupDataSource<CmsItemCode> partNumberDataSource;
 
   CmsInspectionLineEdit get line => _line;
   String? get validationMessage => _validationMessage;
   bool get showAdvancedFields => _showAdvancedFields;
   bool get hasPanelContext => panelLabel != null;
   String? get panelLabel => CmsInspectionPanels.labelForCode(_line.panelCode);
-  double get quantityValue => _parseDouble(qtyController.text) ?? _line.qty ?? 1;
-  String get estimatedSubtotalLabel => _line.estimatedSubtotal.toStringAsFixed(2);
+  double get quantityValue =>
+      _parseDouble(qtyController.text) ?? _line.qty ?? 1;
+  String get estimatedSubtotalLabel =>
+      _line.estimatedSubtotal.toStringAsFixed(2);
 
   Future<void> initialise({
     CmsInspectionLineEdit? line,
@@ -49,14 +54,19 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
     String? initialPanelCode,
     double? initialPinX,
     double? initialPinY,
+    List<String>? initialLocationMatchTerms,
   }) async {
     if (_hasInitialised) {
       return;
     }
 
     _hasInitialised = true;
-    _line = line?.clone() ?? CmsInspectionLineEdit(qty: 1, cost: 0, labourQty: 0, labourRate: 0);
-    _showAdvancedFields = (_line.cost ?? 0) > 0 || (_line.labourQty ?? 0) > 0 || (_line.labourRate ?? 0) > 0;
+    _shippingLineId = shippingLineId;
+    _line = line?.clone() ??
+        CmsInspectionLineEdit(qty: 1, cost: 0, labourQty: 0, labourRate: 0);
+    _showAdvancedFields = (_line.cost ?? 0) > 0 ||
+        (_line.labourQty ?? 0) > 0 ||
+        (_line.labourRate ?? 0) > 0;
     _bindControllers();
 
     final session = _cmsSessionService.getCached();
@@ -66,42 +76,62 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
       repository: _cmsMasterFilesRepository,
       store: CmsMasterFileStores.locations,
       context: context,
+      shippingLineId: shippingLineId,
+      filterByShippingLine: true,
     );
     itemDataSource = CmsLookupDataSource<InspectionItem>(
       repository: _cmsMasterFilesRepository,
       store: CmsMasterFileStores.items,
       context: context,
       shippingLineId: shippingLineId,
+      filterByShippingLine: true,
     );
     actionDataSource = CmsLookupDataSource<InspectionAction>(
       repository: _cmsMasterFilesRepository,
       store: CmsMasterFileStores.actions,
       context: context,
       shippingLineId: shippingLineId,
+      filterByShippingLine: true,
     );
     damageDataSource = CmsLookupDataSource<InspectionDamage>(
       repository: _cmsMasterFilesRepository,
       store: CmsMasterFileStores.damages,
       context: context,
       shippingLineId: shippingLineId,
+      filterByShippingLine: true,
+    );
+    partNumberDataSource = CmsLookupDataSource<CmsItemCode>(
+      repository: _cmsMasterFilesRepository,
+      store: CmsMasterFileStores.itemCodes,
+      context: context,
     );
 
     await _applyInitialPanelContext(
       initialPanelCode: initialPanelCode,
       initialPinX: initialPinX,
       initialPinY: initialPinY,
+      initialLocationMatchTerms: initialLocationMatchTerms,
     );
 
     rebuildUi();
   }
 
-  String get locationHint => _hintFor(_line.inspectionLocationCode, _line.inspectionLocationName, 'Select location');
-  String get itemHint => _hintFor(_line.inspectionItemCode, _line.inspectionItemName, 'Select item');
-  String get actionHint => _hintFor(_line.inspectionActionCode, _line.inspectionActionName, 'Select action');
-  String get damageHint => _hintFor(_line.inspectionDamageCode, _line.inspectionDamageName, 'Select damage');
+  String get locationHint => _hintFor(_line.inspectionLocationCode,
+      _line.inspectionLocationName, 'Select location');
+  String get itemHint => _hintFor(
+      _line.inspectionItemCode, _line.inspectionItemName, 'Select item');
+  String get actionHint => _hintFor(
+      _line.inspectionActionCode, _line.inspectionActionName, 'Select action');
+  String get damageHint => _hintFor(
+      _line.inspectionDamageCode, _line.inspectionDamageName, 'Select damage');
+  String get partNumberHint {
+    final value = _line.partNumber?.trim();
+    return value == null || value.isEmpty ? 'Select part number' : value;
+  }
 
   Future<void> selectLocation(int? id) async {
-    final location = await _cmsMasterFilesRepository.getById(CmsMasterFileStores.locations, locationDataSource.context, id);
+    final location = await _cmsMasterFilesRepository.getById(
+        CmsMasterFileStores.locations, locationDataSource.context, id);
     _line.inspectionLocationId = location?.id;
     _line.inspectionLocationName = location?.name;
     _line.inspectionLocationCode = location?.code;
@@ -111,7 +141,8 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
   }
 
   Future<void> selectItem(int? id) async {
-    final item = await _cmsMasterFilesRepository.getById(CmsMasterFileStores.items, itemDataSource.context, id);
+    final item = await _cmsMasterFilesRepository.getById(
+        CmsMasterFileStores.items, itemDataSource.context, id);
     _line.inspectionItemId = item?.id;
     _line.inspectionItemName = item?.name;
     _line.inspectionItemCode = item?.code;
@@ -120,7 +151,8 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
   }
 
   Future<void> selectAction(int? id) async {
-    final action = await _cmsMasterFilesRepository.getById(CmsMasterFileStores.actions, actionDataSource.context, id);
+    final action = await _cmsMasterFilesRepository.getById(
+        CmsMasterFileStores.actions, actionDataSource.context, id);
     _line.inspectionActionId = action?.id;
     _line.inspectionActionName = action?.name;
     _line.inspectionActionCode = action?.code;
@@ -129,10 +161,20 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
   }
 
   Future<void> selectDamage(int? id) async {
-    final damage = await _cmsMasterFilesRepository.getById(CmsMasterFileStores.damages, damageDataSource.context, id);
+    final damage = await _cmsMasterFilesRepository.getById(
+        CmsMasterFileStores.damages, damageDataSource.context, id);
     _line.inspectionDamageId = damage?.id;
     _line.inspectionDamageName = damage?.name;
     _line.inspectionDamageCode = damage?.code;
+    _validationMessage = null;
+    rebuildUi();
+  }
+
+  Future<void> selectPartNumber(int? id) async {
+    final itemCode = await _cmsMasterFilesRepository.getById(
+        CmsMasterFileStores.itemCodes, partNumberDataSource.context, id);
+    final code = itemCode?.code?.trim();
+    _line.partNumber = code == null || code.isEmpty ? null : code;
     _validationMessage = null;
     rebuildUi();
   }
@@ -153,7 +195,9 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
 
   CmsInspectionLineEdit? buildResult() {
     _line.descriptionOne = descriptionController.text.trim();
-    _line.partNumber = partNumberController.text.trim();
+    final partNumber = _line.partNumber?.trim();
+    _line.partNumber =
+        partNumber == null || partNumber.isEmpty ? null : partNumber;
     _line.qty = _parseDouble(qtyController.text);
     _line.cost = _parseDouble(costController.text);
     _line.labourQty = _parseDouble(labourQtyController.text);
@@ -191,7 +235,6 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
     labourQtyController.dispose();
     labourRateController.dispose();
     descriptionController.dispose();
-    partNumberController.dispose();
     super.dispose();
   }
 
@@ -201,7 +244,6 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
     labourQtyController.text = (_line.labourQty ?? 0).toString();
     labourRateController.text = (_line.labourRate ?? 0).toString();
     descriptionController.text = _line.descriptionOne ?? '';
-    partNumberController.text = _line.partNumber ?? '';
   }
 
   CmsSyncContext _contextFromSession(CmsCurrentLoginInformation? session) {
@@ -212,7 +254,10 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
   }
 
   String _hintFor(String? code, String? name, String fallback) {
-    final display = [code, name].whereType<String>().where((item) => item.isNotEmpty).join(' - ');
+    final display = [code, name]
+        .whereType<String>()
+        .where((item) => item.isNotEmpty)
+        .join(' - ');
     return display.isEmpty ? fallback : display;
   }
 
@@ -220,8 +265,10 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
     String? initialPanelCode,
     double? initialPinX,
     double? initialPinY,
+    List<String>? initialLocationMatchTerms,
   }) async {
-    final panel = CmsInspectionPanels.byCode(initialPanelCode ?? _line.panelCode);
+    final panel =
+        CmsInspectionPanels.byCode(initialPanelCode ?? _line.panelCode);
     if (panel == null) {
       return;
     }
@@ -236,7 +283,10 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
       return;
     }
 
-    final matchedLocation = await _findLocationForPanel(panel);
+    final matchedLocation = await _findLocationForPanel(
+      panel,
+      preferredTerms: initialLocationMatchTerms,
+    );
     if (matchedLocation == null) {
       return;
     }
@@ -246,11 +296,39 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
     _line.inspectionLocationCode = matchedLocation.code;
   }
 
-  Future<InspectionLocation?> _findLocationForPanel(CmsInspectionPanelDefinition panel) async {
+  Future<InspectionLocation?> _findLocationForPanel(
+    CmsInspectionPanelDefinition panel, {
+    List<String>? preferredTerms,
+  }) async {
     final locations = await _cmsMasterFilesRepository.getAll(
       CmsMasterFileStores.locations,
       locationDataSource.context,
+      shippingLineId: _shippingLineId,
+      filterByShippingLine: true,
     );
+
+    final normalizedPreferredTerms = (preferredTerms ?? const <String>[])
+        .map(_normalizeSearch)
+        .where((value) => value.isNotEmpty)
+        .toList(growable: false);
+
+    if (normalizedPreferredTerms.isNotEmpty) {
+      for (final location in locations) {
+        final candidateTerms = [
+          location.code,
+          location.altCode,
+          location.name,
+        ].map(_normalizeSearch).where((value) => value.isNotEmpty);
+
+        if (candidateTerms.any(
+          (candidate) => normalizedPreferredTerms.any(
+            (term) => candidate == term || candidate.contains(term),
+          ),
+        )) {
+          return location;
+        }
+      }
+    }
 
     for (final location in locations) {
       final matchedPanel = CmsInspectionPanels.matchLocation(
@@ -285,7 +363,9 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
 
   void _setQty(double value) {
     final normalizedValue = value < 1 ? 1 : value;
-    qtyController.text = normalizedValue % 1 == 0 ? normalizedValue.toStringAsFixed(0) : normalizedValue.toStringAsFixed(2);
+    qtyController.text = normalizedValue % 1 == 0
+        ? normalizedValue.toStringAsFixed(0)
+        : normalizedValue.toStringAsFixed(2);
     _validationMessage = null;
     rebuildUi();
   }
@@ -296,6 +376,13 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
     }
 
     return double.tryParse(value.trim());
+  }
+
+  String _normalizeSearch(String? value) {
+    return (value ?? '')
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+        .trim();
   }
 
   String? _validate() {

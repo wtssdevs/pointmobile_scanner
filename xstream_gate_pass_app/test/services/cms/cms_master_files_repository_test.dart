@@ -2,10 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_item_code.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_location.dart';
 import 'package:xstream_gate_pass_app/core/services/database/sembast_store.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_sync_models.dart';
-import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_location.dart';
 
 void main() {
   group('CmsMasterFilesRepository -', () {
@@ -55,6 +56,14 @@ void main() {
             isActive: true,
             shippingLineId: 55,
           ),
+          InspectionLocation(
+            id: 4,
+            tenantId: 7,
+            code: 'D',
+            name: 'Delta',
+            isActive: true,
+            shippingLineId: 66,
+          ),
         ],
         context,
       );
@@ -67,15 +76,42 @@ void main() {
         CmsMasterFileStores.locations,
         context,
         shippingLineId: 55,
+        filterByShippingLine: true,
+      );
+      final generalItems = await repository.getAll(
+        CmsMasterFileStores.locations,
+        context,
+        filterByShippingLine: true,
       );
       final otherContextIds = await repository.getIds(
         CmsMasterFileStores.locations,
         const CmsSyncContext(tenantId: 8, userId: 42),
       );
 
-      expect(activeItems.map((item) => item.id), [1, 3]);
+      expect(activeItems.map((item) => item.id), [1, 3, 4]);
       expect(shippingLineItems.map((item) => item.id), [1, 3]);
+      expect(generalItems.map((item) => item.id), [1]);
       expect(otherContextIds, isEmpty);
+    });
+
+    test('stores item codes in the same local sync repository', () async {
+      await repository.upsertMany(
+        CmsMasterFileStores.itemCodes,
+        const [
+          CmsItemCode(id: 20, tenantId: 7, code: 'B-20', description: 'Bolt'),
+          CmsItemCode(
+              id: 21, tenantId: 7, code: 'D-21', description: 'Door hinge'),
+        ],
+        context,
+      );
+
+      final results = await repository.search(
+        CmsMasterFileStores.itemCodes,
+        context,
+        searchTerm: 'door',
+      );
+
+      expect(results.map((item) => item.code), ['D-21']);
     });
 
     test('deleteByIds only affects the targeted store', () async {
@@ -94,7 +130,8 @@ void main() {
         {10},
       );
 
-      final ids = await repository.getIds(CmsMasterFileStores.locations, context);
+      final ids =
+          await repository.getIds(CmsMasterFileStores.locations, context);
       expect(ids, {11});
     });
   });

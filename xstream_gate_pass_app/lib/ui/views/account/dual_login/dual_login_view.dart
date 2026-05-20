@@ -17,7 +17,7 @@ class DualLoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
-    final pageHeight = screenHeight < 720 ? 540.0 : 590.0;
+    final pageHeight = screenHeight < 720 ? 500.0 : 520.0;
 
     return ViewModelBuilder<DualLoginViewModel>.reactive(
       viewModelBuilder: () => DualLoginViewModel(initialPortal: initialPortal),
@@ -35,7 +35,7 @@ class DualLoginView extends StatelessWidget {
               child: Column(
                 children: [
                   const LoginHeader(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   PortalLoginTabs(
                     selectedPortal: model.selectedPortal,
                     onPortalSelected: (portal) {
@@ -82,12 +82,6 @@ class DualLoginView extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'XAC remains the default. CMS is phase-1 auth/session only.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
                   ),
                   const SizedBox(height: 12),
                   Container(

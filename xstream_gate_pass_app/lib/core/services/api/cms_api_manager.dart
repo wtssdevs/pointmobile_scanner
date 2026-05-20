@@ -26,19 +26,15 @@ class CmsApiManager {
   late Dio _dio;
 
   Future<void> init() async {
+    final baseUrl = _environmentService.getBaseUrl(AuthPortal.cms);
     final options = BaseOptions(
-      baseUrl: _environmentService.getBaseUrl(AuthPortal.cms),
+      baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
       receiveTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
     );
-    _dio = dio_client.Dio()
-      ..options = options
-      ..httpClientAdapter = Http2Adapter(
-        ConnectionManager(
-          idleTimeout: const Duration(seconds: 15),
-          onClientCreate: (_, config) => config.onBadCertificate = (_) => true,
-        ),
-      );
+    _dio = dio_client.Dio()..options = options;
+
+    _configureHttpClientAdapter(_dio, baseUrl);
 
     _dio.interceptors.add(
       PrettyDioLogger(
@@ -131,28 +127,39 @@ class CmsApiManager {
     );
   }
 
+  void _configureHttpClientAdapter(Dio client, String baseUrl) {
+    final scheme = Uri.tryParse(baseUrl)?.scheme.toLowerCase();
+    if (scheme == 'https') {
+      client.httpClientAdapter = Http2Adapter(
+        ConnectionManager(
+          idleTimeout: const Duration(seconds: 15),
+          onClientCreate: (_, config) => config.onBadCertificate = (_) => true,
+        ),
+      );
+      return;
+    }
+
+    log.i('CMS using default Dio adapter for base URL: $baseUrl');
+  }
+
   Future<Response<dynamic>> retryInternal(RequestOptions requestOptions) async {
     final options = Options(
       method: requestOptions.method,
       headers: requestOptions.headers,
     );
 
+    final baseUrl = _environmentService.getBaseUrl(AuthPortal.cms);
     final baseOptions = BaseOptions(
-      baseUrl: _environmentService.getBaseUrl(AuthPortal.cms),
+      baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
       receiveTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
       method: requestOptions.method,
       headers: requestOptions.headers,
     );
 
-    var dioRetryClient = Dio()
-      ..options = baseOptions
-      ..httpClientAdapter = Http2Adapter(
-        ConnectionManager(
-          idleTimeout: const Duration(seconds: 15),
-          onClientCreate: (_, config) => config.onBadCertificate = (_) => true,
-        ),
-      );
+    var dioRetryClient = Dio()..options = baseOptions;
+
+    _configureHttpClientAdapter(dioRetryClient, baseUrl);
 
     return dioRetryClient.request<dynamic>(requestOptions.path,
         data: requestOptions.data, queryParameters: requestOptions.queryParameters, options: options);
@@ -201,7 +208,8 @@ class CmsApiManager {
       if (showLoader) {
         EasyLoading.show();
       }
-
+      log.d(
+          "POST Request - URI: ${_dio.options.baseUrl}$uri, Data: $data, QueryParameters: $queryParameters, Options: ${options?.toString()}, CancelToken: ${cancelToken?.toString()}");
       final dio_client.Response response = await _dio.post(
         uri,
         data: data,
@@ -215,6 +223,7 @@ class CmsApiManager {
       return response.data;
     } catch (e) {
       EasyLoading.dismiss();
+      //log.d(e.toString());
       rethrow;
     } finally {
       EasyLoading.dismiss();

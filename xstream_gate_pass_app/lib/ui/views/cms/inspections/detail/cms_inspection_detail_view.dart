@@ -21,7 +21,8 @@ class CmsInspectionDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<CmsInspectionDetailViewModel>.reactive(
       viewModelBuilder: () => CmsInspectionDetailViewModel(),
-      onViewModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((_) {
+      onViewModelReady: (model) =>
+          SchedulerBinding.instance.addPostFrameCallback((_) {
         model.runStartupLogic(
           inspectionId: inspectionId,
           containerId: containerId,
@@ -60,7 +61,8 @@ class CmsInspectionDetailView extends StatelessWidget {
                   const Center(child: CircularProgressIndicator())
                 else if (!model.hasInspection)
                   _ErrorState(
-                    message: model.errorMessage ?? 'The inspection could not be loaded.',
+                    message: model.errorMessage ??
+                        'The inspection could not be loaded.',
                     onRetry: model.reload,
                   )
                 else
@@ -74,17 +76,21 @@ class CmsInspectionDetailView extends StatelessWidget {
                           _HeaderCard(
                             title: model.headerTitle(),
                             subtitle: model.headerSubtitle(),
+                            statusLabel: model.inspectionStatusLabel,
+                            facts: model.containerHeaderFacts,
                           ),
                           const SizedBox(height: 12),
-                          if (model.errorMessage != null) _MessageBanner(message: model.errorMessage!),
+                          if (model.errorMessage != null)
+                            _MessageBanner(message: model.errorMessage!),
                           _SectionCard(
-                            title: 'Inspection timing',
+                            title: model.inspectionTimingTitle,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   model.inspection?.inspectionDateTime != null
-                                      ? model.inspection!.inspectionDateTime!.toFormattedString()
+                                      ? model.inspection!.inspectionDateTime!
+                                          .toFormattedString()
                                       : 'Not set yet',
                                   style: const TextStyle(
                                     fontSize: 18,
@@ -97,13 +103,17 @@ class CmsInspectionDetailView extends StatelessWidget {
                                   runSpacing: 8,
                                   children: [
                                     OutlinedButton.icon(
-                                      onPressed: () => _pickInspectionDateTime(context, model),
-                                      icon: const Icon(Icons.edit_calendar_outlined),
+                                      onPressed: () => _pickInspectionDateTime(
+                                          context, model),
+                                      icon: const Icon(
+                                          Icons.edit_calendar_outlined),
                                       label: const Text('Pick date & time'),
                                     ),
                                     TextButton.icon(
-                                      onPressed: model.setInspectionDateTimeToNow,
-                                      icon: const Icon(Icons.schedule_send_outlined),
+                                      onPressed:
+                                          model.setInspectionDateTimeToNow,
+                                      icon: const Icon(
+                                          Icons.schedule_send_outlined),
                                       label: const Text('Set now'),
                                     ),
                                   ],
@@ -116,20 +126,36 @@ class CmsInspectionDetailView extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _LabeledValue(label: 'Condition', value: model.inspection?.conditionName ?? 'Not set'),
-                                _LabeledValue(label: 'Shipping line', value: model.inspection?.shippingLineName ?? 'Not set'),
-                                _LabeledValue(label: 'Repair start', value: model.inspection?.repairStartDate?.toFormattedString() ?? 'Not set'),
                                 _LabeledValue(
-                                    label: 'Repair complete', value: model.inspection?.repairCompletedDate?.toFormattedString() ?? 'Not set'),
+                                    label: 'Condition',
+                                    value: model.inspection?.conditionName ??
+                                        'Not set'),
+                                _LabeledValue(
+                                    label: 'Shipping line',
+                                    value: model.inspection?.shippingLineName ??
+                                        'Not set'),
                               ],
                             ),
                           ),
+                          if (model.hasUnclassifiedLines)
+                            _MessageBanner(
+                                message: model.unclassifiedLineWarning),
                           _SectionCard(
                             title: 'Container map',
+                            contentPadding: const EdgeInsets.all(1),
+                            childSpacing: 2,
                             child: CmsContainerSchematicView(
                               lines: model.inspection!.items,
                               containerLabel: model.schematicContainerLabel,
-                              onPanelTap: model.addLineFromPanel,
+                              selectedPanelCode: model.selectedPanelCode,
+                              coverageFor: model.coverageFor,
+                              onPanelTap: model.selectPanelFromMap,
+                              onPanelDoubleTap: model.addLineFromPanel,
+                              onAddLineForSelectedPanel:
+                                  model.addLineFromSelectedPanel,
+                              onQuickPhotoForSelectedPanel:
+                                  model.capturePhotoFromSelectedPanel,
+                              onMarkerTap: model.editLineFromMarker,
                             ),
                           ),
                           _SectionCard(
@@ -145,52 +171,8 @@ class CmsInspectionDetailView extends StatelessWidget {
                               ),
                             ),
                           ),
-                          _SectionCard(
-                            title: 'Damage lines',
-                            trailing: FilledButton.icon(
-                              onPressed: model.addLine,
-                              icon: const Icon(Icons.add),
-                              label: const Text('Add line'),
-                            ),
-                            child: model.hasLineItems
-                                ? Column(
-                                    children: List.generate(
-                                      model.inspection!.items.length,
-                                      (index) => CmsInspectionLineTile(
-                                        line: model.inspection!.items[index],
-                                        photoCount: model.photoCountForLine(model.inspection!.items[index]),
-                                        photoStatus: model.photoStatusForLine(model.inspection!.items[index]),
-                                        isPhotoBusy: model.isCapturingLinePhoto(index),
-                                        onAddPhoto: () => model.captureLinePhoto(index),
-                                        onEdit: () => model.editLine(index),
-                                        onDuplicate: () => model.duplicateLine(index),
-                                        onDelete: () => model.deleteLine(index),
-                                      ),
-                                    ),
-                                  )
-                                : const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 8),
-                                    child: Text('No line items added yet. Tap the container map or use Add line to start.'),
-                                  ),
-                          ),
-                          _SectionCard(
-                            title: 'Repair timestamps',
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                OutlinedButton.icon(
-                                  onPressed: model.setRepairStartNow,
-                                  icon: const Icon(Icons.play_circle_outline),
-                                  label: const Text('Set repair start now'),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: model.setRepairCompleteNow,
-                                  icon: const Icon(Icons.check_circle_outline),
-                                  label: const Text('Set repair complete now'),
-                                ),
-                              ],
-                            ),
+                          _LineItemsSection(
+                            model: model,
                           ),
                           const SizedBox(height: 12),
                           Row(
@@ -208,7 +190,9 @@ class CmsInspectionDetailView extends StatelessWidget {
                                   style: FilledButton.styleFrom(
                                     backgroundColor: kcPrimaryColor,
                                   ),
-                                  onPressed: model.completeInspection,
+                                  onPressed: model.hasUnclassifiedLines
+                                      ? null
+                                      : model.completeInspection,
                                   icon: const Icon(Icons.task_alt),
                                   label: const Text('Complete'),
                                 ),
@@ -271,14 +255,83 @@ class CmsInspectionDetailView extends StatelessWidget {
   }
 }
 
+class _LineItemsSection extends StatelessWidget {
+  const _LineItemsSection({required this.model});
+
+  final CmsInspectionDetailViewModel model;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Line Items',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              FilledButton.icon(
+                onPressed: model.addLine,
+                icon: const Icon(Icons.add),
+                label: const Text('Add line'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (model.hasLineItems)
+            Column(
+              children: List.generate(
+                model.inspection!.items.length,
+                (index) => CmsInspectionLineTile(
+                  line: model.inspection!.items[index],
+                  requiresClassification: model.lineNeedsClassification(
+                    model.inspection!.items[index],
+                  ),
+                  photoCount:
+                      model.photoCountForLine(model.inspection!.items[index]),
+                  photoStatus:
+                      model.photoStatusForLine(model.inspection!.items[index]),
+                  isPhotoBusy: model.isCapturingLinePhoto(index),
+                  onAddPhoto: () => model.captureLinePhoto(index),
+                  onEdit: () => model.editLine(index),
+                  onDuplicate: () => model.duplicateLine(index),
+                  onDelete: () => model.deleteLine(index),
+                ),
+              ),
+            )
+          else
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No line items added yet. Tap the container map or use Add line to start.',
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _HeaderCard extends StatelessWidget {
   const _HeaderCard({
     required this.title,
     required this.subtitle,
+    required this.statusLabel,
+    required this.facts,
   });
 
   final String title;
   final String subtitle;
+  final String statusLabel;
+  final List<CmsInspectionHeaderFact> facts;
 
   @override
   Widget build(BuildContext context) {
@@ -299,13 +352,22 @@ class _HeaderCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              _HeaderStatusChip(label: statusLabel),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
@@ -313,6 +375,94 @@ class _HeaderCard extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white70,
               fontSize: 13,
+            ),
+          ),
+          if (facts.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: facts
+                  .map(
+                    (fact) => _HeaderFactChip(
+                      label: fact.label,
+                      value: fact.value,
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderStatusChip extends StatelessWidget {
+  const _HeaderStatusChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white30),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderFactChip extends StatelessWidget {
+  const _HeaderFactChip({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$label ',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: Text(
+              value,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],
@@ -325,12 +475,14 @@ class _SectionCard extends StatelessWidget {
   const _SectionCard({
     required this.title,
     required this.child,
-    this.trailing,
+    this.contentPadding = const EdgeInsets.all(16),
+    this.childSpacing = 12,
   });
 
   final String title;
   final Widget child;
-  final Widget? trailing;
+  final EdgeInsetsGeometry contentPadding;
+  final double childSpacing;
 
   @override
   Widget build(BuildContext context) {
@@ -338,7 +490,7 @@ class _SectionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: contentPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -353,10 +505,9 @@ class _SectionCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (trailing != null) trailing!,
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: childSpacing),
             child,
           ],
         ),

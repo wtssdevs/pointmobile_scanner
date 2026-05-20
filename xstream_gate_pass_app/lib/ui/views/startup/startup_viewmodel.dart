@@ -16,6 +16,7 @@ class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
 
   Future<void> runBaseStartup() async {
     // Initialize FileStore isolate for background uploads
+
     try {
       await _fileStoreIsolateInitializer.initializeFileStoreIsolate();
     } catch (e) {
@@ -25,7 +26,9 @@ class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
   }
 
   Future<void> runStartupLogic() async {
-    //FlutterNativeSplash.remove();
+    log.i('Main startup logic completed. Initializing app session and routing.');
+
+    FlutterNativeSplash.remove();
     //_navigationService.clearStackAndShow(Routes.gateAccessPreBookingFindView);
 
     try {
@@ -39,7 +42,7 @@ class StartUpViewModel extends BaseViewModel with AppViewBaseHelper {
       // );
 
       FlutterNativeSplash.remove();
-  await _authSessionCoordinator.routeToLogin(AuthPortal.xac);
+      await _authSessionCoordinator.routeToLogin(AuthPortal.xac);
     } finally {
       FlutterNativeSplash.remove();
       await runBaseStartup();

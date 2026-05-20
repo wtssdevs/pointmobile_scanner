@@ -18,7 +18,8 @@ class CmsHomeView extends StatelessWidget {
       builder: (context, model, child) => PopScope(
         canPop: false,
         child: Scaffold(
-          backgroundColor: Colors.grey[50],
+          //backgroundColor: Colors.grey[50],
+          backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             elevation: 4,
             automaticallyImplyLeading: false,
@@ -73,24 +74,14 @@ class CmsHomeView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                CmsShellCard(
-                  icon: Icons.verified_user_outlined,
-                  title: model.isCmsLoggedIn ? 'CMS session active' : 'CMS session inactive',
-                  subtitle: 'Tenant and user details are stored separately from XAC. Depots: ${model.depotCount} • Yards: ${model.yardCount}.',
-                ),
-                CmsShellCard(
-                  icon: Icons.sync_rounded,
-                  title: model.syncCardTitle,
-                  subtitle: model.syncCardSubtitle,
-                  trailing: model.isSyncing
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.chevron_right),
-                  onTap: model.syncNow,
-                ),
+                // CmsShellCard(
+                //   icon: Icons.verified_user_outlined,
+                //   title: model.isCmsLoggedIn
+                //       ? 'CMS session active'
+                //       : 'CMS session inactive',
+                //   subtitle:
+                //       'Tenant and user details are stored separately from XAC. System details live in settings.',
+                // ),
                 CmsShellCard(
                   icon: Icons.assignment_turned_in_outlined,
                   title: 'Container inspections',
@@ -99,42 +90,11 @@ class CmsHomeView extends StatelessWidget {
                   onTap: model.openContainerInspections,
                 ),
                 CmsShellCard(
-                  icon: Icons.dns_outlined,
-                  title: 'CMS endpoint',
-                  subtitle: model.baseUrl.isEmpty ? 'Loading endpoint...' : model.baseUrl,
-                ),
-                CmsShellCard(
                   icon: Icons.settings_suggest_outlined,
                   title: 'CMS settings',
-                  subtitle: 'Refresh session info, review last sync times, and sync a single master-file store.',
+                  subtitle: 'Manage CMS session, connection, sync, and portal actions.',
                   trailing: const Icon(Icons.chevron_right),
                   onTap: model.openSettings,
-                ),
-                CmsShellCard(
-                  icon: Icons.swap_horiz,
-                  title: 'Switch to XAC',
-                  subtitle: 'Return to the existing gate-pass home if XAC is logged in.',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: model.switchToXac,
-                ),
-                CmsShellCard(
-                  icon: Icons.logout,
-                  title: 'Logout CMS',
-                  subtitle: 'Only CMS auth state will be cleared.',
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: model.logoutCms,
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    model.latestSyncError ?? 'Future CMS modules will appear here after auth/session isolation and master-file sync are proven.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: model.latestSyncError != null ? Colors.amber[900] : Colors.grey[600],
-                      fontSize: 12,
-                    ),
-                  ),
                 ),
               ],
             ),

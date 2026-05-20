@@ -12,6 +12,7 @@ class CmsLookupDataSource<T extends CmsInspectionLookupBase> {
     this.pageSize = 20,
     this.activeOnly = true,
     this.shippingLineId,
+    this.filterByShippingLine = false,
     SearchableDropdownMenuItem<int> Function(T entity)? itemBuilder,
   }) : _itemBuilder = itemBuilder ?? _defaultItemBuilder;
 
@@ -21,6 +22,7 @@ class CmsLookupDataSource<T extends CmsInspectionLookupBase> {
   final int pageSize;
   final bool activeOnly;
   final int? shippingLineId;
+  final bool filterByShippingLine;
   final SearchableDropdownMenuItem<int> Function(T entity) _itemBuilder;
 
   Future<List<SearchableDropdownMenuItem<int>>> paginatedRequest(
@@ -36,14 +38,25 @@ class CmsLookupDataSource<T extends CmsInspectionLookupBase> {
       take: pageSize,
       activeOnly: activeOnly,
       shippingLineId: shippingLineId,
+      filterByShippingLine: filterByShippingLine,
     );
 
-    return items.where((entity) => entity.id != null).map(_itemBuilder).toList(growable: false);
+    return items
+        .where((entity) => entity.id != null)
+        .map(_itemBuilder)
+        .toList(growable: false);
   }
 
   Future<SearchableDropdownMenuItem<int>?> getSelectedItem(int? id) async {
     final entity = await repository.getById(store, context, id);
     if (entity == null || entity.id == null) {
+      return null;
+    }
+    if (filterByShippingLine &&
+        !entity.matchesShippingLine(
+          shippingLineId,
+          includeSpecificWhenValueMissing: false,
+        )) {
       return null;
     }
 
@@ -53,7 +66,9 @@ class CmsLookupDataSource<T extends CmsInspectionLookupBase> {
   static SearchableDropdownMenuItem<int> _defaultItemBuilder(
     CmsInspectionLookupBase entity,
   ) {
-    final label = entity.displayName.isNotEmpty ? entity.displayName : (entity.name ?? '');
+    final label = entity.displayName.isNotEmpty
+        ? entity.displayName
+        : (entity.name ?? '');
     return SearchableDropdownMenuItem<int>(
       value: entity.id!,
       label: label,

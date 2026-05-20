@@ -33,16 +33,22 @@ class CmsInspectionLookupBase {
   final DateTime? creationTime;
   final DateTime? lastModificationTime;
 
-  bool matchesShippingLine(int? value) {
+  bool matchesShippingLine(
+    int? value, {
+    bool includeSpecificWhenValueMissing = true,
+  }) {
     if (value == null) {
-      return true;
+      return includeSpecificWhenValueMissing ? true : shippingLineId == null;
     }
     return shippingLineId == null || shippingLineId == value;
   }
 
   String get sortCode => (code ?? '').toLowerCase();
   String get sortName => (name ?? '').toLowerCase();
-  String get displayName => [code, name].whereType<String>().where((item) => item.isNotEmpty).join(' - ');
+  String get displayName => [code, name]
+      .whereType<String>()
+      .where((item) => item.isNotEmpty)
+      .join(' - ');
 
   Map<String, dynamic> toJsonBase() {
     return {
@@ -65,7 +71,8 @@ class CmsInspectionLookupBase {
 
   Map<String, dynamic> toJson() => toJsonBase();
 
-  static CmsInspectionLookupBaseFields parseBaseFields(Map<String, dynamic> json) {
+  static CmsInspectionLookupBaseFields parseBaseFields(
+      Map<String, dynamic> json) {
     return CmsInspectionLookupBaseFields(
       id: cmsParseInt(json['id']),
       tenantId: cmsParseInt(json['tenantId']),
@@ -78,7 +85,8 @@ class CmsInspectionLookupBase {
       shippingLineId: cmsParseInt(json['shippingLineID']),
       shippingLineName: cmsParseString(json['shippingLineName']),
       creatorUserFullName: cmsParseString(json['creatorUserFullName']),
-      lastModifiedUserFullName: cmsParseString(json['lastModifiedUserFullName']),
+      lastModifiedUserFullName:
+          cmsParseString(json['lastModifiedUserFullName']),
       creationTime: cmsParseDateTime(json['creationTime']),
       lastModificationTime: cmsParseDateTime(json['lastModificationTime']),
     );

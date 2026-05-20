@@ -13,6 +13,7 @@ class CmsInspectionEdit {
     this.comments,
     this.containerNo,
     this.containerSize,
+    this.containerIsoType,
     this.isRfContainer = false,
     this.containterType,
     this.inspectionCompleted = false,
@@ -44,8 +45,12 @@ class CmsInspectionEdit {
       comments: cmsParseString(json['comments']),
       containerNo: cmsParseString(json['containerNo']),
       containerSize: cmsParseString(json['containerSize']),
+      containerIsoType: cmsParseString(json['containerIsoType']) ??
+          cmsParseString(json['containerISOType']) ??
+          cmsParseString(json['isoType']),
       isRfContainer: cmsParseBool(json['isRFContainer']) ?? false,
-      containterType: cmsParseString(json['containterType']),
+      containterType: cmsParseString(json['containterType']) ??
+          cmsParseString(json['containerType']),
       inspectionCompleted: cmsParseBool(json['inspectionCompleted']) ?? false,
       maxGrossWeight: cmsParseDouble(json['maxGrossWeight']),
       shippingLineId: cmsParseInt(json['shippingLineID']),
@@ -60,7 +65,9 @@ class CmsInspectionEdit {
       statusId: cmsParseInt(json['statusID']),
       displayStatus: cmsParseString(json['displayStatus']),
       inspectionTypeName: cmsParseString(json['inspectionTypeName']),
-      items: cmsParseMapList(json['items']).map(CmsInspectionLineEdit.fromJson).toList(growable: true),
+      items: cmsParseMapList(json['items'])
+          .map(CmsInspectionLineEdit.fromJson)
+          .toList(growable: true),
     );
   }
 
@@ -74,6 +81,7 @@ class CmsInspectionEdit {
   String? comments;
   String? containerNo;
   String? containerSize;
+  String? containerIsoType;
   bool isRfContainer;
   String? containterType;
   bool inspectionCompleted;
@@ -106,6 +114,7 @@ class CmsInspectionEdit {
       'comments': comments,
       'containerNo': containerNo,
       'containerSize': containerSize,
+      'containerIsoType': containerIsoType,
       'isRFContainer': isRfContainer,
       'containterType': containterType,
       'inspectionCompleted': inspectionCompleted,

@@ -1,6 +1,7 @@
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/cms_json_utils.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_lookup_base.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_item_code.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_action.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_damage.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_item.dart';
@@ -144,7 +145,8 @@ class CmsSyncResult {
     );
   }
 
-  factory CmsSyncResult.failure(String message, {Map<String, String> storeErrors = const {}}) {
+  factory CmsSyncResult.failure(String message,
+      {Map<String, String> storeErrors = const {}}) {
     return CmsSyncResult(
       success: false,
       message: message,
@@ -152,7 +154,8 @@ class CmsSyncResult {
     );
   }
 
-  factory CmsSyncResult.alreadyRunning([String message = 'Sync already running']) {
+  factory CmsSyncResult.alreadyRunning(
+      [String message = 'Sync already running']) {
     return CmsSyncResult(
       success: false,
       alreadyRunning: true,
@@ -243,15 +246,30 @@ class CmsMasterFileStores {
     toJson: _itemToJson,
   );
 
+  static const itemCodes = CmsMasterFileStore<CmsItemCode>(
+    storeBase: AppConst.DB_CmsItemCodes,
+    displayName: 'Item Codes',
+    endpoint: AppConst.CmsGetAllItemCodesPagedEdit,
+    fromJson: CmsItemCode.fromJson,
+    toJson: _itemCodeToJson,
+  );
+
   static final all = <CmsMasterFileStore<CmsInspectionLookupBase>>[
     locations.asBaseStore(),
     actions.asBaseStore(),
     damages.asBaseStore(),
     items.asBaseStore(),
+    itemCodes.asBaseStore(),
   ];
 
-  static Map<String, dynamic> _locationToJson(InspectionLocation entity) => entity.toJson();
-  static Map<String, dynamic> _actionToJson(InspectionAction entity) => entity.toJson();
-  static Map<String, dynamic> _damageToJson(InspectionDamage entity) => entity.toJson();
-  static Map<String, dynamic> _itemToJson(InspectionItem entity) => entity.toJson();
+  static Map<String, dynamic> _locationToJson(InspectionLocation entity) =>
+      entity.toJson();
+  static Map<String, dynamic> _actionToJson(InspectionAction entity) =>
+      entity.toJson();
+  static Map<String, dynamic> _damageToJson(InspectionDamage entity) =>
+      entity.toJson();
+  static Map<String, dynamic> _itemToJson(InspectionItem entity) =>
+      entity.toJson();
+  static Map<String, dynamic> _itemCodeToJson(CmsItemCode entity) =>
+      entity.toJson();
 }

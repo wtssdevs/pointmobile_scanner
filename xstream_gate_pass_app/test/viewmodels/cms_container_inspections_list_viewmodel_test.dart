@@ -8,6 +8,7 @@ import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/list/cms_container_inspections_list_viewmodel.dart';
 
 import '../helpers/cms_test_data.dart';
@@ -18,16 +19,23 @@ void main() {
   group('CmsContainerInspectionsListViewModel -', () {
     late MockCmsSessionService cmsSessionService;
     late MockCmsMobileInspectionsService cmsMobileInspectionsService;
+    late MockLocalStorageService localStorageService;
     late MockNavigationService navigationService;
 
     setUp(() {
       registerServices();
       cmsSessionService = locator<CmsSessionService>() as MockCmsSessionService;
-      cmsMobileInspectionsService = locator<CmsMobileInspectionsService>() as MockCmsMobileInspectionsService;
+      cmsMobileInspectionsService = locator<CmsMobileInspectionsService>()
+          as MockCmsMobileInspectionsService;
+      localStorageService =
+          locator<LocalStorageService>() as MockLocalStorageService;
       navigationService = locator<NavigationService>() as MockNavigationService;
 
       when(cmsSessionService.getCached()).thenReturn(buildCmsSessionModel());
-      when(cmsMobileInspectionsService.getInspectableContainers(any)).thenAnswer(
+      when(localStorageService.getCmsDefaultInspectionDepotId())
+          .thenReturn(null);
+      when(cmsMobileInspectionsService.getInspectableContainers(any))
+          .thenAnswer(
         (_) async => PagedList<CmsInspectableContainer>(
           totalCount: 1,
           items: const [
@@ -55,12 +63,33 @@ void main() {
       await model.runStartupLogic();
 
       expect(model.selectedDepotId, 101);
-      final verification = verify(cmsMobileInspectionsService.getInspectableContainers(captureAny));
+      final verification = verify(
+          cmsMobileInspectionsService.getInspectableContainers(captureAny));
       verification.called(1);
       final captured = verification.captured.single as CmsInspectionFilter;
       expect(captured.depotId, 101);
       expect(captured.pageNumber, 1);
+      expect(model.selectedDepotDisplay, 'Main Depot');
+      expect(model.statusFilterLabel, 'All statuses');
       expect(model.pagingController.itemList?.single.containerId, 501);
+    });
+
+    test('applies status filters through staged drawer state', () async {
+      final model = CmsContainerInspectionsListViewModel();
+      await model.runStartupLogic();
+      clearInteractions(cmsMobileInspectionsService);
+
+      model.beginFilterEditing();
+      model.selectStagedStatus(CmsInspectableStatusFilter.inProgress);
+      model.applyFilters();
+      await model.fetchPage(1);
+
+      expect(model.activeFilterCount, 1);
+      final verification = verify(
+          cmsMobileInspectionsService.getInspectableContainers(captureAny));
+      verification.called(1);
+      final captured = verification.captured.single as CmsInspectionFilter;
+      expect(captured.statusFilter, CmsInspectableStatusFilter.inProgress);
     });
 
     test('navigates to detail when detail returns true', () async {
@@ -90,7 +119,8 @@ void main() {
         ),
       );
       navigationVerification.called(1);
-      final arguments = navigationVerification.captured.single as CmsInspectionDetailViewArguments;
+      final arguments = navigationVerification.captured.single
+          as CmsInspectionDetailViewArguments;
       expect(arguments.inspectionId, 88);
       expect(arguments.containerId, isNull);
     });

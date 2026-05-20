@@ -68,7 +68,10 @@ class CmsSettingsView extends StackedView<CmsSettingsViewModel> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: viewModel.busy(CmsSettingsViewModel.refreshSessionKey) ? null : viewModel.refreshSessionInfo,
+                      onPressed:
+                          viewModel.busy(CmsSettingsViewModel.refreshSessionKey)
+                              ? null
+                              : viewModel.refreshSessionInfo,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: kcPrimaryColor,
                         foregroundColor: Colors.white,
@@ -77,21 +80,39 @@ class CmsSettingsView extends StackedView<CmsSettingsViewModel> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      icon: viewModel.busy(CmsSettingsViewModel.refreshSessionKey)
-                          ? const SizedBox(
-                              height: 16,
-                              width: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.refresh_rounded),
+                      icon:
+                          viewModel.busy(CmsSettingsViewModel.refreshSessionKey)
+                              ? const SizedBox(
+                                  height: 16,
+                                  width: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.refresh_rounded),
                       label: const Text('Refresh session info'),
                     ),
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 12),
+            const _SectionHeader(title: 'Connection & system'),
+            CmsShellCard(
+              icon: Icons.dns_outlined,
+              title: 'CMS endpoint',
+              subtitle: viewModel.baseUrl.isEmpty
+                  ? 'Endpoint not configured'
+                  : viewModel.baseUrl,
+            ),
+            CmsShellCard(
+              icon: Icons.verified_user_outlined,
+              title: viewModel.isCmsLoggedIn
+                  ? 'CMS auth active'
+                  : 'CMS auth inactive',
+              subtitle:
+                  'CMS login, token, and tenant state are isolated from XAC.',
             ),
             const SizedBox(height: 12),
             Padding(
@@ -109,7 +130,9 @@ class CmsSettingsView extends StackedView<CmsSettingsViewModel> {
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: viewModel.busy(CmsSettingsViewModel.syncAllKey) ? null : viewModel.syncAll,
+                    onPressed: viewModel.busy(CmsSettingsViewModel.syncAllKey)
+                        ? null
+                        : viewModel.syncAll,
                     icon: viewModel.busy(CmsSettingsViewModel.syncAllKey)
                         ? const SizedBox(
                             height: 16,
@@ -122,7 +145,8 @@ class CmsSettingsView extends StackedView<CmsSettingsViewModel> {
                 ],
               ),
             ),
-            if (viewModel.latestError != null && viewModel.latestError!.isNotEmpty)
+            if (viewModel.latestError != null &&
+                viewModel.latestError!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Card(
@@ -148,6 +172,24 @@ class CmsSettingsView extends StackedView<CmsSettingsViewModel> {
                 onSync: () => viewModel.syncStore(store),
               ),
             ),
+            const SizedBox(height: 12),
+            const _SectionHeader(title: 'Portal actions'),
+            CmsShellCard(
+              icon: Icons.swap_horiz,
+              title: 'Switch to XAC',
+              subtitle:
+                  'Return to the gate-pass portal if an XAC session is available.',
+              trailing: const Icon(Icons.chevron_right),
+              onTap: viewModel.switchToXac,
+            ),
+            CmsShellCard(
+              icon: Icons.logout,
+              title: 'Logout CMS',
+              subtitle:
+                  'Clear only CMS auth state and keep other portal sessions untouched.',
+              trailing: const Icon(Icons.chevron_right),
+              onTap: viewModel.isCmsLoggedIn ? viewModel.logoutCms : null,
+            ),
           ],
         ),
       ),
@@ -155,11 +197,33 @@ class CmsSettingsView extends StackedView<CmsSettingsViewModel> {
   }
 
   @override
-  CmsSettingsViewModel viewModelBuilder(BuildContext context) => CmsSettingsViewModel();
+  CmsSettingsViewModel viewModelBuilder(BuildContext context) =>
+      CmsSettingsViewModel();
 
   @override
   void onViewModelReady(CmsSettingsViewModel viewModel) {
     viewModel.initialise();
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.black87,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
   }
 }
 
@@ -180,7 +244,9 @@ class _StoreSyncCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = isSyncing && progress?.storeBase == store.storeBase ? (progress?.message ?? 'Sync in progress') : _buildSummary();
+    final subtitle = isSyncing && progress?.storeBase == store.storeBase
+        ? (progress?.message ?? 'Sync in progress')
+        : _buildSummary();
 
     return CmsShellCard(
       icon: Icons.inventory_2_outlined,

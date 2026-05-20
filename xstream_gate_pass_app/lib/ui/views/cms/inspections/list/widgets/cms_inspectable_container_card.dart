@@ -19,6 +19,32 @@ class CmsInspectableContainerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String? shippingLineLabel;
+    for (final value in [
+      container.shippingLineCode,
+      container.shippingLineName
+    ]) {
+      final trimmed = value?.trim() ?? '';
+      if (trimmed.isNotEmpty) {
+        shippingLineLabel = trimmed;
+        break;
+      }
+    }
+    final typeLabel = [
+      container.containerSize,
+      container.containerType,
+      container.containerIsoType
+    ]
+        .whereType<String>()
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .join(' • ');
+    final actionIcon = !canOpen
+        ? Icons.check_circle_outline_rounded
+        : container.canResumeInspection
+            ? Icons.play_arrow_rounded
+            : Icons.add_task_rounded;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 4,
@@ -64,20 +90,21 @@ class CmsInspectableContainerCard extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 10,
                 children: [
-                  _InfoChip(
-                    icon: Icons.business_outlined,
-                    label: container.shippingLineCode ?? container.shippingLineName ?? 'Shipping line n/a',
-                  ),
-                  _InfoChip(
-                    icon: Icons.inventory_2_outlined,
-                    label: [container.containerSize, container.containerType, container.containerIsoType]
-                        .whereType<String>()
-                        .where((item) => item.isNotEmpty)
-                        .join(' • '),
-                  ),
+                  if (shippingLineLabel != null)
+                    _InfoChip(
+                      icon: Icons.business_outlined,
+                      label: shippingLineLabel,
+                    ),
+                  if (typeLabel.isNotEmpty)
+                    _InfoChip(
+                      icon: Icons.inventory_2_outlined,
+                      label: typeLabel,
+                    ),
                   _InfoChip(
                     icon: Icons.fact_check_outlined,
-                    label: container.conditionTypeDisplayName ?? container.statusDisplayName ?? 'Condition pending',
+                    label: container.conditionTypeDisplayName ??
+                        container.statusDisplayName ??
+                        'Condition pending',
                   ),
                 ],
               ),
@@ -97,11 +124,15 @@ class CmsInspectableContainerCard extends StatelessWidget {
                   ),
                   ElevatedButton.icon(
                     onPressed: canOpen ? onTap : null,
-                    icon: Icon(container.canResumeInspection ? Icons.play_arrow_rounded : Icons.add_task_rounded),
+                    icon: Icon(actionIcon),
                     label: Text(actionLabel),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: container.canResumeInspection ? kcPrimaryColor : Colors.teal,
+                      backgroundColor: container.canResumeInspection
+                          ? kcPrimaryColor
+                          : Colors.teal,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[200],
+                      disabledForegroundColor: Colors.grey[700],
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),

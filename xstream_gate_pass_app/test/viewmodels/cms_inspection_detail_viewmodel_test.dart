@@ -55,6 +55,59 @@ void main() {
       verify(cmsMobileInspectionsService.startInspection(501)).called(1);
     });
 
+    test('defaults active inspection timing to now when the server omits it',
+        () async {
+      final edit = _buildInspection()..inspectionDateTime = null;
+      when(cmsMobileInspectionsService.startInspection(501))
+          .thenAnswer((_) async => edit);
+
+      final beforeLoad = DateTime.now();
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(containerId: 501);
+      final afterLoad = DateTime.now();
+
+      final inspectionDateTime = model.inspection?.inspectionDateTime;
+      expect(inspectionDateTime, isNotNull);
+      expect(inspectionDateTime!.isBefore(beforeLoad), isFalse);
+      expect(inspectionDateTime.isAfter(afterLoad), isFalse);
+      expect(model.hasUnsavedChanges, isFalse);
+    });
+
+    test('exposes critical container facts for the header card', () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.startInspection(501))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(containerId: 501);
+
+      expect(model.inspectionStatusLabel, 'In progress');
+      expect(
+        model.containerHeaderFacts.map((fact) => '${fact.label}:${fact.value}'),
+        containsAll(['Size:40', 'Type:HC', 'ISO:45G1']),
+      );
+    });
+
+    test('uses workflow-specific inspection timing titles', () async {
+      final activeEdit = _buildInspection();
+      when(cmsMobileInspectionsService.startInspection(501))
+          .thenAnswer((_) async => activeEdit);
+
+      final activeModel = CmsInspectionDetailViewModel();
+      await activeModel.runStartupLogic(containerId: 501);
+
+      expect(activeModel.inspectionTimingTitle, 'Inspection in progress since');
+
+      final completedEdit = _buildInspection()..inspectionCompleted = true;
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => completedEdit);
+
+      final completedModel = CmsInspectionDetailViewModel();
+      await completedModel.runStartupLogic(inspectionId: 88);
+
+      expect(completedModel.inspectionTimingTitle, 'Completed at');
+    });
+
     test('saves draft with updated comments', () async {
       final edit = _buildInspection();
       when(cmsMobileInspectionsService.startInspection(501))
@@ -134,6 +187,22 @@ void main() {
       verify(navigationService.back(result: true)).called(1);
     });
 
+    test('handles repeated back requests once while navigator pop is pending',
+        () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.startInspection(501))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(containerId: 501);
+
+      final firstBack = model.onWillPop();
+      final secondBack = model.onWillPop();
+      await Future.wait([firstBack, secondBack]);
+
+      verify(navigationService.back(result: false)).called(1);
+    });
+
     test(
         'adds a line from a tapped panel and seeds the editor with panel metadata',
         () async {
@@ -178,8 +247,120 @@ void main() {
       expect(capturedData?['initialPanelCode'], 'LSD');
       expect(capturedData?['initialPinX'], 0.330);
       expect(capturedData?['initialPinY'], 0.270);
+      expect(capturedData?['initialLocationMatchTerms'], contains('LEFT'));
       expect(model.inspection!.items.last.panelCode, 'LSD');
       expect(model.coveredPanelCount, 2);
+    });
+
+    test('selects a schematic panel without dirtying the inspection', () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.startInspection(501))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(containerId: 501);
+
+      expect(model.hasUnsavedChanges, isFalse);
+
+      model.selectPanelFromMap(
+        CmsInspectionPanelTapDetails(
+          panel: CmsInspectionPanels.rear,
+          x: CmsInspectionPanels.rear.centerX,
+          y: CmsInspectionPanels.rear.centerY,
+        ),
+      );
+
+      expect(model.selectedPanelCode, 'DOR');
+      expect(model.selectedPanel?.label, 'Rear doors');
+      expect(model.hasUnsavedChanges, isFalse);
+    });
+
+    test('computes schematic panel coverage severity from line costs',
+        () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.startInspection(501))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(containerId: 501);
+
+      expect(model.coverageFor('RFT').lineCount, 1);
+      expect(model.coverageFor('RFT').severity, CmsPanelSeverity.minor);
+      expect(model.coverageFor('DOR').severity, CmsPanelSeverity.pending);
+
+      model.inspection!.items.first.cost = 600;
+
+      expect(model.coverageFor('RFT').severity, CmsPanelSeverity.major);
+    });
+
+    test('creates an unclassified quick-photo line from a schematic panel',
+        () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.startInspection(501))
+          .thenAnswer((_) async => edit);
+      when(linePhotoQueueService.capturePhotoForLine(
+        inspectionId: anyNamed('inspectionId'),
+        line: anyNamed('line'),
+        fromGallery: anyNamed('fromGallery'),
+      )).thenAnswer((invocation) async {
+        final line = invocation.namedArguments[#line] as CmsInspectionLineEdit;
+        return CmsInspectionLinePhoto(
+          inspectionId: 88,
+          clientKey: line.clientKey,
+          clientUploadId: '22222222-2222-2222-2222-222222222222',
+          state: CmsInspectionLinePhotoState.awaitingSave,
+        );
+      });
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(containerId: 501);
+
+      await model.captureLineFromPanel(
+        CmsInspectionPanelTapDetails(
+          panel: CmsInspectionPanels.rear,
+          x: CmsInspectionPanels.rear.centerX,
+          y: CmsInspectionPanels.rear.centerY,
+        ),
+      );
+
+      final draftLine = model.inspection!.items.last;
+      expect(model.inspection!.items, hasLength(2));
+      expect(draftLine.id, 0);
+      expect(draftLine.clientKey, isNotNull);
+      expect(draftLine.panelCode, 'DOR');
+      expect(model.lineNeedsClassification(draftLine), isTrue);
+      expect(model.unclassifiedLineCount, 1);
+
+      await model.saveDraft();
+
+      expect(model.errorMessage, contains('needs classification'));
+      verifyNever(cmsMobileInspectionsService.saveInspection(any));
+    });
+
+    test('rolls back a quick-photo draft line when camera capture is cancelled',
+        () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.startInspection(501))
+          .thenAnswer((_) async => edit);
+      when(linePhotoQueueService.capturePhotoForLine(
+        inspectionId: anyNamed('inspectionId'),
+        line: anyNamed('line'),
+        fromGallery: anyNamed('fromGallery'),
+      )).thenAnswer((_) async => null);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(containerId: 501);
+
+      await model.captureLineFromPanel(
+        CmsInspectionPanelTapDetails(
+          panel: CmsInspectionPanels.floor,
+          x: CmsInspectionPanels.floor.centerX,
+          y: CmsInspectionPanels.floor.centerY,
+        ),
+      );
+
+      expect(model.inspection!.items, hasLength(1));
+      expect(model.unclassifiedLineCount, 0);
     });
 
     test('duplicates a line through the editor and resets the line id',
@@ -219,6 +400,9 @@ CmsInspectionEdit _buildInspection() {
     containerNo: 'MSCU1234567',
     transactionNo: 'EMP-001',
     shippingLineName: 'MSK',
+    containerSize: '40',
+    containterType: 'HC',
+    containerIsoType: '45G1',
     conditionTypeId: 10,
     conditionName: 'UC',
     inspectionDateTime: DateTime(2026, 5, 18, 8, 0),

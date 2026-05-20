@@ -19,8 +19,7 @@ import 'package:xstream_gate_pass_app/core/utils/helper.dart';
 class CmsAccessTokenRepo {
   final log = getLogger('CmsAccessTokenRepo');
   final _environmentService = locator<EnvironmentService>();
-  final LocalStorageService _localStorageService =
-      locator<LocalStorageService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
 
   Future<void> init() async {
     log.d('Initialized');
@@ -52,13 +51,9 @@ class CmsAccessTokenRepo {
     await locator<AuthSessionCoordinator>().routeAfterPortalLogout(AuthPortal.cms);
   }
 
-  Future<AuthenticateResultModel?> processAuthenticateResult(
-      AuthenticateResultModel authenticateResultModel,
-      UserCredential userCredential) async {
-    if (authenticateResultModel.accessToken != null &&
-        authenticateResultModel.accessToken!.isNotEmpty) {
-      authenticateResultModel.userNameOrEmailAddress =
-          userCredential.userNameOrEmailAddress;
+  Future<AuthenticateResultModel?> processAuthenticateResult(AuthenticateResultModel authenticateResultModel, UserCredential userCredential) async {
+    if (authenticateResultModel.accessToken != null && authenticateResultModel.accessToken!.isNotEmpty) {
+      authenticateResultModel.userNameOrEmailAddress = userCredential.userNameOrEmailAddress;
       authenticateResultModel.password = userCredential.password;
       authenticateResultModel.tenancyName = userCredential.tenancyName;
       userCredential.tenantId ??= authenticateResultModel.tenantId;
@@ -68,8 +63,7 @@ class CmsAccessTokenRepo {
           password: userCredential.password,
           tenantId: userCredential.tenantId ?? authenticateResultModel.tenantId);
 
-      _localStorageService.setAuthTokenForPortal(
-          AuthPortal.cms, authenticateResultModel);
+      _localStorageService.setAuthTokenForPortal(AuthPortal.cms, authenticateResultModel);
       _localStorageService.saveIsLoggedInForPortal(AuthPortal.cms, true);
       _localStorageService.setLastSessionPortal(AuthPortal.cms);
     } else {
@@ -79,8 +73,7 @@ class CmsAccessTokenRepo {
     return authenticateResultModel;
   }
 
-  AuthenticateResultModel buildAuthenticateResultModel(
-      dynamic result, UserCredential userCredential) {
+  AuthenticateResultModel buildAuthenticateResultModel(dynamic result, UserCredential userCredential) {
     AuthenticateResultModel authenticateResultModel;
 
     if (result is String) {
@@ -91,10 +84,8 @@ class CmsAccessTokenRepo {
       authenticateResultModel = AuthenticateResultModel();
     }
 
-    authenticateResultModel.tenantId ??=
-        userCredential.tenantId ?? _readTenantIdFromToken(authenticateResultModel.accessToken);
-    authenticateResultModel.userId ??=
-        _readUserIdFromToken(authenticateResultModel.accessToken);
+    authenticateResultModel.tenantId ??= userCredential.tenantId ?? _readTenantIdFromToken(authenticateResultModel.accessToken);
+    authenticateResultModel.userId ??= _readUserIdFromToken(authenticateResultModel.accessToken);
 
     return authenticateResultModel;
   }
@@ -102,9 +93,7 @@ class CmsAccessTokenRepo {
   Future<AuthenticateResultModel?> _refreshToken() async {
     try {
       var token = _localStorageService.getAuthTokenForPortal(AuthPortal.cms);
-      if (token == null ||
-          token.accessToken == null ||
-          token.autTokenIsEmpty()) {
+      if (token == null || token.accessToken == null || token.autTokenIsEmpty()) {
         logOutCurrentUser();
         return null;
       }
@@ -113,9 +102,7 @@ class CmsAccessTokenRepo {
         return token;
       }
 
-      if (token.tenancyName == null ||
-          token.userNameOrEmailAddress == null ||
-          token.password == null) {
+      if (token.tenancyName == null || token.userNameOrEmailAddress == null || token.password == null) {
         logOutCurrentUser();
         return null;
       }
@@ -136,17 +123,14 @@ class CmsAccessTokenRepo {
 
       var dioClient = Dio(options);
 
-      var response = await dioClient.post(AppConst.authentication,
-          data: userCredential.toJson());
+      var response = await dioClient.post(AppConst.cms_authentication, data: userCredential.toJson());
 
       var apiResponse = ApiResponse.fromJson(response.data);
 
       if (apiResponse.success != null && apiResponse.success == true) {
-        var authenticateResultModel =
-            buildAuthenticateResultModel(apiResponse.result, userCredential);
+        var authenticateResultModel = buildAuthenticateResultModel(apiResponse.result, userCredential);
 
-        return await processAuthenticateResult(
-            authenticateResultModel, userCredential);
+        return await processAuthenticateResult(authenticateResultModel, userCredential);
       } else {
         logOutCurrentUser();
       }
@@ -181,6 +165,11 @@ class CmsAccessTokenRepo {
       return null;
     }
 
+    final tokenParts = accessToken.split('.');
+    if (tokenParts.length != 3 || tokenParts[0].isEmpty || tokenParts[1].isEmpty) {
+      return null;
+    }
+
     try {
       final claims = JwtDecoder.decode(accessToken);
       for (final key in keys) {
@@ -196,7 +185,7 @@ class CmsAccessTokenRepo {
         }
       }
     } catch (e) {
-      log.i(e);
+      log.d('Skipping CMS token claim parsing because token is not a JWT: $e');
     }
 
     return null;

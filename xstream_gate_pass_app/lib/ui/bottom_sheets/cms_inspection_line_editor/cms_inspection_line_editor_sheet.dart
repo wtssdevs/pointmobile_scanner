@@ -18,12 +18,24 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final requestData = request.data is Map ? Map<String, dynamic>.from(request.data as Map) : const <String, dynamic>{};
+    final requestData = request.data is Map
+        ? Map<String, dynamic>.from(request.data as Map)
+        : const <String, dynamic>{};
     final line = requestData['line'] as CmsInspectionLineEdit?;
     final shippingLineId = requestData['shippingLineId'] as int?;
     final initialPanelCode = requestData['initialPanelCode'] as String?;
-    final initialPinX = requestData['initialPinX'] is num ? (requestData['initialPinX'] as num).toDouble() : null;
-    final initialPinY = requestData['initialPinY'] is num ? (requestData['initialPinY'] as num).toDouble() : null;
+    final initialPinX = requestData['initialPinX'] is num
+        ? (requestData['initialPinX'] as num).toDouble()
+        : null;
+    final initialPinY = requestData['initialPinY'] is num
+        ? (requestData['initialPinY'] as num).toDouble()
+        : null;
+    final initialLocationMatchTerms =
+        requestData['initialLocationMatchTerms'] is Iterable
+            ? (requestData['initialLocationMatchTerms'] as Iterable)
+                .whereType<String>()
+                .toList(growable: false)
+            : null;
 
     return ViewModelBuilder<CmsInspectionLineEditorSheetModel>.reactive(
       viewModelBuilder: () => CmsInspectionLineEditorSheetModel(),
@@ -33,10 +45,12 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
         initialPanelCode: initialPanelCode,
         initialPinX: initialPinX,
         initialPinY: initialPinY,
+        initialLocationMatchTerms: initialLocationMatchTerms,
       ),
       builder: (context, model, child) => SafeArea(
         child: Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
           child: Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             decoration: const BoxDecoration(
@@ -164,12 +178,13 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: model.partNumberController,
-                    decoration: const InputDecoration(
-                      labelText: 'Part number',
-                      border: OutlineInputBorder(),
-                    ),
+                  _LookupField(
+                    label: 'Part number',
+                    hint: model.partNumberHint,
+                    requestItemCount: model.partNumberDataSource.pageSize,
+                    onChanged: model.selectPartNumber,
+                    paginatedRequest:
+                        model.partNumberDataSource.paginatedRequest,
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -186,8 +201,12 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: OutlinedButton.icon(
                       onPressed: model.toggleAdvancedFields,
-                      icon: Icon(model.showAdvancedFields ? Icons.expand_less : Icons.tune_outlined),
-                      label: Text(model.showAdvancedFields ? 'Hide advanced costing' : 'Show advanced costing'),
+                      icon: Icon(model.showAdvancedFields
+                          ? Icons.expand_less
+                          : Icons.tune_outlined),
+                      label: Text(model.showAdvancedFields
+                          ? 'Hide advanced costing'
+                          : 'Show advanced costing'),
                     ),
                   ),
                   if (model.showAdvancedFields) ...[
@@ -197,7 +216,8 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                         Expanded(
                           child: TextField(
                             controller: model.costController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             decoration: const InputDecoration(
                               labelText: 'Cost',
                               border: OutlineInputBorder(),
@@ -208,7 +228,8 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                         Expanded(
                           child: TextField(
                             controller: model.labourQtyController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             decoration: const InputDecoration(
                               labelText: 'Labour qty',
                               border: OutlineInputBorder(),
@@ -220,7 +241,8 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                     const SizedBox(height: 12),
                     TextField(
                       controller: model.labourRateController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(
                         labelText: 'Labour rate',
                         border: OutlineInputBorder(),
@@ -247,7 +269,11 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: () => completer?.call(SheetResponse(confirmed: false)),
+                          onPressed: () => completer?.call(
+                            SheetResponse<CmsInspectionLineEdit?>(
+                              confirmed: false,
+                            ),
+                          ),
                           child: const Text('Cancel'),
                         ),
                       ),
@@ -260,10 +286,12 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                               return;
                             }
 
-                            completer?.call(SheetResponse(
-                              confirmed: true,
-                              data: result,
-                            ));
+                            completer?.call(
+                              SheetResponse<CmsInspectionLineEdit?>(
+                                confirmed: true,
+                                data: result,
+                              ),
+                            );
                           },
                           child: const Text('Save line'),
                         ),
@@ -293,7 +321,8 @@ class _LookupField extends StatelessWidget {
   final String hint;
   final int requestItemCount;
   final Future<void> Function(int? value) onChanged;
-  final Future<List<SearchableDropdownMenuItem<int>>> Function(int page, String? searchKey) paginatedRequest;
+  final Future<List<SearchableDropdownMenuItem<int>>> Function(
+      int page, String? searchKey) paginatedRequest;
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +339,8 @@ class _LookupField extends StatelessWidget {
           SearchableDropdown<int>.paginated(
             hintText: Text(hint),
             requestItemCount: requestItemCount,
-            paginatedRequest: (page, searchKey) => paginatedRequest(page, searchKey),
+            paginatedRequest: (page, searchKey) =>
+                paginatedRequest(page, searchKey),
             onChanged: (value) async {
               await onChanged(value);
             },
@@ -318,7 +348,8 @@ class _LookupField extends StatelessWidget {
             backgroundDecoration: (child) => InputDecorator(
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               ),
               child: child,
             ),
@@ -358,7 +389,9 @@ class _QtyStepper extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  model.quantityValue % 1 == 0 ? model.quantityValue.toStringAsFixed(0) : model.quantityValue.toStringAsFixed(2),
+                  model.quantityValue % 1 == 0
+                      ? model.quantityValue.toStringAsFixed(0)
+                      : model.quantityValue.toStringAsFixed(2),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 20,

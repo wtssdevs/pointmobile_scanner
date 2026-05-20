@@ -13,6 +13,9 @@ cd platform-tools
 
 adb reverse tcp:44311 tcp:44311
 
+--CMS
+adb reverse tcp:6636 tcp:6636
+
 Run the adb devices command to list all the connected devices
 Example output:
 List of devices attached

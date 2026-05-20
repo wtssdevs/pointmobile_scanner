@@ -58,7 +58,8 @@ class CmsInspectionLineEdit {
       total: cmsParseDouble(json['total']),
       labourQty: cmsParseDouble(json['labourQty']),
       labourRate: cmsParseDouble(json['labourRate']),
-      isVat: cmsParseBool(json['isvat']) ?? cmsParseBool(json['isVat']) ?? false,
+      isVat:
+          cmsParseBool(json['isvat']) ?? cmsParseBool(json['isVat']) ?? false,
       quotationId: cmsParseInt(json['quotationId']),
       quoteAuthorizationId: cmsParseInt(json['quoteAuthorizationId']),
       inspectionLocationId: cmsParseInt(json['inspectionLocationId']),
@@ -128,7 +129,8 @@ class CmsInspectionLineEdit {
 
   CmsInspectionLineEdit clone() => CmsInspectionLineEdit.fromJson(toJson());
 
-  double get estimatedSubtotal => ((qty ?? 0) * (cost ?? 0)) + ((labourQty ?? 0) * (labourRate ?? 0));
+  double get estimatedSubtotal =>
+      ((qty ?? 0) * (cost ?? 0)) + ((labourQty ?? 0) * (labourRate ?? 0));
 
   String? get panelCode {
     final raw = _panelSegments();
@@ -136,13 +138,38 @@ class CmsInspectionLineEdit {
       return null;
     }
 
-    final code = raw.first.substring(_panelMetadataPrefix.length).trim().toUpperCase();
+    final code =
+        raw.first.substring(_panelMetadataPrefix.length).trim().toUpperCase();
     return code.isEmpty ? null : code;
   }
 
   double? get panelX => _parsePanelCoordinate('X');
 
   double? get panelY => _parsePanelCoordinate('Y');
+
+  bool get hasRequiredClassification =>
+      _hasLookupValue(
+        id: inspectionLocationId,
+        code: inspectionLocationCode,
+        name: inspectionLocationName,
+      ) &&
+      _hasLookupValue(
+        id: inspectionItemId,
+        code: inspectionItemCode,
+        name: inspectionItemName,
+      ) &&
+      _hasLookupValue(
+        id: inspectionActionId,
+        code: inspectionActionCode,
+        name: inspectionActionName,
+      ) &&
+      _hasLookupValue(
+        id: inspectionDamageId,
+        code: inspectionDamageCode,
+        name: inspectionDamageName,
+      );
+
+  bool get isUnclassifiedDraft => !hasRequiredClassification;
 
   void applyPanelMetadata({
     required String panelCode,
@@ -221,7 +248,11 @@ class CmsInspectionLineEdit {
       return const <String>[];
     }
 
-    return raw.split('|').map((segment) => segment.trim()).where((segment) => segment.isNotEmpty).toList(growable: false);
+    return raw
+        .split('|')
+        .map((segment) => segment.trim())
+        .where((segment) => segment.isNotEmpty)
+        .toList(growable: false);
   }
 
   double? _parsePanelCoordinate(String key) {
@@ -236,7 +267,8 @@ class CmsInspectionLineEdit {
         continue;
       }
 
-      final candidateKey = segment.substring(0, separatorIndex).trim().toUpperCase();
+      final candidateKey =
+          segment.substring(0, separatorIndex).trim().toUpperCase();
       if (candidateKey != key) {
         continue;
       }
@@ -250,5 +282,11 @@ class CmsInspectionLineEdit {
   String _formatCoordinate(double value) {
     final boundedValue = value.clamp(0.0, 1.0);
     return boundedValue.toStringAsFixed(3);
+  }
+
+  bool _hasLookupValue({int? id, String? code, String? name}) {
+    return id != null ||
+        (code?.trim().isNotEmpty ?? false) ||
+        (name?.trim().isNotEmpty ?? false);
   }
 }

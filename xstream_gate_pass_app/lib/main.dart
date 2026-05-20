@@ -17,6 +17,7 @@ import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/thirdparty_services_module.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/setup_snackbar_ui.dart';
 
 class MyHttpOverrides extends HttpOverrides {
@@ -61,6 +62,7 @@ Future main() async {
   //var envFileToLoad = ".env_prod";
   await initialise(envFileToLoad);
   await setupLocator();
+  setupExtraLocator();
   setupDialogUi();
   setupBottomSheetUi();
   setupSnackbarUi();

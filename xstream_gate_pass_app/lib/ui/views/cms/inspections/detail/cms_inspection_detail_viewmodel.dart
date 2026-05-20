@@ -16,7 +16,6 @@ import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_edit.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_photo.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_panel_definition.dart';
-import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_repair_date_input.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
@@ -39,10 +38,14 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   String? _errorMessage;
   bool _hasLoaded = false;
   bool _shouldRefreshOnExit = false;
+  bool _isHandlingBackNavigation = false;
   String _cleanSnapshot = '';
   int? _lastInspectionId;
   int? _lastContainerId;
   Map<String, List<CmsInspectionLinePhoto>> _linePhotos = const {};
+  CmsInspectionPanelTapDetails? _selectedPanelTapDetails;
+
+  static const double _majorCostThreshold = 500;
 
   CmsInspectionEdit? get inspection => _inspection;
   String? get errorMessage => _errorMessage;
@@ -51,6 +54,23 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   bool get hasLineItems => (_inspection?.items.isNotEmpty ?? false);
   bool get canEdit => hasInspection && !isBusy;
   int get totalPanelCount => CmsInspectionPanels.values.length;
+  String? get selectedPanelCode => _selectedPanelTapDetails?.code;
+  CmsInspectionPanelDefinition? get selectedPanel =>
+      _selectedPanelTapDetails?.panel;
+
+  int get unclassifiedLineCount {
+    if (_inspection == null) {
+      return 0;
+    }
+
+    return _inspection!.items.where(lineNeedsClassification).length;
+  }
+
+  bool get hasUnclassifiedLines => unclassifiedLineCount > 0;
+
+  String get unclassifiedLineWarning => unclassifiedLineCount == 1
+      ? '1 quick-photo line still needs classification before this inspection can be saved or completed.'
+      : '$unclassifiedLineCount quick-photo lines still need classification before this inspection can be saved or completed.';
 
   int get coveredPanelCount {
     if (_inspection == null) {
@@ -59,9 +79,9 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
 
     final coveredPanels = <String>{};
     for (final line in _inspection!.items) {
-      final panelCode = CmsInspectionPanels.fromLine(line)?.code;
-      if (panelCode != null) {
-        coveredPanels.add(panelCode);
+      final panel = CmsInspectionPanels.fromLine(line);
+      if (panel?.isPrimary == true) {
+        coveredPanels.add(panel!.code);
       }
     }
 
@@ -70,6 +90,93 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
 
   String get coverageSummary =>
       '$coveredPanelCount / $totalPanelCount panels touched';
+
+  CmsPanelCoverage coverageFor(String panelCode) {
+    if (_inspection == null) {
+      return const CmsPanelCoverage.pending();
+    }
+
+    var lineCount = 0;
+    var unclassifiedCount = 0;
+    var hasMajor = false;
+
+    for (final line in _inspection!.items) {
+      final panel = CmsInspectionPanels.fromLine(line);
+      if (panel?.code != panelCode) {
+        continue;
+      }
+
+      lineCount++;
+      if (lineNeedsClassification(line)) {
+        unclassifiedCount++;
+      }
+      // HEURISTIC: replace with a real severity field once CMS exposes one.
+      if ((line.cost ?? 0) >= _majorCostThreshold) {
+        hasMajor = true;
+      }
+    }
+
+    if (lineCount == 0) {
+      return const CmsPanelCoverage.pending();
+    }
+
+    return CmsPanelCoverage(
+      lineCount: lineCount,
+      unclassifiedLineCount: unclassifiedCount,
+      severity: hasMajor ? CmsPanelSeverity.major : CmsPanelSeverity.minor,
+    );
+  }
+
+  bool lineNeedsClassification(CmsInspectionLineEdit line) =>
+      !line.hasRequiredClassification;
+
+  List<CmsInspectionHeaderFact> get containerHeaderFacts {
+    final facts = <CmsInspectionHeaderFact>[];
+    void addFact(String label, String? value) {
+      final trimmed = value?.trim();
+      if (trimmed == null || trimmed.isEmpty) {
+        return;
+      }
+
+      facts.add(CmsInspectionHeaderFact(label: label, value: trimmed));
+    }
+
+    addFact('Size', _inspection?.containerSize);
+    addFact('Type', _inspection?.containterType);
+    addFact('ISO', _inspection?.containerIsoType);
+    if (_inspection?.isRfContainer == true) {
+      facts.add(const CmsInspectionHeaderFact(label: 'RF', value: 'Yes'));
+    }
+
+    return facts;
+  }
+
+  String get inspectionStatusLabel {
+    final status = _firstNonEmpty([_inspection?.displayStatus]);
+    if (status != null) {
+      return _formatStatus(status);
+    }
+
+    return _inspection?.inspectionCompleted == true
+        ? 'Completed'
+        : 'In progress';
+  }
+
+  String get inspectionTimingTitle {
+    if (_inspection == null) {
+      return 'Inspection timing';
+    }
+
+    if (_inspection!.inspectionCompleted) {
+      return 'Completed at';
+    }
+
+    if (_inspection!.inspectionDateTime == null) {
+      return 'Inspection started';
+    }
+
+    return 'Inspection in progress since';
+  }
 
   int photoCountForLine(CmsInspectionLineEdit line) =>
       _linePhotos[_lineKey(line)]?.length ?? 0;
@@ -191,15 +298,78 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     await _openLineEditor();
   }
 
+  void selectPanelFromMap(CmsInspectionPanelTapDetails details) {
+    _selectedPanelTapDetails = details;
+    rebuildUi();
+  }
+
+  Future<void> addLineFromSelectedPanel() async {
+    final details = _selectedPanelTapDetails;
+    if (details == null) {
+      return;
+    }
+
+    await addLineFromPanel(details);
+  }
+
   Future<void> addLineFromPanel(CmsInspectionPanelTapDetails details) async {
     await _openLineEditor(
       initialPanelCode: details.code,
       initialPinX: details.x,
       initialPinY: details.y,
+      initialLocationMatchTerms: details.locationMatchTerms,
       title: 'Add ${details.label.toLowerCase()} damage',
       description:
           'We prefilled the tapped panel. You can still refine the exact inspection location below.',
     );
+  }
+
+  Future<void> capturePhotoFromSelectedPanel() async {
+    final details = _selectedPanelTapDetails;
+    if (details == null) {
+      return;
+    }
+
+    await captureLineFromPanel(details);
+  }
+
+  Future<void> captureLineFromPanel(
+      CmsInspectionPanelTapDetails details) async {
+    if (_inspection == null || isBusy) {
+      return;
+    }
+
+    final draftLine = CmsInspectionLineEdit(
+      id: 0,
+      clientKey: Guid.newGuidAsString,
+      inspectionId: _inspection!.id,
+      qty: 1,
+      cost: 0,
+      labourQty: 0,
+      labourRate: 0,
+      inspectionLocationCode: details.panel.cedexPrefix,
+      inspectionLocationName: details.fullLabel,
+    )..applyPanelMetadata(
+        panelCode: details.code,
+        x: details.x,
+        y: details.y,
+      );
+
+    final insertIndex = _inspection!.items.length;
+    _inspection!.items.add(draftLine);
+    rebuildUi();
+
+    final captured = await captureLinePhoto(insertIndex);
+    if (captured) {
+      return;
+    }
+
+    if (insertIndex < _inspection!.items.length &&
+        _inspection!.items[insertIndex].clientKey == draftLine.clientKey) {
+      _inspection!.items.removeAt(insertIndex);
+      await _refreshLinePhotos();
+      rebuildUi();
+    }
   }
 
   Future<void> editLine(int index) async {
@@ -210,6 +380,29 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     }
 
     await _openLineEditor(index: index);
+  }
+
+  Future<void> editLineFromMarker(CmsInspectionLineEdit line) async {
+    if (_inspection == null) {
+      return;
+    }
+
+    final index = _inspection!.items.indexWhere((candidate) {
+      if (line.id > 0 && candidate.id == line.id) {
+        return true;
+      }
+
+      final lineClientKey = line.clientKey?.trim();
+      return lineClientKey != null &&
+          lineClientKey.isNotEmpty &&
+          candidate.clientKey == lineClientKey;
+    });
+
+    if (index < 0) {
+      return;
+    }
+
+    await editLine(index);
   }
 
   Future<void> duplicateLine(int index) async {
@@ -246,6 +439,12 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       return;
     }
 
+    if (hasUnclassifiedLines) {
+      _errorMessage = unclassifiedLineWarning;
+      rebuildUi();
+      return;
+    }
+
     setBusy(true);
     _errorMessage = null;
 
@@ -270,6 +469,12 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
 
   Future<void> completeInspection() async {
     if (_inspection == null) {
+      return;
+    }
+
+    if (hasUnclassifiedLines) {
+      _errorMessage = unclassifiedLineWarning;
+      rebuildUi();
       return;
     }
 
@@ -301,32 +506,22 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> setRepairStartNow() async {
-    await _setRepairDatesNow(
-      const CmsRepairDateInput(
-        inspectionId: 0,
-        setStart: true,
-      ),
-    );
-  }
-
-  Future<void> setRepairCompleteNow() async {
-    await _setRepairDatesNow(
-      const CmsRepairDateInput(
-        inspectionId: 0,
-        setComplete: true,
-      ),
-    );
-  }
-
   Future<bool> onWillPop() async {
+    if (_isHandlingBackNavigation) {
+      return false;
+    }
+
+    _isHandlingBackNavigation = true;
+
     if (hasUnsavedChanges) {
       final shouldDiscard = await _confirmDiscardChanges();
       if (!shouldDiscard) {
+        _isHandlingBackNavigation = false;
         return false;
       }
     }
 
+    await Future<void>.delayed(Duration.zero);
     _navigationService.back(result: _shouldRefreshOnExit);
     return false;
   }
@@ -346,20 +541,21 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     return values.isEmpty ? 'Container inspection detail' : values.join(' • ');
   }
 
-  Future<void> captureLinePhoto(int index, {bool fromGallery = false}) async {
+  Future<bool> captureLinePhoto(int index, {bool fromGallery = false}) async {
     if (_inspection == null ||
         index < 0 ||
         index >= _inspection!.items.length) {
-      return;
+      return false;
     }
     if (isCapturingLinePhoto(index)) {
-      return;
+      return false;
     }
 
     final line = _inspection!.items[index];
     _ensureClientKey(line);
     setBusyForObject('line-photo-$index', true);
     _errorMessage = null;
+    var capturedPhoto = false;
 
     try {
       final photo = await _linePhotoQueueService.capturePhotoForLine(
@@ -367,6 +563,7 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
         line: line,
         fromGallery: fromGallery,
       );
+      capturedPhoto = photo != null;
       if (photo != null && line.id > 0) {
         await _enqueuePhotoUpload(_inspection!.id);
       }
@@ -378,6 +575,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       setBusyForObject('line-photo-$index', false);
       rebuildUi();
     }
+
+    return capturedPhoto;
   }
 
   Future<void> _openLineEditor({
@@ -386,6 +585,7 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     String? initialPanelCode,
     double? initialPinX,
     double? initialPinY,
+    List<String>? initialLocationMatchTerms,
     String? title,
     String? description,
   }) async {
@@ -408,6 +608,7 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
         'initialPanelCode': initialPanelCode,
         'initialPinX': initialPinX,
         'initialPinY': initialPinY,
+        'initialLocationMatchTerms': initialLocationMatchTerms,
       },
     );
 
@@ -428,44 +629,51 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     rebuildUi();
   }
 
-  Future<void> _setRepairDatesNow(CmsRepairDateInput input) async {
-    if (_inspection == null) {
-      return;
-    }
-
-    setBusy(true);
-    _errorMessage = null;
-
-    try {
-      final refreshed = await _mobileInspectionsService.setRepairDatesNow(
-        CmsRepairDateInput(
-          inspectionId: _inspection!.id,
-          setStart: input.setStart,
-          setComplete: input.setComplete,
-        ),
-      );
-      _shouldRefreshOnExit = true;
-      _applyInspection(refreshed, markClean: true);
-    } catch (error) {
-      log.e('Failed to update CMS inspection repair dates', error);
-      _errorMessage = error.toString();
-    } finally {
-      setBusy(false);
-      rebuildUi();
-    }
-  }
-
   void _applyInspection(CmsInspectionEdit inspection,
       {required bool markClean}) {
     _inspection = inspection.clone();
+    _defaultInspectionDateTime(_inspection!);
     for (final line in _inspection!.items) {
       line.inspectionId ??= _inspection!.id;
+    }
+    final selectedPanel = CmsInspectionPanels.byCode(selectedPanelCode);
+    if (selectedPanel?.isPrimary != true) {
+      _selectedPanelTapDetails = _firstPrimaryPanelTapDetails();
     }
     commentsController.text = _inspection?.comments ?? '';
     _errorMessage = null;
     if (markClean) {
       _cleanSnapshot = _snapshot();
     }
+  }
+
+  CmsInspectionPanelTapDetails? _firstPrimaryPanelTapDetails() {
+    final inspection = _inspection;
+    if (inspection == null) {
+      return null;
+    }
+
+    for (final line in inspection.items) {
+      final panel = CmsInspectionPanels.fromLine(line);
+      if (panel?.isPrimary == true) {
+        return CmsInspectionPanelTapDetails(
+          panel: panel!,
+          x: line.panelX ?? panel.centerX,
+          y: line.panelY ?? panel.centerY,
+        );
+      }
+    }
+
+    return null;
+  }
+
+  void _defaultInspectionDateTime(CmsInspectionEdit inspection) {
+    if (inspection.inspectionDateTime != null ||
+        inspection.inspectionCompleted) {
+      return;
+    }
+
+    inspection.inspectionDateTime = DateTime.now();
   }
 
   Future<void> _refreshLinePhotos() async {
@@ -554,9 +762,39 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     return response?.confirmed == true;
   }
 
+  String? _firstNonEmpty(List<String?> values) {
+    for (final value in values) {
+      final trimmed = value?.trim();
+      if (trimmed != null && trimmed.isNotEmpty) {
+        return trimmed;
+      }
+    }
+
+    return null;
+  }
+
+  String _formatStatus(String value) {
+    switch (value.trim().toLowerCase()) {
+      case 'inprogress':
+        return 'In progress';
+      default:
+        return value.trim();
+    }
+  }
+
   @override
   void dispose() {
     commentsController.dispose();
     super.dispose();
   }
+}
+
+class CmsInspectionHeaderFact {
+  const CmsInspectionHeaderFact({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
 }

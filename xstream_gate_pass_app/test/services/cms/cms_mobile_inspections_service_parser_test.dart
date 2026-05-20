@@ -136,6 +136,9 @@ void main() {
               'id': 88,
               'containerId': 501,
               'containerNo': 'HLXU1234567',
+              'containerSize': '40',
+              'containerType': 'HC',
+              'containerIsoType': '45G1',
               'inspectionDateTime': '2026-05-18T08:30:00Z',
               'conditionTypeId': 12,
               'items': [
@@ -163,6 +166,9 @@ void main() {
 
       expect(edit.id, 88);
       expect(edit.containerId, 501);
+      expect(edit.containerSize, '40');
+      expect(edit.containterType, 'HC');
+      expect(edit.containerIsoType, '45G1');
       expect(edit.items.length, 1);
       expect(edit.items.single.inspectionActionName, 'Repair');
       expect(edit.items.single.estimatedSubtotal, 71);

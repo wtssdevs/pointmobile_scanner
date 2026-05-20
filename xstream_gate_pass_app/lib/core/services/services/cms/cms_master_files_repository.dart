@@ -11,11 +11,13 @@ import 'package:xstream_gate_pass_app/core/services/services/cms/cms_sync_models
 class CmsMasterFilesRepository {
   final log = getLogger('CmsMasterFilesRepository');
   final AppDatabase _appDatabase = locator<AppDatabase>();
-  final StoreRef<String, Map<String, dynamic>> _metaStore = stringMapStoreFactory.store(AppConst.DB_CmsSyncMeta);
+  final StoreRef<String, Map<String, dynamic>> _metaStore =
+      stringMapStoreFactory.store(AppConst.DB_CmsSyncMeta);
 
   Database get _database => _appDatabase.db!;
 
-  StoreRef<int, Map<String, dynamic>> _entityStore<T extends CmsInspectionLookupBase>(
+  StoreRef<int, Map<String, dynamic>>
+      _entityStore<T extends CmsInspectionLookupBase>(
     CmsMasterFileStore<T> store,
     CmsSyncContext context,
   ) {
@@ -27,7 +29,8 @@ class CmsMasterFilesRepository {
     List<T> entities,
     CmsSyncContext context,
   ) async {
-    final validEntities = entities.where((entity) => entity.id != null).toList(growable: false);
+    final validEntities =
+        entities.where((entity) => entity.id != null).toList(growable: false);
     if (validEntities.isEmpty) {
       return;
     }
@@ -48,15 +51,20 @@ class CmsMasterFilesRepository {
     CmsSyncContext context, {
     bool activeOnly = true,
     int? shippingLineId,
+    bool filterByShippingLine = false,
   }) async {
     final entityStore = _entityStore(store, context);
     final snapshots = await entityStore.find(_database);
 
     final items = snapshots
-        .map((snapshot) => store.fromJson(Map<String, dynamic>.from(snapshot.value)))
+        .map((snapshot) =>
+            store.fromJson(Map<String, dynamic>.from(snapshot.value)))
         .where((entity) => entity.id != null)
         .where((entity) => !activeOnly || entity.isActive)
-        .where((entity) => entity.matchesShippingLine(shippingLineId))
+        .where((entity) =>
+            !filterByShippingLine ||
+            entity.matchesShippingLine(shippingLineId,
+                includeSpecificWhenValueMissing: false))
         .toList();
 
     items.sort((left, right) {
@@ -95,6 +103,7 @@ class CmsMasterFilesRepository {
     int take = 20,
     bool activeOnly = true,
     int? shippingLineId,
+    bool filterByShippingLine = false,
   }) async {
     final normalizedSearch = searchTerm.trim().toLowerCase();
     final allItems = await getAll(
@@ -102,17 +111,23 @@ class CmsMasterFilesRepository {
       context,
       activeOnly: activeOnly,
       shippingLineId: shippingLineId,
+      filterByShippingLine: filterByShippingLine,
     );
 
-    final filtered =
-        normalizedSearch.isEmpty ? allItems : allItems.where((entity) => _matchesLookupSearch(entity, normalizedSearch)).toList(growable: false);
+    final filtered = normalizedSearch.isEmpty
+        ? allItems
+        : allItems
+            .where((entity) => _matchesLookupSearch(entity, normalizedSearch))
+            .toList(growable: false);
 
     if (skip >= filtered.length) {
       return <T>[];
     }
 
     final safeTake = take <= 0 ? 20 : take;
-    final end = (skip + safeTake) > filtered.length ? filtered.length : (skip + safeTake);
+    final end = (skip + safeTake) > filtered.length
+        ? filtered.length
+        : (skip + safeTake);
     return filtered.sublist(skip, end);
   }
 
@@ -146,12 +161,14 @@ class CmsMasterFilesRepository {
     CmsSyncContext context, {
     bool activeOnly = false,
     int? shippingLineId,
+    bool filterByShippingLine = false,
   }) async {
     final items = await getAll(
       store,
       context,
       activeOnly: activeOnly,
       shippingLineId: shippingLineId,
+      filterByShippingLine: filterByShippingLine,
     );
     return items.length;
   }
@@ -167,7 +184,9 @@ class CmsMasterFilesRepository {
     CmsMasterFileStore<T> store,
     CmsSyncContext context,
   ) async {
-    final rawMeta = await _metaStore.record(context.storeNameFor(store.storeBase)).get(_database);
+    final rawMeta = await _metaStore
+        .record(context.storeNameFor(store.storeBase))
+        .get(_database);
     if (rawMeta == null) {
       return null;
     }
@@ -195,7 +214,9 @@ class CmsMasterFilesRepository {
       clearLastError: true,
     );
 
-    await _metaStore.record(context.storeNameFor(store.storeBase)).put(_database, meta.toJson());
+    await _metaStore
+        .record(context.storeNameFor(store.storeBase))
+        .put(_database, meta.toJson());
   }
 
   Future<void> markSuccess<T extends CmsInspectionLookupBase>(
@@ -224,7 +245,9 @@ class CmsMasterFilesRepository {
       clearLastError: true,
     );
 
-    await _metaStore.record(context.storeNameFor(store.storeBase)).put(_database, meta.toJson());
+    await _metaStore
+        .record(context.storeNameFor(store.storeBase))
+        .put(_database, meta.toJson());
   }
 
   Future<void> markFailure<T extends CmsInspectionLookupBase>(
@@ -249,10 +272,13 @@ class CmsMasterFilesRepository {
       lastError: error,
     );
 
-    await _metaStore.record(context.storeNameFor(store.storeBase)).put(_database, meta.toJson());
+    await _metaStore
+        .record(context.storeNameFor(store.storeBase))
+        .put(_database, meta.toJson());
   }
 
-  bool _matchesLookupSearch(CmsInspectionLookupBase entity, String normalizedSearch) {
+  bool _matchesLookupSearch(
+      CmsInspectionLookupBase entity, String normalizedSearch) {
     final values = <String?>[
       entity.code,
       entity.altCode,
@@ -266,7 +292,8 @@ class CmsMasterFilesRepository {
       }
 
       final normalizedValue = value.toLowerCase();
-      if (normalizedValue.startsWith(normalizedSearch) || normalizedValue.contains(normalizedSearch)) {
+      if (normalizedValue.startsWith(normalizedSearch) ||
+          normalizedValue.contains(normalizedSearch)) {
         return true;
       }
     }

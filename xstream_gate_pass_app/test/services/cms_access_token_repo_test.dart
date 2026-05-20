@@ -55,6 +55,25 @@ void main() {
       expect(result.tenantId, 99);
       expect(result.userId, 42);
     });
+
+    test('does not try to decode opaque CMS bearer tokens as JWTs', () {
+      final repo = CmsAccessTokenRepo();
+      final credential = UserCredential(
+        tenancyName: 'cms',
+        userNameOrEmailAddress: 'user',
+        password: 'password',
+        rememberClient: true,
+      );
+
+      final result = repo.buildAuthenticateResultModel(
+        'CfDJ8OpaqueProtectedTicketValue',
+        credential,
+      );
+
+      expect(result.accessToken, 'CfDJ8OpaqueProtectedTicketValue');
+      expect(result.tenantId, isNull);
+      expect(result.userId, isNull);
+    });
   });
 }
 

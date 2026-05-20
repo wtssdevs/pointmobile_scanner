@@ -3,12 +3,12 @@ import 'package:flutter/scheduler.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspectable_container.dart';
-import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_filter.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/empty_list_indicator.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/exception_indicators/error_indicator.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/list/cms_container_inspections_list_viewmodel.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/list/widgets/cms_inspectable_container_card.dart';
+import 'package:xstream_gate_pass_app/ui/views/cms/inspections/list/widgets/cms_inspections_filter_drawer.dart';
 
 class CmsContainerInspectionsListView extends StatelessWidget {
   const CmsContainerInspectionsListView({super.key});
@@ -17,21 +17,47 @@ class CmsContainerInspectionsListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<CmsContainerInspectionsListViewModel>.reactive(
       viewModelBuilder: () => CmsContainerInspectionsListViewModel(),
-      onViewModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback((_) {
+      onViewModelReady: (model) =>
+          SchedulerBinding.instance.addPostFrameCallback((_) {
         model.runStartupLogic();
       }),
       builder: (context, model, child) => Scaffold(
         appBar: AppBar(
           title: const Text('Container Inspections'),
+          actions: [
+            IconButton(
+              onPressed: model.toggleSearch,
+              icon: Icon(model.isSearchVisible
+                  ? Icons.search_off_rounded
+                  : Icons.search_rounded),
+              tooltip:
+                  model.isSearchVisible ? 'Hide search' : 'Search inspections',
+            ),
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: model.hasDepots
+                    ? () {
+                        model.beginFilterEditing();
+                        Scaffold.of(context).openEndDrawer();
+                      }
+                    : null,
+                icon: _FilterIcon(count: model.activeFilterCount),
+                tooltip: 'Filter inspections',
+              ),
+            ),
+          ],
         ),
+        endDrawer: CmsInspectionsFilterDrawer(model: model),
         body: SafeArea(
           child: Column(
             children: [
-              _FilterPanel(model: model),
+              _SearchPanel(model: model),
+              if (model.hasDepots) _ListContextBar(model: model),
               if (!model.hasDepots)
                 Expanded(
                   child: _EmptyState(
-                    message: model.loadError ?? 'No CMS depots are available for this account yet.',
+                    message: model.loadError ??
+                        'No CMS depots are available for this account yet.',
                   ),
                 )
               else
@@ -42,34 +68,42 @@ class CmsContainerInspectionsListView extends StatelessWidget {
                     onRefresh: () => Future.sync(model.refreshList),
                     child: PagedListView.separated(
                       pagingController: model.pagingController,
-                      builderDelegate: PagedChildBuilderDelegate<CmsInspectableContainer>(
-                        itemBuilder: (context, item, index) => CmsInspectableContainerCard(
+                      builderDelegate:
+                          PagedChildBuilderDelegate<CmsInspectableContainer>(
+                        itemBuilder: (context, item, index) =>
+                            CmsInspectableContainerCard(
                           container: item,
                           actionLabel: model.actionLabelFor(item),
                           canOpen: model.canOpen(item),
                           onTap: () => model.openInspection(item),
                         ),
-                        firstPageProgressIndicatorBuilder: (context) => const Padding(
+                        firstPageProgressIndicatorBuilder: (context) =>
+                            const Padding(
                           padding: EdgeInsets.all(32),
                           child: Center(child: CircularProgressIndicator()),
                         ),
-                        newPageProgressIndicatorBuilder: (context) => const Padding(
+                        newPageProgressIndicatorBuilder: (context) =>
+                            const Padding(
                           padding: EdgeInsets.all(16),
                           child: Center(child: CircularProgressIndicator()),
                         ),
-                        firstPageErrorIndicatorBuilder: (context) => ErrorIndicator(
+                        firstPageErrorIndicatorBuilder: (context) =>
+                            ErrorIndicator(
                           error: model.pagingController.error,
                           onTryAgain: model.refreshList,
                         ),
-                        newPageErrorIndicatorBuilder: (context) => ErrorIndicator(
+                        newPageErrorIndicatorBuilder: (context) =>
+                            ErrorIndicator(
                           error: model.pagingController.error,
                           onTryAgain: model.refreshList,
                         ),
-                        noItemsFoundIndicatorBuilder: (context) => EmptyListIndicator(
+                        noItemsFoundIndicatorBuilder: (context) =>
+                            EmptyListIndicator(
                           onTryAgain: model.refreshList,
                         ),
                       ),
-                      separatorBuilder: (context, index) => const SizedBox(height: 2),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 2),
                     ),
                   ),
                 ),
@@ -81,103 +115,140 @@ class CmsContainerInspectionsListView extends StatelessWidget {
   }
 }
 
-class _FilterPanel extends StatelessWidget {
-  const _FilterPanel({required this.model});
+class _FilterIcon extends StatelessWidget {
+  const _FilterIcon({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    if (count == 0) {
+      return const Icon(Icons.tune_rounded);
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        const Icon(Icons.tune_rounded),
+        Positioned(
+          right: -6,
+          top: -6,
+          child: Container(
+            height: 18,
+            width: 18,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: Colors.orange,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SearchPanel extends StatelessWidget {
+  const _SearchPanel({required this.model});
+
+  final CmsContainerInspectionsListViewModel model;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 180),
+      child: model.isSearchVisible
+          ? Container(
+              key: const ValueKey('cms-search-panel'),
+              margin: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: model.searchController,
+                focusNode: model.searchFocusNode,
+                textInputAction: TextInputAction.search,
+                onChanged: model.onSearchTextChanged,
+                onSubmitted: (_) => model.submitSearch(),
+                decoration: InputDecoration(
+                  hintText: 'Container, transaction, line, or status',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: model.hasSearchText
+                      ? IconButton(
+                          onPressed: model.clearSearch,
+                          icon: const Icon(Icons.clear_rounded),
+                          tooltip: 'Clear search',
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            )
+          : const SizedBox.shrink(key: ValueKey('cms-search-hidden')),
+    );
+  }
+}
+
+class _ListContextBar extends StatelessWidget {
+  const _ListContextBar({required this.model});
 
   final CmsContainerInspectionsListViewModel model;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          if (model.depots.length > 1)
-            DropdownButtonFormField<int>(
-              value: model.selectedDepotId,
-              decoration: const InputDecoration(
-                labelText: 'Depot',
-                border: OutlineInputBorder(),
-              ),
-              items: model.depots
-                  .map(
-                    (depot) => DropdownMenuItem<int>(
-                      value: depot.id,
-                      child: Text(depot.displayName ?? depot.depotCode ?? 'Depot ${depot.id}'),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: model.changeDepot,
-            )
-          else if (model.depots.isNotEmpty)
-            Text(
-              model.depots.first.displayName ?? model.depots.first.depotCode ?? 'Depot',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+          Icon(Icons.filter_alt_outlined,
+              color: Colors.blueGrey[700], size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              model.listContextSummary,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          if (model.depots.isNotEmpty) const SizedBox(height: 12),
-          TextField(
-            controller: model.searchController,
-            textInputAction: TextInputAction.search,
-            onSubmitted: (_) => model.submitSearch(),
-            decoration: InputDecoration(
-              labelText: 'Search by container, transaction, shipping line, or status',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: model.searchController.text.isEmpty
-                  ? null
-                  : IconButton(
-                      onPressed: model.clearSearch,
-                      icon: const Icon(Icons.clear),
-                    ),
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: CmsInspectableStatusFilter.values
-                .map(
-                  (status) => ChoiceChip(
-                    label: Text(_statusLabel(status)),
-                    selected: model.statusFilter == status,
-                    onSelected: (_) => model.selectStatus(status),
-                  ),
-                )
-                .toList(growable: false),
           ),
         ],
       ),
     );
-  }
-
-  String _statusLabel(CmsInspectableStatusFilter value) {
-    switch (value) {
-      case CmsInspectableStatusFilter.ready:
-        return 'Ready';
-      case CmsInspectableStatusFilter.inProgress:
-        return 'In progress';
-      case CmsInspectableStatusFilter.completed:
-        return 'Completed';
-      case CmsInspectableStatusFilter.all:
-      default:
-        return 'All';
-    }
   }
 }
 
