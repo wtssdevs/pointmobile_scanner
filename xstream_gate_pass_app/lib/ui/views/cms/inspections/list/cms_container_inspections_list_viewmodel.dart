@@ -2,12 +2,14 @@ import 'package:flutter/widgets.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:xstream_gate_pass_app/app/app.bottomsheets.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/account/cms_current_login_information.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspectable_container.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_filter.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_start_inspection_input.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart';
@@ -20,6 +22,7 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
   final CmsSessionService _cmsSessionService = locator<CmsSessionService>();
   final LocalStorageService _localStorageService =
       locator<LocalStorageService>();
+  final BottomSheetService _bottomSheetService = locator<BottomSheetService>();
   final NavigationService _navigationService = locator<NavigationService>();
 
   final TextEditingController searchController = TextEditingController();
@@ -323,15 +326,63 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
       return;
     }
 
-    final result = await _navigationService.navigateToCmsInspectionDetailView(
-      inspectionId:
-          container.canResumeInspection ? container.inspectionId : null,
-      containerId: container.canResumeInspection ? null : container.containerId,
+    _loadError = null;
+
+    if (container.canResumeInspection && container.inspectionId != null) {
+      final result = await _navigateToInspectionDetail(container.inspectionId!);
+      if (result == true) {
+        refreshList();
+      }
+      return;
+    }
+
+    if (!container.canStartInspection) {
+      return;
+    }
+
+    final startInput = await _promptInspectionStart(container);
+    if (startInput == null) {
+      return;
+    }
+
+    try {
+      final inspection =
+          await _mobileInspectionsService.startInspection(startInput);
+      await _navigateToInspectionDetail(inspection.id);
+      refreshList();
+    } catch (error) {
+      log.e('Failed to start CMS inspection', error);
+      _loadError = error.toString();
+      rebuildUi();
+    }
+  }
+
+  Future<CmsStartInspectionInput?> _promptInspectionStart(
+    CmsInspectableContainer container,
+  ) async {
+    final response = await _bottomSheetService
+        .showCustomSheet<CmsStartInspectionInput, CmsInspectableContainer>(
+      variant: BottomSheetType.cmsInspectionStart,
+      title: 'Start ${container.inspectionTypeLabel} inspection',
+      description:
+          'Choose the condition before you open the inspection detail.',
+      barrierDismissible: false,
+      isScrollControlled: true,
+      data: container,
     );
 
-    if (result == true) {
-      refreshList();
+    if (response?.confirmed != true || response?.data == null) {
+      return null;
     }
+
+    return response!.data;
+  }
+
+  Future<dynamic> _navigateToInspectionDetail(int inspectionId) {
+    return _navigationService.navigateToCmsInspectionDetailView(
+      inspectionId: inspectionId,
+      containerId: null,
+    );
   }
 
   bool canOpen(CmsInspectableContainer container) {
@@ -341,15 +392,27 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
 
   String actionLabelFor(CmsInspectableContainer container) {
     if (container.canResumeInspection && container.inspectionId != null) {
-      return 'Resume';
+      return _typedActionLabel('Resume', container);
     }
     if (container.canStartInspection) {
-      return 'Start';
+      return _typedActionLabel('Start', container);
     }
     if (container.cardStatus.toLowerCase() == 'completed') {
       return 'Completed';
     }
     return 'Unavailable';
+  }
+
+  String _typedActionLabel(
+    String verb,
+    CmsInspectableContainer container,
+  ) {
+    final typeLabel = container.inspectionTypeLabel.trim();
+    if (typeLabel.isEmpty || typeLabel.toLowerCase() == 'inspection') {
+      return '$verb inspection';
+    }
+
+    return '$verb $typeLabel';
   }
 
   String depotDisplayName(int? depotId) {

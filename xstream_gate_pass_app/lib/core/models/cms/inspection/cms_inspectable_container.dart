@@ -1,4 +1,5 @@
 import 'package:xstream_gate_pass_app/core/models/cms/cms_json_utils.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_type.dart';
 
 class CmsInspectableContainer {
   const CmsInspectableContainer({
@@ -22,6 +23,9 @@ class CmsInspectableContainer {
     this.depotArrivalDateTime,
     this.inspectionId,
     this.inspectionTransactionNo,
+    this.parentInspectionId,
+    this.inspectionType,
+    this.inspectionTypeName,
     this.inspectionCompleted = false,
     this.canStartInspection = false,
     this.canResumeInspection = false,
@@ -38,7 +42,8 @@ class CmsInspectableContainer {
       statusDisplayName: cmsParseString(json['statusDisplayName']),
       conditionTypeId: cmsParseInt(json['conditionTypeId']),
       conditionTypeName: cmsParseString(json['conditionTypeName']),
-      conditionTypeDisplayName: cmsParseString(json['conditionTypeDisplayName']),
+      conditionTypeDisplayName:
+          cmsParseString(json['conditionTypeDisplayName']),
       depotId: cmsParseInt(json['depotId']),
       depotName: cmsParseString(json['depotName']),
       shippingLineId: cmsParseInt(json['shippingLineId']),
@@ -50,6 +55,9 @@ class CmsInspectableContainer {
       depotArrivalDateTime: cmsParseDateTime(json['depotArrivalDateTime']),
       inspectionId: cmsParseInt(json['inspectionId']),
       inspectionTransactionNo: cmsParseString(json['inspectionTransactionNo']),
+      parentInspectionId: cmsParseInt(json['parentInspectionId']),
+      inspectionType: CmsInspectionType.fromValue(json['inspectionType']),
+      inspectionTypeName: cmsParseString(json['inspectionTypeName']),
       inspectionCompleted: cmsParseBool(json['inspectionCompleted']) ?? false,
       canStartInspection: cmsParseBool(json['canStartInspection']) ?? false,
       canResumeInspection: cmsParseBool(json['canResumeInspection']) ?? false,
@@ -77,6 +85,9 @@ class CmsInspectableContainer {
   final DateTime? depotArrivalDateTime;
   final int? inspectionId;
   final String? inspectionTransactionNo;
+  final int? parentInspectionId;
+  final CmsInspectionType? inspectionType;
+  final String? inspectionTypeName;
   final bool inspectionCompleted;
   final bool canStartInspection;
   final bool canResumeInspection;
@@ -86,6 +97,36 @@ class CmsInspectableContainer {
   bool get isInProgress => cardStatus.toLowerCase() == 'inprogress';
   bool get isCompleted => cardStatus.toLowerCase() == 'completed';
   bool get isBlocked => cardStatus.toLowerCase() == 'blocked';
+  bool get isStructural => inspectionType?.isStructural ?? false;
+  bool get isMechanical => inspectionType?.isMechanical ?? false;
+
+  String get inspectionTypeLabel {
+    final trimmedTypeName = inspectionTypeName?.trim();
+    if (trimmedTypeName != null && trimmedTypeName.isNotEmpty) {
+      return trimmedTypeName;
+    }
+
+    return inspectionType?.label ?? 'Inspection';
+  }
+
+  String get conditionLabel {
+    final trimmedDisplayName = conditionTypeDisplayName?.trim();
+    if (trimmedDisplayName != null && trimmedDisplayName.isNotEmpty) {
+      return trimmedDisplayName;
+    }
+
+    final trimmedName = conditionTypeName?.trim();
+    if (trimmedName != null && trimmedName.isNotEmpty) {
+      return trimmedName;
+    }
+
+    final trimmedStatusName = statusDisplayName?.trim();
+    if (trimmedStatusName != null && trimmedStatusName.isNotEmpty) {
+      return trimmedStatusName;
+    }
+
+    return 'Condition pending';
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -109,6 +150,9 @@ class CmsInspectableContainer {
       'depotArrivalDateTime': depotArrivalDateTime?.toIso8601String(),
       'inspectionId': inspectionId,
       'inspectionTransactionNo': inspectionTransactionNo,
+      'parentInspectionId': parentInspectionId,
+      'inspectionType': inspectionType?.value,
+      'inspectionTypeName': inspectionTypeName,
       'inspectionCompleted': inspectionCompleted,
       'canStartInspection': canStartInspection,
       'canResumeInspection': canResumeInspection,

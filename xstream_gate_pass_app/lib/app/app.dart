@@ -11,8 +11,10 @@ import 'package:xstream_gate_pass_app/core/services/services/account/cms_authent
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_sync_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_media_upload_queue_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_file_store_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_survey_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
@@ -52,6 +54,8 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_visitors
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_visitor/gate_access_visitor_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_pre_booking/gate_access_pre_booking_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_inspection_line_editor/cms_inspection_line_editor_sheet.dart';
+import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_inspection_start/cms_inspection_start_sheet.dart';
+import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_survey_type_picker/cms_survey_type_picker_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops/gate_access_yard_ops_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_containerno_reader/cam_containerno_reader_view.dart';
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
@@ -66,6 +70,9 @@ import 'package:xstream_gate_pass_app/ui/views/cms/main/cms_home_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/detail/cms_inspection_detail_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/list/cms_container_inspections_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/settings/cms_settings_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/cms/media/cms_media_camera_capture_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/cms/surveys/detail/cms_survey_detail_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/cms/surveys/list/cms_surveys_list_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -76,6 +83,9 @@ import 'package:xstream_gate_pass_app/ui/views/cms/settings/cms_settings_view.da
     MaterialRoute(page: CmsSettingsView),
     MaterialRoute(page: CmsContainerInspectionsListView),
     MaterialRoute(page: CmsInspectionDetailView),
+    CupertinoRoute(page: CmsMediaCameraCaptureView),
+    MaterialRoute(page: CmsSurveysListView),
+    MaterialRoute(page: CmsSurveyDetailView),
     MaterialRoute(page: TermsAndPrivacyView),
     MaterialRoute(page: DualLoginView),
     MaterialRoute(page: GatePassView),
@@ -118,9 +128,11 @@ import 'package:xstream_gate_pass_app/ui/views/cms/settings/cms_settings_view.da
     LazySingleton(classType: CmsSessionService),
     LazySingleton(classType: CmsMasterFilesRepository),
     LazySingleton(classType: CmsMasterFilesSyncService),
+    LazySingleton(classType: CmsMediaUploadQueueService),
     LazySingleton(classType: CmsInspectionLinePhotoQueueService),
     LazySingleton(classType: CmsMobileFileStoreService),
     LazySingleton(classType: CmsMobileInspectionsService),
+    LazySingleton(classType: CmsMobileSurveyService),
     LazySingleton(classType: AuthSessionCoordinator),
     LazySingleton(classType: ScanningService),
     LazySingleton(classType: GatePassService),
@@ -152,6 +164,8 @@ import 'package:xstream_gate_pass_app/ui/views/cms/settings/cms_settings_view.da
     StackedBottomsheet(classType: GateAccessPreBookingSheet),
     StackedBottomsheet(classType: ManualEntrySelectionSheet),
     StackedBottomsheet(classType: CmsInspectionLineEditorSheet),
+    StackedBottomsheet(classType: CmsInspectionStartSheet),
+    StackedBottomsheet(classType: CmsSurveyTypePickerSheet),
 // @stacked-bottom-sheet
   ],
   dialogs: [

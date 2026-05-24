@@ -57,6 +57,17 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   String? get selectedPanelCode => _selectedPanelTapDetails?.code;
   CmsInspectionPanelDefinition? get selectedPanel =>
       _selectedPanelTapDetails?.panel;
+  bool get hasRequiredStartMetadata =>
+      _inspection?.inspectionType != null &&
+      _inspection?.conditionTypeId != null;
+
+  String? get startMetadataWarning {
+    if (!hasInspection || hasRequiredStartMetadata) {
+      return null;
+    }
+
+    return 'This inspection is missing its inspection type or condition. Go back to the list and start it again from the correct inspection card.';
+  }
 
   int get unclassifiedLineCount {
     if (_inspection == null) {
@@ -251,9 +262,14 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     setBusy(true);
 
     try {
-      final loaded = inspectionId != null
-          ? await _mobileInspectionsService.getInspectionForEdit(inspectionId)
-          : await _mobileInspectionsService.startInspection(containerId ?? 0);
+      if (inspectionId == null) {
+        _errorMessage =
+            'Start inspections from the list so you can choose the inspection type and condition first.';
+        return;
+      }
+
+      final loaded =
+          await _mobileInspectionsService.getInspectionForEdit(inspectionId);
       _applyInspection(loaded, markClean: true);
       await _refreshLinePhotos();
     } catch (error) {
@@ -439,6 +455,12 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       return;
     }
 
+    if (!hasRequiredStartMetadata) {
+      _errorMessage = startMetadataWarning;
+      rebuildUi();
+      return;
+    }
+
     if (hasUnclassifiedLines) {
       _errorMessage = unclassifiedLineWarning;
       rebuildUi();
@@ -469,6 +491,12 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
 
   Future<void> completeInspection() async {
     if (_inspection == null) {
+      return;
+    }
+
+    if (!hasRequiredStartMetadata) {
+      _errorMessage = startMetadataWarning;
+      rebuildUi();
       return;
     }
 
@@ -532,7 +560,7 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     final values = <String?>[
       _inspection?.transactionNo,
       _inspection?.shippingLineName,
-      _inspection?.conditionName,
+      _inspection?.inspectionTypeLabel,
     ]
         .whereType<String>()
         .where((item) => item.isNotEmpty)
@@ -632,6 +660,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   void _applyInspection(CmsInspectionEdit inspection,
       {required bool markClean}) {
     _inspection = inspection.clone();
+    _lastInspectionId = _inspection?.id;
+    _lastContainerId = _inspection?.containerId;
     _defaultInspectionDateTime(_inspection!);
     for (final line in _inspection!.items) {
       line.inspectionId ??= _inspection!.id;

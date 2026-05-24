@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:stacked/stacked_annotations.dart';
@@ -7,8 +8,10 @@ import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/enums/bckground_job_type.dart';
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/media/cms_media_upload_item.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/background_job_info_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_media_upload_queue_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/masterfiles/masterfiles_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
@@ -27,13 +30,19 @@ class WorkerQueManager {
   final _fileStoreManager = locator<FileStoreManager>();
   final _masterFilesService = locator<MasterFilesService>();
   final _incidentManagerService = locator<IncidentManagerService>();
-  final _cmsInspectionLinePhotoQueueService =
-      locator<CmsInspectionLinePhotoQueueService>();
+  final _cmsInspectionLinePhotoQueueService = locator<CmsInspectionLinePhotoQueueService>();
+  final _cmsMediaUploadQueueService = locator<CmsMediaUploadQueueService>();
 
   final int maxConcurrentTasks = 1;
   int runningTasks = 0;
   WorkerQueManager() {
-    // initialize();
+    _connectionService.connectionChange.cast<bool>().listen((hasConnection) {
+      if (hasConnection) {
+        startExecution(forceRun: true);
+      }
+    });
+
+    Future.microtask(() => startExecution(forceRun: true));
   }
 
   void initialize() {
@@ -44,8 +53,7 @@ class WorkerQueManager {
   //get stream for sync que tasks
   Stream get onSyncTaskChange => _syncController.stream;
 
-  Future<void> enqueSingle(BackgroundJobInfo value,
-      [bool startNow = true]) async {
+  Future<void> enqueSingle(BackgroundJobInfo value, [bool startNow = true]) async {
     //_input.add(value);
 
     await _backgroundJobInfoRepository.insert(value);
@@ -99,6 +107,7 @@ class WorkerQueManager {
 
     //get que from  database and fill
     var waitingJobs = await _backgroundJobInfoRepository.getAll("");
+    _input.clear();
     _input.addAll(waitingJobs);
 
     //breakout if nothing to do
@@ -119,8 +128,7 @@ class WorkerQueManager {
 
         await tryProcessJob(firstJob);
         if (kDebugMode) {
-          log.d(
-              'TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
+          log.d('TryProcessJob Complete: ${firstJob.getJobType}, Job Remaining : ${_input.length}');
         }
       } else {
         //TODO clean job list from db and report issues maybe...
@@ -171,17 +179,29 @@ class WorkerQueManager {
           break;
 
         case BackgroundJobType.syncCmsInspectionLinePhotos:
-          final inspectionId = asT<int>(jobInfo.jobArgs) ??
-              int.tryParse(jobInfo.jobArgs?.toString() ?? '');
+          final inspectionId = asT<int>(jobInfo.jobArgs) ?? int.tryParse(jobInfo.jobArgs?.toString() ?? '');
           deleteJob = true;
           if (inspectionId != null && inspectionId > 0) {
-            final remainingUploads = await _cmsInspectionLinePhotoQueueService
-                .uploadPendingForInspection(inspectionId);
+            final remainingUploads = await _cmsInspectionLinePhotoQueueService.uploadPendingForInspection(inspectionId);
             deleteJob = remainingUploads == 0;
             if (!deleteJob) {
-              jobInfo.errorMessage =
-                  '$remainingUploads CMS inspection line photo upload(s) still need retry.';
+              jobInfo.errorMessage = '$remainingUploads CMS inspection line photo upload(s) still need retry.';
             }
+          }
+          break;
+
+        case BackgroundJobType.syncCmsMediaUploads:
+          final args = _parseCmsMediaUploadArgs(jobInfo.jobArgs);
+          deleteJob = true;
+          final ownerType = _parseOwnerType(args['ownerType']);
+          final rootId = asT<int>(args['rootId']) ?? int.tryParse(args['rootId']?.toString() ?? '');
+          final remainingUploads = await _cmsMediaUploadQueueService.uploadPending(
+            ownerType: ownerType,
+            rootId: rootId,
+          );
+          deleteJob = remainingUploads == 0;
+          if (!deleteJob) {
+            jobInfo.errorMessage = '$remainingUploads CMS media upload(s) still need retry.';
           }
           break;
 
@@ -233,5 +253,43 @@ class WorkerQueManager {
     }
     //broadcast sync failed
     _syncController.add(false);
+  }
+
+  Map<String, dynamic> _parseCmsMediaUploadArgs(dynamic rawArgs) {
+    if (rawArgs is Map<String, dynamic>) {
+      return rawArgs;
+    }
+
+    final raw = rawArgs?.toString();
+    if (raw == null || raw.trim().isEmpty) {
+      return const <String, dynamic>{};
+    }
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+    } catch (_) {
+      final rootId = int.tryParse(raw);
+      if (rootId != null) {
+        return {'ownerType': 'survey', 'rootId': rootId};
+      }
+    }
+
+    return const <String, dynamic>{};
+  }
+
+  CmsMediaUploadOwnerType? _parseOwnerType(dynamic rawOwnerType) {
+    final normalized = rawOwnerType?.toString().trim().toLowerCase();
+    switch (normalized) {
+      case 'survey':
+        return CmsMediaUploadOwnerType.survey;
+      case 'inspection':
+      case 'inspectionline':
+        return CmsMediaUploadOwnerType.inspectionLine;
+      default:
+        return null;
+    }
   }
 }

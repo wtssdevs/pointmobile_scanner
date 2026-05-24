@@ -1,5 +1,6 @@
 import 'package:xstream_gate_pass_app/core/models/cms/cms_json_utils.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_edit.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_type.dart';
 
 class CmsInspectionEdit {
   CmsInspectionEdit({
@@ -23,12 +24,14 @@ class CmsInspectionEdit {
     this.transporterName,
     this.conditionTypeId,
     this.conditionName,
+    this.conditionDisplayName,
     this.containerId,
     this.repairStartDate,
     this.repairCompletedDate,
     this.depotId,
     this.statusId,
     this.displayStatus,
+    this.inspectionType,
     this.inspectionTypeName,
     List<CmsInspectionLineEdit>? items,
   }) : items = items ?? <CmsInspectionLineEdit>[];
@@ -58,12 +61,14 @@ class CmsInspectionEdit {
       transporterName: cmsParseString(json['transporterName']),
       conditionTypeId: cmsParseInt(json['conditionTypeId']),
       conditionName: cmsParseString(json['conditionName']),
+      conditionDisplayName: cmsParseString(json['conditionDisplayName']),
       containerId: cmsParseInt(json['containerId']),
       repairStartDate: cmsParseDateTime(json['repairStartDate']),
       repairCompletedDate: cmsParseDateTime(json['repairCompletedDate']),
       depotId: cmsParseInt(json['depotID']),
       statusId: cmsParseInt(json['statusID']),
       displayStatus: cmsParseString(json['displayStatus']),
+      inspectionType: CmsInspectionType.fromValue(json['inspectionType']),
       inspectionTypeName: cmsParseString(json['inspectionTypeName']),
       items: cmsParseMapList(json['items'])
           .map(CmsInspectionLineEdit.fromJson)
@@ -91,14 +96,39 @@ class CmsInspectionEdit {
   String? transporterName;
   int? conditionTypeId;
   String? conditionName;
+  String? conditionDisplayName;
   int? containerId;
   DateTime? repairStartDate;
   DateTime? repairCompletedDate;
   int? depotId;
   int? statusId;
   String? displayStatus;
+  CmsInspectionType? inspectionType;
   String? inspectionTypeName;
   List<CmsInspectionLineEdit> items;
+
+  String get inspectionTypeLabel {
+    final trimmedTypeName = inspectionTypeName?.trim();
+    if (trimmedTypeName != null && trimmedTypeName.isNotEmpty) {
+      return trimmedTypeName;
+    }
+
+    return inspectionType?.label ?? 'Inspection';
+  }
+
+  String get conditionLabel {
+    final trimmedDisplayName = conditionDisplayName?.trim();
+    if (trimmedDisplayName != null && trimmedDisplayName.isNotEmpty) {
+      return trimmedDisplayName;
+    }
+
+    final trimmedName = conditionName?.trim();
+    if (trimmedName != null && trimmedName.isNotEmpty) {
+      return trimmedName;
+    }
+
+    return 'Not set';
+  }
 
   CmsInspectionEdit clone() => CmsInspectionEdit.fromJson(toJson());
 
@@ -124,12 +154,14 @@ class CmsInspectionEdit {
       'transporterName': transporterName,
       'conditionTypeId': conditionTypeId,
       'conditionName': conditionName,
+      'conditionDisplayName': conditionDisplayName,
       'containerId': containerId,
       'repairStartDate': repairStartDate?.toIso8601String(),
       'repairCompletedDate': repairCompletedDate?.toIso8601String(),
       'depotID': depotId,
       'statusID': statusId,
       'displayStatus': displayStatus,
+      'inspectionType': inspectionType?.value,
       'inspectionTypeName': inspectionTypeName,
       'items': items.map((item) => item.toJson()).toList(growable: false),
     };

@@ -53,6 +53,8 @@ class CmsContainerInspectionsListView extends StatelessWidget {
             children: [
               _SearchPanel(model: model),
               if (model.hasDepots) _ListContextBar(model: model),
+              if (model.hasDepots && model.loadError != null)
+                _ListErrorBanner(message: model.loadError!),
               if (!model.hasDepots)
                 Expanded(
                   child: _EmptyState(
@@ -270,6 +272,42 @@ class _EmptyState extends StatelessWidget {
             fontSize: 15,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ListErrorBanner extends StatelessWidget {
+  const _ListErrorBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.error_outline, color: Colors.red[800], size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.red[800],
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

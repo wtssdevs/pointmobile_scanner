@@ -44,6 +44,8 @@ class CmsInspectableContainerCard extends StatelessWidget {
         : container.canResumeInspection
             ? Icons.play_arrow_rounded
             : Icons.add_task_rounded;
+    final typeBadgeColor =
+        container.isMechanical ? Colors.deepOrange : Colors.indigo;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -82,7 +84,18 @@ class CmsInspectableContainerCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  _StatusPill(status: container.cardStatus),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _InspectionTypePill(
+                        label: container.inspectionTypeLabel,
+                        backgroundColor: typeBadgeColor.withOpacity(0.12),
+                        foregroundColor: typeBadgeColor,
+                      ),
+                      const SizedBox(height: 8),
+                      _StatusPill(status: container.cardStatus),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -102,39 +115,40 @@ class CmsInspectableContainerCard extends StatelessWidget {
                     ),
                   _InfoChip(
                     icon: Icons.fact_check_outlined,
-                    label: container.conditionTypeDisplayName ??
-                        container.statusDisplayName ??
-                        'Condition pending',
+                    label: container.conditionLabel,
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      container.depotArrivalDateTime != null
-                          ? 'Depot arrival ${container.depotArrivalDateTime!.toFormattedString()}'
-                          : 'Depot arrival pending',
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                        fontSize: 12,
-                      ),
+                  Text(
+                    container.depotArrivalDateTime != null
+                        ? 'Depot arrival ${container.depotArrivalDateTime!.toFormattedString()}'
+                        : 'Depot arrival pending',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 12,
                     ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: canOpen ? onTap : null,
-                    icon: Icon(actionIcon),
-                    label: Text(actionLabel),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: container.canResumeInspection
-                          ? kcPrimaryColor
-                          : Colors.teal,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey[200],
-                      disabledForegroundColor: Colors.grey[700],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton.icon(
+                      onPressed: canOpen ? onTap : null,
+                      icon: Icon(actionIcon),
+                      label: Text(actionLabel),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: container.canResumeInspection
+                            ? kcPrimaryColor
+                            : Colors.teal,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey[200],
+                        disabledForegroundColor: Colors.grey[700],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ),
@@ -186,6 +200,37 @@ class _InfoChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _InspectionTypePill extends StatelessWidget {
+  const _InspectionTypePill({
+    required this.label,
+    required this.backgroundColor,
+    required this.foregroundColor,
+  });
+
+  final String label;
+  final Color backgroundColor;
+  final Color foregroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: foregroundColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

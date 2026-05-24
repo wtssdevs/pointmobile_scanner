@@ -13,36 +13,24 @@ import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_ser
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 
 class CmsHomeViewModel extends BaseViewModel {
-  final LocalStorageService _localStorageService =
-      locator<LocalStorageService>();
-  final CmsAuthenticationService _cmsAuthenticationService =
-      locator<CmsAuthenticationService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final CmsAuthenticationService _cmsAuthenticationService = locator<CmsAuthenticationService>();
   final CmsSessionService _cmsSessionService = locator<CmsSessionService>();
-  final CmsMasterFilesSyncService _cmsMasterFilesSyncService =
-      locator<CmsMasterFilesSyncService>();
+  final CmsMasterFilesSyncService _cmsMasterFilesSyncService = locator<CmsMasterFilesSyncService>();
   final NavigationService _navigationService = locator<NavigationService>();
 
   CurrentLoginInformation? _currentLoginInformation;
-  CurrentLoginInformation? get currentLoginInformation =>
-      _currentLoginInformation;
+  CurrentLoginInformation? get currentLoginInformation => _currentLoginInformation;
   CmsCurrentLoginInformation? _cmsCurrentLoginInformation;
-  CmsCurrentLoginInformation? get cmsCurrentLoginInformation =>
-      _cmsCurrentLoginInformation;
+  CmsCurrentLoginInformation? get cmsCurrentLoginInformation => _cmsCurrentLoginInformation;
 
   bool _hasInitialised = false;
 
-  String get tenantDisplay =>
-      _cmsCurrentLoginInformation?.tenant?.tenancyName ??
-      _currentLoginInformation?.tenant.tenancyName ??
-      'CMS tenant';
+  String get tenantDisplay => _cmsCurrentLoginInformation?.tenant?.tenancyName ?? _currentLoginInformation?.tenant.tenancyName ?? 'CMS tenant';
 
-  String get userDisplay =>
-      _cmsCurrentLoginInformation?.user?.fullName ??
-      _currentLoginInformation?.user.showFullName ??
-      'CMS user';
+  String get userDisplay => _cmsCurrentLoginInformation?.user?.fullName ?? _currentLoginInformation?.user.showFullName ?? 'CMS user';
 
-  bool get isCmsLoggedIn =>
-      _localStorageService.isLoggedInForPortal(AuthPortal.cms);
+  bool get isCmsLoggedIn => _localStorageService.isLoggedInForPortal(AuthPortal.cms);
 
   Future<void> handleStartUpLogic() async {
     if (_hasInitialised) {
@@ -51,22 +39,17 @@ class CmsHomeViewModel extends BaseViewModel {
     _hasInitialised = true;
     _cmsCurrentLoginInformation = _cmsSessionService.getCached();
     _currentLoginInformation =
-        _cmsCurrentLoginInformation?.toLegacyCurrentLoginInformation() ??
-            _localStorageService.getUserLoginInfoForPortal(AuthPortal.cms);
+        _cmsCurrentLoginInformation?.toLegacyCurrentLoginInformation() ?? _localStorageService.getUserLoginInfoForPortal(AuthPortal.cms);
 
-    _currentLoginInformation ??=
-        await _cmsAuthenticationService.getUserLoginInfo(true);
+    _currentLoginInformation ??= await _cmsAuthenticationService.getUserLoginInfo(true);
 
-    _cmsCurrentLoginInformation ??=
-        await _cmsSessionService.refreshFromServer(showLoader: false);
-    _currentLoginInformation ??=
-        _cmsCurrentLoginInformation?.toLegacyCurrentLoginInformation();
+    _cmsCurrentLoginInformation ??= await _cmsSessionService.refreshFromServer(showLoader: false);
+    _currentLoginInformation ??= _cmsCurrentLoginInformation?.toLegacyCurrentLoginInformation();
 
     rebuildUi();
 
     if (await _cmsMasterFilesSyncService.shouldRunInitialSync()) {
-      unawaited(_cmsMasterFilesSyncService.syncAll(
-          force: false, reason: 'initial-login'));
+      unawaited(_cmsMasterFilesSyncService.syncAll(force: false, reason: 'initial-login'));
     }
   }
 
@@ -76,5 +59,9 @@ class CmsHomeViewModel extends BaseViewModel {
 
   Future<void> openContainerInspections() async {
     await _navigationService.navigateToCmsContainerInspectionsListView();
+  }
+
+  Future<void> openContainerSurveys() async {
+    await _navigationService.navigateToCmsSurveysListView();
   }
 }

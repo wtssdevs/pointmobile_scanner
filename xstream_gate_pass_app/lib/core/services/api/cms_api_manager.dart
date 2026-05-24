@@ -194,6 +194,38 @@ class CmsApiManager {
     }
   }
 
+  Future<List<int>> getBytes(String uri,
+      {Map<String, dynamic>? queryParameters,
+      dio_client.Options? options,
+      dio_client.CancelToken? cancelToken,
+      dio_client.ProgressCallback? onReceiveProgress,
+      bool showLoader = false}) async {
+    try {
+      if (showLoader) {
+        EasyLoading.show();
+      }
+
+      final requestOptions = (options ?? dio_client.Options()).copyWith(
+        responseType: ResponseType.bytes,
+      );
+      final dio_client.Response<List<int>> response = await _dio.get<List<int>>(
+        uri,
+        queryParameters: queryParameters,
+        options: requestOptions,
+        cancelToken: cancelToken,
+        onReceiveProgress: onReceiveProgress,
+      );
+      EasyLoading.dismiss();
+      return response.data ?? const <int>[];
+    } catch (e) {
+      log.d(e.toString());
+      EasyLoading.dismiss();
+      rethrow;
+    } finally {
+      EasyLoading.dismiss();
+    }
+  }
+
   Future<dynamic> post(
     String uri, {
     data,

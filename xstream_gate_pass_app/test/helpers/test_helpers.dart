@@ -10,9 +10,11 @@ import 'package:xstream_gate_pass_app/core/services/services/account/authenticat
 import 'package:xstream_gate_pass_app/core/services/services/account/cms_access_token_repo.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/cms_authentication_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_media_upload_queue_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_sync_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_file_store_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_survey_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
@@ -46,9 +48,11 @@ import 'test_helpers.mocks.dart';
   MockSpec<CmsAuthenticationService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsSessionService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsMasterFilesSyncService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<CmsMediaUploadQueueService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsInspectionLinePhotoQueueService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsMobileFileStoreService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsMobileInspectionsService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<CmsMobileSurveyService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<AuthSessionCoordinator>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<ConnectionService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<WorkerQueManager>(onMissingStub: OnMissingStub.returnDefault),
@@ -74,9 +78,11 @@ void registerServices() {
   getAndRegisterCmsAuthenticationService();
   getAndRegisterCmsSessionService();
   getAndRegisterCmsMasterFilesSyncService();
+  getAndRegisterCmsMediaUploadQueueService();
   getAndRegisterCmsInspectionLinePhotoQueueService();
   getAndRegisterCmsMobileFileStoreService();
   getAndRegisterCmsMobileInspectionsService();
+  getAndRegisterCmsMobileSurveyService();
   getAndRegisterAuthSessionCoordinator();
   getAndRegisterConnectionService();
   getAndRegisterWorkerQueManager();
@@ -232,6 +238,13 @@ MockCmsMasterFilesSyncService getAndRegisterCmsMasterFilesSyncService() {
   return service;
 }
 
+MockCmsMediaUploadQueueService getAndRegisterCmsMediaUploadQueueService() {
+  _removeRegistrationIfExists<CmsMediaUploadQueueService>();
+  final service = MockCmsMediaUploadQueueService();
+  locator.registerSingleton<CmsMediaUploadQueueService>(service);
+  return service;
+}
+
 MockCmsInspectionLinePhotoQueueService getAndRegisterCmsInspectionLinePhotoQueueService() {
   _removeRegistrationIfExists<CmsInspectionLinePhotoQueueService>();
   final service = MockCmsInspectionLinePhotoQueueService();
@@ -250,6 +263,13 @@ MockCmsMobileInspectionsService getAndRegisterCmsMobileInspectionsService() {
   _removeRegistrationIfExists<CmsMobileInspectionsService>();
   final service = MockCmsMobileInspectionsService();
   locator.registerSingleton<CmsMobileInspectionsService>(service);
+  return service;
+}
+
+MockCmsMobileSurveyService getAndRegisterCmsMobileSurveyService() {
+  _removeRegistrationIfExists<CmsMobileSurveyService>();
+  final service = MockCmsMobileSurveyService();
+  locator.registerSingleton<CmsMobileSurveyService>(service);
   return service;
 }
 

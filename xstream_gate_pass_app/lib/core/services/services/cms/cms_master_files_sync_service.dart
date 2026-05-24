@@ -184,16 +184,7 @@ class CmsMasterFilesSyncService {
         }
 
         pageIndex++;
-        final response = await _apiManager.get(
-          store.endpoint,
-          showLoader: false,
-          queryParameters: {
-            'skip': skip,
-            'take': _defaultPageSize,
-            'requireTotalCount': true,
-            'sort': _idSortJson,
-          },
-        );
+        final response = await _requestStorePage(store, skip: skip);
 
         final loadResult = DevExtremeLoadResult<T>.fromDynamic(response, store.fromJson);
         totalCount ??= loadResult.totalCount;
@@ -272,6 +263,38 @@ class CmsMasterFilesSyncService {
       return CmsSyncResult.failure(
         'Failed to sync ${store.displayName}',
       );
+    }
+  }
+
+  Map<String, dynamic> _buildPagedQueryParameters(int skip) {
+    return {
+      'skip': skip,
+      'take': _defaultPageSize,
+      'requireTotalCount': true,
+      'sort': _idSortJson,
+    };
+  }
+
+  Future<dynamic> _requestStorePage<T extends CmsInspectionLookupBase>(
+    CmsMasterFileStore<T> store, {
+    required int skip,
+  }) {
+    final queryParameters = store.usePagedQueryParameters ? _buildPagedQueryParameters(skip) : null;
+
+    switch (store.httpMethod) {
+      case CmsSyncHttpMethod.post:
+        return _apiManager.post(
+          store.endpoint,
+          data: null,
+          queryParameters: queryParameters,
+          showLoader: false,
+        );
+      case CmsSyncHttpMethod.get:
+        return _apiManager.get(
+          store.endpoint,
+          queryParameters: queryParameters,
+          showLoader: false,
+        );
     }
   }
 

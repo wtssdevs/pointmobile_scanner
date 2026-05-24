@@ -7,6 +7,7 @@ import 'package:sembast/sembast_memory.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart';
 import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_condition_type.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_location.dart';
 import 'package:xstream_gate_pass_app/core/services/api/cms_api_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/database/sembast_store.dart';
@@ -102,6 +103,79 @@ void main() {
       expect(ids.length, 1001);
       expect(meta?.lastSuccessfulSyncAt, isNotNull);
       expect(meta?.serverTotalCount, 1001);
+    });
+
+    test('uses POST for condition types and skips paging query params', () async {
+      Map<String, dynamic>? capturedQueryParameters;
+      dynamic capturedData;
+
+      when(cmsApiManager.post(
+        CmsMasterFileStores.conditionTypes.endpoint,
+        data: anyNamed('data'),
+        queryParameters: anyNamed('queryParameters'),
+        options: anyNamed('options'),
+        cancelToken: anyNamed('cancelToken'),
+        onSendProgress: anyNamed('onSendProgress'),
+        onReceiveProgress: anyNamed('onReceiveProgress'),
+        showLoader: anyNamed('showLoader'),
+      )).thenAnswer((invocation) async {
+        capturedData = invocation.namedArguments[#data];
+        capturedQueryParameters = invocation.namedArguments[#queryParameters] as Map<String, dynamic>?;
+
+        return {
+          'result': [
+            {
+              'id': 1,
+              'name': 'UC',
+              'displayName': 'Under Control',
+            },
+            {
+              'id': 2,
+              'name': 'AVWASH',
+              'displayName': 'Available Wash',
+            },
+          ],
+        };
+      });
+
+      final result = await service.syncStore(
+        CmsMasterFileStores.conditionTypes,
+        force: true,
+      );
+
+      final ids = await repository.getIds(CmsMasterFileStores.conditionTypes, context);
+      final firstCondition = await repository.getById(
+        CmsMasterFileStores.conditionTypes,
+        context,
+        1,
+      );
+
+      expect(result.success, isTrue);
+      expect(capturedData, isNull);
+      expect(capturedQueryParameters, isNull);
+      expect(ids, {1, 2});
+      expect(firstCondition, isA<CmsConditionType>());
+      expect(firstCondition?.displayName, 'Under Control');
+
+      verify(cmsApiManager.post(
+        CmsMasterFileStores.conditionTypes.endpoint,
+        data: anyNamed('data'),
+        queryParameters: anyNamed('queryParameters'),
+        options: anyNamed('options'),
+        cancelToken: anyNamed('cancelToken'),
+        onSendProgress: anyNamed('onSendProgress'),
+        onReceiveProgress: anyNamed('onReceiveProgress'),
+        showLoader: false,
+      )).called(1);
+
+      verifyNever(cmsApiManager.get(
+        CmsMasterFileStores.conditionTypes.endpoint,
+        queryParameters: anyNamed('queryParameters'),
+        options: anyNamed('options'),
+        cancelToken: anyNamed('cancelToken'),
+        onReceiveProgress: anyNamed('onReceiveProgress'),
+        showLoader: anyNamed('showLoader'),
+      ));
     });
 
     test('does not prune stale rows when a later page fails', () async {

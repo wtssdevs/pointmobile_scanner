@@ -8,12 +8,14 @@ import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspectable
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_edit.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_filter.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_repair_date_input.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_start_inspection_input.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
 import 'package:xstream_gate_pass_app/core/services/api/cms_api_manager.dart';
 
 @LazySingleton()
 class CmsMobileInspectionsService {
-  CmsMobileInspectionsService([CmsApiManager? apiManager]) : _apiManager = apiManager ?? locator<CmsApiManager>();
+  CmsMobileInspectionsService([CmsApiManager? apiManager])
+      : _apiManager = apiManager ?? locator<CmsApiManager>();
 
   final CmsApiManager _apiManager;
 
@@ -27,9 +29,13 @@ class CmsMobileInspectionsService {
     );
 
     final payload = CmsResponseEnvelope.unwrapPaged(response);
-    final items = cmsParseMapList(payload['items']).map(CmsInspectableContainer.fromJson).toList(growable: false);
+    final items = cmsParseMapList(payload['items'])
+        .map(CmsInspectableContainer.fromJson)
+        .toList(growable: false);
     final totalCount = cmsParseInt(payload['totalCount']) ?? items.length;
-    final totalPages = filter.pageSize <= 0 ? 0 : ((totalCount + filter.pageSize - 1) ~/ filter.pageSize);
+    final totalPages = filter.pageSize <= 0
+        ? 0
+        : ((totalCount + filter.pageSize - 1) ~/ filter.pageSize);
 
     return PagedList<CmsInspectableContainer>(
       totalCount: totalCount,
@@ -40,10 +46,11 @@ class CmsMobileInspectionsService {
     );
   }
 
-  Future<CmsInspectionEdit> startInspection(int containerId) async {
+  Future<CmsInspectionEdit> startInspection(
+      CmsStartInspectionInput input) async {
     return _postForEdit(
       AppConst.CmsStartInspectionForContainer,
-      data: {'id': containerId},
+      data: input.toJson(),
     );
   }
 

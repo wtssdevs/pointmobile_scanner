@@ -127,8 +127,14 @@ class CmsInspectionDetailView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _LabeledValue(
+                                  label: 'Inspection type',
+                                  value:
+                                      model.inspection?.inspectionTypeLabel ??
+                                          'Not set',
+                                ),
+                                _LabeledValue(
                                     label: 'Condition',
-                                    value: model.inspection?.conditionName ??
+                                    value: model.inspection?.conditionLabel ??
                                         'Not set'),
                                 _LabeledValue(
                                     label: 'Shipping line',
@@ -137,6 +143,10 @@ class CmsInspectionDetailView extends StatelessWidget {
                               ],
                             ),
                           ),
+                          if (model.startMetadataWarning != null)
+                            _MessageBanner(
+                              message: model.startMetadataWarning!,
+                            ),
                           if (model.hasUnclassifiedLines)
                             _MessageBanner(
                                 message: model.unclassifiedLineWarning),
@@ -179,7 +189,9 @@ class CmsInspectionDetailView extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: OutlinedButton.icon(
-                                  onPressed: model.saveDraft,
+                                  onPressed: model.startMetadataWarning != null
+                                      ? null
+                                      : model.saveDraft,
                                   icon: const Icon(Icons.save_outlined),
                                   label: const Text('Save draft'),
                                 ),
@@ -190,7 +202,8 @@ class CmsInspectionDetailView extends StatelessWidget {
                                   style: FilledButton.styleFrom(
                                     backgroundColor: kcPrimaryColor,
                                   ),
-                                  onPressed: model.hasUnclassifiedLines
+                                  onPressed: model.hasUnclassifiedLines ||
+                                          model.startMetadataWarning != null
                                       ? null
                                       : model.completeInspection,
                                   icon: const Icon(Icons.task_alt),

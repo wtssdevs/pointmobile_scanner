@@ -1,5 +1,6 @@
 import 'package:xstream_gate_pass_app/core/app_const.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/cms_json_utils.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_condition_type.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_lookup_base.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_item_code.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_action.dart';
@@ -145,8 +146,7 @@ class CmsSyncResult {
     );
   }
 
-  factory CmsSyncResult.failure(String message,
-      {Map<String, String> storeErrors = const {}}) {
+  factory CmsSyncResult.failure(String message, {Map<String, String> storeErrors = const {}}) {
     return CmsSyncResult(
       success: false,
       message: message,
@@ -154,8 +154,7 @@ class CmsSyncResult {
     );
   }
 
-  factory CmsSyncResult.alreadyRunning(
-      [String message = 'Sync already running']) {
+  factory CmsSyncResult.alreadyRunning([String message = 'Sync already running']) {
     return CmsSyncResult(
       success: false,
       alreadyRunning: true,
@@ -187,6 +186,11 @@ class CmsSyncResult {
   final Map<String, String> storeErrors;
 }
 
+enum CmsSyncHttpMethod {
+  get,
+  post,
+}
+
 class CmsMasterFileStore<T extends CmsInspectionLookupBase> {
   const CmsMasterFileStore({
     required this.storeBase,
@@ -194,6 +198,8 @@ class CmsMasterFileStore<T extends CmsInspectionLookupBase> {
     required this.endpoint,
     required this.fromJson,
     required this.toJson,
+    this.httpMethod = CmsSyncHttpMethod.get,
+    this.usePagedQueryParameters = true,
   });
 
   final String storeBase;
@@ -201,6 +207,8 @@ class CmsMasterFileStore<T extends CmsInspectionLookupBase> {
   final String endpoint;
   final T Function(Map<String, dynamic>) fromJson;
   final Map<String, dynamic> Function(T entity) toJson;
+  final CmsSyncHttpMethod httpMethod;
+  final bool usePagedQueryParameters;
 
   CmsMasterFileStore<CmsInspectionLookupBase> asBaseStore() {
     return CmsMasterFileStore<CmsInspectionLookupBase>(
@@ -209,6 +217,8 @@ class CmsMasterFileStore<T extends CmsInspectionLookupBase> {
       endpoint: endpoint,
       fromJson: (json) => fromJson(json),
       toJson: (entity) => entity.toJson(),
+      httpMethod: httpMethod,
+      usePagedQueryParameters: usePagedQueryParameters,
     );
   }
 }
@@ -254,22 +264,29 @@ class CmsMasterFileStores {
     toJson: _itemCodeToJson,
   );
 
+  static const conditionTypes = CmsMasterFileStore<CmsConditionType>(
+    storeBase: AppConst.DB_CmsConditionTypes,
+    displayName: 'Condition Types',
+    endpoint: AppConst.CmsGetConditionTypes,
+    fromJson: CmsConditionType.fromJson,
+    toJson: _conditionTypeToJson,
+    httpMethod: CmsSyncHttpMethod.post,
+    usePagedQueryParameters: false,
+  );
+
   static final all = <CmsMasterFileStore<CmsInspectionLookupBase>>[
     locations.asBaseStore(),
     actions.asBaseStore(),
     damages.asBaseStore(),
     items.asBaseStore(),
     itemCodes.asBaseStore(),
+    conditionTypes.asBaseStore(),
   ];
 
-  static Map<String, dynamic> _locationToJson(InspectionLocation entity) =>
-      entity.toJson();
-  static Map<String, dynamic> _actionToJson(InspectionAction entity) =>
-      entity.toJson();
-  static Map<String, dynamic> _damageToJson(InspectionDamage entity) =>
-      entity.toJson();
-  static Map<String, dynamic> _itemToJson(InspectionItem entity) =>
-      entity.toJson();
-  static Map<String, dynamic> _itemCodeToJson(CmsItemCode entity) =>
-      entity.toJson();
+  static Map<String, dynamic> _locationToJson(InspectionLocation entity) => entity.toJson();
+  static Map<String, dynamic> _actionToJson(InspectionAction entity) => entity.toJson();
+  static Map<String, dynamic> _damageToJson(InspectionDamage entity) => entity.toJson();
+  static Map<String, dynamic> _itemToJson(InspectionItem entity) => entity.toJson();
+  static Map<String, dynamic> _itemCodeToJson(CmsItemCode entity) => entity.toJson();
+  static Map<String, dynamic> _conditionTypeToJson(CmsConditionType entity) => entity.toJson();
 }

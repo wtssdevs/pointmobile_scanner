@@ -90,6 +90,13 @@ class CmsHomeView extends StatelessWidget {
                   onTap: model.openContainerInspections,
                 ),
                 CmsShellCard(
+                  icon: Icons.assignment_outlined,
+                  title: 'Container surveys',
+                  subtitle: 'Capture container and gate pass surveys with mobile-first forms and queued media support.',
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: model.openContainerSurveys,
+                ),
+                CmsShellCard(
                   icon: Icons.settings_suggest_outlined,
                   title: 'CMS settings',
                   subtitle: 'Manage CMS session, connection, sync, and portal actions.',
