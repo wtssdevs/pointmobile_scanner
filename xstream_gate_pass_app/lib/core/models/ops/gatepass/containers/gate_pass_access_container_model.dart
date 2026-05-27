@@ -149,8 +149,16 @@ class GatePassAccessContainerModel {
   }
 
 Map<String, dynamic> toMap() {
+  final normalizedId = id?.trim();
+  final hasValidGuid = normalizedId != null &&
+      RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
+          .hasMatch(normalizedId);
+  final normalizedGatePassAccessId = gatePassAccessId?.trim();
+  final hasValidGatePassAccessGuid = normalizedGatePassAccessId != null &&
+      RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
+          .hasMatch(normalizedGatePassAccessId);
+
   var output = {
-    "id": id,
     "tenantId": tenantId ?? 0,
     "externalContainerId": externalContainerId,
     "containerNumber": containerNumber,
@@ -165,29 +173,28 @@ Map<String, dynamic> toMap() {
     "description": description,
     "weight": weight ?? 0.0,  
     "isDisabled": isDisabled,
-    "shippingLineId": shippingLineId ?? 0,
-    "customerId": customerId, 
-    "containerSizeId": containerSizeId ?? 0,
-    "containerTypeId": containerTypeId ?? 0,
-    "containerType": containerIsoCode ?? containerType,
+    "shippingLineId": shippingLineId,
+    "customerId": customerId,
+    "containerSizeId": containerSizeId,
+    "containerTypeId": containerTypeId,
+    "containerType": containerType ?? containerIsoCode,
     "containerIsoCode": containerIsoCode,
     "branchId": branchId ?? 0,
-    "depotId": depotId,  
-    "gatePassAccessId": gatePassAccessId,
+    "depotId": depotId,
   };
 
-  if (customerId != null && customerId != 0) {
-    output["customerId"] = customerId;
+  if (hasValidGuid) {
+    output["id"] = normalizedId;
   }
-  if (containerSizeId != null && containerSizeId != 0) {
-    output["containerSizeId"] = containerSizeId;
+  if (hasValidGatePassAccessGuid) {
+    output["gatePassAccessId"] = normalizedGatePassAccessId;
   }
-  if (containerTypeId != null && containerTypeId != 0) {
-    output["containerTypeId"] = containerTypeId;
-  }
-  if (depotId != null && depotId != 0) {
-    output["depotId"] = depotId;
-  }
+
+  if (shippingLineId == null || shippingLineId == 0) output.remove("shippingLineId");
+  if (customerId == null || customerId == 0) output.remove("customerId");
+  if (containerSizeId == null || containerSizeId == 0) output.remove("containerSizeId");
+  if (containerTypeId == null || containerTypeId == 0) output.remove("containerTypeId");
+  if (depotId == null || depotId == 0) output.remove("depotId");
 
   return output;
 }

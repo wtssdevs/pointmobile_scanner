@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
@@ -527,6 +528,8 @@ class GatePassEditView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width * 0.95;
+    final dropdownMaxHeight =
+        (MediaQuery.of(context).size.height * 0.3).clamp(180.0, 280.0).toDouble();
     return ViewModelBuilder<GatePassEditViewModel>.reactive(
       onViewModelReady: (model) =>
           SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
@@ -1358,55 +1361,41 @@ class GatePassEditView extends StatelessWidget {
                                                           ],
                                                         ),
                                                       )
-                                                    : DropdownButtonFormField<
+                                                    : SearchableDropdownFormField<
                                                         int>(
-                                                        key: model
-                                                            .transporterDropdownKey,
-                                                        value: model.gatePass
+                                                        initialValue: model.gatePass
                                                             .transporterId,
-                                                        decoration:
-                                                            InputDecoration(
-                                                          contentPadding:
-                                                              EdgeInsets
-                                                                  .symmetric(
-                                                                      horizontal:
-                                                                          12,
-                                                                      vertical:
-                                                                          8),
-                                                          border:
-                                                              InputBorder.none,
-                                                          hintText:
-                                                              'Select Transporter',
-                                                          hintStyle: TextStyle(
-                                                              color: Colors
-                                                                  .grey[400]),
-                                                        ),
-                                                        dropdownColor:
-                                                            Colors.white,
-                                                        isExpanded: true,
+                                                        dialogOffset: 1,
+                                                        dropDownMaxHeight:
+                                                            dropdownMaxHeight,
+                                                        hintText: const Text(
+                                                            'Select Transporter'),
                                                         items: model
                                                             .transporters
                                                             .map((transporter) {
-                                                          return DropdownMenuItem<
+                                                          return SearchableDropdownMenuItem<
                                                               int>(
                                                             value:
                                                                 transporter.id,
+                                                            label: transporter
+                                                                    .name ??
+                                                                '',
                                                             child: Text(
-                                                              transporter
-                                                                      .name ??
-                                                                  '',
-                                                              style: TextStyle(
-                                                                  fontSize: 14),
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                            ),
+                                                                transporter
+                                                                        .name ??
+                                                                    '',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        14),
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis),
                                                           );
                                                         }).toList(),
                                                         onChanged: (value) {
                                                           model.setTransporter(
                                                               value);
-                                                              if (value != null &&
+                                                          if (value != null &&
                                                               model
                                                                       .gatePass
                                                                       .gatePassBookingType ==
@@ -1416,10 +1405,17 @@ class GatePassEditView extends StatelessWidget {
                                                                   .isManualInput &&
                                                               !model
                                                                   .isExitMode) {
-                                                            WidgetsBinding
-                                                                .instance
+                                                            WidgetsBinding.instance
                                                                 .addPostFrameCallback(
-                                                                    (_) {
+                                                                    (_) async {
+                                                              FocusManager
+                                                                  .instance
+                                                                  .primaryFocus
+                                                                  ?.unfocus();
+                                                              await Future.delayed(
+                                                                  const Duration(
+                                                                      milliseconds:
+                                                                          80));
                                                               if (containerNumberTextFocusNode
                                                                   .canRequestFocus) {
                                                                 FocusScope.of(
@@ -1430,11 +1426,6 @@ class GatePassEditView extends StatelessWidget {
                                                             });
                                                           }
                                                         },
-                                                        icon: Icon(
-                                                            Icons
-                                                                .arrow_drop_down,
-                                                            color: Colors
-                                                                .grey[600]),
                                                       ),
                                               ),
                                             ],
@@ -1486,35 +1477,23 @@ class GatePassEditView extends StatelessWidget {
                                                           ],
                                                         ),
                                                       )
-                                                    : DropdownButtonFormField<
+                                                    : SearchableDropdownFormField<
                                                         int>(
-                                                        value: model.gatePass
+                                                        initialValue: model.gatePass
                                                             .customerId,
-                                                        decoration:
-                                                            InputDecoration(
-                                                          contentPadding:
-                                                              EdgeInsets
-                                                                  .symmetric(
-                                                                      horizontal:
-                                                                          12,
-                                                                      vertical:
-                                                                          8),
-                                                          border:
-                                                              InputBorder.none,
-                                                          hintText:
-                                                              'Select Customer (Optional)',
-                                                          hintStyle: TextStyle(
-                                                              color: Colors
-                                                                  .grey[400]),
-                                                        ),
-                                                        dropdownColor:
-                                                            Colors.white,
-                                                        isExpanded: true,
+                                                        dialogOffset: 1,
+                                                        dropDownMaxHeight:
+                                                            dropdownMaxHeight,
+                                                        hintText: const Text(
+                                                            'Select Customer (Optional)'),
                                                         items: model.customers
                                                             .map((customer) {
-                                                          return DropdownMenuItem<
+                                                          return SearchableDropdownMenuItem<
                                                               int>(
                                                             value: customer.id,
+                                                            label: customer
+                                                                    .name ??
+                                                                '',
                                                             child: Text(
                                                               customer.name ??
                                                                   '',
@@ -1541,11 +1520,6 @@ class GatePassEditView extends StatelessWidget {
                                                             }
                                                           }
                                                         },
-                                                        icon: Icon(
-                                                            Icons
-                                                                .arrow_drop_down,
-                                                            color: Colors
-                                                                .grey[600]),
                                                       ),
                                               ),
                                             ],
@@ -1561,838 +1535,50 @@ class GatePassEditView extends StatelessWidget {
                                     // Container Details Card for Manual Entries
                                     if (model.isManualInput &&
                                         !model.isExitMode) ...[
-                                      BuildInfoCard(
-                                        key: model.containerInfoCardKey,
-                                        width: width,
-                                        title: "Container Information",
-                                        isSelected: model.containerInfoComplete,
-                                        hasInfo: model.containerInfoComplete,
-                                        icon: Icons.inventory_2,
-                                        color: model.containerInfoComplete
-                                            ? Colors.green
-                                            : model.shouldShowContainerActive
-                                                ? Colors.blue
-                                                : Colors.grey,
-                                        infoList: [
-                                          // Container Number Input
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                bottom: 12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Container Number *',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                TextField(
-                                                  controller: model
-                                                      .containerNumberController,
-                                                      focusNode:
-                                                      containerNumberTextFocusNode,
-                                                  decoration: InputDecoration(
-                                                    hintText:
-                                                        'Enter Container Number or Scan',
-                                                    border: OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                    contentPadding:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 12,
-                                                            vertical: 12),
-                                                    suffixIcon: IconButton(
-                                                      icon: Icon(
-                                                          Icons.camera_alt,
-                                                          color: Colors.blue),
-                                                      onPressed: () => model
-                                                          .goToCamCaptureContainerNoText(),
-                                                      tooltip: 'Scan Container',
-                                                    ),
-                                                  ),
-                                                  textCapitalization:
-                                                      TextCapitalization
-                                                          .characters,
-                                                  onChanged: (value) {
-                                                    model.gatePass
-                                                            .containerNumber =
-                                                        value.toUpperCase();
-                                                    final cursorPosition = model
-                                                        .containerNumberController
-                                                        .selection
-                                                        .baseOffset;
-                                                    model.containerNumberController
-                                                            .value =
-                                                        TextEditingController
-                                                            .fromValue(
-                                                      TextEditingValue(
-                                                        text:
-                                                            value.toUpperCase(),
-                                                        selection: TextSelection
-                                                            .collapsed(
-                                                          offset:
-                                                              cursorPosition,
-                                                        ),
-                                                      ),
-                                                    ).value;
-                                                  },
-                                                ),
-                                              ],
-                                            ),
+                                      for (var i = 0; i < model.manualContainerCardCount; i++)
+                                        Padding(
+                                          padding: const EdgeInsets.only(bottom: 12),
+                                          child: _buildManualContainerCard(
+                                            context: context,
+                                            model: model,
+                                            width: width,
+                                            index: i,
+                                            cardKey: i == 0 ? model.containerInfoCardKey : null,
+                                            containerNumberFocusNode:
+                                                i == 0 ? containerNumberTextFocusNode : null,
                                           ),
+                                        ),
 
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                bottom: 12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  "Detected ISO Code",
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Container(
-                                                  width: double.infinity,
-                                                  padding: const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 12),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey[100],
-                                                    border: Border.all(
-                                                        color: Colors.grey[300]!),
-                                                    borderRadius:
-                                                        BorderRadius.circular(8),
-                                                  ),
-                                                  child: Text(
-                                                    model.gatePass.containerIsoCode ?? '',
-                                                    style: const TextStyle(fontSize: 14),
-                                                  ),
-                                                ),
-                                              ],
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        child: Wrap(
+                                          spacing: 8,
+                                          runSpacing: 8,
+                                          children: [
+                                            OutlinedButton.icon(
+                                              onPressed: model.canAddManualContainerCard
+                                                  ? model.addManualContainerCard
+                                                  : null,
+                                              icon: const Icon(Icons.add),
+                                              label: const Text('Add Container'),
                                             ),
-                                          ),
-
-                                          // Container Size Dropdown
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                bottom: 12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Container Size *',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(
-                                                        color:
-                                                            Colors.grey[300]!),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                  child: DropdownButtonFormField<
-                                                      String>(
-                                                    value: model
-                                                            .containerSizeOptions
-                                                            .where((option) =>
-                                                                option.label ==
-                                                                model.gatePass
-                                                                    .containerSize)
-                                                            .isNotEmpty
-                                                        ? model.gatePass
-                                                            .containerSize
-                                                        : null,
-                                                    decoration:
-                                                        InputDecoration(
-                                                      contentPadding:
-                                                          EdgeInsets.symmetric(
-                                                              horizontal: 12,
-                                                              vertical: 8),
-                                                      border: InputBorder.none,
-                                                      hintText:
-                                                          'Select Container Size',
-                                                      hintStyle: TextStyle(
-                                                          color:
-                                                              Colors.grey[400]),
-                                                    ),
-                                                    dropdownColor: Colors.white,
-                                                    isExpanded: true,
-                                                    items: model
-                                                        .containerSizeOptions
-                                                        .map((option) {
-                                                      return DropdownMenuItem<
-                                                          String>(
-                                                        value: option.label,
-                                                        child: Text(
-                                                          option.label,
-                                                          style: TextStyle(
-                                                              fontSize: 14),
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      );
-                                                    }).toList(),
-                                                    onChanged: (value) {
-                                                      model.setContainerSize(
-                                                          value);
-                                                    },
-                                                    icon: Icon(
-                                                        Icons.arrow_drop_down,
-                                                        color:
-                                                            Colors.grey[600]),
-                                                  ),
-                                                ),
-                                              ],
+                                            OutlinedButton.icon(
+                                              onPressed: model.manualContainerCardCount > 1
+                                                  ? model.removeManualContainerCard
+                                                  : null,
+                                              icon: const Icon(Icons.remove),
+                                              label: const Text('Remove Container'),
                                             ),
-                                          ),
-
-                                          // Container Type Dropdown
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                bottom: 12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Container Type *',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(
-                                                        color:
-                                                            Colors.grey[300]!),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                  child: DropdownButtonFormField<
-                                                      String>(
-                                                    value: model
-                                                            .containerTypeOptions
-                                                            .where((option) =>
-                                                                option.code ==
-                                                                model
-                                                                    .selectedContainerTypeCode)
-                                                            .isNotEmpty
-                                                        ? model
-                                                            .selectedContainerTypeCode
-                                                        : null,
-                                                    decoration:
-                                                        InputDecoration(
-                                                      contentPadding:
-                                                          EdgeInsets.symmetric(
-                                                              horizontal: 12,
-                                                              vertical: 8),
-                                                      border: InputBorder.none,
-                                                      hintText:
-                                                          'Select Container Type',
-                                                      hintStyle: TextStyle(
-                                                          color:
-                                                              Colors.grey[400]),
-                                                    ),
-                                                    dropdownColor: Colors.white,
-                                                    isExpanded: true,
-                                                    items: model
-                                                        .containerTypeOptions
-                                                        .map((option) {
-                                                      return DropdownMenuItem<
-                                                          String>(
-                                                        value: option.code,
-                                                        child: Text(
-                                                          option.label,
-                                                          style: TextStyle(
-                                                              fontSize: 14),
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      );
-                                                    }).toList(),
-                                                    onChanged: (value) {
-                                                      model.setContainerType(
-                                                          value);
-                                                    },
-                                                    icon: Icon(
-                                                        Icons.arrow_drop_down,
-                                                        color:
-                                                            Colors.grey[600]),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-
-                                          // Delivery Type Radio Buttons
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                top: 12, bottom: 12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Delivery Type *',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: _buildRadioOption(
-                                                        context: context,
-                                                        title: 'Receive',
-                                                        icon: Icons
-                                                            .arrow_downward,
-                                                        value: DeliveryType
-                                                            .receive,
-                                                        groupValue: model
-                                                            .gatePass
-                                                            .containerDeliveryType,
-                                                        onChanged: (value) {
-                                                          model.gatePass
-                                                                  .containerDeliveryType =
-                                                              value;
-                                                          model
-                                                              .notifyListeners();
-                                                        },
-                                                      ),
-                                                    ),
-                                                    horizontalSpaceSmall,
-                                                    Expanded(
-                                                      child: _buildRadioOption(
-                                                        context: context,
-                                                        title: 'Dispatch',
-                                                        icon:
-                                                            Icons.arrow_upward,
-                                                        value: DeliveryType
-                                                            .dispatch,
-                                                        groupValue: model
-                                                            .gatePass
-                                                            .containerDeliveryType,
-                                                        onChanged: (value) {
-                                                          model.gatePass
-                                                                  .containerDeliveryType =
-                                                              value;
-                                                          model
-                                                              .notifyListeners();
-                                                        },
-                                                      ),
-                                                    ),
-                                                    horizontalSpaceSmall,
-                                                    Expanded(
-                                                      child: _buildRadioOption(
-                                                        context: context,
-                                                        title: 'Other',
-                                                        icon: Icons.more_horiz,
-                                                        value:
-                                                            DeliveryType.other,
-                                                        groupValue: model
-                                                            .gatePass
-                                                            .containerDeliveryType,
-                                                        onChanged: (value) {
-                                                          model.gatePass
-                                                                  .containerDeliveryType =
-                                                              value;
-                                                          model
-                                                              .notifyListeners();
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-
-                                          // Cargo Type Radio Buttons
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                bottom: 12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Cargo Type *',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: _buildRadioOption(
-                                                        context: context,
-                                                        title: 'Empty',
-                                                        icon: Icons.inbox,
-                                                        value:
-                                                            GatePassContainerType
-                                                                .empty,
-                                                        groupValue: model
-                                                            .gatePass
-                                                            .gatePassContainerType,
-                                                        onChanged: (value) {
-                                                          model.gatePass
-                                                                  .gatePassContainerType =
-                                                              value;
-                                                          model
-                                                              .notifyListeners();
-                                                        },
-                                                      ),
-                                                    ),
-                                                    horizontalSpaceSmall,
-                                                    Expanded(
-                                                      child: _buildRadioOption(
-                                                        context: context,
-                                                        title: 'Unpack Full',
-                                                        icon: Icons.inventory,
-                                                        value:
-                                                            GatePassContainerType
-                                                                .unpackFull,
-                                                        groupValue: model
-                                                            .gatePass
-                                                            .gatePassContainerType,
-                                                        onChanged: (value) {
-                                                          model.gatePass
-                                                                  .gatePassContainerType =
-                                                              value;
-                                                          model
-                                                              .notifyListeners();
-                                                        },
-                                                      ),
-                                                    ),
-                                                    horizontalSpaceSmall,
-                                                    Expanded(
-                                                      child: _buildRadioOption(
-                                                        context: context,
-                                                        title: 'Store Full',
-                                                        icon: Icons.warehouse,
-                                                        value:
-                                                            GatePassContainerType
-                                                                .storeFull,
-                                                        groupValue: model
-                                                            .gatePass
-                                                            .gatePassContainerType,
-                                                        onChanged: (value) {
-                                                          model.gatePass
-                                                                  .gatePassContainerType =
-                                                              value;
-                                                          model
-                                                              .notifyListeners();
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-
-                                          // Shipping Line Dropdown
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                bottom: 12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Shipping Line *',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(
-                                                        color:
-                                                            Colors.grey[300]!),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                  child: model
-                                                          .shippingLines.isEmpty
-                                                      ? Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  12),
-                                                          child: Row(
-                                                            children: [
-                                                              SizedBox(
-                                                                width: 16,
-                                                                height: 16,
-                                                                child: CircularProgressIndicator(
-                                                                    strokeWidth:
-                                                                        2),
-                                                              ),
-                                                              horizontalSpaceSmall,
-                                                              Text(
-                                                                  'Loading shipping lines...'),
-                                                            ],
-                                                          ),
-                                                        )
-                                                      : DropdownButtonFormField<
-                                                          int>(
-                                                          value: model
-                                                                  .shippingLines
-                                                                  .where((s) =>
-                                                                      s.name ==
-                                                                      model
-                                                                          .gatePass
-                                                                          .containerShippingLine)
-                                                                  .isNotEmpty
-                                                              ? model
-                                                                  .shippingLines
-                                                                  .firstWhere((s) =>
-                                                                      s.name ==
-                                                                      model
-                                                                          .gatePass
-                                                                          .containerShippingLine)
-                                                                  .id
-                                                              : null,
-                                                          decoration:
-                                                              InputDecoration(
-                                                            contentPadding:
-                                                                EdgeInsets
-                                                                    .symmetric(
-                                                                        horizontal:
-                                                                            12,
-                                                                        vertical:
-                                                                            8),
-                                                            border: InputBorder
-                                                                .none,
-                                                            hintText:
-                                                                'Select Shipping Line',
-                                                            hintStyle: TextStyle(
-                                                                color: Colors
-                                                                    .grey[400]),
-                                                          ),
-                                                          dropdownColor:
-                                                              Colors.white,
-                                                          isExpanded: true,
-                                                          items: model
-                                                              .shippingLines
-                                                              .map(
-                                                                  (shippingLine) {
-                                                            return DropdownMenuItem<
-                                                                int>(
-                                                              value:
-                                                                  shippingLine
-                                                                      .id,
-                                                              child: Text(
-                                                                shippingLine
-                                                                        .name ??
-                                                                    '',
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        14),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            );
-                                                          }).toList(),
-                                                          onChanged: (value) {
-                                                            model
-                                                                .setShippingLine(
-                                                                    value);
-                                                          },
-                                                          icon: Icon(
-                                                              Icons
-                                                                  .arrow_drop_down,
-                                                              color: Colors
-                                                                  .grey[600]),
-                                                        ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-
-                                          // Container Customer Dropdown
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                bottom: 12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Container Customer',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(
-                                                        color:
-                                                            Colors.grey[300]!),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                  child: model
-                                                          .containerCustomers
-                                                          .isEmpty
-                                                      ? Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  12),
-                                                          child: Row(
-                                                            children: [
-                                                              SizedBox(
-                                                                width: 16,
-                                                                height: 16,
-                                                                child: CircularProgressIndicator(
-                                                                    strokeWidth:
-                                                                        2),
-                                                              ),
-                                                              horizontalSpaceSmall,
-                                                              Text(
-                                                                  'Loading container customers...'),
-                                                            ],
-                                                          ),
-                                                        )
-                                                      : DropdownButtonFormField<
-                                                          int>(
-                                                          value: model
-                                                                  .containerCustomers
-                                                                  .where((c) =>
-                                                                      c.name ==
-                                                                      model
-                                                                          .gatePass
-                                                                          .containerCustomer)
-                                                                  .isNotEmpty
-                                                              ? model
-                                                                  .containerCustomers
-                                                                  .firstWhere((c) =>
-                                                                      c.name ==
-                                                                      model
-                                                                          .gatePass
-                                                                          .containerCustomer)
-                                                                  .id
-                                                              : null,
-                                                          decoration:
-                                                              InputDecoration(
-                                                            contentPadding:
-                                                                EdgeInsets
-                                                                    .symmetric(
-                                                                        horizontal:
-                                                                            12,
-                                                                        vertical:
-                                                                            8),
-                                                            border: InputBorder
-                                                                .none,
-                                                            hintText:
-                                                                'Select Container Customer (Optional)',
-                                                            hintStyle: TextStyle(
-                                                                color: Colors
-                                                                    .grey[400]),
-                                                          ),
-                                                          dropdownColor:
-                                                              Colors.white,
-                                                          isExpanded: true,
-                                                          items: model
-                                                              .containerCustomers
-                                                              .map((customer) {
-                                                            return DropdownMenuItem<
-                                                                int>(
-                                                              value:
-                                                                  customer.id,
-                                                              child: Text(
-                                                                customer.name ??
-                                                                    '',
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        14),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            );
-                                                          }).toList(),
-                                                          onChanged: (value) {
-                                                            model
-                                                                .setContainerCustomer(
-                                                                    value);
-                                                          },
-                                                          icon: Icon(
-                                                              Icons
-                                                                  .arrow_drop_down,
-                                                              color: Colors
-                                                                  .grey[600]),
-                                                        ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-
-                                          // Container Depot Dropdown
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                bottom: 12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Container Depot',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(
-                                                        color:
-                                                            Colors.grey[300]!),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                  child: model.containerDepots
-                                                          .isEmpty
-                                                      ? Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  12),
-                                                          child: Row(
-                                                            children: [
-                                                              SizedBox(
-                                                                width: 16,
-                                                                height: 16,
-                                                                child: CircularProgressIndicator(
-                                                                    strokeWidth:
-                                                                        2),
-                                                              ),
-                                                              horizontalSpaceSmall,
-                                                              Text(
-                                                                  'Loading container depots...'),
-                                                            ],
-                                                          ),
-                                                        )
-                                                      : DropdownButtonFormField<
-                                                          int>(
-                                                          value: model
-                                                                  .containerDepots
-                                                                  .where((d) =>
-                                                                      d.name ==
-                                                                      model
-                                                                          .gatePass
-                                                                          .containerDepot)
-                                                                  .isNotEmpty
-                                                              ? model
-                                                                  .containerDepots
-                                                                  .firstWhere((d) =>
-                                                                      d.name ==
-                                                                      model
-                                                                          .gatePass
-                                                                          .containerDepot)
-                                                                  .id
-                                                              : null,
-                                                          decoration:
-                                                              InputDecoration(
-                                                            contentPadding:
-                                                                EdgeInsets
-                                                                    .symmetric(
-                                                                        horizontal:
-                                                                            12,
-                                                                        vertical:
-                                                                            8),
-                                                            border: InputBorder
-                                                                .none,
-                                                            hintText:
-                                                                'Select Container Depot (Optional)',
-                                                            hintStyle: TextStyle(
-                                                                color: Colors
-                                                                    .grey[400]),
-                                                          ),
-                                                          dropdownColor:
-                                                              Colors.white,
-                                                          isExpanded: true,
-                                                          items: model
-                                                              .containerDepots
-                                                              .map((depot) {
-                                                            return DropdownMenuItem<
-                                                                int>(
-                                                              value: depot.id,
-                                                              child: Text(
-                                                                depot.name ??
-                                                                    '',
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        14),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            );
-                                                          }).toList(),
-                                                          onChanged: (value) {
-                                                            model
-                                                                .setContainerDepot(
-                                                                    value);
-                                                          },
-                                                          icon: Icon(
-                                                              Icons
-                                                                  .arrow_drop_down,
-                                                              color: Colors
-                                                                  .grey[600]),
-                                                        ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
+                                      ),
+                                      verticalSpaceTiny,
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        child: Text(
+                                        'Manual container cards enabled: ${model.manualContainerCardCount}/3',
+                                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                                        ),
                                       ),
                                       verticalSpaceSmall,
                                     ] else ...[
@@ -3129,6 +2315,199 @@ class BuildErrorsView extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildManualContainerCard({
+  required BuildContext context,
+  required GatePassEditViewModel model,
+  required double width,
+  required int index,
+  Key? cardKey,
+  FocusNode? containerNumberFocusNode,
+}) {
+  final dropdownMaxHeight =
+      (MediaQuery.of(context).size.height * 0.3).clamp(180.0, 280.0).toDouble();
+  final container = model.getManualContainer(index);
+  return BuildInfoCard(
+    key: cardKey,
+    width: width,
+    title: 'Container ${index + 1} Information',
+    isSelected: (container.containerNumber ?? '').isNotEmpty,
+    hasInfo: (container.containerNumber ?? '').isNotEmpty,
+    icon: Icons.inventory_2,
+    color: index == 0
+        ? (model.containerInfoComplete
+            ? Colors.green
+            : model.shouldShowContainerActive
+                ? Colors.blue
+                : Colors.grey)
+        : Colors.blueGrey,
+    infoList: [
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Container Number *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          TextFormField(
+            key: ValueKey(
+                'manual_container_number_${index}_${container.containerNumber ?? ''}'),
+            initialValue: container.containerNumber ?? '',
+            focusNode: containerNumberFocusNode,
+            decoration: InputDecoration(border: const OutlineInputBorder(), suffixIcon: IconButton(icon: const Icon(Icons.camera_alt, color: Colors.blue), onPressed: () => model.goToCamCaptureContainerNoText(index), tooltip: 'Scan Container')),
+            textCapitalization: TextCapitalization.characters,
+            onChanged: (val) => model.setManualContainerNumber(index, val),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Detected ISO Code', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(color: Colors.grey[100], border: Border.all(color: Colors.grey[300]!), borderRadius: BorderRadius.circular(8)),
+            child: Text(container.containerIsoCode ?? '', style: const TextStyle(fontSize: 14)),
+          )
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Container Size *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<String>(
+              key: ValueKey(
+                  'container_size_${index}_${model.manualContainerSizeDropdownValue(index)}_${model.containerSizeOptions.length}'),
+              initialValue: model.manualContainerSizeDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.containerSizeOptions.map((o) => SearchableDropdownMenuItem<String>(value: o.label, label: o.label, child: Text(o.label, overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerSize(index, v),
+            ),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Container Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<String>(
+              key: ValueKey(
+                  'container_type_${index}_${model.manualContainerTypeDropdownValue(index)}_${model.containerTypeOptions.length}'),
+              initialValue: model.manualContainerTypeDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.containerTypeOptions.map((o) => SearchableDropdownMenuItem<String>(value: o.code, label: o.code, child: Text(o.code ?? o.label, overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerType(index, v),
+            ),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(top: 12, bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Delivery Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Receive', icon: Icons.arrow_downward, value: DeliveryType.receive, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Dispatch', icon: Icons.arrow_upward, value: DeliveryType.dispatch, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Other', icon: Icons.more_horiz, value: DeliveryType.other, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
+          ]),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Cargo Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Empty', icon: Icons.inbox, value: GatePassContainerType.empty, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Unpack Full', icon: Icons.inventory, value: GatePassContainerType.unpackFull, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Store Full', icon: Icons.warehouse, value: GatePassContainerType.storeFull, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
+          ]),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Shipping Line *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<int>(
+              key: ValueKey(
+                  'container_shipping_line_${index}_${model.manualContainerShippingLineDropdownValue(index)}_${model.shippingLines.length}'),
+              initialValue: model.manualContainerShippingLineDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.shippingLines.map((x) => SearchableDropdownMenuItem<int>(value: x.id, label: x.name ?? '', child: Text(x.name ?? '', overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerShippingLine(index, v),
+            ),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Customer', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<int>(
+              key: ValueKey(
+                  'container_customer_${index}_${model.manualContainerCustomerDropdownValue(index)}_${model.containerCustomers.length}'),
+              initialValue: model.manualContainerCustomerDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.containerCustomers.map((x) => SearchableDropdownMenuItem<int>(value: x.id, label: x.name ?? '', child: Text(x.name ?? '', overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerCustomer(index, v),
+            ),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Depot', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<int>(
+              key: ValueKey(
+                  'container_depot_${index}_${model.manualContainerDepotDropdownValue(index)}_${model.containerDepots.length}'),
+              initialValue: model.manualContainerDepotDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.containerDepots.map((x) => SearchableDropdownMenuItem<int>(value: x.id, label: x.name ?? '', child: Text(x.name ?? '', overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerDepot(index, v),
+            ),
+          ),
+        ]),
+      ),
+    ],
+  );
 }
 
 Widget _buildRadioOption<T>({

@@ -204,6 +204,223 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   final TextEditingController containerNumberController =
       TextEditingController();
   bool get logisticsInfoComplete => gatePass.transporterId != null;
+    static const int _maxManualContainerCards = 3;
+  int _manualContainerCardCount = 1;
+  int get manualContainerCardCount => _manualContainerCardCount;
+  bool get canAddManualContainerCard =>
+      _manualContainerCardCount < _maxManualContainerCards;
+
+  bool _hasContainerPayload(GatePassAccessContainerModel c) {
+    return (c.containerNumber?.trim().isNotEmpty ?? false) ||
+        c.containerDeliveryType != null ||
+        c.gatePassContainerType != null ||
+        c.shippingLineId != null ||
+        c.customerId != null ||
+        c.depotId != null;
+  }
+
+  void _sanitizeContainersForApi() {
+    if (gatePass.containers == null) return;
+    for (final c in gatePass.containers!) {
+      if (c.id != null && c.id!.trim().isEmpty) {
+        c.id = null;
+      }
+      final id = c.id?.trim();
+      if (id != null &&
+          !RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
+              .hasMatch(id)) {
+        c.id = null;
+      }
+    }
+    gatePass.containers = gatePass.containers!.where(_hasContainerPayload).toList();
+    if (gatePass.containers!.isEmpty) {
+      gatePass.containers = null;
+    }
+  }
+
+  void addManualContainerCard() {
+    if (!canAddManualContainerCard) return;
+    _manualContainerCardCount++;
+    _ensureManualContainerSlots();
+    rebuildUi();
+  }
+
+  void removeManualContainerCard() {
+    if (_manualContainerCardCount <= 1) return;
+    _manualContainerCardCount--;
+    _ensureManualContainerSlots();
+    rebuildUi();
+  }
+
+
+  void _ensureManualContainerSlots() {
+    gatePass.containers ??= <GatePassAccessContainerModel>[];
+    while (gatePass.containers!.length < _manualContainerCardCount) {
+      gatePass.containers!.add(GatePassAccessContainerModel());
+    }
+    if (gatePass.containers!.length > _manualContainerCardCount) {
+      gatePass.containers = gatePass.containers!.sublist(0, _manualContainerCardCount);
+    }
+    for (var i = 0; i < gatePass.containers!.length; i++) {
+      gatePass.containers![i].containerSetNo = i + 1;
+    }
+  }
+
+  void _syncPrimaryContainerFromGatePass() {
+    if (gatePass.containers == null || gatePass.containers!.isEmpty) return;
+    final primary = gatePass.containers!.first;
+    primary.containerNumber = gatePass.containerNumber;
+    primary.containerIsoCode = gatePass.containerIsoCode;
+    primary.containerSize = gatePass.containerSize;
+    primary.containerSizeId = gatePass.containerSizeId;
+    primary.containerType = gatePass.containerType;
+    primary.containerTypeId = gatePass.containerTypeId;
+    primary.containerDeliveryType = gatePass.containerDeliveryType;
+    primary.deliveryType = gatePass.containerDeliveryType?.value;
+    primary.gatePassContainerType = gatePass.gatePassContainerType;
+    primary.containerShippingLine = gatePass.containerShippingLine;
+    primary.shippingLineId = gatePass.containerShippingLineId;
+    primary.containerCustomer = gatePass.containerCustomer;
+    primary.customerId = gatePass.containerCustomerId;
+    primary.containerDepot = gatePass.containerDepot;
+    primary.depotId = gatePass.containerDepotId;
+  }
+
+  void _syncGatePassFromContainer(int index) {
+    if (index != 0) return;
+    final c = getManualContainer(0);
+    gatePass.containerNumber = c.containerNumber;
+    gatePass.containerIsoCode = c.containerIsoCode;
+    gatePass.containerSize = c.containerSize;
+    gatePass.containerSizeId = c.containerSizeId;
+    gatePass.containerType = c.containerType;
+    gatePass.containerTypeId = c.containerTypeId;
+    gatePass.containerDeliveryType = c.containerDeliveryType;
+    gatePass.gatePassContainerType = c.gatePassContainerType;
+    gatePass.containerShippingLine = c.containerShippingLine;
+    gatePass.containerShippingLineId = c.shippingLineId;
+    gatePass.containerCustomer = c.containerCustomer;
+    gatePass.containerCustomerId = c.customerId;
+    gatePass.containerDepot = c.containerDepot;
+    gatePass.containerDepotId = c.depotId;
+    containerNumberController.text = c.containerNumber ?? '';
+  }
+
+  String getManualContainerNumber(int index) {
+    if (index == 0) {
+      return gatePass.containerNumber ?? '';
+    }
+    _ensureManualContainerSlots();
+    return gatePass.containers![index].containerNumber ?? '';
+  }
+
+  void setManualContainerNumber(int index, String value) {
+    final normalized = value.toUpperCase();
+    _ensureManualContainerSlots();
+    gatePass.containers![index].containerNumber = normalized;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+
+
+  GatePassAccessContainerModel getManualContainer(int index) {
+    _ensureManualContainerSlots();
+    return gatePass.containers![index];
+  }
+
+  void setManualContainerSize(int index, String? sizeLabel) {
+    final c = getManualContainer(index);
+    final selected = containerSizeOptions.firstWhereOrNull((s) => s.label == sizeLabel);
+    c.containerSize = selected?.label;
+    c.containerSizeId = selected?.id;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerType(int index, String? typeCode) {
+    final c = getManualContainer(index);
+    final selected = containerTypeOptions.firstWhereOrNull((t) => t.code == typeCode);
+    c.containerType = selected?.label;
+    c.containerTypeId = selected?.id;
+    c.containerIsoCode = selected?.code;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerDeliveryType(int index, DeliveryType? value) {
+    final c = getManualContainer(index);
+    c.containerDeliveryType = value;
+    c.deliveryType = value?.value;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerCargoType(int index, GatePassContainerType? value) {
+    final c = getManualContainer(index);
+    c.gatePassContainerType = value;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerShippingLine(int index, int? shippingLineId) {
+    final c = getManualContainer(index);
+    c.shippingLineId = shippingLineId;
+    c.containerShippingLine = _shippingLines.firstWhereOrNull((s) => s.id == shippingLineId)?.name;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerCustomer(int index, int? customerId) {
+    final c = getManualContainer(index);
+    c.customerId = customerId;
+    c.containerCustomer = _containerCustomers.firstWhereOrNull((x) => x.id == customerId)?.name;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerDepot(int index, int? depotId) {
+    final c = getManualContainer(index);
+    c.depotId = depotId;
+    c.containerDepot = _containerDepots.firstWhereOrNull((x) => x.id == depotId)?.name;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+
+
+  String? manualContainerTypeDropdownValue(int index) {
+    final c = getManualContainer(index);
+    final raw = c.containerIsoCode ?? c.containerType;
+    final code = _extractContainerTypeCode(raw);
+    if (code == null) return null;
+    final exists = containerTypeOptions.any((t) => t.code == code);
+    return exists ? code : null;
+  }
+
+  String? manualContainerSizeDropdownValue(int index) {
+    final c = getManualContainer(index);
+    final size = c.containerSize;
+    if (size == null) return null;
+    final exists = containerSizeOptions.any((t) => t.label == size);
+    return exists ? size : null;
+  }
+
+  int? manualContainerShippingLineDropdownValue(int index) {
+    final c = getManualContainer(index);
+    return c.shippingLineId;
+  }
+
+  int? manualContainerCustomerDropdownValue(int index) {
+    final c = getManualContainer(index);
+    return c.customerId;
+  }
+
+  int? manualContainerDepotDropdownValue(int index) {
+    final c = getManualContainer(index);
+    return c.depotId;
+  }
+
   bool _sameReg(String? a, String? b) {
     if (a == null || b == null) return false;
     return a.replaceAll(' ', '').toUpperCase() ==
@@ -278,6 +495,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   BarcodeScanType _barcodeScanType = BarcodeScanType.driversCard;
   BarcodeScanType get barcodeScanType => _barcodeScanType;
+  bool _isSubmittingGatePass = false;
   void setBarcodeScanType(BarcodeScanType type) {
     _barcodeScanType = type;
     _scanningService.setBarcodeScanType(type);
@@ -435,7 +653,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
       if (currentUser?.userBranches != null &&
           currentUser!.userBranches.isNotEmpty) {
-        gatePass.branchId = currentUser!.userBranches.first.id!;
+        gatePass.branchId = getSelectedScannerBranchId();
       }
       if (gatePass.containerNumber != null) {
         containerNumberController.text = gatePass.containerNumber!;
@@ -443,6 +661,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       if (gatePass.gatePassBookingType == GatePassBookingType.containers) {}
 
       try {
+        _sanitizeContainersForApi();
         var createdGatePass = await _gatePassService.createGatePass(gatePass);
 
         if (createdGatePass != null) {
@@ -492,6 +711,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
         gatePass.containers!.isNotEmpty) {
       loadContainerDetailsFromArray();
     }
+    _ensureManualContainerSlots();
+    _syncPrimaryContainerFromGatePass();
 
     await loadFileStoreImages();
 
@@ -573,7 +794,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     final checkListFindTemplateModel =
         await _checkListService.findChecklistTemplate(
       FilterParams(
-        branchId: currentUser?.userBranches.first.id,
+        branchId: gatePass.branchId,
         gateAccessBookingType: bookingType,
         gatePassAccessId: gatePass.id,
         gateAccessDeliveryType: deliveryType,
@@ -634,7 +855,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       Routes.checkListView,
       arguments: CheckListViewArguments(
         filterParams: FilterParams(
-          branchId: currentUser?.userBranches.first.id,
+          branchId: gatePass.branchId,
           gateAccessBookingType: bookingType,
           gatePassAccessId: gatePass.id,
           gateAccessDeliveryType: deliveryType,
@@ -1405,6 +1626,9 @@ void setContainerDeliveryType(DeliveryType? deliveryType) {
   }
 
   Future<void> saveOnly() async {
+    if (_isSubmittingGatePass) return;
+    _isSubmittingGatePass = true;
+    try {
     if (!_connectionService.hasConnection) {
       await _dialogService.showCustomDialog(
         variant: DialogType.infoAlert,
@@ -1417,11 +1641,16 @@ void setContainerDeliveryType(DeliveryType? deliveryType) {
     }
 
     if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      _ensureManualContainerSlots();
       if (gatePass.containerId == null || gatePass.containerId!.isEmpty) {
         gatePass.containerId = Guid.newGuidAsString;
       }
-
-      gatePass.handleContainers();
+      if (gatePass.containers == null || gatePass.containers!.isEmpty) {
+        gatePass.handleContainers();
+      } else {
+        _syncGatePassFromContainer(0);
+      }
+      _sanitizeContainersForApi();
     }
 
     //here we save back to server
@@ -1457,9 +1686,15 @@ void setContainerDeliveryType(DeliveryType? deliveryType) {
     //update Screen UI state with model changes
     setModelUpdate(_gatePass);
     notifyListeners();
+    } finally {
+      _isSubmittingGatePass = false;
+    }
   }
 
 Future<void> authorizeEntry() async {
+  if (_isSubmittingGatePass) return;
+  _isSubmittingGatePass = true;
+  try {
   if (!_connectionService.hasConnection) {
     var confirm = await _dialogService.showCustomDialog(
       variant: DialogType.infoAlert,
@@ -1634,6 +1869,16 @@ Future<void> authorizeEntry() async {
       // Checklist is complete, proceed with authorization
   }
 
+  if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+    _ensureManualContainerSlots();
+    if (gatePass.containers == null || gatePass.containers!.isEmpty) {
+      gatePass.handleContainers();
+    } else {
+      _syncGatePassFromContainer(0);
+    }
+    _sanitizeContainersForApi();
+  }
+
   var response = await _gatePassService.authorizeForEntry(gatePass);
   if (response != null) {
     _gatePass = response;
@@ -1659,9 +1904,15 @@ Future<void> authorizeEntry() async {
         fontSize: 14.0);
   }
   setBusy(false);
+  } finally {
+    _isSubmittingGatePass = false;
+  }
 }
 
   Future<void> authorizeExit() async {
+    if (_isSubmittingGatePass) return;
+    _isSubmittingGatePass = true;
+    try {
     if (!_connectionService.hasConnection) {
       await _dialogService.showCustomDialog(
         variant: DialogType.infoAlert,
@@ -1697,11 +1948,20 @@ Future<void> authorizeEntry() async {
       return; // If checklist is not completed, do not proceed with authorization
       // Checklist is complete, proceed with authorization
     }
+    if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      _ensureManualContainerSlots();
+      if (gatePass.containers == null || gatePass.containers!.isEmpty) {
+        gatePass.handleContainers();
+      } else {
+        _syncGatePassFromContainer(0);
+      }
+      _sanitizeContainersForApi();
+    }
+
     //here we save back to server
     var response = await _gatePassService.authorizeExit(gatePass);
     if (response != null) {
       _gatePass = response;
-      setBusy(false);
       Fluttertoast.showToast(
           msg: "Authorize for Exit was successful!",
           toastLength: Toast.LENGTH_SHORT,
@@ -1710,10 +1970,13 @@ Future<void> authorizeEntry() async {
           backgroundColor: Colors.green,
           textColor: Colors.white,
           fontSize: 14.0);
+          _navigationService.back(result: true);
     } else {
-      //error could not save
+      final errorMessage = _gatePassService.lastErrorMessage;
       Fluttertoast.showToast(
-          msg: "Save Failed!,Please try again or contact your system admin. ",
+          msg: (errorMessage != null && errorMessage.trim().isNotEmpty)
+              ? errorMessage
+              : "Save Failed!,Please try again or contact your system admin.",
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM_LEFT,
           timeInSecForIosWeb: 8,
@@ -1722,7 +1985,9 @@ Future<void> authorizeEntry() async {
           fontSize: 14.0);
     }
 
-    _navigationService.back(result: true);
+    } finally {
+      _isSubmittingGatePass = false;
+    }
   }
 
   Future<void> onTabBarTap(int index) async {
@@ -1793,13 +2058,59 @@ Future<void> authorizeEntry() async {
     }
   }
 
-  Future<void> goToCamCaptureContainerNoText() async {
+  Future<void> goToCamCaptureContainerNoText([int containerIndex = 0]) async {
     closeKeyboard();
     if (gatePass.id != null && gatePass.id != 0) {
       var contInfo = await _navigationService
           .navigateToCamContainernoReaderView() as ContainerInfo?;
 
       if (contInfo != null) {
+        String? scannedTypeCode;
+        if (contInfo.isoType.isNotEmpty) {
+          final isoType = _isoTypeService.findByCode(contInfo.isoType);
+          if (isoType != null) {
+            scannedTypeCode = isoType.type;
+          } else if (contInfo.isoType.length >= 4) {
+            final typeLetter = contInfo.isoType.substring(2, 3).toUpperCase();
+            if (typeLetter == 'G') {
+              scannedTypeCode = 'GP';
+            } else if (typeLetter == 'R') {
+              scannedTypeCode = 'RT';
+            } else if (typeLetter == 'T') {
+              scannedTypeCode = 'TD';
+            } else if (typeLetter == 'U') {
+              scannedTypeCode = 'UT';
+            } else if (typeLetter == 'P') {
+              scannedTypeCode = 'PF';
+            }
+          }
+        }
+
+        if (containerIndex >= 0) {
+          _ensureManualContainerSlots();
+          final target = getManualContainer(containerIndex);
+          target.containerNumber = contInfo.containerNumber;
+          target.containerIsoCode = contInfo.isoType.isNotEmpty
+              ? contInfo.isoType.toUpperCase()
+              : scannedTypeCode;          if (containerIndex > 0) {
+            // Keep secondary/tertiary cards in parity with primary scan mapping
+            target.containerSize = gatePass.containerSize;
+            target.containerSizeId = gatePass.containerSizeId;
+            target.containerType = gatePass.containerType;
+            target.containerTypeId = gatePass.containerTypeId;
+            Fluttertoast.showToast(
+              msg: "Container ${contInfo.containerNumber} scanned successfully",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+            );
+            rebuildUi();
+            notifyListeners();
+            return;
+          }
+        }
+
         gatePass.containerNumber = contInfo.containerNumber;
         gatePass.containerIsoCode = contInfo.isoType.isNotEmpty ? contInfo.isoType : null;
         containerNumberController.text = contInfo.containerNumber ?? '';
@@ -1859,33 +2170,10 @@ Future<void> authorizeEntry() async {
                 break;
             }
 
-                switch (typeCode) {
-              case "GP":
-                gatePass.containerTypeId = 1; // General Purpose
-                break;
-              case "RT":
-              case "RC":
-              case "RS":
-                gatePass.containerTypeId = 2; // Reefer
-                break;
-              case "TD":
-              case "TG":
-              case "TN":
-                gatePass.containerTypeId = 3; // Tank
-                break;
-              case "UT":
-              case "UP":
-                gatePass.containerTypeId = 4; // Open Top
-                break;
-              case "PF":
-              case "PC":
-              case "PS":
-              case "PL":
-                gatePass.containerTypeId = 5; // Flat/Platform
-                break;
-              default:
-                gatePass.containerTypeId = 1; // Default to GP
-            }
+            final resolvedTypeCode = typeCode.toUpperCase();
+            gatePass.containerTypeId = containerTypeOptions
+                .firstWhereOrNull((t) => t.code == resolvedTypeCode)
+                ?.id;
 
           } else {
            
@@ -1946,19 +2234,9 @@ Future<void> authorizeEntry() async {
                 gatePass.containerSizeId = 1;
               }
 
-              if (typeLetter == 'G') {
-                gatePass.containerTypeId = 1; // General Purpose
-              } else if (typeLetter == 'R') {
-                gatePass.containerTypeId = 2; // Reefer
-              } else if (typeLetter == 'T') {
-                gatePass.containerTypeId = 3; // Tank
-              } else if (typeLetter == 'U') {
-                gatePass.containerTypeId = 4; // Open Top
-              } else if (typeLetter == 'P') {
-                gatePass.containerTypeId = 5; // Flat/Platform
-              } else {
-                gatePass.containerTypeId = 1; // Default to GP
-              }
+              gatePass.containerTypeId = containerTypeOptions
+                  .firstWhereOrNull((t) => t.code == fullTypeCode)
+                  ?.id;
 
               log.i(
                   'Fallback parsing: Size=${gatePass.containerSize}, Type=${gatePass.containerType}');
@@ -1969,6 +2247,24 @@ Future<void> authorizeEntry() async {
         }
 
         clearValidationMessage("Container number is required");
+
+        _ensureManualContainerSlots();
+        final scannedContainer = getManualContainer(containerIndex);
+        scannedContainer.containerNumber = gatePass.containerNumber;
+        scannedContainer.containerIsoCode = contInfo.isoType.isNotEmpty
+            ? contInfo.isoType.toUpperCase()
+            : scannedTypeCode;
+        scannedContainer.containerSize = gatePass.containerSize;
+        scannedContainer.containerSizeId = gatePass.containerSizeId;
+        scannedContainer.containerType = gatePass.containerType;
+        scannedContainer.containerTypeId = gatePass.containerTypeId;
+        scannedContainer.containerDeliveryType = containerIndex == 0
+            ? gatePass.containerDeliveryType
+            : scannedContainer.containerDeliveryType;
+        scannedContainer.gatePassContainerType = containerIndex == 0
+            ? gatePass.gatePassContainerType
+            : scannedContainer.gatePassContainerType;
+        _syncGatePassFromContainer(containerIndex);
 
         Fluttertoast.showToast(
           msg: "Container ${contInfo.containerNumber} scanned successfully",
@@ -2150,12 +2446,54 @@ String? get selectedContainerTypeCode =>
       return null;
     }
 
-    final normalized = containerType.toUpperCase();
+final normalized = containerType.toUpperCase();
     if (normalized.length <= 2) {
       return normalized;
     }
 
+    if (normalized.length >= 4) {
+      final isoTypeCode = normalized.substring(normalized.length - 2);
+      final mappedFromIso = _mapIsoTypeCodeToContainerTypeCode(isoTypeCode);
+      if (mappedFromIso != null) {
+        return mappedFromIso;
+      }
+    }
+
     return normalized.substring(normalized.length - 2);
+  }
+
+  String? _mapIsoTypeCodeToContainerTypeCode(String isoTypeCode) {
+    final normalized = isoTypeCode.toUpperCase();
+    if (normalized.length < 2) {
+      return null;
+    }
+
+    if (containerTypeOptions.any((t) => t.code == normalized)) {
+      return normalized;
+    }
+
+    switch (normalized[0]) {
+      case 'G':
+        return 'GP';
+      case 'R':
+        return 'RT';
+      case 'T':
+        return 'TD';
+      case 'U':
+        return 'UT';
+      case 'P':
+        return 'PF';
+      case 'H':
+        return 'HR';
+      case 'V':
+        return 'VH';
+      case 'B':
+        return 'BU';
+      case 'S':
+        return 'SN';
+      default:
+        return null;
+    }
   }
 
   Future<void> goToCamView(FileStoreType fileStoreType) async {
@@ -3140,7 +3478,9 @@ String? get selectedContainerTypeCode =>
       return;
     }
 
-    _transporters = await _gatePassService.getTransporters();
+    _transporters = await _gatePassService.getTransporters(
+      branchId: getSelectedScannerBranchId(),
+    );
     _cachedTransporters = _transporters;
     _transporterCacheTime = DateTime.now();
 
@@ -3153,7 +3493,9 @@ String? get selectedContainerTypeCode =>
   }
 
   Future<void> loadCustomers() async {
-    _customers = await _gatePassService.getCustomers();
+    _customers = await _gatePassService.getCustomers(
+      branchId: getSelectedScannerBranchId(),
+    );
     notifyListeners();
   }
 
