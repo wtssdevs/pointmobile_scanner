@@ -150,13 +150,9 @@ class GatePassAccessContainerModel {
 
 Map<String, dynamic> toMap() {
   final normalizedId = id?.trim();
-  final hasValidGuid = normalizedId != null &&
-      RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
-          .hasMatch(normalizedId);
+  final hasId = normalizedId != null && normalizedId.isNotEmpty;
   final normalizedGatePassAccessId = gatePassAccessId?.trim();
-  final hasValidGatePassAccessGuid = normalizedGatePassAccessId != null &&
-      RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
-          .hasMatch(normalizedGatePassAccessId);
+  final hasGatePassAccessId = normalizedGatePassAccessId != null && normalizedGatePassAccessId.isNotEmpty;
 
   var output = {
     "tenantId": tenantId ?? 0,
@@ -183,10 +179,10 @@ Map<String, dynamic> toMap() {
     "depotId": depotId,
   };
 
-  if (hasValidGuid) {
+  if (hasId) {
     output["id"] = normalizedId;
   }
-  if (hasValidGatePassAccessGuid) {
+  if (hasGatePassAccessId) {
     output["gatePassAccessId"] = normalizedGatePassAccessId;
   }
 
