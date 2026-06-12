@@ -26,4 +26,16 @@ enum CmsInspectionType {
 
     return null;
   }
+
+  static CmsInspectionType? fromName(dynamic value) {
+    final parsedValue = cmsParseString(value)?.trim().toLowerCase().replaceAll(' ', '');
+    switch (parsedValue) {
+      case 'structural':
+        return CmsInspectionType.structural;
+      case 'mechanical':
+        return CmsInspectionType.mechanical;
+      default:
+        return null;
+    }
+  }
 }

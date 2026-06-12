@@ -65,4 +65,8 @@ class CmsInspectionLinePhotoQueueService {
       CmsMediaUploadItem.fromInspectionPhoto(photo),
     );
   }
+
+  Future<void> removeLocalOnly(String clientUploadId) async {
+    await _mediaQueueService.removeLocalOnly(clientUploadId);
+  }
 }

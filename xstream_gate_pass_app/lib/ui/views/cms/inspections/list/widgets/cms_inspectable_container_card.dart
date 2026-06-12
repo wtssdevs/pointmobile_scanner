@@ -8,54 +8,42 @@ class CmsInspectableContainerCard extends StatelessWidget {
     super.key,
     required this.container,
     required this.actionLabel,
-    required this.canOpen,
     this.onTap,
   });
 
   final CmsInspectableContainer container;
   final String actionLabel;
-  final bool canOpen;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     String? shippingLineLabel;
-    for (final value in [
-      container.shippingLineCode,
-      container.shippingLineName
-    ]) {
+    for (final value in [container.shippingLineCode, container.shippingLineName]) {
       final trimmed = value?.trim() ?? '';
       if (trimmed.isNotEmpty) {
         shippingLineLabel = trimmed;
         break;
       }
     }
-    final typeLabel = [
-      container.containerSize,
-      container.containerType,
-      container.containerIsoType
-    ]
+    final typeLabel = [container.containerSize, container.containerType, container.containerIsoType]
         .whereType<String>()
         .map((item) => item.trim())
         .where((item) => item.isNotEmpty)
         .join(' • ');
-    final actionIcon = !canOpen
-        ? Icons.check_circle_outline_rounded
-        : container.canResumeInspection
-            ? Icons.play_arrow_rounded
-            : Icons.add_task_rounded;
-    final typeBadgeColor =
-        container.isMechanical ? Colors.deepOrange : Colors.indigo;
+    final statusLabel = (container.statusDisplayName?.trim().isNotEmpty == true)
+        ? container.statusDisplayName!.trim()
+        : (container.statusName?.trim() ?? '');
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 4,
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: canOpen ? onTap : null,
+        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -63,46 +51,27 @@ class CmsInspectableContainerCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          container.containerNo,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          container.transactionNo,
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      container.containerNo,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _InspectionTypePill(
-                        label: container.inspectionTypeLabel,
-                        backgroundColor: typeBadgeColor.withOpacity(0.12),
-                        foregroundColor: typeBadgeColor,
-                      ),
-                      const SizedBox(height: 8),
-                      _StatusPill(status: container.cardStatus),
-                    ],
-                  ),
+                  _HeaderBadge(container: container),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: 12,
                 runSpacing: 10,
                 children: [
+                  if (container.transactionNo.trim().isNotEmpty)
+                    _InfoChip(
+                      icon: Icons.confirmation_number_outlined,
+                      label: container.transactionNo.trim(),
+                    ),
                   if (shippingLineLabel != null)
                     _InfoChip(
                       icon: Icons.business_outlined,
@@ -113,50 +82,168 @@ class CmsInspectableContainerCard extends StatelessWidget {
                       icon: Icons.inventory_2_outlined,
                       label: typeLabel,
                     ),
-                  _InfoChip(
-                    icon: Icons.fact_check_outlined,
-                    label: container.conditionLabel,
-                  ),
+                  if (statusLabel.isNotEmpty)
+                    _InfoChip(
+                      icon: Icons.flag_outlined,
+                      label: statusLabel,
+                    ),
+                  if (container.isReefer)
+                    const _InfoChip(
+                      icon: Icons.ac_unit_rounded,
+                      label: 'Reefer',
+                    ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    container.depotArrivalDateTime != null
-                        ? 'Depot arrival ${container.depotArrivalDateTime!.toFormattedString()}'
-                        : 'Depot arrival pending',
-                    style: TextStyle(
-                      color: Colors.grey[700],
-                      fontSize: 12,
+              const SizedBox(height: 10),
+              Text(
+                container.depotArrivalDateTime != null
+                    ? 'Depot arrival ${container.depotArrivalDateTime!.toFormattedString()}'
+                    : 'Depot arrival pending',
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 12,
+                ),
+              ),
+              if (container.hasLastInspection) ...[
+                const SizedBox(height: 12),
+                _LastInspectionBlock(container: container),
+              ],
+              const SizedBox(height: 14),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  onPressed: onTap,
+                  icon: Icon(
+                    container.canResumeInspection ? Icons.play_arrow_rounded : Icons.chevron_right_rounded,
+                  ),
+                  label: Text(actionLabel),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: container.canResumeInspection ? kcPrimaryColor : Colors.teal,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton.icon(
-                      onPressed: canOpen ? onTap : null,
-                      icon: Icon(actionIcon),
-                      label: Text(actionLabel),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: container.canResumeInspection
-                            ? kcPrimaryColor
-                            : Colors.teal,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey[200],
-                        disabledForegroundColor: Colors.grey[700],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HeaderBadge extends StatelessWidget {
+  const _HeaderBadge({required this.container});
+
+  final CmsInspectableContainer container;
+
+  @override
+  Widget build(BuildContext context) {
+    final String label;
+    final Color background;
+    final Color foreground;
+
+    if (container.canResumeInspection) {
+      label = 'Open inspection';
+      background = kcPrimaryColor.withOpacity(0.14);
+      foreground = kcPrimaryColor;
+    } else if (!container.hasLastInspection) {
+      label = 'No inspections';
+      background = Colors.grey.withOpacity(0.16);
+      foreground = Colors.grey[700]!;
+    } else {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: foreground,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _LastInspectionBlock extends StatelessWidget {
+  const _LastInspectionBlock({required this.container});
+
+  final CmsInspectableContainer container;
+
+  @override
+  Widget build(BuildContext context) {
+    final byLine = container.lastInspectionByLine;
+    final conditionName = container.lastInspectionConditionTypeName?.trim() ?? '';
+    final secondLineParts = <String>[
+      if (byLine.isNotEmpty) byLine,
+      if (conditionName.isNotEmpty) conditionName,
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.assignment_turned_in_outlined, size: 16, color: Colors.blueGrey[700]),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  container.lastInspectionSummary,
+                  style: TextStyle(
+                    color: Colors.blueGrey[900],
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (secondLineParts.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 24),
+              child: Text(
+                secondLineParts.join(' • '),
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+          if (!container.lastInspectionIsCurrentVisit) ...[
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 24),
+              child: Text(
+                'Previous visit',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -200,86 +287,6 @@ class _InfoChip extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _InspectionTypePill extends StatelessWidget {
-  const _InspectionTypePill({
-    required this.label,
-    required this.backgroundColor,
-    required this.foregroundColor,
-  });
-
-  final String label;
-  final Color backgroundColor;
-  final Color foregroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: foregroundColor,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final normalized = status.toLowerCase();
-    final Color backgroundColor;
-    final Color foregroundColor;
-
-    switch (normalized) {
-      case 'inprogress':
-        backgroundColor = kcPrimaryColor.withOpacity(0.14);
-        foregroundColor = kcPrimaryColor;
-        break;
-      case 'completed':
-        backgroundColor = Colors.green.withOpacity(0.14);
-        foregroundColor = Colors.green[800]!;
-        break;
-      case 'blocked':
-        backgroundColor = Colors.orange.withOpacity(0.16);
-        foregroundColor = Colors.orange[900]!;
-        break;
-      case 'ready':
-      default:
-        backgroundColor = Colors.teal.withOpacity(0.14);
-        foregroundColor = Colors.teal[800]!;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: foregroundColor,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
       ),
     );
   }

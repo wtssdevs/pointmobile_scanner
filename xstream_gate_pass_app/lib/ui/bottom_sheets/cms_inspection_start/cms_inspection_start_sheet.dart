@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspectable_container.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_container_inspection_bundle.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_start_mode.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_start_inspection_input.dart';
-import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_type.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_inspection_start/cms_inspection_start_sheet_model.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 
@@ -20,11 +20,13 @@ class CmsInspectionStartSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final container = request.data is CmsInspectableContainer ? request.data as CmsInspectableContainer : null;
+    final payload = request.data;
+    final bundle = payload is Map && payload['bundle'] is CmsContainerInspectionBundle ? payload['bundle'] as CmsContainerInspectionBundle : null;
+    final lockedMode = payload is Map && payload['lockedMode'] is CmsInspectionStartMode ? payload['lockedMode'] as CmsInspectionStartMode : null;
 
     return ViewModelBuilder<CmsInspectionStartSheetModel>.reactive(
       viewModelBuilder: () => CmsInspectionStartSheetModel(),
-      onViewModelReady: (model) => model.initialise(container),
+      onViewModelReady: (model) => model.initialise(bundle, lockedMode: lockedMode),
       builder: (context, model, child) => SafeArea(
         child: Padding(
           padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -62,11 +64,39 @@ class CmsInspectionStartSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    request.description ?? 'Choose the inspection condition before you open the inspection detail.',
+                    request.description ?? 'Choose how this inspection should start, then confirm the condition.',
                     style: TextStyle(color: Colors.grey[700]),
                   ),
                   const SizedBox(height: 16),
                   _ContainerContextCard(model: model),
+                  const SizedBox(height: 16),
+                  if (model.showModeTiles) ...[
+                    const Text(
+                      'Start mode',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: model.availableModes
+                          .map(
+                            (mode) => _StartModeTile(
+                              mode: mode,
+                              selected: model.selectedMode == mode,
+                              onTap: () => model.selectMode(mode),
+                            ),
+                          )
+                          .toList(growable: false),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  _InlineMessage(
+                    icon: Icons.auto_awesome_outlined,
+                    message: model.selectedModeDescription,
+                    backgroundColor: Colors.blueGrey.withOpacity(0.08),
+                    foregroundColor: Colors.blueGrey[800]!,
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     'Condition',
@@ -98,15 +128,6 @@ class CmsInspectionStartSheet extends StatelessWidget {
                         child: child,
                       ),
                     ),
-                  if (model.currentConditionLabel != null) ...[
-                    const SizedBox(height: 10),
-                    _InlineMessage(
-                      icon: Icons.info_outline,
-                      message: 'Current container condition: ${model.currentConditionLabel}',
-                      backgroundColor: Colors.blueGrey.withOpacity(0.08),
-                      foregroundColor: Colors.blueGrey[800]!,
-                    ),
-                  ],
                   if (model.validationMessage != null) ...[
                     const SizedBox(height: 10),
                     _InlineMessage(
@@ -144,9 +165,8 @@ class CmsInspectionStartSheet extends StatelessWidget {
                           style: FilledButton.styleFrom(
                             backgroundColor: kcPrimaryColor,
                           ),
-                          onPressed: model.hasBlockingError
-                              ? null
-                              : () {
+                          onPressed: model.canSubmit
+                              ? () {
                                   final startInput = model.buildStartInput();
                                   if (startInput == null) {
                                     return;
@@ -158,9 +178,10 @@ class CmsInspectionStartSheet extends StatelessWidget {
                                       data: startInput,
                                     ),
                                   );
-                                },
+                                }
+                              : null,
                           icon: const Icon(Icons.play_arrow_rounded),
-                          label: Text('Start ${model.inspectionTypeLabel}'),
+                          label: Text(model.submitLabel),
                         ),
                       ),
                     ],
@@ -182,9 +203,7 @@ class _ContainerContextCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final container = model.container;
-    final inspectionType = container?.inspectionType;
-    final typeColor = _typeColor(inspectionType);
+    final bundle = model.bundle;
 
     return Container(
       width: double.infinity,
@@ -205,7 +224,7 @@ class _ContainerContextCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      container?.containerNo ?? 'Container',
+                      bundle?.containerNo ?? 'Container',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -224,42 +243,117 @@ class _ContainerContextCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               _TypeBadge(
-                label: model.inspectionTypeLabel,
-                backgroundColor: typeColor.withOpacity(0.12),
-                foregroundColor: typeColor,
+                label: bundle?.statusLabel ?? 'Empty',
+                backgroundColor: (bundle?.canResumeInspection == true ? kcPrimaryColor : Colors.teal).withOpacity(0.14),
+                foregroundColor: bundle?.canResumeInspection == true ? kcPrimaryColor : Colors.teal[800]!,
               ),
             ],
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              Icon(Icons.fact_check_outlined, color: typeColor, size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Inspection type is locked to the container you selected.',
+          if (model.inspectionRows.isEmpty)
+            Text(
+              'No inspections have been started for this depot visit yet.',
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Existing inspections',
                   style: TextStyle(
-                    color: Colors.grey[800],
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(height: 8),
+                ...model.inspectionRows.map(
+                  (inspection) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _InspectionHistoryTile(inspection: inspection),
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
   }
 
-  Color _typeColor(CmsInspectionType? type) {
-    switch (type) {
-      case CmsInspectionType.mechanical:
-        return Colors.deepOrange;
-      case CmsInspectionType.structural:
-      default:
-        return Colors.indigo;
-    }
+}
+
+class _StartModeTile extends StatelessWidget {
+  const _StartModeTile({
+    required this.mode,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final CmsInspectionStartMode mode;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final accentColor = mode.isMechanicalOnly ? Colors.deepOrange : kcPrimaryColor;
+
+    return SizedBox(
+      width: 220,
+      child: Material(
+        color: selected ? accentColor.withOpacity(0.08) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected ? accentColor : Colors.grey.shade300,
+                width: selected ? 1.6 : 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                      color: selected ? accentColor : Colors.grey[500],
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        mode.label,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  mode.description,
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -289,6 +383,55 @@ class _TypeBadge extends StatelessWidget {
           fontSize: 12,
           fontWeight: FontWeight.w700,
         ),
+      ),
+    );
+  }
+}
+
+class _InspectionHistoryTile extends StatelessWidget {
+  const _InspectionHistoryTile({required this.inspection});
+
+  final CmsContainerInspectionRow inspection;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  inspection.inspectionTypeLabel,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  inspection.transactionNo ?? 'Transaction pending',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _TypeBadge(
+            label: inspection.statusLabel,
+            backgroundColor: inspection.inspectionCompleted ? Colors.green.withOpacity(0.14) : kcPrimaryColor.withOpacity(0.14),
+            foregroundColor: inspection.inspectionCompleted ? Colors.green[800]! : kcPrimaryColor,
+          ),
+        ],
       ),
     );
   }

@@ -4,7 +4,8 @@ import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_
 
 void main() {
   group('CmsInspectionLineEdit panel metadata -', () {
-    test('stores panel metadata in descriptionThree and exposes parsed values', () {
+    test('stores panel metadata in descriptionThree and exposes parsed values',
+        () {
       final line = CmsInspectionLineEdit(descriptionOne: 'Dent near seam');
 
       line.applyPanelMetadata(
@@ -35,7 +36,9 @@ void main() {
       expect(line.panelY, isNull);
     });
 
-    test('round-trips transient clientKey without storing it in descriptionThree', () {
+    test(
+        'round-trips transient clientKey without storing it in descriptionThree',
+        () {
       final line = CmsInspectionLineEdit(
         clientKey: 'client-line-1',
         descriptionThree: 'PANEL:RSD|X:0.120|Y:0.340',
@@ -49,6 +52,19 @@ void main() {
       expect(parsed.descriptionThree, 'PANEL:RSD|X:0.120|Y:0.340');
       expect(parsed.descriptionThree, isNot(contains('client-line-1')));
     });
+
+    test('round-trips the externalRef field', () {
+      final line = CmsInspectionLineEdit(
+        externalRef: 'EXT-LINE-1',
+        descriptionOne: 'Dent near seam',
+      );
+
+      final json = line.toJson();
+      final parsed = CmsInspectionLineEdit.fromJson(json);
+
+      expect(json['externalRef'], 'EXT-LINE-1');
+      expect(parsed.externalRef, 'EXT-LINE-1');
+    });
   });
 
   group('CmsInspectionPanelCode -', () {
@@ -58,8 +74,10 @@ void main() {
       expect(rightSide, CmsInspectionPanelCode.rightSide);
       expect(rightSide!.svgElementId, 'panel_RSD');
       expect(rightSide.cedexPrefix, 'R');
-      expect(rightSide.matchesLocation(code: 'RX1N', name: 'Right side panel'), isTrue);
-      expect(rightSide.matchesLocation(code: 'LXXX', name: 'Left side panel'), isFalse);
+      expect(rightSide.matchesLocation(code: 'RX1N', name: 'Right side panel'),
+          isTrue);
+      expect(rightSide.matchesLocation(code: 'LXXX', name: 'Left side panel'),
+          isFalse);
     });
   });
 }

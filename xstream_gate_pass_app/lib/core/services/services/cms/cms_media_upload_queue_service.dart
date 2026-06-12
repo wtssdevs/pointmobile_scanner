@@ -400,6 +400,12 @@ class CmsMediaUploadQueueService {
     await _store.record(photo.clientUploadId).delete(_appDatabase.db!);
   }
 
+  /// Removes only the local queue row for [clientUploadId] without calling the
+  /// server delete endpoint (used when the backend cascade owns the server document).
+  Future<void> removeLocalOnly(String clientUploadId) async {
+    await _store.record(clientUploadId).delete(_appDatabase.db!);
+  }
+
   int? surveyUploadReferenceId(CmsMobileSurveyEditDto survey) {
     if (survey.surveyType == CmsSurveyType.gatePass) {
       return survey.gatePassId;

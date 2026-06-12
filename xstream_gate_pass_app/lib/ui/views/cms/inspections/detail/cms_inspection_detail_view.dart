@@ -189,7 +189,7 @@ class CmsInspectionDetailView extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: OutlinedButton.icon(
-                                  onPressed: model.startMetadataWarning != null
+                                  onPressed: !model.canEdit || model.startMetadataWarning != null
                                       ? null
                                       : model.saveDraft,
                                   icon: const Icon(Icons.save_outlined),
@@ -202,7 +202,8 @@ class CmsInspectionDetailView extends StatelessWidget {
                                   style: FilledButton.styleFrom(
                                     backgroundColor: kcPrimaryColor,
                                   ),
-                                  onPressed: model.hasUnclassifiedLines ||
+                                  onPressed: !model.canEdit ||
+                                          model.hasUnclassifiedLines ||
                                           model.startMetadataWarning != null
                                       ? null
                                       : model.completeInspection,

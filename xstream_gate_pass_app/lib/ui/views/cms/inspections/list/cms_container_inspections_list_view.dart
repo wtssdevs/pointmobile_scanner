@@ -76,8 +76,7 @@ class CmsContainerInspectionsListView extends StatelessWidget {
                             CmsInspectableContainerCard(
                           container: item,
                           actionLabel: model.actionLabelFor(item),
-                          canOpen: model.canOpen(item),
-                          onTap: () => model.openInspection(item),
+                          onTap: () => model.openContainer(item),
                         ),
                         firstPageProgressIndicatorBuilder: (context) =>
                             const Padding(

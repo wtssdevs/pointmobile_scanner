@@ -1,3 +1,4 @@
+import 'package:xstream_gate_pass_app/core/enums/cms_inspection_state.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/cms_json_utils.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_edit.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_type.dart';
@@ -33,6 +34,10 @@ class CmsInspectionEdit {
     this.displayStatus,
     this.inspectionType,
     this.inspectionTypeName,
+    this.externalRef,
+    this.state,
+    this.startDateTime,
+    this.endDateTime,
     List<CmsInspectionLineEdit>? items,
   }) : items = items ?? <CmsInspectionLineEdit>[];
 
@@ -48,12 +53,9 @@ class CmsInspectionEdit {
       comments: cmsParseString(json['comments']),
       containerNo: cmsParseString(json['containerNo']),
       containerSize: cmsParseString(json['containerSize']),
-      containerIsoType: cmsParseString(json['containerIsoType']) ??
-          cmsParseString(json['containerISOType']) ??
-          cmsParseString(json['isoType']),
+      containerIsoType: cmsParseString(json['containerIsoType']) ?? cmsParseString(json['containerISOType']) ?? cmsParseString(json['isoType']),
       isRfContainer: cmsParseBool(json['isRFContainer']) ?? false,
-      containterType: cmsParseString(json['containterType']) ??
-          cmsParseString(json['containerType']),
+      containterType: cmsParseString(json['containterType']) ?? cmsParseString(json['containerType']),
       inspectionCompleted: cmsParseBool(json['inspectionCompleted']) ?? false,
       maxGrossWeight: cmsParseDouble(json['maxGrossWeight']),
       shippingLineId: cmsParseInt(json['shippingLineID']),
@@ -68,11 +70,13 @@ class CmsInspectionEdit {
       depotId: cmsParseInt(json['depotID']),
       statusId: cmsParseInt(json['statusID']),
       displayStatus: cmsParseString(json['displayStatus']),
-      inspectionType: CmsInspectionType.fromValue(json['inspectionType']),
+      inspectionType: CmsInspectionType.fromValue(json['inspectionType']) ?? CmsInspectionType.fromName(json['inspectionTypeName']),
       inspectionTypeName: cmsParseString(json['inspectionTypeName']),
-      items: cmsParseMapList(json['items'])
-          .map(CmsInspectionLineEdit.fromJson)
-          .toList(growable: true),
+      externalRef: cmsParseString(json['externalRef']),
+      state: CmsInspectionState.fromValue(json['state']),
+      startDateTime: cmsParseDateTime(json['startDateTime']),
+      endDateTime: cmsParseDateTime(json['endDateTime']),
+      items: cmsParseMapList(json['items']).map(CmsInspectionLineEdit.fromJson).toList(growable: true),
     );
   }
 
@@ -105,6 +109,10 @@ class CmsInspectionEdit {
   String? displayStatus;
   CmsInspectionType? inspectionType;
   String? inspectionTypeName;
+  String? externalRef;
+  CmsInspectionState? state;
+  DateTime? startDateTime;
+  DateTime? endDateTime;
   List<CmsInspectionLineEdit> items;
 
   String get inspectionTypeLabel {
@@ -163,6 +171,10 @@ class CmsInspectionEdit {
       'displayStatus': displayStatus,
       'inspectionType': inspectionType?.value,
       'inspectionTypeName': inspectionTypeName,
+      'externalRef': externalRef,
+      'state': state?.value,
+      'startDateTime': startDateTime?.toIso8601String(),
+      'endDateTime': endDateTime?.toIso8601String(),
       'items': items.map((item) => item.toJson()).toList(growable: false),
     };
   }

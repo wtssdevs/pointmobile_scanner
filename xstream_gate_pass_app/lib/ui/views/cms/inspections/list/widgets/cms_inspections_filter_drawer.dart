@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_filter.dart';
 import 'package:xstream_gate_pass_app/ui/shared/style/app_colors.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/list/cms_container_inspections_list_viewmodel.dart';
 
@@ -69,23 +68,6 @@ class CmsInspectionsFilterDrawer extends StatelessWidget {
                       icon: Icons.apartment_rounded,
                       label: model.stagedDepotDisplay,
                     ),
-                  const SizedBox(height: 22),
-                  const _FilterLabel('Inspection status'),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: CmsInspectableStatusFilter.values
-                        .map(
-                          (status) => ChoiceChip(
-                            label: Text(model.statusLabel(status)),
-                            selected: model.stagedStatusFilter == status,
-                            selectedColor: kcPrimaryColor.withOpacity(0.14),
-                            onSelected: (_) => model.selectStagedStatus(status),
-                          ),
-                        )
-                        .toList(growable: false),
-                  ),
                 ],
               ),
             ),

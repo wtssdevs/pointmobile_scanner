@@ -1,34 +1,33 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/app/app.bottomsheets.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/account/cms_current_login_information.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspectable_container.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_filter.dart';
-import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_start_inspection_input.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
+import 'package:xstream_gate_pass_app/core/services/api/cms_error_translator.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 
 class CmsContainerInspectionsListViewModel extends BaseViewModel {
   final log = getLogger('CmsContainerInspectionsListViewModel');
-  final CmsMobileInspectionsService _mobileInspectionsService =
-      locator<CmsMobileInspectionsService>();
+  final CmsMobileInspectionsService _mobileInspectionsService = locator<CmsMobileInspectionsService>();
   final CmsSessionService _cmsSessionService = locator<CmsSessionService>();
-  final LocalStorageService _localStorageService =
-      locator<LocalStorageService>();
-  final BottomSheetService _bottomSheetService = locator<BottomSheetService>();
+  final LocalStorageService _localStorageService = locator<LocalStorageService>();
   final NavigationService _navigationService = locator<NavigationService>();
+  final ConnectionService _connectionService = locator<ConnectionService>();
 
   final TextEditingController searchController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();
-  final PagingController<int, CmsInspectableContainer> pagingController =
-      PagingController<int, CmsInspectableContainer>(
+  final PagingController<int, CmsInspectableContainer> pagingController = PagingController<int, CmsInspectableContainer>(
     firstPageKey: 1,
     invisibleItemsThreshold: 3,
   );
@@ -44,11 +43,8 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
   int? _defaultDepotId;
   int? _stagedDepotId;
   String? _loadError;
-  CmsInspectableStatusFilter _statusFilter = CmsInspectableStatusFilter.all;
-  CmsInspectableStatusFilter _stagedStatusFilter =
-      CmsInspectableStatusFilter.all;
-  PagedList<CmsInspectableContainer> _pagedList =
-      PagedList<CmsInspectableContainer>(
+  StreamSubscription<dynamic>? _connectionSubscription;
+  PagedList<CmsInspectableContainer> _pagedList = PagedList<CmsInspectableContainer>(
     totalCount: 0,
     items: <CmsInspectableContainer>[],
     pageNumber: 1,
@@ -56,32 +52,20 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
     totalPages: 0,
   );
 
-  List<CmsUserDepot> get depots =>
-      _session?.userDepots
-          .where((item) => item.id != null)
-          .toList(growable: false) ??
-      const [];
+  List<CmsUserDepot> get depots => _session?.userDepots.where((item) => item.id != null).toList(growable: false) ?? const [];
   int? get selectedDepotId => _selectedDepotId;
   int? get stagedDepotId => _stagedDepotId;
-  CmsInspectableStatusFilter get statusFilter => _statusFilter;
-  CmsInspectableStatusFilter get stagedStatusFilter => _stagedStatusFilter;
   String? get loadError => _loadError;
+  bool get isOffline => !_connectionService.hasConnection;
   bool get hasDepots => depots.isNotEmpty;
   bool get canLoadList => _selectedDepotId != null;
   bool get isSearchVisible => _isSearchVisible;
   bool get hasSearchText => searchController.text.trim().isNotEmpty;
   bool get isSearchActive => _isSearchVisible || hasSearchText;
-  bool get hasFiltersApplied =>
-      _statusFilter != CmsInspectableStatusFilter.all ||
-      (_defaultDepotId != null && _selectedDepotId != _defaultDepotId);
-  bool get hasStagedFiltersApplied =>
-      _stagedStatusFilter != CmsInspectableStatusFilter.all ||
-      (_defaultDepotId != null && _stagedDepotId != _defaultDepotId);
+  bool get hasFiltersApplied => _defaultDepotId != null && _selectedDepotId != _defaultDepotId;
+  bool get hasStagedFiltersApplied => _defaultDepotId != null && _stagedDepotId != _defaultDepotId;
   int get activeFilterCount {
     var count = 0;
-    if (_statusFilter != CmsInspectableStatusFilter.all) {
-      count++;
-    }
     if (_defaultDepotId != null && _selectedDepotId != _defaultDepotId) {
       count++;
     }
@@ -90,12 +74,9 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
 
   String get selectedDepotDisplay => depotDisplayName(_selectedDepotId);
   String get stagedDepotDisplay => depotDisplayName(_stagedDepotId);
-  String get statusFilterLabel => statusLabel(_statusFilter);
-  String get stagedStatusFilterLabel => statusLabel(_stagedStatusFilter);
   String get listContextSummary {
     final parts = <String>[
       selectedDepotDisplay,
-      statusFilterLabel,
     ];
 
     final searchValue = searchController.text.trim();
@@ -112,12 +93,12 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
     }
 
     _hasInitialised = true;
-    _session = _cmsSessionService.getCached() ??
-        await _cmsSessionService.refreshFromServer(showLoader: false);
+    _session = _cmsSessionService.getCached() ?? await _cmsSessionService.refreshFromServer(showLoader: false);
     _defaultDepotId = _resolveDefaultDepotId();
     _selectedDepotId = _defaultDepotId;
     _syncStagedFilters();
     pagingController.addPageRequestListener(fetchPage);
+    _connectionSubscription ??= _connectionService.connectionChange.listen(_onConnectionChange);
 
     if (_selectedDepotId == null) {
       _loadError = 'No CMS depots are available for this account.';
@@ -134,8 +115,14 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
       return;
     }
 
-    if (_loadingPageKeys.contains(pageKey) ||
-        _loadedPageKeys.contains(pageKey)) {
+    if (_loadingPageKeys.contains(pageKey) || _loadedPageKeys.contains(pageKey)) {
+      return;
+    }
+
+    if (isOffline) {
+      _loadError = CmsErrorTranslator.offlineMessage;
+      pagingController.error = CmsErrorTranslator.offlineMessage;
+      rebuildUi();
       return;
     }
 
@@ -149,9 +136,6 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
           pageNumber: pageKey,
           pageSize: _pagedList.pageSize,
           searchValue: searchController.text.trim(),
-          statusFilter: _statusFilter,
-          includeCompleted:
-              _statusFilter == CmsInspectableStatusFilter.completed,
         ),
       );
 
@@ -161,8 +145,7 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
 
       _pagedList = page;
       _loadError = null;
-      final previouslyFetchedItemsCount =
-          pagingController.itemList?.length ?? 0;
+      final previouslyFetchedItemsCount = pagingController.itemList?.length ?? 0;
       final isLastPage = _pagedList.isLastPage(previouslyFetchedItemsCount);
 
       if (isLastPage) {
@@ -174,7 +157,7 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
       _loadedPageKeys.add(pageKey);
     } catch (error) {
       log.e('Failed to load inspectable containers', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
       pagingController.error = error;
       rebuildUi();
     } finally {
@@ -196,16 +179,6 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
     refreshList();
   }
 
-  void selectStatus(CmsInspectableStatusFilter value) {
-    if (_statusFilter == value) {
-      return;
-    }
-
-    _statusFilter = value;
-    _syncStagedFilters();
-    refreshList();
-  }
-
   void beginFilterEditing() {
     _syncStagedFilters();
     rebuildUi();
@@ -220,15 +193,6 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
     rebuildUi();
   }
 
-  void selectStagedStatus(CmsInspectableStatusFilter value) {
-    if (_stagedStatusFilter == value) {
-      return;
-    }
-
-    _stagedStatusFilter = value;
-    rebuildUi();
-  }
-
   void applyFilters() {
     var shouldRefresh = false;
 
@@ -236,11 +200,6 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
       _selectedDepotId = _stagedDepotId;
       _defaultDepotId = _stagedDepotId;
       _localStorageService.setCmsDefaultInspectionDepotId(_stagedDepotId!);
-      shouldRefresh = true;
-    }
-
-    if (_statusFilter != _stagedStatusFilter) {
-      _statusFilter = _stagedStatusFilter;
       shouldRefresh = true;
     }
 
@@ -253,11 +212,9 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
 
   void clearFilters() {
     final defaultDepotId = _resolveDefaultDepotId();
-    final changed = _selectedDepotId != defaultDepotId ||
-        _statusFilter != CmsInspectableStatusFilter.all;
+    final changed = _selectedDepotId != defaultDepotId;
     _defaultDepotId = defaultDepotId;
     _selectedDepotId = defaultDepotId;
-    _statusFilter = CmsInspectableStatusFilter.all;
     _syncStagedFilters();
 
     if (changed) {
@@ -275,8 +232,7 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
 
     _isSearchVisible = true;
     rebuildUi();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => searchFocusNode.requestFocus());
+    WidgetsBinding.instance.addPostFrameCallback((_) => searchFocusNode.requestFocus());
   }
 
   void closeSearch() {
@@ -321,98 +277,38 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
     rebuildUi();
   }
 
-  Future<void> openInspection(CmsInspectableContainer container) async {
-    if (!canOpen(container)) {
-      return;
-    }
-
-    _loadError = null;
-
-    if (container.canResumeInspection && container.inspectionId != null) {
-      final result = await _navigateToInspectionDetail(container.inspectionId!);
-      if (result == true) {
-        refreshList();
-      }
-      return;
-    }
-
-    if (!container.canStartInspection) {
-      return;
-    }
-
-    final startInput = await _promptInspectionStart(container);
-    if (startInput == null) {
-      return;
-    }
-
-    try {
-      final inspection =
-          await _mobileInspectionsService.startInspection(startInput);
-      await _navigateToInspectionDetail(inspection.id);
-      refreshList();
-    } catch (error) {
-      log.e('Failed to start CMS inspection', error);
-      _loadError = error.toString();
+  void _onConnectionChange(dynamic event) {
+    if (event == true && _loadError != null) {
+      _loadError = null;
+      pagingController.retryLastFailedRequest();
       rebuildUi();
     }
   }
 
-  Future<CmsStartInspectionInput?> _promptInspectionStart(
-    CmsInspectableContainer container,
-  ) async {
-    final response = await _bottomSheetService
-        .showCustomSheet<CmsStartInspectionInput, CmsInspectableContainer>(
-      variant: BottomSheetType.cmsInspectionStart,
-      title: 'Start ${container.inspectionTypeLabel} inspection',
-      description:
-          'Choose the condition before you open the inspection detail.',
-      barrierDismissible: false,
-      isScrollControlled: true,
-      data: container,
-    );
-
-    if (response?.confirmed != true || response?.data == null) {
-      return null;
+  Future<void> openContainer(CmsInspectableContainer container) async {
+    if (busy('open-container')) {
+      return;
     }
 
-    return response!.data;
-  }
-
-  Future<dynamic> _navigateToInspectionDetail(int inspectionId) {
-    return _navigationService.navigateToCmsInspectionDetailView(
-      inspectionId: inspectionId,
-      containerId: null,
-    );
-  }
-
-  bool canOpen(CmsInspectableContainer container) {
-    return container.canStartInspection ||
-        (container.canResumeInspection && container.inspectionId != null);
+    setBusyForObject('open-container', true);
+    try {
+      final result = await _navigationService.navigateToCmsContainerDetailView(
+        containerId: container.containerId,
+      );
+      if (result == true) {
+        refreshList();
+      }
+    } finally {
+      setBusyForObject('open-container', false);
+    }
   }
 
   String actionLabelFor(CmsInspectableContainer container) {
-    if (container.canResumeInspection && container.inspectionId != null) {
-      return _typedActionLabel('Resume', container);
-    }
-    if (container.canStartInspection) {
-      return _typedActionLabel('Start', container);
-    }
-    if (container.cardStatus.toLowerCase() == 'completed') {
-      return 'Completed';
-    }
-    return 'Unavailable';
-  }
-
-  String _typedActionLabel(
-    String verb,
-    CmsInspectableContainer container,
-  ) {
-    final typeLabel = container.inspectionTypeLabel.trim();
-    if (typeLabel.isEmpty || typeLabel.toLowerCase() == 'inspection') {
-      return '$verb inspection';
+    if (container.canResumeInspection && container.resumeInspectionId != null) {
+      return 'Resume ${container.resumeInspectionTypeLabel}';
     }
 
-    return '$verb $typeLabel';
+    return 'Open';
   }
 
   String depotDisplayName(int? depotId) {
@@ -423,23 +319,7 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
         break;
       }
     }
-    return match?.displayName ??
-        match?.depotCode ??
-        (depotId == null ? 'No depot' : 'Depot $depotId');
-  }
-
-  String statusLabel(CmsInspectableStatusFilter value) {
-    switch (value) {
-      case CmsInspectableStatusFilter.ready:
-        return 'Ready';
-      case CmsInspectableStatusFilter.inProgress:
-        return 'In progress';
-      case CmsInspectableStatusFilter.completed:
-        return 'Completed';
-      case CmsInspectableStatusFilter.all:
-      default:
-        return 'All statuses';
-    }
+    return match?.displayName ?? match?.depotCode ?? (depotId == null ? 'No depot' : 'Depot $depotId');
   }
 
   int? _resolveDefaultDepotId() {
@@ -457,11 +337,11 @@ class CmsContainerInspectionsListViewModel extends BaseViewModel {
 
   void _syncStagedFilters() {
     _stagedDepotId = _selectedDepotId;
-    _stagedStatusFilter = _statusFilter;
   }
 
   @override
   void dispose() {
+    _connectionSubscription?.cancel();
     searchController.dispose();
     searchFocusNode.dispose();
     pagingController.dispose();

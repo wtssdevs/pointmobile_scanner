@@ -67,6 +67,7 @@ import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/chec
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_manual_list/gate_access_manual_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/manual_entry_selection/manual_entry_selection_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/main/cms_home_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/cms/inspections/container_detail/cms_container_detail_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/detail/cms_inspection_detail_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/list/cms_container_inspections_list_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/settings/cms_settings_view.dart';
@@ -82,6 +83,7 @@ import 'package:xstream_gate_pass_app/ui/views/cms/surveys/list/cms_surveys_list
     MaterialRoute(page: CmsHomeView),
     MaterialRoute(page: CmsSettingsView),
     MaterialRoute(page: CmsContainerInspectionsListView),
+    MaterialRoute(page: CmsContainerDetailView),
     MaterialRoute(page: CmsInspectionDetailView),
     CupertinoRoute(page: CmsMediaCameraCaptureView),
     MaterialRoute(page: CmsSurveysListView),

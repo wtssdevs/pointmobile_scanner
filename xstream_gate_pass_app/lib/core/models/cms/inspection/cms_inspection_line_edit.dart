@@ -6,6 +6,7 @@ class CmsInspectionLineEdit {
   CmsInspectionLineEdit({
     this.id = 0,
     this.clientKey,
+    this.externalRef,
     this.containerNo,
     this.descriptionOne,
     this.descriptionTwo,
@@ -48,6 +49,7 @@ class CmsInspectionLineEdit {
     return CmsInspectionLineEdit(
       id: cmsParseInt(json['id']) ?? 0,
       clientKey: cmsParseString(json['clientKey']),
+      externalRef: cmsParseString(json['externalRef']),
       containerNo: cmsParseString(json['containerNo']),
       descriptionOne: cmsParseString(json['descriptionOne']),
       descriptionTwo: cmsParseString(json['descriptionTwo']),
@@ -90,6 +92,7 @@ class CmsInspectionLineEdit {
 
   int id;
   String? clientKey;
+  String? externalRef;
   String? containerNo;
   String? descriptionOne;
   String? descriptionTwo;
@@ -203,6 +206,7 @@ class CmsInspectionLineEdit {
     return {
       'id': id,
       'clientKey': clientKey,
+      'externalRef': externalRef,
       'containerNo': containerNo,
       'descriptionOne': descriptionOne,
       'descriptionTwo': descriptionTwo,
