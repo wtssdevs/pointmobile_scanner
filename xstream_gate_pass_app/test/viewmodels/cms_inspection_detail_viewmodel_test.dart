@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -405,6 +406,112 @@ void main() {
 
       expect(model.errorMessage, contains('needs classification'));
       verifyNever(cmsMobileInspectionsService.saveInspection(any));
+    });
+
+    test('canCancel is true for an open, persisted, idle inspection', () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.canCancel, isTrue);
+    });
+
+    test('canCancel is false for a completed inspection', () async {
+      final edit = _buildInspection()..inspectionCompleted = true;
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.canCancel, isFalse);
+    });
+
+    test('canCancel is false for a cancelled inspection', () async {
+      final edit = _buildInspection()..state = CmsInspectionState.cancelled;
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.canCancel, isFalse);
+    });
+
+    test('canCancel is false for an unpersisted inspection (id == 0)', () async {
+      final edit = _buildInspection()..id = 0;
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.canCancel, isFalse);
+    });
+
+    test('cancelInspection confirmed cancels via the service and navigates back',
+        () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+      when(cmsMobileInspectionsService.cancelInspection(88))
+          .thenAnswer((_) async => CmsInspectionState.cancelled);
+      _stubCompletionConfirm(dialogService, confirmed: true);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.cancelInspection();
+
+      verify(cmsMobileInspectionsService.cancelInspection(88)).called(1);
+      verify(navigationService.back(result: true)).called(1);
+    });
+
+    test('cancelInspection declined does not call the service', () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+      _stubCompletionConfirm(dialogService, confirmed: false);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.cancelInspection();
+
+      verifyNever(cmsMobileInspectionsService.cancelInspection(any));
+      verifyNever(navigationService.back(result: anyNamed('result')));
+    });
+
+    test('cancelInspection surfaces a friendly error and stays on the screen',
+        () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+      when(cmsMobileInspectionsService.cancelInspection(88)).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/cancel'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/cancel'),
+            statusCode: 409,
+            data: const {
+              'error': {'message': 'This inspection was already completed.'}
+            },
+          ),
+        ),
+      );
+      _stubCompletionConfirm(dialogService, confirmed: true);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.cancelInspection();
+
+      expect(model.errorMessage, 'This inspection was already completed.');
+      expect(model.isBusy, isFalse);
+      verifyNever(navigationService.back(result: anyNamed('result')));
     });
   });
 }

@@ -54,6 +54,12 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   bool get hasLineItems => (_inspection?.items.isNotEmpty ?? false);
   bool get isCancelled => _inspection?.state == CmsInspectionState.cancelled;
   bool get canEdit => hasInspection && !isBusy && !isCancelled;
+  bool get canCancel =>
+      hasInspection &&
+      !isBusy &&
+      !isCancelled &&
+      _inspection?.inspectionCompleted != true &&
+      (_inspection?.id ?? 0) > 0;
   int get totalPanelCount => CmsInspectionPanels.values.length;
   String? get selectedPanelCode => _selectedPanelTapDetails?.code;
   CmsInspectionPanelDefinition? get selectedPanel => _selectedPanelTapDetails?.panel;
@@ -524,6 +530,37 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     }
   }
 
+  /// Cancels an inspection started in error. Confirms first, then calls the CMS cancel
+  /// endpoint and leaves the screen returning `true` so the container detail refreshes.
+  ///
+  /// Returns via [NavigationService.back] directly (like [completeInspection]) so the
+  /// unsaved-changes [onWillPop] discard prompt does not also fire on the explicit
+  /// destructive action.
+  Future<void> cancelInspection() async {
+    if (!canCancel) {
+      return;
+    }
+
+    final confirmed = await _confirmCancel();
+    if (!confirmed) {
+      return;
+    }
+
+    setBusy(true);
+    _errorMessage = null;
+
+    try {
+      await _mobileInspectionsService.cancelInspection(_inspection!.id);
+      _shouldRefreshOnExit = true;
+      _navigationService.back(result: true);
+    } catch (error) {
+      log.e('Failed to cancel CMS inspection', error);
+      _errorMessage = CmsErrorTranslator.messageFrom(error);
+      setBusy(false);
+      rebuildUi();
+    }
+  }
+
   Future<bool> onWillPop() async {
     if (_isHandlingBackNavigation) {
       return false;
@@ -934,6 +971,19 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       title: 'Complete inspection?',
       description: 'Completing locks this inspection and sends it for quoting. This cannot be undone from the app.',
       mainButtonTitle: 'Complete',
+      secondaryButtonTitle: 'Keep editing',
+    );
+
+    return response?.confirmed == true;
+  }
+
+  Future<bool> _confirmCancel() async {
+    final response = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.warning,
+      title: 'Cancel inspection?',
+      description: 'This cancels the inspection and any open sub-inspections. This cannot be undone from the app.',
+      mainButtonTitle: 'Cancel inspection',
       secondaryButtonTitle: 'Keep editing',
     );
 

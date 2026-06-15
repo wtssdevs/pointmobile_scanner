@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -209,6 +210,28 @@ void main() {
         fileName: 'packing-list.pdf',
         targetDirectory: anyNamed('targetDirectory'),
       )).called(1);
+    });
+
+    test('startup surfaces a friendly message when the survey load fails',
+        () async {
+      when(cmsMobileSurveyService.getById(any)).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/survey'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/survey'),
+            statusCode: 500,
+            data: const {
+              'error': {'message': 'Could not load this survey.'}
+            },
+          ),
+        ),
+      );
+
+      final model = CmsSurveyDetailViewModel();
+      await model.runStartupLogic(
+          surveyId: 88, surveyType: CmsSurveyType.container);
+
+      expect(model.loadError, 'Could not load this survey.');
     });
   });
 }

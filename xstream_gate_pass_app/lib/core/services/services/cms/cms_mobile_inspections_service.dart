@@ -1,6 +1,7 @@
 import 'package:stacked/stacked_annotations.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
+import 'package:xstream_gate_pass_app/core/enums/cms_inspection_state.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/cms_json_utils.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_container_inspection_bundle.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/cms_response_envelope.dart';
@@ -95,6 +96,16 @@ class CmsMobileInspectionsService {
 
     final payload = CmsResponseEnvelope.unwrapMap(response);
     return CmsStartInspectionResult.fromJson(payload);
+  }
+
+  Future<CmsInspectionState> cancelInspection(int inspectionId) async {
+    final response = await _apiManager.post(
+      AppConst.CmsCancelInspection,
+      data: {'id': inspectionId},
+    );
+
+    final payload = CmsResponseEnvelope.unwrapMap(response);
+    return CmsInspectionState.fromValue(payload['state']) ?? CmsInspectionState.cancelled;
   }
 
   Future<CmsInspectionEdit> getInspectionForEdit(int inspectionId) async {

@@ -12,6 +12,7 @@ import 'package:xstream_gate_pass_app/core/enums/cms_survey_type.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_list_dto.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_list_input.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
+import 'package:xstream_gate_pass_app/core/services/api/cms_error_translator.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_survey_service.dart';
 
 class CmsSurveysListViewModel extends BaseViewModel {
@@ -106,7 +107,7 @@ class CmsSurveysListViewModel extends BaseViewModel {
       _loadedPageKeys.add(pageKey);
     } catch (error) {
       log.e('Failed to load CMS surveys', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
       pagingController.error = error;
       rebuildUi();
     } finally {

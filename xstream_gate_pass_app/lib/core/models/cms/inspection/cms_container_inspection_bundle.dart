@@ -1,3 +1,4 @@
+import 'package:xstream_gate_pass_app/core/enums/cms_inspection_state.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/cms_json_utils.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_type.dart';
 
@@ -129,6 +130,7 @@ class CmsContainerInspectionRow {
     this.inspectionType,
     this.inspectionTypeName,
     this.inspectionCompleted = false,
+    this.state,
     this.conditionTypeId,
     this.conditionTypeName,
     this.creationTime,
@@ -143,6 +145,7 @@ class CmsContainerInspectionRow {
       inspectionType: CmsInspectionType.fromValue(json['inspectionType']) ?? CmsInspectionType.fromName(json['inspectionTypeName']),
       inspectionTypeName: cmsParseString(json['inspectionTypeName']),
       inspectionCompleted: cmsParseBool(json['inspectionCompleted']) ?? false,
+      state: CmsInspectionState.fromValue(json['state']),
       conditionTypeId: cmsParseInt(json['conditionTypeId']),
       conditionTypeName: cmsParseString(json['conditionTypeName']),
       creationTime: cmsParseDateTime(json['creationTime']),
@@ -156,10 +159,13 @@ class CmsContainerInspectionRow {
   final CmsInspectionType? inspectionType;
   final String? inspectionTypeName;
   final bool inspectionCompleted;
+  final CmsInspectionState? state;
   final int? conditionTypeId;
   final String? conditionTypeName;
   final DateTime? creationTime;
   final bool isPlaceholderStructural;
+
+  bool get isCancelled => state == CmsInspectionState.cancelled;
 
   String get inspectionTypeLabel {
     final trimmed = inspectionTypeName?.trim();
@@ -170,5 +176,11 @@ class CmsContainerInspectionRow {
     return inspectionType?.label ?? 'Inspection';
   }
 
-  String get statusLabel => inspectionCompleted ? 'Completed' : 'In progress';
+  String get statusLabel {
+    if (isCancelled) {
+      return 'Cancelled';
+    }
+
+    return inspectionCompleted ? 'Completed' : 'In progress';
+  }
 }

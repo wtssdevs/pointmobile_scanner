@@ -17,6 +17,8 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i22;
 import 'package:stacked_services/stacked_services.dart' as _i21;
 import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart' as _i35;
+import 'package:xstream_gate_pass_app/core/enums/cms_inspection_state.dart'
+    as _i65;
 import 'package:xstream_gate_pass_app/core/enums/cms_survey_type.dart' as _i58;
 import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart'
     as _i9;
@@ -33,7 +35,7 @@ import 'package:xstream_gate_pass_app/core/models/account/TenantAvailableModel.d
 import 'package:xstream_gate_pass_app/core/models/account/UserCredential.dart'
     as _i42;
 import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart'
-    as _i73;
+    as _i74;
 import 'package:xstream_gate_pass_app/core/models/basefiles/containers/container_iso_types_model.dart'
     as _i27;
 import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart'
@@ -57,7 +59,7 @@ import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_lookup_base.dart'
     as _i53;
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_repair_date_input.dart'
-    as _i65;
+    as _i66;
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_start_inspection_input.dart'
     as _i64;
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_start_inspection_result.dart'
@@ -67,11 +69,11 @@ import 'package:xstream_gate_pass_app/core/models/cms/media/cms_media_upload_ite
 import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_edit_dto.dart'
     as _i17;
 import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_email_dto.dart'
-    as _i69;
+    as _i70;
 import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_list_dto.dart'
-    as _i67;
-import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_list_input.dart'
     as _i68;
+import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_list_input.dart'
+    as _i69;
 import 'package:xstream_gate_pass_app/core/models/device/device_config.dart'
     as _i5;
 import 'package:xstream_gate_pass_app/core/models/localization/localization_value.dart'
@@ -99,7 +101,7 @@ import 'package:xstream_gate_pass_app/core/services/api/cms_api_manager.dart'
 import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart'
     as _i41;
 import 'package:xstream_gate_pass_app/core/services/services/account/auth_session_coordinator.dart'
-    as _i70;
+    as _i71;
 import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart'
     as _i43;
 import 'package:xstream_gate_pass_app/core/services/services/account/cms_access_token_repo.dart'
@@ -107,9 +109,9 @@ import 'package:xstream_gate_pass_app/core/services/services/account/cms_access_
 import 'package:xstream_gate_pass_app/core/services/services/account/cms_authentication_service.dart'
     as _i49;
 import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart'
-    as _i74;
+    as _i75;
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart'
-    as _i72;
+    as _i73;
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart'
     as _i56;
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_sync_service.dart'
@@ -121,19 +123,19 @@ import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_file
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart'
     as _i60;
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_survey_service.dart'
-    as _i66;
+    as _i67;
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart'
     as _i50;
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_sync_models.dart'
     as _i10;
 import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_isolate_initializer.dart'
-    as _i75;
+    as _i76;
 import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart'
     as _i30;
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart'
     as _i28;
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart'
-    as _i71;
+    as _i72;
 import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart'
     as _i38;
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart'
@@ -4180,6 +4182,19 @@ class MockCmsMobileInspectionsService extends _i1.Mock
       ) as _i18.Future<_i15.CmsStartInspectionResult>);
 
   @override
+  _i18.Future<_i65.CmsInspectionState> cancelInspection(int? inspectionId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #cancelInspection,
+          [inspectionId],
+        ),
+        returnValue: _i18.Future<_i65.CmsInspectionState>.value(
+            _i65.CmsInspectionState.pending),
+        returnValueForMissingStub: _i18.Future<_i65.CmsInspectionState>.value(
+            _i65.CmsInspectionState.pending),
+      ) as _i18.Future<_i65.CmsInspectionState>);
+
+  @override
   _i18.Future<_i16.CmsInspectionEdit> getInspectionForEdit(int? inspectionId) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -4232,7 +4247,7 @@ class MockCmsMobileInspectionsService extends _i1.Mock
 
   @override
   _i18.Future<_i16.CmsInspectionEdit> setRepairDatesNow(
-          _i65.CmsRepairDateInput? input) =>
+          _i66.CmsRepairDateInput? input) =>
       (super.noSuchMethod(
         Invocation.method(
           #setRepairDatesNow,
@@ -4261,18 +4276,18 @@ class MockCmsMobileInspectionsService extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockCmsMobileSurveyService extends _i1.Mock
-    implements _i66.CmsMobileSurveyService {
+    implements _i67.CmsMobileSurveyService {
   @override
-  _i18.Future<_i13.PagedList<_i67.CmsMobileSurveyListDto>> getList(
-          _i68.CmsMobileSurveyListInput? input) =>
+  _i18.Future<_i13.PagedList<_i68.CmsMobileSurveyListDto>> getList(
+          _i69.CmsMobileSurveyListInput? input) =>
       (super.noSuchMethod(
         Invocation.method(
           #getList,
           [input],
         ),
         returnValue:
-            _i18.Future<_i13.PagedList<_i67.CmsMobileSurveyListDto>>.value(
-                _FakePagedList_11<_i67.CmsMobileSurveyListDto>(
+            _i18.Future<_i13.PagedList<_i68.CmsMobileSurveyListDto>>.value(
+                _FakePagedList_11<_i68.CmsMobileSurveyListDto>(
           this,
           Invocation.method(
             #getList,
@@ -4280,15 +4295,15 @@ class MockCmsMobileSurveyService extends _i1.Mock
           ),
         )),
         returnValueForMissingStub:
-            _i18.Future<_i13.PagedList<_i67.CmsMobileSurveyListDto>>.value(
-                _FakePagedList_11<_i67.CmsMobileSurveyListDto>(
+            _i18.Future<_i13.PagedList<_i68.CmsMobileSurveyListDto>>.value(
+                _FakePagedList_11<_i68.CmsMobileSurveyListDto>(
           this,
           Invocation.method(
             #getList,
             [input],
           ),
         )),
-      ) as _i18.Future<_i13.PagedList<_i67.CmsMobileSurveyListDto>>);
+      ) as _i18.Future<_i13.PagedList<_i68.CmsMobileSurveyListDto>>);
 
   @override
   _i18.Future<_i17.CmsMobileSurveyEditDto> getById(int? surveyId) =>
@@ -4355,7 +4370,7 @@ class MockCmsMobileSurveyService extends _i1.Mock
       ) as _i18.Future<List<String>>);
 
   @override
-  _i18.Future<void> sendEmail(_i69.CmsMobileSurveyEmailDto? input) =>
+  _i18.Future<void> sendEmail(_i70.CmsMobileSurveyEmailDto? input) =>
       (super.noSuchMethod(
         Invocation.method(
           #sendEmail,
@@ -4417,7 +4432,7 @@ class MockCmsMobileSurveyService extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockAuthSessionCoordinator extends _i1.Mock
-    implements _i70.AuthSessionCoordinator {
+    implements _i71.AuthSessionCoordinator {
   @override
   _i2.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -4520,7 +4535,7 @@ class MockAuthSessionCoordinator extends _i1.Mock
 /// A class which mocks [ConnectionService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockConnectionService extends _i1.Mock implements _i71.ConnectionService {
+class MockConnectionService extends _i1.Mock implements _i72.ConnectionService {
   @override
   _i2.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -4696,7 +4711,7 @@ class MockConnectionService extends _i1.Mock implements _i71.ConnectionService {
 /// A class which mocks [WorkerQueManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockWorkerQueManager extends _i1.Mock implements _i72.WorkerQueManager {
+class MockWorkerQueManager extends _i1.Mock implements _i73.WorkerQueManager {
   @override
   _i2.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -4767,7 +4782,7 @@ class MockWorkerQueManager extends _i1.Mock implements _i72.WorkerQueManager {
 
   @override
   _i18.Future<void> enqueSingle(
-    _i73.BackgroundJobInfo? value, [
+    _i74.BackgroundJobInfo? value, [
     bool? startNow = true,
   ]) =>
       (super.noSuchMethod(
@@ -4793,7 +4808,7 @@ class MockWorkerQueManager extends _i1.Mock implements _i72.WorkerQueManager {
       ) as _i18.Future<void>);
 
   @override
-  _i18.Future<void> enqueMany(List<_i73.BackgroundJobInfo>? iterable) =>
+  _i18.Future<void> enqueMany(List<_i74.BackgroundJobInfo>? iterable) =>
       (super.noSuchMethod(
         Invocation.method(
           #enqueMany,
@@ -4828,7 +4843,7 @@ class MockWorkerQueManager extends _i1.Mock implements _i72.WorkerQueManager {
       ) as _i18.Future<void>);
 
   @override
-  _i18.Future<void> updateJobValues(_i73.BackgroundJobInfo? jobInfo) =>
+  _i18.Future<void> updateJobValues(_i74.BackgroundJobInfo? jobInfo) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateJobValues,
@@ -4839,7 +4854,7 @@ class MockWorkerQueManager extends _i1.Mock implements _i72.WorkerQueManager {
       ) as _i18.Future<void>);
 
   @override
-  _i18.Future<void> tryProcessJob(_i73.BackgroundJobInfo? jobInfo) =>
+  _i18.Future<void> tryProcessJob(_i74.BackgroundJobInfo? jobInfo) =>
       (super.noSuchMethod(
         Invocation.method(
           #tryProcessJob,
@@ -4853,7 +4868,7 @@ class MockWorkerQueManager extends _i1.Mock implements _i72.WorkerQueManager {
 /// A class which mocks [SyncManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSyncManager extends _i1.Mock implements _i74.SyncManager {
+class MockSyncManager extends _i1.Mock implements _i75.SyncManager {
   @override
   _i2.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -4942,7 +4957,7 @@ class MockSyncManager extends _i1.Mock implements _i74.SyncManager {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockFileStoreIsolateInitializer extends _i1.Mock
-    implements _i75.FileStoreIsolateInitializer {
+    implements _i76.FileStoreIsolateInitializer {
   @override
   _i18.Future<void> initializeFileStoreIsolate({bool? useIsolate = true}) =>
       (super.noSuchMethod(

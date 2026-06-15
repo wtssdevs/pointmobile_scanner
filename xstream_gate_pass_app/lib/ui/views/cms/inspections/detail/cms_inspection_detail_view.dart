@@ -213,6 +213,23 @@ class CmsInspectionDetailView extends StatelessWidget {
                               ),
                             ],
                           ),
+                          if (model.canCancel) ...[
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton.icon(
+                                onPressed: model.cancelInspection,
+                                icon: const Icon(
+                                  Icons.cancel_outlined,
+                                  color: Colors.red,
+                                ),
+                                label: const Text(
+                                  'Cancel inspection',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

@@ -8,6 +8,7 @@ import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart';
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/account/cms_current_login_information.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_lookup_base.dart';
+import 'package:xstream_gate_pass_app/core/services/api/cms_error_translator.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/auth_session_coordinator.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_sync_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart';
@@ -84,7 +85,7 @@ class CmsSettingsViewModel extends BaseViewModel {
           await _cmsSessionService.refreshFromServer(showLoader: false);
       _latestError = null;
     } catch (error) {
-      _latestError = error.toString();
+      _latestError = CmsErrorTranslator.messageFrom(error);
     } finally {
       await _reloadSummaryOnly();
       setBusyForObject(refreshSessionKey, false);

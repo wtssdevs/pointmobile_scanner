@@ -428,8 +428,12 @@ class _InspectionHistoryTile extends StatelessWidget {
           ),
           _TypeBadge(
             label: inspection.statusLabel,
-            backgroundColor: inspection.inspectionCompleted ? Colors.green.withOpacity(0.14) : kcPrimaryColor.withOpacity(0.14),
-            foregroundColor: inspection.inspectionCompleted ? Colors.green[800]! : kcPrimaryColor,
+            backgroundColor: inspection.isCancelled
+                ? Colors.grey.withOpacity(0.14)
+                : (inspection.inspectionCompleted ? Colors.green.withOpacity(0.14) : kcPrimaryColor.withOpacity(0.14)),
+            foregroundColor: inspection.isCancelled
+                ? Colors.grey[700]!
+                : (inspection.inspectionCompleted ? Colors.green[800]! : kcPrimaryColor),
           ),
         ],
       ),

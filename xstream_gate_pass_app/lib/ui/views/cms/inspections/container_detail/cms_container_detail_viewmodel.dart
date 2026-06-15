@@ -69,18 +69,23 @@ class CmsContainerDetailViewModel extends BaseViewModel {
 
   Future<void> reloadBundle() => _loadBundle();
 
-  Future<void> _loadBundle() async {
+  Future<void> _loadBundle({bool preserveError = false}) async {
     if (isOffline) {
-      _errorMessage = CmsErrorTranslator.offlineMessage;
+      if (!preserveError) {
+        _errorMessage = CmsErrorTranslator.offlineMessage;
+      }
       rebuildUi();
       return;
     }
 
     setBusy(true);
-    _errorMessage = null;
+    if (!preserveError) {
+      _errorMessage = null;
+    }
 
     try {
       _bundle = await _mobileInspectionsService.getContainerInspections(_containerId);
+      // Success must not wipe a preserved message (e.g. a translated start failure).
     } catch (error) {
       log.e('Failed to load container inspection bundle', error);
       _errorMessage = CmsErrorTranslator.messageFrom(error);
@@ -128,7 +133,7 @@ class CmsContainerDetailViewModel extends BaseViewModel {
       _historyLoadedPageKeys.add(pageKey);
     } catch (error) {
       log.e('Failed to load container inspection history', error);
-      historyController.error = error;
+      historyController.error = CmsErrorTranslator.messageFrom(error);
       rebuildUi();
     } finally {
       if (requestRevision == _historyRevision) {
@@ -220,7 +225,7 @@ class CmsContainerDetailViewModel extends BaseViewModel {
       } catch (error) {
         log.e('Failed to start CMS inspection', error);
         _errorMessage = CmsErrorTranslator.messageFrom(error);
-        await _loadBundle();
+        await _loadBundle(preserveError: true);
         rebuildUi();
       }
     } finally {

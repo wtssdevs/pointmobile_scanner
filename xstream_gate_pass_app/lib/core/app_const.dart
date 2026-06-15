@@ -84,6 +84,7 @@ class AppConst {
   static const String CmsGetContainerInspectionBundle = "/api/services/app/MobileInspections/GetContainerInspections";
   static const String CmsGetContainerInspectionHistory = "/api/services/app/MobileInspections/GetContainerInspectionHistory";
   static const String CmsStartInspectionForContainer = "/api/services/app/MobileInspections/StartInspection";
+  static const String CmsCancelInspection = "/api/services/app/MobileInspections/CancelInspection";
   static const String CmsGetInspectionForEdit = "/api/services/app/Inspec/GetInspectionForEditById";
   static const String CmsSaveInspection = "/api/services/app/Inspec/AddUpdateInspection";
   static const String CmsCompleteInspection = "/api/services/app/Inspec/AddUpdateInspection";

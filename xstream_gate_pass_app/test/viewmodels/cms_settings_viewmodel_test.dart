@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
@@ -108,6 +109,30 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(model.latestError, 'offline');
+    });
+
+    test('refresh surfaces a friendly message when the session refresh fails',
+        () async {
+      when(cmsSessionService.refreshFromServer(
+              showLoader: anyNamed('showLoader')))
+          .thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/refresh'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/refresh'),
+            statusCode: 500,
+            data: const {
+              'error': {'message': 'Could not refresh your session.'}
+            },
+          ),
+        ),
+      );
+
+      final model = CmsSettingsViewModel();
+      await model.initialise();
+      await model.refreshSessionInfo();
+
+      expect(model.latestError, 'Could not refresh your session.');
     });
   });
 }

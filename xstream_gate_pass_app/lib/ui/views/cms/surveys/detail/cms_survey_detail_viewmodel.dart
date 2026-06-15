@@ -18,6 +18,7 @@ import 'package:xstream_gate_pass_app/core/models/background_job_que/background_
 import 'package:xstream_gate_pass_app/core/models/cms/media/cms_media_upload_item.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_edit_dto.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_email_dto.dart';
+import 'package:xstream_gate_pass_app/core/services/api/cms_error_translator.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_media_upload_queue_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_file_store_service.dart';
@@ -159,7 +160,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       _bindMediaStreams();
     } catch (error) {
       log.e('Failed to load CMS survey', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
     } finally {
       setBusy(false);
     }
@@ -193,7 +194,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       _inlineMessage = 'Survey saved. Attachments and photos are ready.';
     } catch (error) {
       log.e('Failed to save CMS survey', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
     } finally {
       setBusy(false);
     }
@@ -208,7 +209,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       return await _surveyService.getEmailAddresses(_survey!.id);
     } catch (error) {
       log.e('Failed to load survey email recipients', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
       rebuildUi();
       return const [];
     }
@@ -241,7 +242,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       _inlineMessage = 'Survey email sent to ${recipients.length} recipient${recipients.length == 1 ? '' : 's'}.';
     } catch (error) {
       log.e('Failed to send CMS survey email', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
     } finally {
       setBusy(false);
       rebuildUi();
@@ -276,7 +277,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       return filePath;
     } catch (error) {
       log.e('Failed to download CMS survey report', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
       return null;
     } finally {
       setBusy(false);
@@ -312,7 +313,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       _inlineMessage = 'Photo queued for background upload.';
     } catch (error) {
       log.e('Failed to capture CMS survey photo', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
     } finally {
       setBusyForObject('survey-photo', false);
       rebuildUi();
@@ -340,7 +341,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       }
     } catch (error) {
       log.e('Failed to select CMS survey photo', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
     } finally {
       setBusyForObject('survey-photo', false);
       rebuildUi();
@@ -381,7 +382,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       _inlineMessage = 'Document queued for background upload.';
     } catch (error) {
       log.e('Failed to select CMS survey document', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
     } finally {
       setBusyForObject('survey-document', false);
       rebuildUi();
@@ -431,7 +432,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       );
     } catch (error) {
       log.e('Failed to download CMS survey attachment', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
       return null;
     } finally {
       setBusyForObject('survey-document', false);
@@ -470,7 +471,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       _inlineMessage = 'Photo removed.';
     } catch (error) {
       log.e('Failed to delete CMS survey photo', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
     } finally {
       setBusyForObject('survey-photo', false);
       rebuildUi();
@@ -485,7 +486,7 @@ class CmsSurveyDetailViewModel extends BaseViewModel {
       _inlineMessage = 'Document removed.';
     } catch (error) {
       log.e('Failed to delete CMS survey attachment', error);
-      _loadError = error.toString();
+      _loadError = CmsErrorTranslator.messageFrom(error);
     } finally {
       setBusyForObject('survey-document', false);
       rebuildUi();

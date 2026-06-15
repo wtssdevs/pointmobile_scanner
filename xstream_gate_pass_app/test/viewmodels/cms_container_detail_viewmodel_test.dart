@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -179,14 +180,28 @@ void main() {
       _stubStartSheet(bottomSheetService,
           response: SheetResponse<CmsStartInspectionInput>(
               confirmed: true, data: input));
-      when(cmsMobileInspectionsService.startInspection(input))
-          .thenThrow(Exception('start failed'));
+      when(cmsMobileInspectionsService.startInspection(input)).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/start'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/start'),
+            statusCode: 409,
+            data: const {
+              'error': {'message': 'An open inspection already exists...'}
+            },
+          ),
+        ),
+      );
 
       final model = CmsContainerDetailViewModel();
       await model.runStartupLogic(501);
       await model.startInspection();
 
       verify(cmsMobileInspectionsService.startInspection(input)).called(1);
+      // M1: the translated failure message survives the post-failure bundle reload.
+      expect(model.errorMessage, 'An open inspection already exists...');
+      // Startup load + post-failure preserve-error reload.
+      verify(cmsMobileInspectionsService.getContainerInspections(501)).called(2);
       verifyNever(navigationService.navigateTo<dynamic>(
         Routes.cmsInspectionDetailView,
         arguments: anyNamed('arguments'),
@@ -244,6 +259,35 @@ void main() {
       expect(model.historyController.itemList, isNotNull);
       expect(model.historyController.itemList!.single.id, 910);
       expect(model.historyController.itemList!.single.isOpen, isTrue);
+    });
+
+    test('history paging surfaces a translated error when the service throws',
+        () async {
+      when(cmsMobileInspectionsService.getContainerInspections(501))
+          .thenAnswer((_) async => buildBundle(canStart: true));
+      when(cmsMobileInspectionsService.getContainerInspectionHistory(
+        containerId: anyNamed('containerId'),
+        pageNumber: anyNamed('pageNumber'),
+        pageSize: anyNamed('pageSize'),
+      )).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/history'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/history'),
+            statusCode: 500,
+            data: const {
+              'error': {'message': 'History is unavailable right now.'}
+            },
+          ),
+        ),
+      );
+
+      final model = CmsContainerDetailViewModel();
+      await model.runStartupLogic(501);
+      await model.fetchHistoryPage(1);
+
+      expect(
+          model.historyController.error, 'History is unavailable right now.');
     });
   });
 }
