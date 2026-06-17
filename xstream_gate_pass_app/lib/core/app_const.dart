@@ -34,6 +34,7 @@ class AppConst {
 
   static const String deviceConfig = "device_config";
   static const String tenantId = "tenantId";
+  static const String scannerBranchId = "scannerBranchId";
   //ENV File maps
   static const String GoogleMapsEnvKey = 'GOOGLE_MAPS_API_KEY';
   static const String NoKey = 'NO_KEY';
@@ -249,5 +250,6 @@ class AppConst {
     return "$msgScanDataProcessingFailed: $error";
   }
 
-  static const String resolveChecklistType = '/api/services/app/GatePassChecklist/ResolveChecklistType';
+  static const String resolveChecklistType =
+      '/api/services/app/GatePassChecklist/ResolveChecklistType';
 }

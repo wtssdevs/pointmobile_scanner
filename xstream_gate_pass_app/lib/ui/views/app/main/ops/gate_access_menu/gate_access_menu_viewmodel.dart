@@ -5,6 +5,8 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
+import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/menu/menu_ietm.dart';
 import 'package:xstream_gate_pass_app/core/utils/app_permissions.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
@@ -12,11 +14,16 @@ import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base
 class GateAccessMenuViewModel extends BaseViewModel with AppViewBaseHelper {
   final log = getLogger('GateAccessMenuViewModel');
   final _navigationService = locator<NavigationService>();
+  final _localStorageService = locator<LocalStorageService>();
 
 // List of menu items
   List<MenuItem> menuItems = [];
+  List<BaseLookup> get userBranches => currentUser?.userBranches ?? [];
+  int _selectedBranchId = 0;
+  int get selectedBranchId => _selectedBranchId;
 
   Future<void> initialise() async {
+    _selectedBranchId = getSelectedScannerBranchId();
     menuItems = [
       MenuItem(
           title: translate('PreBookings'),
@@ -49,6 +56,15 @@ class GateAccessMenuViewModel extends BaseViewModel with AppViewBaseHelper {
           route: Routes.gateAccessManualListView,
           requiredPermission: AppPermissions.mobileOperationsYardOperations),
     ];
+    rebuildUi();
+  }
+
+  void setSelectedBranchId(int branchId) {
+    if (branchId <= 0 || branchId == _selectedBranchId) {
+      return;
+    }
+    _selectedBranchId = branchId;
+    _localStorageService.setScannerBranchId(branchId);
     rebuildUi();
   }
 

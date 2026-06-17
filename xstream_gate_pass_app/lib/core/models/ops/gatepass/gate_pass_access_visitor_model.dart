@@ -37,6 +37,7 @@ class GatePassVisitorAccess {
   String? vehicleEngineNumber;
   String? vehicleMake;
   String? rejectReason;
+  String? extensionData;
   int branchId;
 
   int? serviceTypeId;
@@ -74,6 +75,7 @@ class GatePassVisitorAccess {
     this.vehicleEngineNumber,
     this.vehicleMake,
     this.rejectReason,
+    this.extensionData,
     this.serviceTypeId,
     required this.branchId,
   });
@@ -134,6 +136,7 @@ class GatePassVisitorAccess {
       vehicleEngineNumber: json['vehicleEngineNumber'],
       vehicleMake: json['vehicleMake'],
       rejectReason: json['rejectReason'],
+      extensionData: json['extensionData'],
       serviceTypeId: asT<int>(json['serviceTypeId']),
       branchId: asT<int>(json['branchId']) ?? 0,
     );
@@ -174,6 +177,7 @@ class GatePassVisitorAccess {
       'vehicleEngineNumber': vehicleEngineNumber,
       'vehicleMake': vehicleMake,
       'rejectReason': rejectReason,
+      'extensionData': extensionData,
       'branchId': branchId,
       'serviceTypeId': serviceTypeId,
     };

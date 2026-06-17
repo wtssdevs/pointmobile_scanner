@@ -26,8 +26,12 @@ class _GateAccessMenuViewState extends State<GateAccessMenuView>
           SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         model.initialise();
       }),
-      builder: (context, model, child) => Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+          builder: (context, model, child) {
+        final visibleItems = model.menuItems
+            .where((item) => model.hasPermission(item.requiredPermission))
+            .toList();
+        return Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.surface,
         //create list of menu items for action to route to new views for users to acces functions
 
         appBar: AppBar(
@@ -35,28 +39,57 @@ class _GateAccessMenuViewState extends State<GateAccessMenuView>
           centerTitle: true,
           automaticallyImplyLeading: false,
         ),
-        body: GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 1.0,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          itemCount: model.menuItems.length,
-          itemBuilder: (context, index) {
-            var menuItem = model.menuItems[index];
-            return Visibility(
-              visible: model.hasPermission(menuItem.requiredPermission),
-              child: MenuCard(
-                  item: menuItem,
-                  onTap: () {
-                    model.navigateToView(menuItem.route);
-                  }),
-            );
-          },
+        body: Column(
+          children: [
+            if (model.userBranches.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: DropdownButtonFormField<int>(
+                  value: model.selectedBranchId > 0 ? model.selectedBranchId : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Branch (Company)',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: model.userBranches
+                      .where((x) => (x.id ?? 0) > 0)
+                      .map(
+                        (x) => DropdownMenuItem<int>(
+                          value: x.id!,
+                          child: Text(x.displayName ?? x.name ?? 'Branch ${x.id}'),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      model.setSelectedBranchId(value);
+                    }
+                  },
+                ),
+              ),
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.0,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
+                itemCount: visibleItems.length,
+                itemBuilder: (context, index) {
+                  var menuItem = visibleItems[index];
+                  return MenuCard(
+                      item: menuItem,
+                      onTap: () {
+                        model.navigateToView(menuItem.route);
+                      });
+                },
+              ),
+            ),
+          ],
         ),
-      ),
+        );
+      },
     );
   }
 }

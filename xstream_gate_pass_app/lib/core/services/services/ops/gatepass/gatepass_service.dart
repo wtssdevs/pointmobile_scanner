@@ -16,13 +16,24 @@ import 'package:xstream_gate_pass_app/core/models/shared/base_lookup.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart';
 import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
+import 'package:dio/dio.dart';
+import 'dart:convert';
 
 @LazySingleton()
 class GatePassService {
   final log = getLogger('GatePassService');
   final ApiManager _apiManager = locator<ApiManager>();
   final _dialogService = locator<DialogService>();
-
+  String? lastErrorMessage;
+  String _buildLoadOptions(int pageNumber, int pageSize) {
+    final skip = (pageNumber > 0 ? pageNumber - 1 : 0) * pageSize;
+    final take = pageSize > 0 ? pageSize : 10;
+    return jsonEncode({
+      'skip': skip,
+      'take': take,
+      'requireTotalCount': true,
+    });
+  }
   Future<PagedList<GatePassVisitorAccess>> getVisitorPagedList(
       int pageNumber, int pageSize, String searchValue, int branchId) async {
     try {
@@ -214,7 +225,10 @@ class GatePassService {
         queryParameters['transactionNo'] = filterParams.transactionNo;
         isFilterApplied = true;
       }
-
+      if ((filterParams.branchId ?? 0) > 0) {
+        queryParameters['branchId'] = filterParams.branchId;
+        isFilterApplied = true;
+      }
       if (filterParams.pageSize > 0) {
         queryParameters['pageSize'] = filterParams.pageSize;
       }
@@ -474,6 +488,7 @@ class GatePassService {
   }
 
   Future<GatePassAccess?> authorizeExit(GatePassAccess entity) async {
+    lastErrorMessage = null;
     try {
       var baseResponse = await _apiManager.post(
           AppConst.AuthorizeForExitGatePass,
@@ -481,14 +496,34 @@ class GatePassService {
           data: entity.toJson());
       if (baseResponse != null) {
         var apiResponse = ApiResponse.fromJson(baseResponse);
-        if (apiResponse.success != null) {
+        if (apiResponse.success == true && apiResponse.result != null) {
           return GatePassAccess.fromJson(apiResponse.result);
         }
 
+        lastErrorMessage = apiResponse.error?.details?.trim().isNotEmpty == true
+            ? apiResponse.error?.details?.trim()
+            : apiResponse.error?.message?.trim().isNotEmpty == true
+                ? apiResponse.error?.message?.trim()
+                : apiResponse.message?.trim();
         return null;
       }
+      lastErrorMessage = "No response received from server.";
       return null;
     } catch (e) {
+      if (e is DioException) {
+        final payload = e.response?.data;
+        if (payload is Map<String, dynamic>) {
+          final apiError = ApiResponse.fromJson(payload);
+          lastErrorMessage = apiError.error?.details?.trim().isNotEmpty == true
+              ? apiError.error?.details?.trim()
+              : apiError.error?.message?.trim().isNotEmpty == true
+                  ? apiError.error?.message?.trim()
+                  : apiError.message?.trim();
+        } else if (payload is String && payload.trim().isNotEmpty) {
+          lastErrorMessage = payload;
+        }
+      }
+      lastErrorMessage ??= e.toString();
       log.e(e.toString());
       return null;
     }
@@ -625,13 +660,19 @@ Future<GatePassAccess?> update(GatePassAccess entity) async {
     return [];
   }
 
-  Future<List<BaseLookup>> getTransporters({String? searchValue}) async {
+  Future<List<BaseLookup>> getTransporters({
+    String? searchValue,
+    int pageNumber = 1,
+    int pageSize = 10,
+    int? branchId,
+  }) async {
     var baseResponse = await _apiManager.get(
       '/api/services/app/Transporter/GetTransportersForLookup',
       showLoader: false,
       queryParameters: {
-        'PageNumber': 1,
-        'PageSize': 10000,
+        'PageNumber': pageNumber,
+        'PageSize': pageSize,
+        if ((branchId ?? 0) > 0) 'BranchId': branchId,
         if (searchValue != null && searchValue.isNotEmpty)
           'SearchValue': searchValue,
       },
@@ -659,32 +700,55 @@ Future<GatePassAccess?> update(GatePassAccess entity) async {
     return _parseLookupResponse(data);
   }
 
-  Future<List<BaseLookup>> getShippingLines() async {
+  Future<List<BaseLookup>> getShippingLines({
+    int pageNumber = 1,
+    int pageSize = 10,
+  }) async {
     var baseResponse = await _apiManager.get(
       '/api/services/app/Shippingline/GetLookup',
       showLoader: false,
+      queryParameters: {
+        'loadOptions': _buildLoadOptions(pageNumber, pageSize),
+      },
     );
 
     return _parseLookupResponse(baseResponse, includeCodeAndDisplayName: true);
   }
 
-  Future<List<BaseLookup>> getCustomers() async {
+  Future<List<BaseLookup>> getCustomers({
+    int pageNumber = 1,
+    int pageSize = 10,
+    int? branchId,
+  }) async {
     var baseResponse = await _apiManager.get(
       '/api/services/app/Customer/GetLookup',
       showLoader: false,
+      queryParameters: {
+        'loadOptions': _buildLoadOptions(pageNumber, pageSize),
+        if ((branchId ?? 0) > 0) 'branchId': branchId,
+      },
     );
 
     return _parseLookupResponse(baseResponse);
   }
 
-  Future<List<BaseLookup>> getContainerCustomers() async {
-    return await getCustomers();
+  Future<List<BaseLookup>> getContainerCustomers({
+    int pageNumber = 1,
+    int pageSize = 10,
+  }) async {
+    return await getCustomers(pageNumber: pageNumber, pageSize: pageSize);
   }
 
-  Future<List<BaseLookup>> getContainerDepots() async {
+  Future<List<BaseLookup>> getContainerDepots({
+    int pageNumber = 1,
+    int pageSize = 10,
+  }) async {
     var baseResponse = await _apiManager.get(
       '/api/services/app/Depot/GetAll',
       showLoader: false,
+      queryParameters: {
+        'loadOptions': _buildLoadOptions(pageNumber, pageSize),
+      },
     );
 
     if (baseResponse == null) return [];

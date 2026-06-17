@@ -53,8 +53,7 @@ class CheckListViewModel extends BaseViewModel with AppViewBaseHelper {
   Future<void> runStartupLogic() async {
 //find and load the check list for this gatepass aceess
     _questionPhotos.clear();
-    _filterParams.branchId = currentUser?.userBranches.first.id;
-
+    _filterParams.branchId = getSelectedScannerBranchId();
     await getCheckListForGatePass();
     if (_checkList?.responses != null) {
         for (var question in _checkList!.responses!) {

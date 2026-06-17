@@ -94,7 +94,7 @@ class GateAccessStaffListViewModel extends BaseViewModel
   }
 
   Future<void> scanStaffIn(String code) async {
-    var branchId = currentUser?.userBranches[0].id ?? 0;
+    var branchId = getSelectedScannerBranchId();
     //here we save back to server
     var reponse = await _gatePassService
         .scanStaffIn(StaffQrCodeModel(code: code, branchId: branchId));
@@ -110,7 +110,7 @@ class GateAccessStaffListViewModel extends BaseViewModel
   }
 
   Future<void> scanStaffOut(String code) async {
-    var branchId = currentUser?.userBranches[0].id ?? 0;
+    var branchId = getSelectedScannerBranchId();
     //here we save back to server
     var reponse = await _gatePassService
         .scanStaffOut(StaffQrCodeModel(code: code, branchId: branchId));
@@ -128,7 +128,7 @@ class GateAccessStaffListViewModel extends BaseViewModel
   Future<void> fetchPage(int pageKey) async {
     try {
       log.i("fetchPage | pageKey$pageKey ");
-      var branchId = currentUser?.userBranches[0].id ?? 0;
+      var branchId = getSelectedScannerBranchId();
       var filterValue = "";
 
       if (filterController.text.isNotEmpty) {

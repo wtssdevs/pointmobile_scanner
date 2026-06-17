@@ -23,6 +23,20 @@ mixin AppViewBaseHelper {
   bool hasPermission(String key) {
     return _localisationService.hasPermission(key);
   }
+
+  int getSelectedScannerBranchId() {
+    final storage = locator<LocalStorageService>();
+    final branchId = storage.getScannerBranchId();
+    if (branchId > 0) {
+      return branchId;
+    }
+    final branches = currentUser?.userBranches ?? [];
+    final fallbackBranchId = branches.isNotEmpty ? (branches.first.id ?? 0) : 0;
+    if (fallbackBranchId > 0) {
+      storage.setScannerBranchId(fallbackBranchId);
+    }
+    return fallbackBranchId;
+  }
   // String translate(String key, {List<dynamic> replacements}) {
   //   var stringFromFile = _localisationService[key];
   //   if (replacements != null) {
