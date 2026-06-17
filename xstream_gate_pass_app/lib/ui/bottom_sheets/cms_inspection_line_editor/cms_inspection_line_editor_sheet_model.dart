@@ -29,6 +29,7 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
 
   bool _hasInitialised = false;
   bool _showAdvancedFields = false;
+  bool _locationWasAutoSelected = false;
   String? _validationMessage;
   int? _shippingLineId;
   late CmsInspectionLineEdit _line;
@@ -43,6 +44,9 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
   bool get showAdvancedFields => _showAdvancedFields;
   bool get hasPanelContext => panelLabel != null;
   String? get panelLabel => CmsInspectionPanels.labelForCode(_line.panelCode);
+  String get panelContextHelper => _locationWasAutoSelected
+      ? 'We prefilled the closest inspection location. Change it below if the damage needs a more specific code.'
+      : 'We filtered the location list to this panel. Pick the exact inspection location below.';
   double get quantityValue =>
       _parseDouble(qtyController.text) ?? _line.qty ?? 1;
   String get estimatedSubtotalLabel =>
@@ -283,61 +287,99 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
       return;
     }
 
-    final matchedLocation = await _findLocationForPanel(
-      panel,
+    final resolution = await _resolvePanelLocation(
       preferredTerms: initialLocationMatchTerms,
     );
-    if (matchedLocation == null) {
+
+    final matchedLocation = resolution.location;
+    if (matchedLocation != null) {
+      // Single confident match -> auto-select it.
+      _line.inspectionLocationId = matchedLocation.id;
+      _line.inspectionLocationName = matchedLocation.name;
+      _line.inspectionLocationCode = matchedLocation.code;
+      _locationWasAutoSelected = true;
       return;
     }
 
-    _line.inspectionLocationId = matchedLocation.id;
-    _line.inspectionLocationName = matchedLocation.name;
-    _line.inspectionLocationCode = matchedLocation.code;
+    // 0 or several candidates -> don't guess. Seed the location dropdown's
+    // search so it opens pre-filtered to this panel; the inspector confirms.
+    locationDataSource.seedSearchTerm = resolution.seedTerm;
   }
 
-  Future<InspectionLocation?> _findLocationForPanel(
-    CmsInspectionPanelDefinition panel, {
+  /// Resolves how the tapped panel's [preferredTerms] drive the location field:
+  /// exactly one matching location is auto-selected; several matches only seed
+  /// the dropdown search (so it opens pre-filtered) and leave the choice to the
+  /// inspector; no match leaves both untouched. The loose panel-code reverse
+  /// match is deliberately NOT used to auto-select, to avoid silent mis-matches.
+  Future<_PanelLocationResolution> _resolvePanelLocation({
     List<String>? preferredTerms,
   }) async {
+    final normalizedPreferredTerms = (preferredTerms ?? const <String>[])
+        .map(_normalizeSearch)
+        .where((value) => value.isNotEmpty)
+        .toList(growable: false);
+    if (normalizedPreferredTerms.isEmpty) {
+      return const _PanelLocationResolution();
+    }
+
     final locations = await _cmsMasterFilesRepository.getAll(
       CmsMasterFileStores.locations,
       locationDataSource.context,
       shippingLineId: _shippingLineId,
       filterByShippingLine: true,
     );
-
-    final normalizedPreferredTerms = (preferredTerms ?? const <String>[])
-        .map(_normalizeSearch)
-        .where((value) => value.isNotEmpty)
-        .toList(growable: false);
-
-    if (normalizedPreferredTerms.isNotEmpty) {
-      for (final location in locations) {
-        final candidateTerms = [
-          location.code,
-          location.altCode,
-          location.name,
-        ].map(_normalizeSearch).where((value) => value.isNotEmpty);
-
-        if (candidateTerms.any(
-          (candidate) => normalizedPreferredTerms.any(
-            (term) => candidate == term || candidate.contains(term),
-          ),
-        )) {
-          return location;
-        }
-      }
+    if (locations.isEmpty) {
+      return const _PanelLocationResolution();
     }
 
-    for (final location in locations) {
-      final matchedPanel = CmsInspectionPanels.matchLocation(
-        code: location.code,
-        altCode: location.altCode,
-        name: location.name,
+    final preferredMatches = locations
+        .where((location) =>
+            _locationMatchesAnyTerm(location, normalizedPreferredTerms))
+        .toList(growable: false);
+    if (preferredMatches.length == 1) {
+      return _PanelLocationResolution(location: preferredMatches.first);
+    }
+    if (preferredMatches.length > 1) {
+      return _PanelLocationResolution(
+        seedTerm: _seedTermFor(normalizedPreferredTerms, locations),
       );
-      if (matchedPanel?.code == panel.code) {
-        return location;
+    }
+
+    return const _PanelLocationResolution();
+  }
+
+  bool _locationMatchesAnyTerm(
+    InspectionLocation location,
+    List<String> normalizedTerms,
+  ) {
+    if (normalizedTerms.isEmpty) {
+      return false;
+    }
+
+    final candidateTerms = [
+      location.code,
+      location.altCode,
+      location.name,
+    ].map(_normalizeSearch).where((value) => value.isNotEmpty);
+
+    return candidateTerms.any(
+      (candidate) => normalizedTerms.any(
+        (term) => candidate == term || candidate.contains(term),
+      ),
+    );
+  }
+
+  /// First preferred term that matches at least one location, so the seeded
+  /// dropdown search never opens on an empty list.
+  String? _seedTermFor(
+    List<String> normalizedTerms,
+    List<InspectionLocation> locations,
+  ) {
+    for (final term in normalizedTerms) {
+      final matches = locations
+          .any((location) => _locationMatchesAnyTerm(location, [term]));
+      if (matches) {
+        return term;
       }
     }
 
@@ -413,4 +455,14 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
 
     return null;
   }
+}
+
+class _PanelLocationResolution {
+  const _PanelLocationResolution({this.location, this.seedTerm});
+
+  /// Single confident match to auto-select, or null when ambiguous/none.
+  final InspectionLocation? location;
+
+  /// Term to pre-filter the location dropdown when not auto-selecting.
+  final String? seedTerm;
 }

@@ -16,6 +16,12 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
   final Function(SheetResponse)? completer;
   final SheetRequest request;
 
+  void _cancel() {
+    completer?.call(
+      SheetResponse<CmsInspectionLineEdit?>(confirmed: false),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final requestData = request.data is Map
@@ -47,12 +53,15 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
         initialPinY: initialPinY,
         initialLocationMatchTerms: initialLocationMatchTerms,
       ),
-      builder: (context, model, child) => SafeArea(
-        child: Padding(
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      builder: (context, model, child) => Padding(
+        // Lift the whole sheet above the keyboard; shrinking the incoming
+        // constraints also shrinks the FractionallySizedBox so the pinned
+        // footer stays visible above the keyboard.
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: FractionallySizedBox(
+          heightFactor: 0.92,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
@@ -60,247 +69,316 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                 topRight: Radius.circular(24),
               ),
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 48,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(999),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                // ---- pinned header: drag handle, title, close ----
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 8, 8),
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 48,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    request.title ?? 'Inspection line',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  if ((request.description ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      request.description!,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  if (model.hasPanelContext) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: kcPrimaryColor.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(height: 12),
+                      Row(
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.only(top: 2),
-                            child: Icon(
-                              Icons.touch_app_outlined,
-                              color: kcPrimaryColor,
+                          Expanded(
+                            child: Text(
+                              request.title ?? 'Inspection line',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
+                          IconButton(
+                            tooltip: 'Close',
+                            onPressed: _cancel,
+                            icon: const Icon(Icons.close),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                // ---- scrollable body ----
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if ((request.description ?? '').isNotEmpty) ...[
+                          Text(
+                            request.description!,
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (model.hasPanelContext) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: kcPrimaryColor.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  '${model.panelLabel} selected from the container map',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 2),
+                                  child: Icon(
+                                    Icons.touch_app_outlined,
                                     color: kcPrimaryColor,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'We prefilled the nearest inspection location. Change it below if the damage needs a more specific code.',
-                                  style: TextStyle(color: Colors.grey[700]),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${model.panelLabel} selected from the container map',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          color: kcPrimaryColor,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        model.panelContextHelper,
+                                        style:
+                                            TextStyle(color: Colors.grey[700]),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
+                          const SizedBox(height: 16),
                         ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  _LookupField(
-                    label: 'Location',
-                    hint: model.locationHint,
-                    requestItemCount: model.locationDataSource.pageSize,
-                    onChanged: model.selectLocation,
-                    paginatedRequest: model.locationDataSource.paginatedRequest,
-                  ),
-                  _LookupField(
-                    label: 'Item',
-                    hint: model.itemHint,
-                    requestItemCount: model.itemDataSource.pageSize,
-                    onChanged: model.selectItem,
-                    paginatedRequest: model.itemDataSource.paginatedRequest,
-                  ),
-                  _LookupField(
-                    label: 'Action',
-                    hint: model.actionHint,
-                    requestItemCount: model.actionDataSource.pageSize,
-                    onChanged: model.selectAction,
-                    paginatedRequest: model.actionDataSource.paginatedRequest,
-                  ),
-                  _LookupField(
-                    label: 'Damage',
-                    hint: model.damageHint,
-                    requestItemCount: model.damageDataSource.pageSize,
-                    onChanged: model.selectDamage,
-                    paginatedRequest: model.damageDataSource.paginatedRequest,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _QtyStepper(model: model),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _SummaryTile(
-                          label: 'Est. subtotal',
-                          value: model.estimatedSubtotalLabel,
+                        _LookupField(
+                          label: 'Location',
+                          hint: model.locationHint,
+                          requestItemCount: model.locationDataSource.pageSize,
+                          onChanged: model.selectLocation,
+                          paginatedRequest:
+                              model.locationDataSource.paginatedRequest,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _LookupField(
-                    label: 'Part number',
-                    hint: model.partNumberHint,
-                    requestItemCount: model.partNumberDataSource.pageSize,
-                    onChanged: model.selectPartNumber,
-                    paginatedRequest:
-                        model.partNumberDataSource.paginatedRequest,
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: model.descriptionController,
-                    minLines: 2,
-                    maxLines: 4,
-                    decoration: const InputDecoration(
-                      labelText: 'Inspector note',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: OutlinedButton.icon(
-                      onPressed: model.toggleAdvancedFields,
-                      icon: Icon(model.showAdvancedFields
-                          ? Icons.expand_less
-                          : Icons.tune_outlined),
-                      label: Text(model.showAdvancedFields
-                          ? 'Hide advanced costing'
-                          : 'Show advanced costing'),
-                    ),
-                  ),
-                  if (model.showAdvancedFields) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: model.costController,
+                        _LookupField(
+                          label: 'Item',
+                          hint: model.itemHint,
+                          requestItemCount: model.itemDataSource.pageSize,
+                          onChanged: model.selectItem,
+                          paginatedRequest:
+                              model.itemDataSource.paginatedRequest,
+                        ),
+                        _LookupField(
+                          label: 'Action',
+                          hint: model.actionHint,
+                          requestItemCount: model.actionDataSource.pageSize,
+                          onChanged: model.selectAction,
+                          paginatedRequest:
+                              model.actionDataSource.paginatedRequest,
+                        ),
+                        _LookupField(
+                          label: 'Damage',
+                          hint: model.damageHint,
+                          requestItemCount: model.damageDataSource.pageSize,
+                          onChanged: model.selectDamage,
+                          paginatedRequest:
+                              model.damageDataSource.paginatedRequest,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _QtyStepper(model: model),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _SummaryTile(
+                                label: 'Est. subtotal',
+                                value: model.estimatedSubtotalLabel,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _LookupField(
+                          label: 'Part number',
+                          hint: model.partNumberHint,
+                          requestItemCount: model.partNumberDataSource.pageSize,
+                          onChanged: model.selectPartNumber,
+                          paginatedRequest:
+                              model.partNumberDataSource.paginatedRequest,
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: model.descriptionController,
+                          minLines: 2,
+                          maxLines: 4,
+                          decoration: const InputDecoration(
+                            labelText: 'Inspector note',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: OutlinedButton.icon(
+                            onPressed: model.toggleAdvancedFields,
+                            icon: Icon(model.showAdvancedFields
+                                ? Icons.expand_less
+                                : Icons.tune_outlined),
+                            label: Text(model.showAdvancedFields
+                                ? 'Hide advanced costing'
+                                : 'Show advanced costing'),
+                          ),
+                        ),
+                        if (model.showAdvancedFields) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: model.costController,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Cost',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextField(
+                                  controller: model.labourQtyController,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Labour qty',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: model.labourRateController,
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
                             decoration: const InputDecoration(
-                              labelText: 'Cost',
+                              labelText: 'Labour rate',
                               border: OutlineInputBorder(),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: model.labourQtyController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            decoration: const InputDecoration(
-                              labelText: 'Labour qty',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: model.labourRateController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(
-                        labelText: 'Labour rate',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ],
-                  if (model.validationMessage != null) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Text(
-                        model.validationMessage!,
-                        style: TextStyle(color: Colors.red[700]),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => completer?.call(
-                            SheetResponse<CmsInspectionLineEdit?>(
-                              confirmed: false,
-                            ),
-                          ),
-                          child: const Text('Cancel'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: () {
-                            final result = model.buildResult();
-                            if (result == null) {
-                              return;
-                            }
+                  ),
+                ),
+                // ---- pinned footer: validation + actions ----
+                _ActionBar(
+                  model: model,
+                  onCancel: _cancel,
+                  onSave: () {
+                    final result = model.buildResult();
+                    if (result == null) {
+                      return;
+                    }
 
-                            completer?.call(
-                              SheetResponse<CmsInspectionLineEdit?>(
-                                confirmed: true,
-                                data: result,
-                              ),
-                            );
-                          },
-                          child: const Text('Save line'),
-                        ),
+                    completer?.call(
+                      SheetResponse<CmsInspectionLineEdit?>(
+                        confirmed: true,
+                        data: result,
                       ),
-                    ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionBar extends StatelessWidget {
+  const _ActionBar({
+    required this.model,
+    required this.onCancel,
+    required this.onSave,
+  });
+
+  final CmsInspectionLineEditorSheetModel model;
+  final VoidCallback onCancel;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (model.validationMessage != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    model.validationMessage!,
+                    style: TextStyle(color: Colors.red[700]),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: onCancel,
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: onSave,
+                      child: const Text('Save line'),
+                    ),
                   ),
                 ],
               ),
-            ),
+            ],
           ),
         ),
       ),

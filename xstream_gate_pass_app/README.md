@@ -49,23 +49,23 @@ flutter pub run build_runner build --delete-conflicting-outputs
 #STEPS TP FOLLOW FOR APP Build/Uploading to app store
 # clean before build to clear all cahce
 #1
-flutter clean
+fvm flutter clean
 #2
-flutter pub get
+fvm flutter pub get
 #3
-flutter pub run build_runner build --delete-conflicting-outputs
+fvm flutter pub run build_runner build --delete-conflicting-outputs
 #4
 #Chekc .env file for correct Server API Connection
 
 #5 Build APK/Bundle
-flutter build appbundle
+fvm flutter build appbundle
 
 #Google APKS drive testing
-flutter build apk --debug
-flutter build apk --release
+fvm flutter build apk --debug
+fvm flutter build apk --release
 
 #Google Play Store uploading
-flutter build appbundle
+fvm flutter build appbundle
 
 #
 Run ./gradlew app:dependencies to see which:

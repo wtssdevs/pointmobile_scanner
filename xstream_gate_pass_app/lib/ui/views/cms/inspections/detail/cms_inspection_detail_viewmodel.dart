@@ -25,8 +25,10 @@ import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
 
 class CmsInspectionDetailViewModel extends BaseViewModel {
   final log = getLogger('CmsInspectionDetailViewModel');
-  final CmsMobileInspectionsService _mobileInspectionsService = locator<CmsMobileInspectionsService>();
-  final CmsInspectionLinePhotoQueueService _linePhotoQueueService = locator<CmsInspectionLinePhotoQueueService>();
+  final CmsMobileInspectionsService _mobileInspectionsService =
+      locator<CmsMobileInspectionsService>();
+  final CmsInspectionLinePhotoQueueService _linePhotoQueueService =
+      locator<CmsInspectionLinePhotoQueueService>();
   final WorkerQueManager _workerQueManager = locator<WorkerQueManager>();
   final BottomSheetService _bottomSheetService = locator<BottomSheetService>();
   final DialogService _dialogService = locator<DialogService>();
@@ -62,8 +64,11 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       (_inspection?.id ?? 0) > 0;
   int get totalPanelCount => CmsInspectionPanels.values.length;
   String? get selectedPanelCode => _selectedPanelTapDetails?.code;
-  CmsInspectionPanelDefinition? get selectedPanel => _selectedPanelTapDetails?.panel;
-  bool get hasRequiredStartMetadata => _inspection?.inspectionType != null && _inspection?.conditionTypeId != null;
+  CmsInspectionPanelDefinition? get selectedPanel =>
+      _selectedPanelTapDetails?.panel;
+  bool get hasRequiredStartMetadata =>
+      _inspection?.inspectionType != null &&
+      _inspection?.conditionTypeId != null;
 
   String? get startMetadataWarning {
     if (!hasInspection || hasRequiredStartMetadata) {
@@ -103,7 +108,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     return coveredPanels.length;
   }
 
-  String get coverageSummary => '$coveredPanelCount / $totalPanelCount panels touched';
+  String get coverageSummary =>
+      '$coveredPanelCount / $totalPanelCount panels touched';
 
   CmsPanelCoverage coverageFor(String panelCode) {
     if (_inspection == null) {
@@ -141,7 +147,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     );
   }
 
-  bool lineNeedsClassification(CmsInspectionLineEdit line) => !line.hasRequiredClassification;
+  bool lineNeedsClassification(CmsInspectionLineEdit line) =>
+      !line.hasRequiredClassification;
 
   List<CmsInspectionHeaderFact> get containerHeaderFacts {
     final facts = <CmsInspectionHeaderFact>[];
@@ -175,7 +182,9 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       return _formatStatus(status);
     }
 
-    return _inspection?.inspectionCompleted == true ? 'Completed' : 'In progress';
+    return _inspection?.inspectionCompleted == true
+        ? 'Completed'
+        : 'In progress';
   }
 
   String get inspectionTimingTitle {
@@ -194,33 +203,45 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     return 'Inspection in progress since';
   }
 
-  int photoCountForLine(CmsInspectionLineEdit line) => _linePhotos[_lineKey(line)]?.length ?? 0;
+  int photoCountForLine(CmsInspectionLineEdit line) =>
+      _linePhotos[_lineKey(line)]?.length ?? 0;
 
   bool isCapturingLinePhoto(int index) => busy('line-photo-$index');
 
   String? photoStatusForLine(CmsInspectionLineEdit line) {
-    final photos = _linePhotos[_lineKey(line)] ?? const <CmsInspectionLinePhoto>[];
+    final photos =
+        _linePhotos[_lineKey(line)] ?? const <CmsInspectionLinePhoto>[];
     if (photos.isEmpty) {
       return null;
     }
 
-    final failedCount = photos.where((photo) => photo.state == CmsInspectionLinePhotoState.failed).length;
+    final failedCount = photos
+        .where((photo) => photo.state == CmsInspectionLinePhotoState.failed)
+        .length;
     if (failedCount > 0) {
       return '$failedCount upload issue${failedCount == 1 ? '' : 's'}';
     }
 
-    final awaitingSaveCount = photos.where((photo) => photo.state == CmsInspectionLinePhotoState.awaitingSave).length;
+    final awaitingSaveCount = photos
+        .where(
+            (photo) => photo.state == CmsInspectionLinePhotoState.awaitingSave)
+        .length;
     if (awaitingSaveCount > 0) {
       return '$awaitingSaveCount waiting for save${awaitingSaveCount == 1 ? '' : 's'}';
     }
 
-    final pendingCount =
-        photos.where((photo) => photo.state == CmsInspectionLinePhotoState.local || photo.state == CmsInspectionLinePhotoState.queued).length;
+    final pendingCount = photos
+        .where((photo) =>
+            photo.state == CmsInspectionLinePhotoState.local ||
+            photo.state == CmsInspectionLinePhotoState.queued)
+        .length;
     if (pendingCount > 0) {
       return '$pendingCount pending upload${pendingCount == 1 ? '' : 's'}';
     }
 
-    final uploadingCount = photos.where((photo) => photo.state == CmsInspectionLinePhotoState.uploading).length;
+    final uploadingCount = photos
+        .where((photo) => photo.state == CmsInspectionLinePhotoState.uploading)
+        .length;
     if (uploadingCount > 0) {
       return 'Uploading $uploadingCount';
     }
@@ -233,7 +254,10 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       _inspection?.containerSize,
       _inspection?.containterType,
       if (_inspection?.isRfContainer == true) 'RF',
-    ].whereType<String>().where((item) => item.isNotEmpty).toList(growable: false);
+    ]
+        .whereType<String>()
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
 
     return values.isEmpty ? headerTitle() : values.join(' • ');
   }
@@ -253,11 +277,13 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
 
     try {
       if (inspectionId == null) {
-        _errorMessage = 'Start inspections from the list so you can choose the inspection type and condition first.';
+        _errorMessage =
+            'Start inspections from the list so you can choose the inspection type and condition first.';
         return;
       }
 
-      final loaded = await _mobileInspectionsService.getInspectionForEdit(inspectionId);
+      final loaded =
+          await _mobileInspectionsService.getInspectionForEdit(inspectionId);
       _applyInspection(loaded, markClean: true);
       await _refreshLinePhotos();
     } catch (error) {
@@ -323,7 +349,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       initialPinY: details.y,
       initialLocationMatchTerms: details.locationMatchTerms,
       title: 'Add ${details.label.toLowerCase()} damage',
-      description: 'We prefilled the tapped panel. You can still refine the exact inspection location below.',
+      description:
+          'We prefilled the tapped panel. You can still refine the exact inspection location below.',
     );
   }
 
@@ -336,7 +363,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     await captureLineFromPanel(details);
   }
 
-  Future<void> captureLineFromPanel(CmsInspectionPanelTapDetails details) async {
+  Future<void> captureLineFromPanel(
+      CmsInspectionPanelTapDetails details) async {
     if (_inspection == null || isBusy) {
       return;
     }
@@ -366,7 +394,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       return;
     }
 
-    if (insertIndex < _inspection!.items.length && _inspection!.items[insertIndex].clientKey == draftLine.clientKey) {
+    if (insertIndex < _inspection!.items.length &&
+        _inspection!.items[insertIndex].clientKey == draftLine.clientKey) {
       _inspection!.items.removeAt(insertIndex);
       await _refreshLinePhotos();
       rebuildUi();
@@ -374,7 +403,9 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   }
 
   Future<void> editLine(int index) async {
-    if (_inspection == null || index < 0 || index >= _inspection!.items.length) {
+    if (_inspection == null ||
+        index < 0 ||
+        index >= _inspection!.items.length) {
       return;
     }
 
@@ -392,7 +423,9 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       }
 
       final lineClientKey = line.clientKey?.trim();
-      return lineClientKey != null && lineClientKey.isNotEmpty && candidate.clientKey == lineClientKey;
+      return lineClientKey != null &&
+          lineClientKey.isNotEmpty &&
+          candidate.clientKey == lineClientKey;
     });
 
     if (index < 0) {
@@ -403,7 +436,9 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   }
 
   Future<void> duplicateLine(int index) async {
-    if (_inspection == null || index < 0 || index >= _inspection!.items.length) {
+    if (_inspection == null ||
+        index < 0 ||
+        index >= _inspection!.items.length) {
       return;
     }
 
@@ -413,12 +448,15 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     await _openLineEditor(
       draftLine: draftLine,
       title: 'Duplicate inspection line',
-      description: 'Start from the copied damage line, then tweak what changed.',
+      description:
+          'Start from the copied damage line, then tweak what changed.',
     );
   }
 
   Future<void> deleteLine(int index) async {
-    if (_inspection == null || index < 0 || index >= _inspection!.items.length) {
+    if (_inspection == null ||
+        index < 0 ||
+        index >= _inspection!.items.length) {
       return;
     }
 
@@ -456,7 +494,9 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     try {
       _inspection!.comments = commentsController.text;
       _ensureClientKeys();
-      final saved = await _mobileInspectionsService.saveInspection(_inspection!.clone());
+      _ensureLineInspectionIds();
+      final saved =
+          await _mobileInspectionsService.saveInspection(_inspection!.clone());
       final mergedSaved = _restoreClientKeys(
         source: _inspection!,
         saved: saved,
@@ -504,10 +544,12 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     try {
       _inspection!.comments = commentsController.text;
       _ensureClientKeys();
+      _ensureLineInspectionIds();
       final completionPayload = _inspection!.clone()
         ..inspectionCompleted = true
         ..inspectionDateTime ??= DateTime.now();
-      final completed = await _mobileInspectionsService.saveInspection(completionPayload);
+      final completed =
+          await _mobileInspectionsService.saveInspection(completionPayload);
       final mergedCompleted = _restoreClientKeys(
         source: _inspection!,
         saved: completed,
@@ -588,13 +630,18 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       _inspection?.transactionNo,
       _inspection?.shippingLineName,
       _inspection?.inspectionTypeLabel,
-    ].whereType<String>().where((item) => item.isNotEmpty).toList(growable: false);
+    ]
+        .whereType<String>()
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
 
     return values.isEmpty ? 'Container inspection detail' : values.join(' • ');
   }
 
   Future<bool> captureLinePhoto(int index, {bool fromGallery = false}) async {
-    if (_inspection == null || index < 0 || index >= _inspection!.items.length) {
+    if (_inspection == null ||
+        index < 0 ||
+        index >= _inspection!.items.length) {
       return false;
     }
     if (isCapturingLinePhoto(index)) {
@@ -643,10 +690,13 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       return;
     }
 
-    final response = await _bottomSheetService.showCustomSheet<CmsInspectionLineEdit?, Map<String, dynamic>>(
+    final response = await _bottomSheetService
+        .showCustomSheet<CmsInspectionLineEdit?, Map<String, dynamic>>(
       variant: BottomSheetType.cmsInspectionLineEditor,
-      title: title ?? (index == null ? 'Add inspection line' : 'Edit inspection line'),
-      description: description ?? 'Choose the inspection lookup values and capture the damaged component details.',
+      title: title ??
+          (index == null ? 'Add inspection line' : 'Edit inspection line'),
+      description: description ??
+          'Choose the inspection lookup values and capture the damaged component details.',
       barrierDismissible: false,
       isScrollControlled: true,
       data: {
@@ -676,7 +726,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     rebuildUi();
   }
 
-  void _applyInspection(CmsInspectionEdit inspection, {required bool markClean}) {
+  void _applyInspection(CmsInspectionEdit inspection,
+      {required bool markClean}) {
     _inspection = inspection.clone();
     _lastInspectionId = _inspection?.id;
     _lastContainerId = _inspection?.containerId;
@@ -716,7 +767,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   }
 
   void _defaultInspectionDateTime(CmsInspectionEdit inspection) {
-    if (inspection.inspectionDateTime != null || inspection.inspectionCompleted) {
+    if (inspection.inspectionDateTime != null ||
+        inspection.inspectionCompleted) {
       return;
     }
 
@@ -731,7 +783,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
 
     final nextPhotos = <String, List<CmsInspectionLinePhoto>>{};
     for (final line in _inspection!.items) {
-      nextPhotos[_lineKey(line)] = await _linePhotoQueueService.getForLine(line);
+      nextPhotos[_lineKey(line)] =
+          await _linePhotoQueueService.getForLine(line);
     }
 
     _linePhotos = nextPhotos;
@@ -743,7 +796,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       return;
     }
 
-    final savedLineIds = saved.items.where((line) => line.id > 0).map((line) => line.id).toSet();
+    final savedLineIds =
+        saved.items.where((line) => line.id > 0).map((line) => line.id).toSet();
     final savedClientKeys = saved.items
         .map((line) => line.clientKey?.trim())
         .whereType<String>()
@@ -751,9 +805,12 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
         .toSet();
 
     for (final photo in photos) {
-      final matchesId = photo.inspectionLineId != null && savedLineIds.contains(photo.inspectionLineId);
+      final matchesId = photo.inspectionLineId != null &&
+          savedLineIds.contains(photo.inspectionLineId);
       final photoClientKey = photo.clientKey?.trim();
-      final matchesClientKey = photoClientKey != null && photoClientKey.isNotEmpty && savedClientKeys.contains(photoClientKey);
+      final matchesClientKey = photoClientKey != null &&
+          photoClientKey.isNotEmpty &&
+          savedClientKeys.contains(photoClientKey);
       if (!matchesId && !matchesClientKey) {
         await _removeLinePhotoRow(photo);
       }
@@ -761,7 +818,9 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   }
 
   Future<void> _removeLinePhotoRow(CmsInspectionLinePhoto photo) async {
-    final isServerConfirmed = photo.state == CmsInspectionLinePhotoState.uploaded && (photo.documentId ?? 0) > 0;
+    final isServerConfirmed =
+        photo.state == CmsInspectionLinePhotoState.uploaded &&
+            (photo.documentId ?? 0) > 0;
     if (isServerConfirmed) {
       await _linePhotoQueueService.removeLocalOnly(photo.clientUploadId);
     } else {
@@ -775,7 +834,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     }
 
     final photos = await _linePhotoQueueService.getForInspection(inspectionId);
-    final hasPendingUpload = photos.any((photo) => photo.state != CmsInspectionLinePhotoState.uploaded);
+    final hasPendingUpload = photos
+        .any((photo) => photo.state != CmsInspectionLinePhotoState.uploaded);
     if (!hasPendingUpload) {
       return;
     }
@@ -801,6 +861,21 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
 
     for (final line in _inspection!.items) {
       _ensureClientKey(line);
+    }
+  }
+
+  /// Backend `InspectionItemsDto.InspectionId` is a non-nullable `long`; a line
+  /// posted with `inspectionId: null` fails JSON deserialization with HTTP 400.
+  /// Lines added in-session (panel tap or line editor) start null, so stamp the
+  /// parent id (0 for a not-yet-saved inspection) before every save.
+  void _ensureLineInspectionIds() {
+    if (_inspection == null) {
+      return;
+    }
+
+    final parentId = _inspection!.id;
+    for (final line in _inspection!.items) {
+      line.inspectionId ??= parentId;
     }
   }
 
@@ -845,7 +920,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       }
 
       final signature = _lineMatchSignature(line);
-      (sourceBySignature[signature] ??= Queue<CmsInspectionLineEdit>()).addLast(line);
+      (sourceBySignature[signature] ??= Queue<CmsInspectionLineEdit>())
+          .addLast(line);
     }
 
     for (final line in merged.items) {
@@ -956,7 +1032,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       variant: DialogType.infoAlert,
       data: BasicDialogStatus.warning,
       title: 'Discard inspection changes?',
-      description: 'You have unsaved inspection changes. Leave this screen and lose them?',
+      description:
+          'You have unsaved inspection changes. Leave this screen and lose them?',
       mainButtonTitle: 'Discard',
       secondaryButtonTitle: 'Keep editing',
     );
@@ -969,7 +1046,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       variant: DialogType.infoAlert,
       data: BasicDialogStatus.warning,
       title: 'Complete inspection?',
-      description: 'Completing locks this inspection and sends it for quoting. This cannot be undone from the app.',
+      description:
+          'Completing locks this inspection and sends it for quoting. This cannot be undone from the app.',
       mainButtonTitle: 'Complete',
       secondaryButtonTitle: 'Keep editing',
     );
@@ -982,7 +1060,8 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       variant: DialogType.infoAlert,
       data: BasicDialogStatus.warning,
       title: 'Cancel inspection?',
-      description: 'This cancels the inspection and any open sub-inspections. This cannot be undone from the app.',
+      description:
+          'This cancels the inspection and any open sub-inspections. This cannot be undone from the app.',
       mainButtonTitle: 'Cancel inspection',
       secondaryButtonTitle: 'Keep editing',
     );

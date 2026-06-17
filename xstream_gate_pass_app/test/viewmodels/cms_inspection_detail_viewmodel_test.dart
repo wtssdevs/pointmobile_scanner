@@ -299,6 +299,58 @@ void main() {
       verifyNever(cmsMobileInspectionsService.saveInspection(any));
     });
 
+    test('stamps the parent inspection id on in-session lines before saving',
+        () async {
+      final edit = _buildInspection();
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+      when(cmsMobileInspectionsService.saveInspection(any)).thenAnswer(
+          (invocation) async =>
+              (invocation.positionalArguments.single as CmsInspectionEdit)
+                  .clone());
+
+      final newLine = CmsInspectionLineEdit(
+        id: 0,
+        inspectionLocationId: 7,
+        inspectionLocationName: 'Left side',
+        inspectionLocationCode: 'LSD',
+        inspectionItemId: 4,
+        inspectionItemName: 'Panel',
+        inspectionActionId: 5,
+        inspectionActionName: 'Repair',
+        inspectionDamageId: 6,
+        inspectionDamageName: 'Dent',
+        qty: 1,
+      )..applyPanelMetadata(panelCode: 'LSD', x: 0.33, y: 0.27);
+      expect(newLine.inspectionId, isNull);
+
+      _stubLineEditorResponse(
+        bottomSheetService,
+        response: SheetResponse<CmsInspectionLineEdit?>(
+          confirmed: true,
+          data: newLine,
+        ),
+      );
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+      await model.addLineFromPanel(
+        CmsInspectionPanelTapDetails(
+          panel: CmsInspectionPanels.leftSide,
+          x: 0.33,
+          y: 0.27,
+        ),
+      );
+      await model.saveDraft();
+
+      final payload =
+          verify(cmsMobileInspectionsService.saveInspection(captureAny))
+              .captured
+              .single as CmsInspectionEdit;
+      expect(payload.items, isNotEmpty);
+      expect(payload.items.every((line) => line.inspectionId == 88), isTrue);
+    });
+
     test('handles repeated back requests once while navigator pop is pending',
         () async {
       final edit = _buildInspection();
@@ -441,7 +493,8 @@ void main() {
       expect(model.canCancel, isFalse);
     });
 
-    test('canCancel is false for an unpersisted inspection (id == 0)', () async {
+    test('canCancel is false for an unpersisted inspection (id == 0)',
+        () async {
       final edit = _buildInspection()..id = 0;
       when(cmsMobileInspectionsService.getInspectionForEdit(88))
           .thenAnswer((_) async => edit);
@@ -452,7 +505,8 @@ void main() {
       expect(model.canCancel, isFalse);
     });
 
-    test('cancelInspection confirmed cancels via the service and navigates back',
+    test(
+        'cancelInspection confirmed cancels via the service and navigates back',
         () async {
       final edit = _buildInspection();
       when(cmsMobileInspectionsService.getInspectionForEdit(88))

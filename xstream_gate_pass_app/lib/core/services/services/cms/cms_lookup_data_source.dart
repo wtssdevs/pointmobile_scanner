@@ -25,15 +25,23 @@ class CmsLookupDataSource<T extends CmsInspectionLookupBase> {
   final bool filterByShippingLine;
   final SearchableDropdownMenuItem<int> Function(T entity) _itemBuilder;
 
+  /// Optional term used to pre-filter the first page when the user has not
+  /// typed a search yet (e.g. seeded from a tapped inspection panel). Cleared
+  /// implicitly the moment the user types their own search key.
+  String? seedSearchTerm;
+
   Future<List<SearchableDropdownMenuItem<int>>> paginatedRequest(
     int page,
     String? searchKey,
   ) async {
     final safePage = page <= 0 ? 1 : page;
+    final trimmedKey = searchKey?.trim() ?? '';
+    final effectiveTerm =
+        trimmedKey.isEmpty ? (seedSearchTerm ?? '') : trimmedKey;
     final items = await repository.search(
       store,
       context,
-      searchTerm: searchKey ?? '',
+      searchTerm: effectiveTerm,
       skip: (safePage - 1) * pageSize,
       take: pageSize,
       activeOnly: activeOnly,
