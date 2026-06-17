@@ -68,7 +68,7 @@ class GateAccessVisitorsListViewModel extends BaseViewModel
   Future<void> fetchPage(int pageKey) async {
     try {
       log.i("fetchPage | pageKey$pageKey ");
-      var branchId = currentUser?.userBranches[0].id ?? 0;
+      var branchId = getSelectedScannerBranchId();
       var filterValue = "";
 
       if (filterController.text.isNotEmpty) {

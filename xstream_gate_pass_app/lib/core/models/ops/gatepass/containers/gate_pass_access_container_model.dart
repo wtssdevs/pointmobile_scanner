@@ -54,6 +54,7 @@ class GatePassAccessContainerModel {
   // Additional properties from the existing class that might be needed
   String? containerSize;
   String? containerType;
+  String? containerIsoCode;
   String? containerCustomer;
   String? containerShippingLine;
   String? containerDepot;
@@ -86,6 +87,7 @@ class GatePassAccessContainerModel {
     this.gatePassAccessId,
     this.containerSize,
     this.containerType,
+    this.containerIsoCode,
     this.containerCustomer,
     this.containerShippingLine,
     this.containerDepot,
@@ -121,6 +123,8 @@ class GatePassAccessContainerModel {
       containerSizeId: json["containerSizeId"],
 
       containerTypeId: json["containerTypeId"],
+      containerType: json["containerType"],
+      containerIsoCode: json["containerIsoCode"] ?? json["containerType"],
 
       // this.containerSize,
       //this.containerType,
@@ -145,8 +149,12 @@ class GatePassAccessContainerModel {
   }
 
 Map<String, dynamic> toMap() {
+  final normalizedId = id?.trim();
+  final hasId = normalizedId != null && normalizedId.isNotEmpty;
+  final normalizedGatePassAccessId = gatePassAccessId?.trim();
+  final hasGatePassAccessId = normalizedGatePassAccessId != null && normalizedGatePassAccessId.isNotEmpty;
+
   var output = {
-    "id": id,
     "tenantId": tenantId ?? 0,
     "externalContainerId": externalContainerId,
     "containerNumber": containerNumber,
@@ -161,27 +169,28 @@ Map<String, dynamic> toMap() {
     "description": description,
     "weight": weight ?? 0.0,  
     "isDisabled": isDisabled,
-    "shippingLineId": shippingLineId ?? 0,
-    "customerId": customerId, 
-    "containerSizeId": containerSizeId ?? 0,
-    "containerTypeId": containerTypeId ?? 0,
+    "shippingLineId": shippingLineId,
+    "customerId": customerId,
+    "containerSizeId": containerSizeId,
+    "containerTypeId": containerTypeId,
+    "containerType": containerType ?? containerIsoCode,
+    "containerIsoCode": containerIsoCode,
     "branchId": branchId ?? 0,
-    "depotId": depotId,  
-    "gatePassAccessId": gatePassAccessId,
+    "depotId": depotId,
   };
 
-  if (customerId != null && customerId != 0) {
-    output["customerId"] = customerId;
+  if (hasId) {
+    output["id"] = normalizedId;
   }
-  if (containerSizeId != null && containerSizeId != 0) {
-    output["containerSizeId"] = containerSizeId;
+  if (hasGatePassAccessId) {
+    output["gatePassAccessId"] = normalizedGatePassAccessId;
   }
-  if (containerTypeId != null && containerTypeId != 0) {
-    output["containerTypeId"] = containerTypeId;
-  }
-  if (depotId != null && depotId != 0) {
-    output["depotId"] = depotId;
-  }
+
+  if (shippingLineId == null || shippingLineId == 0) output.remove("shippingLineId");
+  if (customerId == null || customerId == 0) output.remove("customerId");
+  if (containerSizeId == null || containerSizeId == 0) output.remove("containerSizeId");
+  if (containerTypeId == null || containerTypeId == 0) output.remove("containerTypeId");
+  if (depotId == null || depotId == 0) output.remove("depotId");
 
   return output;
 }

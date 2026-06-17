@@ -195,7 +195,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
       RsaDriversLicense data) async {
     //Map scanned data to the GatePassVisitorAccess model
     //update fields based on scanned data
-    var branchId = currentUser?.userBranches[0].id ?? 0;
+    var branchId = getSelectedScannerBranchId();
 
     if (_scannedVisitor == null) {
       _scannedVisitor = GatePassVisitorAccess(
@@ -236,7 +236,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
     // In a real implementation, this would parse the vehicle license data
     // For demonstration, we're creating a sample visitor
 
-    var branchId = currentUser?.userBranches[0].id ?? 0;
+    var branchId = getSelectedScannerBranchId();
 
     if (_scannedVisitor == null) {
       _scannedVisitor = GatePassVisitorAccess(
@@ -320,7 +320,7 @@ class GateAccessVisitorSheetModel extends BaseViewModel with AppViewBaseHelper {
   }
 
   runStartupLogic(ScanActionType data) async {
-    var branchId = currentUser?.userBranches[0].id ?? 0;
+    var branchId = getSelectedScannerBranchId();
     setBarcodeScanType(BarcodeScanType.driversCard);
 
     _scanInMode = data;

@@ -7,13 +7,16 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/timestamp.dart';
+import 'package:flutter/services.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/app/app.router.dart';
 import 'package:xstream_gate_pass_app/core/enums/gate_pass_status.dart';
+import 'package:xstream_gate_pass_app/core/enums/manual_entry_step.dart';
 import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_find_template_model.dart';
+import 'package:xstream_gate_pass_app/core/models/ops/gatepass/containers/gate_pass_access_container_model.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart';
@@ -44,8 +47,80 @@ import 'package:xstream_gate_pass_app/core/services/shared/media_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/base_form_view_model.dart';
 import 'package:xstream_gate_pass_app/ui/views/shared/localization/app_view_base_helper.dart';
 import 'package:xstream_gate_pass_app/core/utils/app_permissions.dart';
+import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
+
+class ContainerDropdownOption {
+  final String label;
+  final String code;
+  final int id;
+
+  const ContainerDropdownOption({
+    required this.label,
+    required this.code,
+    required this.id,
+  });
+}
+
 
 class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
+    static const List<ContainerDropdownOption> _fallbackContainerSizeOptions = [
+    ContainerDropdownOption(label: '20 FT', code: '20', id: 1),
+    ContainerDropdownOption(label: '22 FT', code: '22', id: 1),
+    ContainerDropdownOption(label: '40 FT', code: '40', id: 2),
+    ContainerDropdownOption(label: '45 FT', code: '45', id: 3),
+  ];
+
+  static const List<ContainerDropdownOption> _fallbackContainerTypeOptions = [
+    ContainerDropdownOption(label: 'General Purpose (GP)', code: 'GP', id: 1),
+    ContainerDropdownOption(label: 'Reefer (RT/RC/RS)', code: 'RT', id: 2),
+    ContainerDropdownOption(label: 'Tank (TD/TG/TN)', code: 'TD', id: 3),
+    ContainerDropdownOption(label: 'Open Top (UT/UP)', code: 'UT', id: 4),
+    ContainerDropdownOption(label: 'Flat/Platform (PF/PC/PS/PL)', code: 'PF', id: 5),
+  ];
+
+  List<ContainerDropdownOption> get containerSizeOptions {
+    final sizeLabels = _isoTypeService.isoTypes
+        .map((iso) => iso.size)
+        .where((size) => size.isNotEmpty)
+        .map(_containerSizeLabelFromCode)
+        .toSet()
+        .toList()
+      ..sort();
+
+    if (sizeLabels.isEmpty) {
+      return _fallbackContainerSizeOptions;
+    }
+
+    return sizeLabels.map((label) {
+      return ContainerDropdownOption(
+        label: label,
+        code: _containerSizeCodeFromLabel(label) ?? label,
+        id: _containerSizeIdFromLabel(label),
+      );
+    }).toList();
+  }
+
+  List<ContainerDropdownOption> get containerTypeOptions {
+    final types = _isoTypeService.isoTypes
+        .map((iso) => iso.type)
+        .where((type) => type.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    if (types.isEmpty) {
+      return _fallbackContainerTypeOptions;
+    }
+
+    return types.map((type) {
+      final label = _containerTypeLabelFromCode(type);
+      return ContainerDropdownOption(
+        label: label,
+        code: type,
+        id: _containerTypeIdForCode(type),
+      );
+    }).toList();
+  }
   GatePassEditViewModel(this._gatePass);
   GatePassAccess _gatePass;
   GatePassAccess get gatePass => _gatePass;
@@ -63,6 +138,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   final _workerQueManager = locator<WorkerQueManager>();
   final _connectionService = locator<ConnectionService>();
   final _masterFilesService = locator<MasterFilesService>();
+  final _isoTypeService = locator<IsoTypeService>();
   //IncidentManagerService
   final _incidentManagerService = locator<IncidentManagerService>();
   final _checkListService = locator<CheckListServiceService>();
@@ -94,7 +170,16 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   bool get isManualInput =>
       gatePass.externalId == null || gatePass.externalId!.isEmpty;
+
+  bool get isVisitor =>
+      gatePass.gatePassBookingType == GatePassBookingType.visitor;
   bool get hasPreBooking => !isManualInput;
+
+  bool get isManualEntryWizard => isManualInput && !_isExitMode;
+
+  bool get isContainerCargo =>
+      gatePass.gatePassBookingType == GatePassBookingType.containers;
+  bool get isBreakbulkCargo => !isContainerCargo;
 
   bool get hasVehicleManualInputPermission {
     return hasPermission(
@@ -116,7 +201,226 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     return gatePass.hasDriverInfo && gatePass.transporterId == null;
   }
 
+  final TextEditingController containerNumberController =
+      TextEditingController();
   bool get logisticsInfoComplete => gatePass.transporterId != null;
+    static const int _maxManualContainerCards = 3;
+  int _manualContainerCardCount = 1;
+  int get manualContainerCardCount => _manualContainerCardCount;
+  bool get canAddManualContainerCard =>
+      _manualContainerCardCount < _maxManualContainerCards;
+
+  bool _hasContainerPayload(GatePassAccessContainerModel c) {
+    return (c.containerNumber?.trim().isNotEmpty ?? false) ||
+        c.containerDeliveryType != null ||
+        c.gatePassContainerType != null ||
+        c.shippingLineId != null ||
+        c.customerId != null ||
+        c.depotId != null;
+  }
+
+  void _sanitizeContainersForApi() {
+    if (gatePass.containers == null) return;
+    for (final c in gatePass.containers!) {
+      if (c.id != null && c.id!.trim().isEmpty) {
+        c.id = null;
+      }
+      final id = c.id?.trim();
+      if (id != null &&
+          !RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
+              .hasMatch(id)) {
+        c.id = null;
+      }
+    }
+    gatePass.containers = gatePass.containers!.where(_hasContainerPayload).toList();
+    if (gatePass.containers!.isEmpty) {
+      gatePass.containers = null;
+    }
+  }
+
+  void addManualContainerCard() {
+    if (!canAddManualContainerCard) return;
+    _manualContainerCardCount++;
+    _ensureManualContainerSlots();
+    rebuildUi();
+  }
+
+  void removeManualContainerCard() {
+    if (_manualContainerCardCount <= 1) return;
+    _manualContainerCardCount--;
+    _ensureManualContainerSlots();
+    rebuildUi();
+  }
+
+
+  void _ensureManualContainerSlots() {
+    gatePass.containers ??= <GatePassAccessContainerModel>[];
+    while (gatePass.containers!.length < _manualContainerCardCount) {
+      gatePass.containers!.add(GatePassAccessContainerModel());
+    }
+    if (gatePass.containers!.length > _manualContainerCardCount) {
+      gatePass.containers = gatePass.containers!.sublist(0, _manualContainerCardCount);
+    }
+    for (var i = 0; i < gatePass.containers!.length; i++) {
+      gatePass.containers![i].containerSetNo = i + 1;
+    }
+  }
+
+  void _syncPrimaryContainerFromGatePass() {
+    if (gatePass.containers == null || gatePass.containers!.isEmpty) return;
+    final primary = gatePass.containers!.first;
+    primary.containerNumber = gatePass.containerNumber;
+    primary.containerIsoCode = gatePass.containerIsoCode;
+    primary.containerSize = gatePass.containerSize;
+    primary.containerSizeId = gatePass.containerSizeId;
+    primary.containerType = gatePass.containerType;
+    primary.containerTypeId = gatePass.containerTypeId;
+    primary.containerDeliveryType = gatePass.containerDeliveryType;
+    primary.deliveryType = gatePass.containerDeliveryType?.value;
+    primary.gatePassContainerType = gatePass.gatePassContainerType;
+    primary.containerShippingLine = gatePass.containerShippingLine;
+    primary.shippingLineId = gatePass.containerShippingLineId;
+    primary.containerCustomer = gatePass.containerCustomer;
+    primary.customerId = gatePass.containerCustomerId;
+    primary.containerDepot = gatePass.containerDepot;
+    primary.depotId = gatePass.containerDepotId;
+  }
+
+  void _syncGatePassFromContainer(int index) {
+    if (index != 0) return;
+    final c = getManualContainer(0);
+    gatePass.containerNumber = c.containerNumber;
+    gatePass.containerIsoCode = c.containerIsoCode;
+    gatePass.containerSize = c.containerSize;
+    gatePass.containerSizeId = c.containerSizeId;
+    gatePass.containerType = c.containerType;
+    gatePass.containerTypeId = c.containerTypeId;
+    gatePass.containerDeliveryType = c.containerDeliveryType;
+    gatePass.gatePassContainerType = c.gatePassContainerType;
+    gatePass.containerShippingLine = c.containerShippingLine;
+    gatePass.containerShippingLineId = c.shippingLineId;
+    gatePass.containerCustomer = c.containerCustomer;
+    gatePass.containerCustomerId = c.customerId;
+    gatePass.containerDepot = c.containerDepot;
+    gatePass.containerDepotId = c.depotId;
+    containerNumberController.text = c.containerNumber ?? '';
+  }
+
+  String getManualContainerNumber(int index) {
+    if (index == 0) {
+      return gatePass.containerNumber ?? '';
+    }
+    _ensureManualContainerSlots();
+    return gatePass.containers![index].containerNumber ?? '';
+  }
+
+  void setManualContainerNumber(int index, String value) {
+    final normalized = value.toUpperCase();
+    _ensureManualContainerSlots();
+    gatePass.containers![index].containerNumber = normalized;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+
+
+  GatePassAccessContainerModel getManualContainer(int index) {
+    _ensureManualContainerSlots();
+    return gatePass.containers![index];
+  }
+
+  void setManualContainerSize(int index, String? sizeLabel) {
+    final c = getManualContainer(index);
+    final selected = containerSizeOptions.firstWhereOrNull((s) => s.label == sizeLabel);
+    c.containerSize = selected?.label;
+    c.containerSizeId = selected?.id;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerType(int index, String? typeCode) {
+    final c = getManualContainer(index);
+    final selected = containerTypeOptions.firstWhereOrNull((t) => t.code == typeCode);
+    c.containerType = selected?.label;
+    c.containerTypeId = selected?.id;
+    c.containerIsoCode = selected?.code;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerDeliveryType(int index, DeliveryType? value) {
+    final c = getManualContainer(index);
+    c.containerDeliveryType = value;
+    c.deliveryType = value?.value;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerCargoType(int index, GatePassContainerType? value) {
+    final c = getManualContainer(index);
+    c.gatePassContainerType = value;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerShippingLine(int index, int? shippingLineId) {
+    final c = getManualContainer(index);
+    c.shippingLineId = shippingLineId;
+    c.containerShippingLine = _shippingLines.firstWhereOrNull((s) => s.id == shippingLineId)?.name;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerCustomer(int index, int? customerId) {
+    final c = getManualContainer(index);
+    c.customerId = customerId;
+    c.containerCustomer = _containerCustomers.firstWhereOrNull((x) => x.id == customerId)?.name;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+  void setManualContainerDepot(int index, int? depotId) {
+    final c = getManualContainer(index);
+    c.depotId = depotId;
+    c.containerDepot = _containerDepots.firstWhereOrNull((x) => x.id == depotId)?.name;
+    _syncGatePassFromContainer(index);
+    rebuildUi();
+  }
+
+
+
+  String? manualContainerTypeDropdownValue(int index) {
+    final c = getManualContainer(index);
+    final raw = c.containerIsoCode ?? c.containerType;
+    final code = _extractContainerTypeCode(raw);
+    if (code == null) return null;
+    final exists = containerTypeOptions.any((t) => t.code == code);
+    return exists ? code : null;
+  }
+
+  String? manualContainerSizeDropdownValue(int index) {
+    final c = getManualContainer(index);
+    final size = c.containerSize;
+    if (size == null) return null;
+    final exists = containerSizeOptions.any((t) => t.label == size);
+    return exists ? size : null;
+  }
+
+  int? manualContainerShippingLineDropdownValue(int index) {
+    final c = getManualContainer(index);
+    return c.shippingLineId;
+  }
+
+  int? manualContainerCustomerDropdownValue(int index) {
+    final c = getManualContainer(index);
+    return c.customerId;
+  }
+
+  int? manualContainerDepotDropdownValue(int index) {
+    final c = getManualContainer(index);
+    return c.depotId;
+  }
+
   bool _sameReg(String? a, String? b) {
     if (a == null || b == null) return false;
     return a.replaceAll(' ', '').toUpperCase() ==
@@ -139,7 +443,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       gatePass.gatePassContainerType != null &&
       gatePass.containerShippingLine != null;
 
-// Driver information section
+  // Driver information section
   final GlobalKey driverInfoCardKey = GlobalKey(debugLabel: 'driverInfoCard');
   final GlobalKey vehicleInfoCardKey = GlobalKey(debugLabel: 'vehicleInfoCard');
   final GlobalKey trailerOneInfoCardKey =
@@ -147,7 +451,13 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   final GlobalKey trailerTwoInfoCardKey =
       GlobalKey(debugLabel: 'trailerTwoInfoCard');
 
-// Container information section
+  // Logistics information section
+  final GlobalKey logisticsInfoCardKey =
+      GlobalKey(debugLabel: 'logisticsInfoCard');
+  final GlobalKey<FormFieldState> transporterDropdownKey =
+      GlobalKey<FormFieldState>(debugLabel: 'transporterDropdown');
+
+  // Container information section
   final GlobalKey containerInfoCardKey =
       GlobalKey(debugLabel: 'containerInfoCard');
   final GlobalKey timesInfoCardKey = GlobalKey(debugLabel: 'timesInfoCard');
@@ -185,6 +495,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   BarcodeScanType _barcodeScanType = BarcodeScanType.driversCard;
   BarcodeScanType get barcodeScanType => _barcodeScanType;
+  bool _isSubmittingGatePass = false;
   void setBarcodeScanType(BarcodeScanType type) {
     _barcodeScanType = type;
     _scanningService.setBarcodeScanType(type);
@@ -192,6 +503,12 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   // Manual entry tracking
+  ManualEntryStep _manualEntryStep = ManualEntryStep.scanDriver;
+  ManualEntryStep get manualEntryStep => _manualEntryStep;
+
+  bool get manualEntryScanComplete =>
+      !isManualEntryWizard ||
+      _manualEntryStep.index >= ManualEntryStep.selectTransporter.index;
   bool _vehicleManualEntryUsed = false;
   bool _vehicleManualPhotoTaken = false;
   bool get vehicleManualEntryUsed => _vehicleManualEntryUsed;
@@ -207,17 +524,56 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   bool get trailerTwoManualEntryUsed => _trailerTwoManualEntryUsed;
   bool get trailerTwoManualPhotoTaken => _trailerTwoManualPhotoTaken;
 
+  bool _isExitMode = false;
+  bool get isExitMode => _isExitMode;
+
+  // Exit scan tracking
+  bool _driverScannedOnExit = false;
+  bool get driverScannedOnExit => _driverScannedOnExit;
+
+  bool _vehicleScannedOnExit = false;
+  bool get vehicleScannedOnExit => _vehicleScannedOnExit;
+
+  bool _trailerOneScannedOnExit = false;
+  bool get trailerOneScannedOnExit => _trailerOneScannedOnExit;
+
+  bool _trailerTwoScannedOnExit = false;
+  bool get trailerTwoScannedOnExit => _trailerTwoScannedOnExit;
+
+  String? get trailerOneEntryReg => (gatePass.trailerRegNumberOne != null &&
+          gatePass.trailerRegNumberOne!.isNotEmpty)
+      ? gatePass.trailerRegNumberOne
+      : gatePass.trailerRegNumberOneValidation;
+
+  bool get hasTrailerOneEntryReg =>
+      trailerOneEntryReg != null && trailerOneEntryReg!.isNotEmpty;
+
+  String? get trailerTwoEntryReg => (gatePass.trailerRegNumberTwo != null &&
+          gatePass.trailerRegNumberTwo!.isNotEmpty)
+      ? gatePass.trailerRegNumberTwo
+      : gatePass.trailerRegNumberTwoValidation;
+
+  bool get hasTrailerTwoEntryReg =>
+      trailerTwoEntryReg != null && trailerTwoEntryReg!.isNotEmpty;
+
   List<BaseLookup> _customers = <BaseLookup>[];
   List<BaseLookup> get customers => _customers;
   Future<void> initialize() async {
     // Initialize scanner with the selected barcode type
     _scanningService.initialise(barcodeScanType: _barcodeScanType);
     await startScanListener();
+
+    // For new manual entries
+    if (isManualEntryWizard) {
+      _manualEntryStep = ManualEntryStep.scanDriver;
+      setBarcodeScanType(BarcodeScanType.driversCard);
+    }
   }
 
   Future<void> dispose() async {
     streamSubscription?.cancel();
     streamSubscriptionForDisc?.cancel();
+    containerNumberController.dispose();
     //  _scanningService.onExit(); // Properly disable scanner when done
 
     //super.dispose();
@@ -227,7 +583,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     await dispose();
   }
 
-  void scrollToWidget(GlobalKey key, {Duration duration = const Duration(milliseconds: 400)}) {
+  void scrollToWidget(GlobalKey key,
+      {Duration duration = const Duration(milliseconds: 400)}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (key.currentContext != null) {
         Scrollable.ensureVisible(
@@ -256,62 +613,74 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
 // Example of scrolling to a section based on validation errors
   void scrollToFirstError() {
-    scrollController.animateTo(0, duration: const Duration(milliseconds: 400), curve: Curves.easeIn);
+    scrollController.animateTo(0,
+        duration: const Duration(milliseconds: 400), curve: Curves.easeIn);
   }
 
-Future<void> runStartupLogic() async {
-  if (isManualInput && (gatePass.id == null || gatePass.id.isEmpty || gatePass.id == Guid.defaultValue.toString())) {
-    
-    log.i('Creating new manual gate pass at startup with initial ID');
-    
-    gatePass.id = Guid.newGuidAsString;
-    gatePass.isActive = true;
-    gatePass.canRelease = false;
-    gatePass.timeAtGate = DateTime.now();
-    gatePass.isManualInput = true;
-    gatePass.isHazardous = false;
-    gatePass.hasBeenPrinted = false;
-    gatePass.timeInYardDuration = 0;
-    gatePass.isOverride ??= false;
-    gatePass.isVehicleManualInput ??= false;
-    gatePass.isTrailerOneManualInput ??= false;
-    gatePass.isTrailerTwoManualInput ??= false;
-    gatePass.isTrailerOneOverride ??= false;
-    gatePass.isTrailerTwoOverride ??= false;
-    gatePass.driverHasForeignID ??= false;
-    gatePass.grossWeightIn ??= 0;
-    gatePass.grossWeightOut ??= 0;
-    gatePass.tareWeightIn ??= 0;
-    gatePass.tareWeightOut ??= 0;
-    gatePass.netWeightIn ??= 0;
-    gatePass.netWeightOut ??= 0;
-    gatePass.varianceIn ??= 0;
-    gatePass.varianceOut ??= 0;
-    gatePass.productVariance ??= 0;
-    gatePass.totalProductGrossWeight ??= 0;
-    gatePass.vehicleTare ??= 0;
-    
-    gatePass.gatePassStatus = GatePassStatus.pending;
-    
-    if (currentUser?.userBranches != null && currentUser!.userBranches.isNotEmpty) {
-      gatePass.branchId = currentUser!.userBranches.first.id!;
-    }
-    
-    if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
-      gatePass.containerId = "00000000-0000-0000-0000-000000000000";
-      gatePass.handleContainers();
-    }
-    
-    try {
-      var createdGatePass = await _gatePassService.createGatePass(gatePass);
-      
-      if (createdGatePass != null) {
-        _gatePass = createdGatePass;
-        log.i('Manual gatepass created successfully with ID: ${_gatePass.id}');
-      } else {
-        log.e('Failed to create manual gatepass in backend');
+  Future<void> runStartupLogic() async {
+    if (isManualInput &&
+        (gatePass.id == null ||
+            gatePass.id.isEmpty ||
+            gatePass.id == Guid.defaultValue.toString())) {
+      gatePass.id = Guid.newGuidAsString;
+      gatePass.isActive = true;
+      gatePass.canRelease = false;
+      gatePass.timeAtGate = DateTime.now();
+      gatePass.isManualInput = true;
+      gatePass.isHazardous = false;
+      gatePass.hasBeenPrinted = false;
+      gatePass.timeInYardDuration = 0;
+      gatePass.isOverride ??= false;
+      gatePass.isVehicleManualInput ??= false;
+      gatePass.isTrailerOneManualInput ??= false;
+      gatePass.isTrailerTwoManualInput ??= false;
+      gatePass.isTrailerOneOverride ??= false;
+      gatePass.isTrailerTwoOverride ??= false;
+      gatePass.driverHasForeignID ??= false;
+      gatePass.grossWeightIn ??= 0;
+      gatePass.grossWeightOut ??= 0;
+      gatePass.tareWeightIn ??= 0;
+      gatePass.tareWeightOut ??= 0;
+      gatePass.netWeightIn ??= 0;
+      gatePass.netWeightOut ??= 0;
+      gatePass.varianceIn ??= 0;
+      gatePass.varianceOut ??= 0;
+      gatePass.productVariance ??= 0;
+      gatePass.totalProductGrossWeight ??= 0;
+      gatePass.vehicleTare ??= 0;
+
+      gatePass.gatePassStatus = GatePassStatus.pending;
+
+      if (currentUser?.userBranches != null &&
+          currentUser!.userBranches.isNotEmpty) {
+        gatePass.branchId = getSelectedScannerBranchId();
+      }
+      if (gatePass.containerNumber != null) {
+        containerNumberController.text = gatePass.containerNumber!;
+      }
+      if (gatePass.gatePassBookingType == GatePassBookingType.containers) {}
+
+      try {
+        _sanitizeContainersForApi();
+        var createdGatePass = await _gatePassService.createGatePass(gatePass);
+
+        if (createdGatePass != null) {
+          _gatePass = createdGatePass;
+        } else {
+          Fluttertoast.showToast(
+            msg: "Failed to create gate pass. Please try again.",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM_LEFT,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 14.0,
+          );
+          _navigationService.back();
+          return;
+        }
+      } catch (e) {
         Fluttertoast.showToast(
-          msg: "Failed to create gate pass. Please try again.",
+          msg: "Error creating gate pass: ${e.toString()}",
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM_LEFT,
           backgroundColor: Colors.red,
@@ -321,61 +690,56 @@ Future<void> runStartupLogic() async {
         _navigationService.back();
         return;
       }
-    } catch (e) {
-      log.e('Error creating manual gatepass: $e');
-      Fluttertoast.showToast(
-        msg: "Error creating gate pass: ${e.toString()}",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM_LEFT,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 14.0,
-      );
-      _navigationService.back();
-      return;
+    }
+
+    if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      await loadShippingLines();
+      await loadContainerCustomers();
+      await loadContainerDepots();
+    }
+
+    if (gatePass.gatePassBookingType == GatePassBookingType.containers &&
+        gatePass.id != null &&
+        gatePass.id.isNotEmpty &&
+        (gatePass.containers == null || gatePass.containers!.isEmpty)) {
+      await reloadGatePassWithContainers();
+    }
+
+    if (gatePass.gatePassBookingType == GatePassBookingType.containers &&
+        gatePass.containerNumber == null &&
+        gatePass.containers != null &&
+        gatePass.containers!.isNotEmpty) {
+      loadContainerDetailsFromArray();
+    }
+    _ensureManualContainerSlots();
+    _syncPrimaryContainerFromGatePass();
+
+    await loadFileStoreImages();
+
+    if (isManualInput) {
+      loadTransporters();
+      loadCustomers();
+    }
+
+    notifyListeners();
+
+    if (gatePass.driverHasForeignID == true) {
+      setBarcodeScanType(BarcodeScanType.vehicleDisc);
+    } else {
+      setBarcodeScanType(BarcodeScanType.driversCard);
+    }
+
+    await initialize();
+
+    if (gatePass.gatePassStatus == GatePassStatus.inYard) {
+      _isExitMode = true;
+      if (gatePass.driverHasForeignID == true) {
+        setBarcodeScanType(BarcodeScanType.vehicleDisc);
+      } else {
+        setBarcodeScanType(BarcodeScanType.driversCard);
+      }
     }
   }
-  
-  if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
-    await loadShippingLines();
-    await loadContainerCustomers();
-    await loadContainerDepots();
-  }
-
-  if (gatePass.gatePassBookingType == GatePassBookingType.containers &&
-      gatePass.id != null && 
-      gatePass.id.isNotEmpty &&
-      (gatePass.containers == null || gatePass.containers!.isEmpty)) {
-    await reloadGatePassWithContainers();
-  }
-  
-  if (gatePass.gatePassBookingType == GatePassBookingType.containers &&
-      gatePass.containerNumber == null &&
-      gatePass.containers != null &&
-      gatePass.containers!.isNotEmpty) {
-    loadContainerDetailsFromArray();
-  }
-  
-  await loadFileStoreImages();
-  
-  if (isManualInput) {
-    loadTransporters();
-    loadCustomers();
-  }
-  
-  notifyListeners();
-
-   //_customers = await _masterFilesService.getAllLocalDetainOptions("");
-
-    //setCustomValidations();
-  if (gatePass.driverHasForeignID == true) {
-    setBarcodeScanType(BarcodeScanType.vehicleDisc);
-  } else {
-    setBarcodeScanType(BarcodeScanType.driversCard);
-  }
-
-  await initialize();
-}
 
   void toggleVehicleManualInput() {
     _showVehicleManualInput = !_showVehicleManualInput;
@@ -430,7 +794,7 @@ Future<void> runStartupLogic() async {
     final checkListFindTemplateModel =
         await _checkListService.findChecklistTemplate(
       FilterParams(
-        branchId: currentUser?.userBranches.first.id,
+        branchId: gatePass.branchId,
         gateAccessBookingType: bookingType,
         gatePassAccessId: gatePass.id,
         gateAccessDeliveryType: deliveryType,
@@ -491,7 +855,7 @@ Future<void> runStartupLogic() async {
       Routes.checkListView,
       arguments: CheckListViewArguments(
         filterParams: FilterParams(
-          branchId: currentUser?.userBranches.first.id,
+          branchId: gatePass.branchId,
           gateAccessBookingType: bookingType,
           gatePassAccessId: gatePass.id,
           gateAccessDeliveryType: deliveryType,
@@ -515,7 +879,6 @@ Future<void> runStartupLogic() async {
     // Also listen to license disk data for vehicle scans
     streamSubscription =
         _scanningService.licenseStream.asBroadcastStream().listen((data) async {
-      log.i("Drivers Card data received");
       // Process the driversCard  data here
       // This would populate a GatePassVisitorAccess from the driversCard data
       processScanData(data, null);
@@ -524,7 +887,6 @@ Future<void> runStartupLogic() async {
     streamSubscriptionForDisc = _scanningService.licenseDiskDataStream
         .asBroadcastStream()
         .listen((licenseDiskData) async {
-      log.i("Vehicle Lisence Plate data received");
       // Process the license disk data here
       // This would populate a GatePassVisitorAccess from the license disk data
       processScanData(null, licenseDiskData);
@@ -549,26 +911,23 @@ Future<void> runStartupLogic() async {
 
   void setVehicleValidationMessage() {
     if (isManualInput) {
-      if (gatePass.transporterId == null) {
-        setValidationMessage("Transporter is required for manual entries");
-      } else {
-        clearValidationMessage("Transporter is required for manual entries");
-      }
       clearValidationMessage("Vehicle details do not match");
       return;
     }
 
-    var msg = ValidationMessages.regNoMismatch("Vehicle registration",
-        gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
-    if (gatePass.vehicleRegNoMatch == false) {
+    bool regsMatch = _sameReg(gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
+
+    if (!regsMatch) {
+      var msg = ValidationMessages.regNoMismatch("Vehicle registration",
+          gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
       setValidationMessage(msg);
-      if (hasVehicleManualInputPermission) {
-        _showVehicleManualInput = true;
-        scrollToVehicleInfoCardKey();
+      if (gatePass.vehicleRegNumber == null ||
+          gatePass.vehicleRegNumber!.isEmpty) {
+        gatePass.vehicleRegNumber = gatePass.vehicleRegNumberValidation;
       }
       logIncident(msg);
     } else {
-      clearValidationMessage(msg);
+      clearValidationMessage("Vehicle details do not match");
     }
   }
 
@@ -579,6 +938,12 @@ Future<void> runStartupLogic() async {
         clearValidationMessage("Trailer one details do not match");
         return;
       }
+
+      if (gatePass.isTrailerOneOverride == true) {
+        clearValidationMessage("Trailer one details do not match");
+        return;
+      }
+
       var msg = ValidationMessages.regNoMismatch("Trailer One registration",
           gatePass.trailerRegNumberOne, gatePass.trailerRegNumberOneValidation);
       if (gatePass.trailerRegNumberOneMatch == false) {
@@ -592,6 +957,16 @@ Future<void> runStartupLogic() async {
         clearValidationMessage(msg);
       }
     } else {
+      if (isManualInput) {
+        clearValidationMessage("Trailer two details do not match");
+        return;
+      }
+
+      if (gatePass.isTrailerTwoOverride == true) {
+        clearValidationMessage("Trailer two details do not match");
+        return;
+      }
+
       var msg = ValidationMessages.regNoMismatch(
         "Trailer Two registration",
         gatePass.trailerRegNumberTwo,
@@ -668,45 +1043,201 @@ Future<void> runStartupLogic() async {
         case BarcodeScanType.driversCard:
           if (rsaDriversLicense != null) {
             await processDriversLicenseData(rsaDriversLicense);
+            if (_isExitMode) {
+              _driverScannedOnExit = true;
+            }
           }
           break;
 
         case BarcodeScanType.vehicleDisc:
           if (vehicleLicenseData != null) {
             await processVehicleLicenseData(vehicleLicenseData);
+            if (_isExitMode) {
+              _vehicleScannedOnExit = true;
+            }
           }
           break;
 
         case BarcodeScanType.trailerOneDisc:
           if (vehicleLicenseData != null) {
             await processTrailerOneLicenseData(vehicleLicenseData);
+            if (_isExitMode) {
+              _trailerOneScannedOnExit = true;
+            }
           }
           break;
 
         case BarcodeScanType.trailerTwoDisc:
           if (vehicleLicenseData != null) {
             await processTrailerTwoLicenseData(vehicleLicenseData);
+            if (_isExitMode) {
+              _trailerTwoScannedOnExit = true;
+            }
           }
           break;
 
         default:
-          // Handle other barcode types if needed
           break;
       }
 
       setModelUpdate(_gatePass);
       rebuildUi();
+      await Future.delayed(const Duration(milliseconds: 500));
+      _scrollToNextCard();
     } catch (e) {
-      setValidationMessage(ValidationMessages.scanProcessingFailed(e.toString()));
+      setValidationMessage(
+          ValidationMessages.scanProcessingFailed(e.toString()));
       rebuildUi();
     }
   }
 
+  void _scrollToNextCard() {
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    if (_barcodeScanType == BarcodeScanType.driversCard) {
+      setBarcodeScanType(BarcodeScanType.vehicleDisc);
+      scrollToWidget(vehicleInfoCardKey);
+    } else if (_barcodeScanType == BarcodeScanType.vehicleDisc) {
+      if (isManualInput || hasTrailerOneEntryReg) {
+        setBarcodeScanType(BarcodeScanType.trailerOneDisc);
+        scrollToWidget(trailerOneInfoCardKey);
+      } else if (isManualInput || hasTrailerTwoEntryReg) {
+        setBarcodeScanType(BarcodeScanType.trailerTwoDisc);
+        scrollToWidget(trailerTwoInfoCardKey);
+      } else if (isManualInput && !_isExitMode) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          scrollToWidget(logisticsInfoCardKey);
+        });
+      } else if (_isExitMode) {
+        Fluttertoast.showToast(
+          msg: "Exit scanning complete. Ready to authorize exit.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+        scrollToWidget(timesInfoCardKey);
+      } else if (gatePass.gatePassBookingType == GatePassBookingType.containers &&
+          isManualInput &&
+          !_isExitMode) {
+        scrollToWidget(containerInfoCardKey);
+      } else {
+        scrollToWidget(timesInfoCardKey);
+      }
+    } else if (_barcodeScanType == BarcodeScanType.trailerOneDisc) {
+      if (isManualInput || hasTrailerTwoEntryReg) {
+        setBarcodeScanType(BarcodeScanType.trailerTwoDisc);
+        scrollToWidget(trailerTwoInfoCardKey);
+      } else if (isManualInput && !_isExitMode) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          scrollToWidget(logisticsInfoCardKey);
+        });
+      } else if (_isExitMode) {
+        Fluttertoast.showToast(
+          msg: "Exit scanning complete. Ready to authorize exit.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+        scrollToWidget(timesInfoCardKey);
+      } else if (gatePass.gatePassBookingType ==
+          GatePassBookingType.containers) {
+        scrollToWidget(containerInfoCardKey);
+      } else {
+        scrollToWidget(timesInfoCardKey);
+      }
+    } else if (_barcodeScanType == BarcodeScanType.trailerTwoDisc) {
+      if (isManualInput && !_isExitMode) {
+        rebuildUi();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          rebuildUi();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            rebuildUi();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (logisticsInfoCardKey.currentContext != null) {
+                Scrollable.ensureVisible(
+                  logisticsInfoCardKey.currentContext!,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
+                Fluttertoast.showToast(
+                  msg: "Please select Transporter ↓",
+                  toastLength: Toast.LENGTH_LONG,
+                  gravity: ToastGravity.CENTER,
+                  backgroundColor: Colors.blue,
+                  textColor: Colors.white,
+                );
+              } else {
+                Fluttertoast.showToast(
+                  msg: "Please select Transporter",
+                  toastLength: Toast.LENGTH_LONG,
+                  gravity: ToastGravity.CENTER,
+                  backgroundColor: Colors.blue,
+                  textColor: Colors.white,
+                );
+              }
+            });
+          });
+        });
+      } else if (_isExitMode) {
+        Fluttertoast.showToast(
+          msg: "Exit scanning complete. Ready to authorize exit.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+        scrollToWidget(timesInfoCardKey);
+      } else {
+        if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+          scrollToWidget(containerInfoCardKey);
+        } else {
+          scrollToWidget(timesInfoCardKey);
+        }
+      }
+    }
+  }
+
+  void _advanceManualEntryStepAfterScan() {
+    switch (_manualEntryStep) {
+      case ManualEntryStep.scanDriver:
+        _manualEntryStep = ManualEntryStep.scanVehicle;
+        setBarcodeScanType(BarcodeScanType.vehicleDisc);
+        break;
+
+      case ManualEntryStep.scanVehicle:
+        _manualEntryStep = ManualEntryStep.scanTrailer1;
+        setBarcodeScanType(BarcodeScanType.trailerOneDisc);
+        break;
+
+      case ManualEntryStep.scanTrailer1:
+        _manualEntryStep = ManualEntryStep.scanTrailer2;
+        setBarcodeScanType(BarcodeScanType.trailerTwoDisc);
+        break;
+
+      case ManualEntryStep.scanTrailer2:
+        _manualEntryStep = ManualEntryStep.selectTransporter;
+        break;
+
+      case ManualEntryStep.selectTransporter:
+      case ManualEntryStep.containerDetails:
+      case ManualEntryStep.done:
+        break;
+    }
+
+    rebuildUi();
+  }
+
   // Process driver's license data
-  Future<void> processDriversLicenseData(RsaDriversLicense driversLicense) async {
-    gatePass.driverName ='${driversLicense.firstNames} ${driversLicense.surname}';
+  Future<void> processDriversLicenseData(
+      RsaDriversLicense driversLicense) async {
+    gatePass.driverName =
+        '${driversLicense.firstNames} ${driversLicense.surname}';
     gatePass.driverIdNoValidation = driversLicense.idNumber;
-    if (isManualInput) {gatePass.driverIdNo = driversLicense.idNumber;}
+    if (isManualInput) {
+      gatePass.driverIdNo = driversLicense.idNumber;
+    }
     setDriverValidationMessage();
 
     gatePass.driverLicenceNo = driversLicense.licenseNumber;
@@ -726,57 +1257,69 @@ Future<void> runStartupLogic() async {
       logIncident(
           "Driver (${driversLicense.firstNames} ${driversLicense.surname}, ${driversLicense.idNumber}) with PRDP expired on ${driversLicense.prdpExpiry}. Please check the driver's PRDP validity. ");
     }
-    // Navigate to appropriate section
-    if (showValidation) {
-      scrollToFirstError();
-    } else {
-      // Move to vehicle disc scanning
-      setBarcodeScanType(BarcodeScanType.vehicleDisc);
-      scrollToVehicleInfoCardKey();
-    }
   }
 
-  // Process vehicle license data
+// Process vehicle license data
   Future<void> processVehicleLicenseData(
       LicenseDiskData vehicleLicenseData) async {
     gatePass.vehicleEngineNumber = vehicleLicenseData.engineNumber;
     gatePass.vehicleMake = vehicleLicenseData.make;
-    gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
-    if (isManualInput) {
-      gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
-    }
-    setVehicleValidationMessage();
     gatePass.vehicleVinNumber = vehicleLicenseData.vin;
     gatePass.vehicleRegisterNumber = vehicleLicenseData.vehicleRegisterNo;
+    gatePass.branchId = getSelectedScannerBranchId();
 
     if (vehicleLicenseData.expiryDate != null &&
         vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
       logIncident(
           "Vehicle (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
     }
-    // Determine next scan target based on trailer existence
-    BarcodeScanType nextScanType = BarcodeScanType.vehicleDisc; // Default
-    GlobalKey? nextSection;
 
-    if (gatePass.trailerRegNumberOne != null &&
-        gatePass.trailerRegNumberOne!.isNotEmpty) {
-      nextScanType = BarcodeScanType.trailerOneDisc;
-      nextSection = trailerOneInfoCardKey;
-    } else if (gatePass.trailerRegNumberTwo != null &&
-        gatePass.trailerRegNumberTwo!.isNotEmpty) {
-      nextScanType = BarcodeScanType.trailerTwoDisc;
-      nextSection = trailerTwoInfoCardKey;
-    } else if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
-      nextSection = containerInfoCardKey;
+    if (_isExitMode) {
+      gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
+
+      if (!_sameReg(
+          gatePass.vehicleRegNumber, vehicleLicenseData.licensePlateNo)) {
+        var msg =
+            "EXIT MISMATCH: Vehicle registration does not match entry record. Entry: ${gatePass.vehicleRegNumber}, Exit Scan: ${vehicleLicenseData.licensePlateNo}";
+        setValidationMessage(msg);
+        logIncident(msg);
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.warning,
+          title: "Exit Verification Warning",
+          description:
+              "Vehicle registration does not match entry record.\n\nEntry Record: ${gatePass.vehicleRegNumber}\nExit Scan: ${vehicleLicenseData.licensePlateNo}\n\nIncident has been logged. You may continue with exit authorization.",
+          mainButtonTitle: "Continue",
+        );
+      } else {
+        clearValidationMessage(
+            "EXIT MISMATCH: Vehicle registration does not match entry record");
+
+        Fluttertoast.showToast(
+          msg: "Vehicle matches entry record ✓",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+      }
+
+      _vehicleScannedOnExit = true;
+      rebuildUi();
+      return;
+    }
+    gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
+
+    if (isManualInput) {
+      gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
     }
 
-    // Set next scan type and scroll to appropriate section
-    setBarcodeScanType(nextScanType);
+    setVehicleValidationMessage();
+
 
     if (showValidation) {
       scrollToFirstError();
-    } else if (nextSection != null) {
-      scrollToWidget(nextSection);
     }
   }
 
@@ -788,49 +1331,121 @@ Future<void> runStartupLogic() async {
     // Check if trailer one reg matches scanned data
 
     // Set validation message
-    setTrailerValidationMessage("One");
+
+    if (_isExitMode) {
+      final expected = trailerOneEntryReg;
+
+      if (expected != null &&
+          !_sameReg(expected, vehicleLicenseData.licensePlateNo)) {
+        var msg =
+            "Trailer One registration on EXIT does not match: Expected $expected, Scanned ${vehicleLicenseData.licensePlateNo}";
+        setValidationMessage(msg);
+        logIncident("EXIT MISMATCH: $msg");
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.warning,
+          title: "Exit Verification Warning",
+          description:
+              "$msg\n\nIncident has been logged. You may continue with exit authorization.",
+          mainButtonTitle: "Continue",
+        );
+      } else {
+        clearAllValidationMessage();
+        if (gatePass.trailerRegNumberOne == null ||
+            gatePass.trailerRegNumberOne!.isEmpty) {
+          gatePass.trailerRegNumberOne = vehicleLicenseData.licensePlateNo;
+        }
+
+        Fluttertoast.showToast(
+          msg: "Trailer One matches entry record ✓",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+      }
+    } else {
+      if (isManualInput &&
+          (gatePass.trailerRegNumberOne == null ||
+              gatePass.trailerRegNumberOne!.isEmpty)) {
+        gatePass.trailerRegNumberOne = vehicleLicenseData.licensePlateNo;
+      }
+
+      setTrailerValidationMessage("One");
+    }
+
     if (vehicleLicenseData.expiryDate != null &&
         vehicleLicenseData.expiryDate!.isBefore(DateTime.now())) {
       logIncident(
           "Trailer One (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
     }
 
-    if (gatePass.trailerRegNumberOneMatch == false &&
+    if (!_isExitMode &&
+        gatePass.trailerRegNumberOneMatch == false &&
         hasTrailerManualInputPermission) {
       _showTrailerOneManualInput = true;
       scrollToWidget(trailerOneInfoCardKey);
       return;
     }
-    // Determine next scan target
-    BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc; // Default
-    GlobalKey? nextSection;
-
-    if (gatePass.trailerRegNumberTwo != null &&
-        gatePass.trailerRegNumberTwo!.isNotEmpty) {
-      nextScanType = BarcodeScanType.trailerTwoDisc;
-      nextSection = trailerTwoInfoCardKey;
-    } else if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
-      nextSection = containerInfoCardKey;
-    }
-
-    // Set next scan type and scroll to appropriate section
-    setBarcodeScanType(nextScanType);
 
     if (showValidation) {
       rebuildUi();
       scrollToFirstError();
-    } else if (nextSection != null) {
-      scrollToWidget(nextSection);
     }
   }
 
-  // Process trailer two license data
+// Process trailer two license data
   Future<void> processTrailerTwoLicenseData(
       LicenseDiskData vehicleLicenseData) async {
     gatePass.trailerRegNumberTwoValidation = vehicleLicenseData.licensePlateNo;
 
-    // Check if trailer two reg matches scanned data
-    // Set validation message
+    // EXIT MODE handling
+    if (_isExitMode) {
+      final expected = trailerTwoEntryReg;
+
+      if (expected != null &&
+          !_sameReg(expected, vehicleLicenseData.licensePlateNo)) {
+        var msg =
+            "Trailer Two registration on EXIT does not match: Expected $expected, Scanned ${vehicleLicenseData.licensePlateNo}";
+        setValidationMessage(msg);
+        logIncident("EXIT MISMATCH: $msg");
+
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.warning,
+          title: "Exit Verification Warning",
+          description:
+              "$msg\n\nIncident has been logged. You may continue with exit authorization.",
+          mainButtonTitle: "Continue",
+        );
+      } else {
+        clearAllValidationMessage();
+        if (gatePass.trailerRegNumberTwo == null ||
+            gatePass.trailerRegNumberTwo!.isEmpty) {
+          gatePass.trailerRegNumberTwo = vehicleLicenseData.licensePlateNo;
+        }
+
+        Fluttertoast.showToast(
+          msg: "Trailer Two matches entry record ✓",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+      }
+
+      _trailerTwoScannedOnExit = true;
+      return;
+    }
+
+    // NORMAL ENTRY MODE (not exit)
+    if (isManualInput &&
+        (gatePass.trailerRegNumberTwo == null ||
+            gatePass.trailerRegNumberTwo!.isEmpty)) {
+      gatePass.trailerRegNumberTwo = vehicleLicenseData.licensePlateNo;
+    }
+
     setTrailerValidationMessage("Two");
 
     if (vehicleLicenseData.expiryDate != null &&
@@ -839,10 +1454,19 @@ Future<void> runStartupLogic() async {
           "Trailer Two (${vehicleLicenseData.make}, ${vehicleLicenseData.licensePlateNo}) expired on ${vehicleLicenseData.expiryDate}. Please check the vehicle's license validity. ");
     }
 
-    if (gatePass.trailerRegNumberTwoMatch == false &&
+    if (!_isExitMode &&
+        gatePass.trailerRegNumberTwoMatch == false &&
         hasTrailerManualInputPermission) {
       _showTrailerTwoManualInput = true;
       scrollToWidget(trailerTwoInfoCardKey);
+      return;
+    }
+
+    if (isManualEntryWizard && !_isExitMode) {
+      if (showValidation) {
+        rebuildUi();
+        scrollToFirstError();
+      }
       return;
     }
 
@@ -850,13 +1474,90 @@ Future<void> runStartupLogic() async {
       rebuildUi();
       scrollToFirstError();
     }
-    // After trailer two, move to container info if applicable
-    if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
-      scrollToContainerInfo();
+  }
+
+void setContainerDeliveryType(DeliveryType? deliveryType) {
+  gatePass.containerDeliveryType = deliveryType;
+  gatePass.gatePassDeliveryType = deliveryType!;
+
+  if (deliveryType != null) {
+    clearValidationMessage("Delivery type is required");
+  } else {
+    setValidationMessage("Delivery type is required");
+  }
+
+  notifyListeners();
+}
+
+  void setContainerCargoType(GatePassContainerType? cargoType) {
+    gatePass.gatePassContainerType = cargoType;
+
+    if (cargoType != null) {
+      clearValidationMessage("Cargo type is required");
+      if (_isContainerInfoComplete()) {
+        Fluttertoast.showToast(
+          msg: "Container details complete! Ready to authorize.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+        scrollToFirstError();
+      } else {
+        Fluttertoast.showToast(
+          msg: "You can add Customer/Depot (optional) or Authorize Entry",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.orange,
+          textColor: Colors.white,
+        );
+      }
     } else {
-      //go back to top
-      scrollToFirstError();
+      setValidationMessage("Cargo type is required");
     }
+
+    notifyListeners();
+  }
+
+  bool _isContainerInfoComplete() {
+    return gatePass.containerNumber != null &&
+        gatePass.containerNumber!.isNotEmpty &&
+        gatePass.containerShippingLine != null &&
+        gatePass.containerShippingLine!.isNotEmpty &&
+        gatePass.containerDeliveryType != null &&
+        gatePass.gatePassContainerType != null;
+  }
+
+  void setContainerCustomer(int? customerId) {
+    if (customerId != null) {
+      var customer =
+          _containerCustomers.firstWhereOrNull((c) => c.id == customerId);
+
+      if (customer != null) {
+        gatePass.containerCustomer = customer.name;
+        gatePass.containerCustomerId = customer.id;
+      }
+    } else {
+      gatePass.containerCustomer = null;
+      gatePass.containerCustomerId = null;
+    }
+
+    notifyListeners();
+  }
+
+  void setContainerDepot(int? depotId) {
+    if (depotId != null) {
+      var depot = _containerDepots.firstWhereOrNull((d) => d.id == depotId);
+      if (depot != null) {
+        gatePass.containerDepot = depot.name;
+        gatePass.containerDepotId = depot.id;
+      }
+    } else {
+      gatePass.containerDepot = null;
+      gatePass.containerDepotId = null;
+    }
+
+    notifyListeners();
   }
 
   handleBackButton() async {
@@ -925,22 +1626,31 @@ Future<void> runStartupLogic() async {
   }
 
   Future<void> saveOnly() async {
+    if (_isSubmittingGatePass) return;
+    _isSubmittingGatePass = true;
+    try {
     if (!_connectionService.hasConnection) {
       await _dialogService.showCustomDialog(
         variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description: 'Could not Save,Please check you internet connection and try again',
+        description:
+            'Could not Save,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
     }
 
     if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      _ensureManualContainerSlots();
       if (gatePass.containerId == null || gatePass.containerId!.isEmpty) {
         gatePass.containerId = Guid.newGuidAsString;
       }
-
-      gatePass.handleContainers();
+      if (gatePass.containers == null || gatePass.containers!.isEmpty) {
+        gatePass.handleContainers();
+      } else {
+        _syncGatePassFromContainer(0);
+      }
+      _sanitizeContainersForApi();
     }
 
     //here we save back to server
@@ -976,15 +1686,22 @@ Future<void> runStartupLogic() async {
     //update Screen UI state with model changes
     setModelUpdate(_gatePass);
     notifyListeners();
+    } finally {
+      _isSubmittingGatePass = false;
+    }
   }
 
 Future<void> authorizeEntry() async {
+  if (_isSubmittingGatePass) return;
+  _isSubmittingGatePass = true;
+  try {
   if (!_connectionService.hasConnection) {
     var confirm = await _dialogService.showCustomDialog(
       variant: DialogType.infoAlert,
       data: BasicDialogStatus.warning,
       title: "Internet Connection Failure",
-       description: 'Could not authorize for entry,Please check you internet connection and try again',
+      description:
+          'Could not authorize for entry,Please check you internet connection and try again',
       mainButtonTitle: "Ok",
     );
 
@@ -992,25 +1709,127 @@ Future<void> authorizeEntry() async {
   }
   setBusy(true);
 
-    // For manual entries
-      if (isManualInput) {
-    if (gatePass.driverIdNo == null && gatePass.driverIdNoValidation != null) {
+  // For manual entries
+  if (isManualInput) {
+    // Check driver information
+    if ((gatePass.driverIdNo == null || gatePass.driverIdNo!.isEmpty) &&
+        (gatePass.driverIdNoValidation == null ||
+            gatePass.driverIdNoValidation!.isEmpty)) {
+      scrollToWidget(driverInfoCardKey);
+      Fluttertoast.showToast(
+        msg:
+        "Please scan or enter driver information before authorizing entry",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      setBusy(false);
+      return;
+    }
+
+    // Check vehicle information
+    if ((gatePass.vehicleRegNumber == null ||
+     gatePass.vehicleRegNumber!.isEmpty) &&
+        (gatePass.vehicleRegNumberValidation == null ||
+            gatePass.vehicleRegNumberValidation!.isEmpty)) {
+      scrollToWidget(vehicleInfoCardKey);
+      Fluttertoast.showToast(
+        msg:
+         "Please scan or enter vehicle registration before authorizing entry",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      setBusy(false);
+      return;
+    }
+
+    // Check transporter
+    if (gatePass.gatePassBookingType != GatePassBookingType.visitor &&
+        gatePass.transporterId == null) {
+      scrollToWidget(logisticsInfoCardKey);
+      Fluttertoast.showToast(
+        msg: "Please select a transporter before authorizing entry",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      setBusy(false);
+      return;
+    }
+
+    // Check container info if applicable
+    if (!_validateContainerInfoForAuthorization()) {
+      setBusy(false);
+      return;
+    }
+
+    // Copy validation data to main fields if needed
+    if (gatePass.driverIdNo == null &&
+      gatePass.driverIdNoValidation != null) {
       gatePass.driverIdNo = gatePass.driverIdNoValidation;
     }
-    if (gatePass.vehicleRegNumber == null && gatePass.vehicleRegNumberValidation != null) {
+    if (gatePass.vehicleRegNumber == null &&
+     gatePass.vehicleRegNumberValidation != null) {
       gatePass.vehicleRegNumber = gatePass.vehicleRegNumberValidation;
-    }
+    }   
     if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      if (containerNumberController.text.isNotEmpty) {
+        gatePass.containerNumber = containerNumberController.text.toUpperCase();
+      }
       if (gatePass.containerId == null || gatePass.containerId!.isEmpty) {
         gatePass.containerId = Guid.newGuidAsString;
       }
       gatePass.handleContainers();
     }
-   
+
+    String? savedContainerId = gatePass.containerId;
+    String? savedContainerNumber = gatePass.containerNumber;
+    String? savedContainerSize = gatePass.containerSize;
+    String? savedContainerType = gatePass.containerType;
+    String? savedContainerIsoCode = gatePass.containerIsoCode;
+    int? savedContainerSizeId = gatePass.containerSizeId;
+    int? savedContainerTypeId = gatePass.containerTypeId;
+    String? savedContainerShippingLine = gatePass.containerShippingLine;
+    int? savedContainerShippingLineId = gatePass.containerShippingLineId;
+    String? savedContainerCustomer = gatePass.containerCustomer;
+    int? savedContainerCustomerId = gatePass.containerCustomerId;
+    String? savedContainerDepot = gatePass.containerDepot;
+    int? savedContainerDepotId = gatePass.containerDepotId;
+    DeliveryType? savedContainerDeliveryType = gatePass.containerDeliveryType;
+    GatePassContainerType? savedGatePassContainerType = gatePass.gatePassContainerType;
+    List<GatePassAccessContainerModel>? savedContainers = gatePass.containers != null 
+        ? List<GatePassAccessContainerModel>.from(gatePass.containers!) 
+        : null;
+
     var updatedGatePass = await _gatePassService.update(gatePass);
-    
+
     if (updatedGatePass != null) {
       _gatePass = updatedGatePass;
+      
+      if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+        gatePass.containerId = savedContainerId;
+        gatePass.containerNumber = savedContainerNumber;
+        gatePass.containerSize = savedContainerSize;
+        gatePass.containerType = savedContainerType;
+        gatePass.containerIsoCode = savedContainerIsoCode;
+        gatePass.containerSizeId = savedContainerSizeId;
+        gatePass.containerTypeId = savedContainerTypeId;
+        gatePass.containerShippingLine = savedContainerShippingLine;
+        gatePass.containerShippingLineId = savedContainerShippingLineId;
+        gatePass.containerCustomer = savedContainerCustomer;
+        gatePass.containerCustomerId = savedContainerCustomerId;
+        gatePass.containerDepot = savedContainerDepot;
+        gatePass.containerDepotId = savedContainerDepotId;
+        gatePass.containerDeliveryType = savedContainerDeliveryType;
+        gatePass.gatePassContainerType = savedGatePassContainerType;
+        gatePass.containers = savedContainers;
+        
+        gatePass.handleContainers();
+      }
     } else {
       Fluttertoast.showToast(
         msg: "Failed to update gate pass. Please try again.",
@@ -1024,10 +1843,10 @@ Future<void> authorizeEntry() async {
       return;
     }
   }
-  
+
   gatePass.timeInYardDuration ??= 0;
 
-    //confirmation before we authorize
+  //confirmation before we authorize
   var confirm = await _dialogService.showCustomDialog(
     variant: DialogType.infoAlert,
     data: BasicDialogStatus.warning,
@@ -1041,51 +1860,69 @@ Future<void> authorizeEntry() async {
     return;
   }
 
-    //check for entry checklist
+  //check for entry checklist
   var checkListCompleted = await findChecklistTemplate();
-
+  
   if (checkListCompleted == false) {
     setBusy(false);
-    return;// If checklist is not completed, do not proceed with authorization
+    return; // If checklist is not completed, do not proceed with authorization
       // Checklist is complete, proceed with authorization
+  }
+
+  if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+    _ensureManualContainerSlots();
+    if (gatePass.containers == null || gatePass.containers!.isEmpty) {
+      gatePass.handleContainers();
+    } else {
+      _syncGatePassFromContainer(0);
     }
-  
+    _sanitizeContainersForApi();
+  }
+
   var response = await _gatePassService.authorizeForEntry(gatePass);
   if (response != null) {
     _gatePass = response;
 
     Fluttertoast.showToast(
-      msg: "Authorize for Entry was successful! ",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM_LEFT,
-      timeInSecForIosWeb: 8,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-      fontSize: 14.0);
+        msg: "Authorize for Entry was successful! ",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM_LEFT,
+        timeInSecForIosWeb: 8,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 14.0);
     _navigationService.back(result: true);
   } else {
-      //error could not save
-      Fluttertoast.showToast(
-          msg: "Save Failed!,Please try again or contact your system admin. ",
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM_LEFT,
-      timeInSecForIosWeb: 8,
-      backgroundColor: Colors.red,
-      textColor: Colors.white,
-      fontSize: 14.0);
+          //error could not save
+    Fluttertoast.showToast(
+        msg: "Save Failed!,Please try again or contact your system admin. ",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM_LEFT,
+        timeInSecForIosWeb: 8,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 14.0);
   }
   setBusy(false);
+  } finally {
+    _isSubmittingGatePass = false;
+  }
 }
 
   Future<void> authorizeExit() async {
+    if (_isSubmittingGatePass) return;
+    _isSubmittingGatePass = true;
+    try {
     if (!_connectionService.hasConnection) {
       await _dialogService.showCustomDialog(
         variant: DialogType.infoAlert,
         data: BasicDialogStatus.warning,
         title: "Internet Connection Failure",
-        description: 'Could not authorize for entry,Please check you internet connection and try again',
+        description:
+            'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
       );
+      return;
     }
 
     //confirmation before we authorize
@@ -1093,7 +1930,8 @@ Future<void> authorizeEntry() async {
       variant: DialogType.infoAlert,
       data: BasicDialogStatus.warning,
       title: "Confirm Exit",
-      description: 'Are you sure you want to authorize this Gate Pass?',
+      description:
+          'Are you sure you want to authorize this Gate Pass for exit?',
       mainButtonTitle: "Confirm",
       secondaryButtonTitle: "Cancel",
     );
@@ -1110,23 +1948,35 @@ Future<void> authorizeEntry() async {
       return; // If checklist is not completed, do not proceed with authorization
       // Checklist is complete, proceed with authorization
     }
+    if (gatePass.gatePassBookingType == GatePassBookingType.containers) {
+      _ensureManualContainerSlots();
+      if (gatePass.containers == null || gatePass.containers!.isEmpty) {
+        gatePass.handleContainers();
+      } else {
+        _syncGatePassFromContainer(0);
+      }
+      _sanitizeContainersForApi();
+    }
+
     //here we save back to server
-    var reponse = await _gatePassService.authorizeExit(gatePass);
-    if (reponse != null) {
-      _gatePass = reponse;
-      setBusy(false);
+    var response = await _gatePassService.authorizeExit(gatePass);
+    if (response != null) {
+      _gatePass = response;
       Fluttertoast.showToast(
-          msg: "Authorize for Exit was successful! ",
+          msg: "Authorize for Exit was successful!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM_LEFT,
           timeInSecForIosWeb: 8,
           backgroundColor: Colors.green,
           textColor: Colors.white,
           fontSize: 14.0);
+          _navigationService.back(result: true);
     } else {
-      //error could not save
+      final errorMessage = _gatePassService.lastErrorMessage;
       Fluttertoast.showToast(
-          msg: "Save Failed!,Please try again or contact your system admin. ",
+          msg: (errorMessage != null && errorMessage.trim().isNotEmpty)
+              ? errorMessage
+              : "Save Failed!,Please try again or contact your system admin.",
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM_LEFT,
           timeInSecForIosWeb: 8,
@@ -1135,67 +1985,9 @@ Future<void> authorizeEntry() async {
           fontSize: 14.0);
     }
 
-    _navigationService.back(result: true);
-  }
-
-  Future<void> rejectEntry() async {
-    if (!_connectionService.hasConnection) {
-      await _dialogService.showCustomDialog(
-        variant: DialogType.infoAlert,
-        data: BasicDialogStatus.warning,
-        title: "Internet Connection Failure",
-        description: 'Could not authorize for entry,Please check you internet connection and try again',
-        mainButtonTitle: "Ok",
-      );
+    } finally {
+      _isSubmittingGatePass = false;
     }
-
-    var confirm = await _dialogService.showCustomDialog(
-      variant: DialogType.infoAlert,
-      data: BasicDialogStatus.warning,
-      title: "Confirm Rejection",
-      description: 'Are you sure you want to reject this Gate Pass?',
-      mainButtonTitle: "Confirm",
-      secondaryButtonTitle: "Cancel",
-    );
-    if (confirm != null && confirm.confirmed == false) {
-      return;
-    }
-
-    setBusy(true);
-
-    final checklistCompleted = await findChecklistTemplate(isReject: true);
-    if (!checklistCompleted) {
-      setBusy(false);
-      return;
-    }
-
-    //here we save back to server
-    var reponse = await _gatePassService.rejectForEntry(gatePass);
-    if (reponse != null) {
-      _gatePass = reponse;
-      Fluttertoast.showToast(
-          msg: "Save was successful! ",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 14.0);
-    } else {
-      Fluttertoast.showToast(
-          msg: "Save Failed!,Please try again or contact your system admin. ",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM_LEFT,
-          timeInSecForIosWeb: 8,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 14.0);
-    }
-
-    setModelUpdate(_gatePass);
-    notifyListeners();
-
-    _navigationService.back();
   }
 
   Future<void> onTabBarTap(int index) async {
@@ -1210,9 +2002,11 @@ Future<void> authorizeEntry() async {
 
   Future<void> loadFileStoreImages() async {
     if (gatePass.id != null && gatePass.id != 0) {
+      // Load general gate booking images
       _fileStoreItems = await _fileStoreRepository.getAll(
           gatePass.id!, FileStoreType.gateBookingImage, 100);
 
+      // Load foreign license photos
       final foreignLicensePhotos = await _fileStoreRepository.getAll(
           gatePass.id!, FileStoreType.gatePassAccessDriverLicenceImage, 100);
       if (foreignLicensePhotos.isNotEmpty) {
@@ -1222,60 +2016,488 @@ Future<void> authorizeEntry() async {
         _foreignLicensePhotoTaken = false;
         _foreignLicensePhotoPath = null;
       }
-    }
-  }
-  Future<void> goToCamCaptureContainerNoText() async {
-    if (gatePass.id != null && gatePass.id != 0) {
-      var contInfo = await _navigationService
-          .navigateToCamContainernoReaderView() as ContainerInfo?;
-      if (contInfo != null) {
-        gatePass.containerNumber = contInfo.containerNumber;
 
-        String sizeStr = contInfo.isoType.substring(0, 2);
-        String typeStr = contInfo.isoType.substring(2, 4);
-
-        gatePass.containerSize = sizeStr + " FT";
-        gatePass.containerType = typeStr;
-
-        switch (sizeStr) {
-          case "20":
-            gatePass.containerSizeId = 1;
-            break;
-          case "40":
-            gatePass.containerSizeId = 2;
-            break;
-          case "45":
-            gatePass.containerSizeId = 3;
-            break;
-          case "48":
-            gatePass.containerSizeId = 4;
-            break;
-          case "53":
-            gatePass.containerSizeId = 5;
-            break;
-          default:
-            gatePass.containerSizeId = 2;
+      // Load vehicle manual entry photos
+      if (_vehicleManualEntryUsed) {
+        final vehiclePhotos = await _fileStoreRepository.getAll(
+            gatePass.id!, FileStoreType.gatePassVehicleImage, 100);
+        if (vehiclePhotos.isNotEmpty) {
+          _vehicleManualPhotoPath = vehiclePhotos.last;
+          _vehicleManualPhotoTaken = true;
+        } else {
+          _vehicleManualPhotoPath = null;
+          _vehicleManualPhotoTaken = false;
         }
+      }
 
-        switch (typeStr.toUpperCase()) {
-          case "GP":
-            gatePass.containerTypeId = 1;
-            break;
-          case "HC":
-            gatePass.containerTypeId = 2;
-            break;
-          case "RF":
-            gatePass.containerTypeId = 3;
-            break;
-          default:
-            gatePass.containerTypeId = 1;
+      // Load trailer one manual entry photos
+      if (_trailerOneManualEntryUsed) {
+        final trailerOnePhotos = await _fileStoreRepository.getAll(
+            gatePass.id!, FileStoreType.gatePassTrailerOneImage, 100);
+        if (trailerOnePhotos.isNotEmpty) {
+          _trailerOneManualPhotoPath = trailerOnePhotos.last;
+          _trailerOneManualPhotoTaken = true;
+        } else {
+          _trailerOneManualPhotoPath = null;
+          _trailerOneManualPhotoTaken = false;
         }
-        rebuildUi();
+      }
+
+      // Load trailer two manual entry photos
+      if (_trailerTwoManualEntryUsed) {
+        final trailerTwoPhotos = await _fileStoreRepository.getAll(
+            gatePass.id!, FileStoreType.gatePassTrailerTwoImage, 100);
+        if (trailerTwoPhotos.isNotEmpty) {
+          _trailerTwoManualPhotoPath = trailerTwoPhotos.last;
+          _trailerTwoManualPhotoTaken = true;
+        } else {
+          _trailerTwoManualPhotoPath = null;
+          _trailerTwoManualPhotoTaken = false;
+        }
       }
     }
   }
 
+  Future<void> goToCamCaptureContainerNoText([int containerIndex = 0]) async {
+    closeKeyboard();
+    if (gatePass.id != null && gatePass.id != 0) {
+      var contInfo = await _navigationService
+          .navigateToCamContainernoReaderView() as ContainerInfo?;
+
+      if (contInfo != null) {
+        String? scannedTypeCode;
+        if (contInfo.isoType.isNotEmpty) {
+          final isoType = _isoTypeService.findByCode(contInfo.isoType);
+          if (isoType != null) {
+            scannedTypeCode = isoType.type;
+          } else if (contInfo.isoType.length >= 4) {
+            final typeLetter = contInfo.isoType.substring(2, 3).toUpperCase();
+            if (typeLetter == 'G') {
+              scannedTypeCode = 'GP';
+            } else if (typeLetter == 'R') {
+              scannedTypeCode = 'RT';
+            } else if (typeLetter == 'T') {
+              scannedTypeCode = 'TD';
+            } else if (typeLetter == 'U') {
+              scannedTypeCode = 'UT';
+            } else if (typeLetter == 'P') {
+              scannedTypeCode = 'PF';
+            }
+          }
+        }
+
+        if (containerIndex >= 0) {
+          _ensureManualContainerSlots();
+          final target = getManualContainer(containerIndex);
+          target.containerNumber = contInfo.containerNumber;
+          target.containerIsoCode = contInfo.isoType.isNotEmpty
+              ? contInfo.isoType.toUpperCase()
+              : scannedTypeCode;          if (containerIndex > 0) {
+            // Keep secondary/tertiary cards in parity with primary scan mapping
+            target.containerSize = gatePass.containerSize;
+            target.containerSizeId = gatePass.containerSizeId;
+            target.containerType = gatePass.containerType;
+            target.containerTypeId = gatePass.containerTypeId;
+            Fluttertoast.showToast(
+              msg: "Container ${contInfo.containerNumber} scanned successfully",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+            );
+            rebuildUi();
+            notifyListeners();
+            return;
+          }
+        }
+
+        gatePass.containerNumber = contInfo.containerNumber;
+        gatePass.containerIsoCode = contInfo.isoType.isNotEmpty ? contInfo.isoType : null;
+        containerNumberController.text = contInfo.containerNumber ?? '';
+        if (gatePass.containerId == null || gatePass.containerId!.isEmpty) {
+          gatePass.containerId = Guid.newGuidAsString;
+        }
+        if (contInfo.isoType.isNotEmpty) {
+          final isoType = _isoTypeService.findByCode(contInfo.isoType);
+
+          if (isoType != null) {
+            String sizeCode = isoType.size;
+            if (sizeCode == '20') {
+              gatePass.containerSize = '20 FT';
+            } else if (sizeCode == '22') {
+              gatePass.containerSize = '22 FT';
+            } else if (sizeCode == '42') {
+              gatePass.containerSize = '40 FT';
+            } else if (sizeCode == '45') {
+              gatePass.containerSize = '45 FT';
+            } else if (sizeCode == '25' || sizeCode == '26') {
+              gatePass.containerSize = '20 FT';
+            } else if (sizeCode == '28') {
+              gatePass.containerSize = '20 FT';
+            } else if (sizeCode == '2E') {
+              gatePass.containerSize = '20 FT';
+            } else if (sizeCode == '4C') {
+              gatePass.containerSize = '40 FT';
+            } else if (sizeCode == 'L0' ||
+                sizeCode == 'L2' ||
+                sizeCode == 'L5') {
+              gatePass.containerSize = '45 FT';
+            } else {
+              if (sizeCode.startsWith('2')) {
+                gatePass.containerSize = '20 FT';
+              } else if (sizeCode.startsWith('4')) {
+                gatePass.containerSize = '40 FT';
+              }
+            }
+
+            String sizeNumber = isoType.size; 
+            String typeCode = isoType.type; 
+
+            gatePass.containerType = "$sizeNumber$typeCode";
+
+            switch (gatePass.containerSize) {
+              case "20 FT":
+                gatePass.containerSizeId = 1; 
+                break;
+              case "22 FT":
+                gatePass.containerSizeId = 1; 
+                break;
+              case "40 FT":
+                gatePass.containerSizeId = 2; 
+                break;
+              case "45 FT":
+                gatePass.containerSizeId = 3; 
+                break;
+            }
+
+            final resolvedTypeCode = typeCode.toUpperCase();
+            gatePass.containerTypeId = containerTypeOptions
+                .firstWhereOrNull((t) => t.code == resolvedTypeCode)
+                ?.id;
+
+          } else {
+           
+            if (contInfo.isoType.length >= 4) {
+              String fullCode = contInfo.isoType;
+              String sizeCode = fullCode.substring(0, 2);
+              String typeCode = fullCode.substring(2, 4);
+         
+              String typeLetter = typeCode.substring(0, 1).toUpperCase();
+
+               String fullTypeCode = typeLetter;
+              if (typeLetter == 'G') {
+                fullTypeCode = 'GP';
+              } else if (typeLetter == 'R') {
+                fullTypeCode = 'RT';
+              } else if (typeLetter == 'T') {
+                fullTypeCode = 'TD';
+              } else if (typeLetter == 'U') {
+                fullTypeCode = 'UT';
+              } else if (typeLetter == 'P') {
+                fullTypeCode = 'PF';
+              } else if (typeLetter == 'H') {
+                fullTypeCode = 'HR';
+              } else if (typeLetter == 'V') {
+                fullTypeCode = 'VH';
+              } else if (typeLetter == 'B') {
+                fullTypeCode = 'BU';
+              } else if (typeLetter == 'S') {
+                fullTypeCode = 'SN';
+              }
+
+              gatePass.containerType = sizeCode + fullTypeCode;
+                  if (sizeCode == '20' ||
+                  sizeCode == '22' ||
+                  sizeCode == '25' ||
+                  sizeCode == '2E') {
+                gatePass.containerSize = '20 FT';
+                gatePass.containerSizeId = 1;
+              } else if (sizeCode == '40' ||
+                  sizeCode == '42' ||
+                  sizeCode == '45' ||
+                  sizeCode == '4C') {
+                gatePass.containerSize = '40 FT';
+                gatePass.containerSizeId = 2;
+              } else if (sizeCode == 'L0' ||
+                  sizeCode == 'L2' ||
+                  sizeCode == 'L5') {
+                gatePass.containerSize = '45 FT';
+                gatePass.containerSizeId = 3;
+              } else if (sizeCode.startsWith('2')) {
+                gatePass.containerSize = '20 FT';
+                gatePass.containerSizeId = 1;
+              } else if (sizeCode.startsWith('4')) {
+                gatePass.containerSize = '40 FT';
+                gatePass.containerSizeId = 2;
+              } else {
+                gatePass.containerSize = '20 FT';
+                gatePass.containerSizeId = 1;
+              }
+
+              gatePass.containerTypeId = containerTypeOptions
+                  .firstWhereOrNull((t) => t.code == fullTypeCode)
+                  ?.id;
+
+              log.i(
+                  'Fallback parsing: Size=${gatePass.containerSize}, Type=${gatePass.containerType}');
+              log.i(
+                  'Fallback IDs: SizeID=${gatePass.containerSizeId}, TypeID=${gatePass.containerTypeId}');
+            }
+          }
+        }
+
+        clearValidationMessage("Container number is required");
+
+        _ensureManualContainerSlots();
+        final scannedContainer = getManualContainer(containerIndex);
+        scannedContainer.containerNumber = gatePass.containerNumber;
+        scannedContainer.containerIsoCode = contInfo.isoType.isNotEmpty
+            ? contInfo.isoType.toUpperCase()
+            : scannedTypeCode;
+        scannedContainer.containerSize = gatePass.containerSize;
+        scannedContainer.containerSizeId = gatePass.containerSizeId;
+        scannedContainer.containerType = gatePass.containerType;
+        scannedContainer.containerTypeId = gatePass.containerTypeId;
+        scannedContainer.containerDeliveryType = containerIndex == 0
+            ? gatePass.containerDeliveryType
+            : scannedContainer.containerDeliveryType;
+        scannedContainer.gatePassContainerType = containerIndex == 0
+            ? gatePass.gatePassContainerType
+            : scannedContainer.gatePassContainerType;
+        _syncGatePassFromContainer(containerIndex);
+
+        Fluttertoast.showToast(
+          msg: "Container ${contInfo.containerNumber} scanned successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+
+        setModelUpdate(gatePass);
+        rebuildUi();
+        notifyListeners();
+      }
+    }
+  }
+String? get selectedContainerTypeCode =>
+      _extractContainerTypeCode(gatePass.containerType);
+
+  void setContainerSize(String? sizeLabel) {
+    if (sizeLabel == null || sizeLabel.isEmpty) {
+      gatePass.containerSize = null;
+      gatePass.containerSizeId = null;
+    } else {
+      gatePass.containerSize = sizeLabel;
+      gatePass.containerSizeId = _containerSizeIdFromLabel(sizeLabel);
+    }
+
+    _syncContainerTypeWithSize();
+    notifyListeners();
+  }
+
+  void setContainerType(String? typeCode) {
+    if (typeCode == null || typeCode.isEmpty) {
+      gatePass.containerType = null;
+      gatePass.containerTypeId = null;
+      notifyListeners();
+      return;
+    }
+
+    gatePass.containerTypeId = _containerTypeIdForCode(typeCode);
+    gatePass.containerType = _composeContainerType(typeCode);
+    notifyListeners();
+  }
+
+  void _syncContainerTypeWithSize() {
+    final typeCode = _extractContainerTypeCode(gatePass.containerType);
+    if (typeCode == null || typeCode.isEmpty) {
+      return;
+    }
+    gatePass.containerType = _composeContainerType(typeCode);
+  }
+
+  String _composeContainerType(String typeCode) {
+    final sizeCode = _containerSizeCodeFromLabel(gatePass.containerSize);
+    if (sizeCode == null || sizeCode.isEmpty) {
+      return typeCode;
+    }
+    return '$sizeCode$typeCode';
+  }
+
+  int _containerSizeIdFromLabel(String label) {
+    switch (label) {
+      case '20 FT':
+      case '22 FT':
+        return 1;
+      case '40 FT':
+        return 2;
+      case '45 FT':
+        return 3;
+      default:
+        return 0;
+    }
+  }
+
+  String _containerSizeLabelFromCode(String sizeCode) {
+    switch (sizeCode) {
+      case '20':
+        return '20 FT';
+      case '22':
+        return '22 FT';
+      case '42':
+        return '40 FT';
+      case '45':
+        return '45 FT';
+      case '25':
+      case '26':
+      case '28':
+      case '2E':
+        return '20 FT';
+      case '4C':
+        return '40 FT';
+      case 'L0':
+      case 'L2':
+      case 'L5':
+        return '45 FT';
+    }
+
+    if (sizeCode.startsWith('2')) {
+      return '20 FT';
+    }
+    if (sizeCode.startsWith('4')) {
+      return '40 FT';
+    }
+
+    final numericSize = int.tryParse(sizeCode);
+    if (numericSize != null) {
+      return '$numericSize FT';
+    }
+    return sizeCode;
+  }
+
+  String _containerTypeLabelFromCode(String typeCode) {
+    switch (typeCode.toUpperCase()) {
+      case 'GP':
+        return 'General Purpose (GP)';
+      case 'RT':
+      case 'RC':
+      case 'RS':
+        return 'Reefer ($typeCode)';
+      case 'TD':
+      case 'TG':
+      case 'TN':
+        return 'Tank ($typeCode)';
+      case 'UT':
+      case 'UP':
+        return 'Open Top ($typeCode)';
+      case 'PF':
+      case 'PC':
+      case 'PS':
+      case 'PL':
+        return 'Flat/Platform ($typeCode)';
+      default:
+        return typeCode;
+    }
+  }
+
+  int _containerTypeIdForCode(String typeCode) {
+    switch (typeCode.toUpperCase()) {
+      case 'GP':
+        return 1;
+      case 'RT':
+      case 'RC':
+      case 'RS':
+        return 2;
+      case 'TD':
+      case 'TG':
+      case 'TN':
+        return 3;
+      case 'UT':
+      case 'UP':
+        return 4;
+      case 'PF':
+      case 'PC':
+      case 'PS':
+      case 'PL':
+        return 5;
+      default:
+        return 1;
+    }
+  }
+
+  String? _containerSizeCodeFromLabel(String? label) {
+    switch (label) {
+      case '20 FT':
+        return '20';
+      case '22 FT':
+        return '22';
+      case '40 FT':
+        return '40';
+      case '45 FT':
+        return '45';
+      default:
+        return null;
+    }
+  }
+
+  String? _extractContainerTypeCode(String? containerType) {
+    if (containerType == null || containerType.isEmpty) {
+      return null;
+    }
+
+final normalized = containerType.toUpperCase();
+    if (normalized.length <= 2) {
+      return normalized;
+    }
+
+    if (normalized.length >= 4) {
+      final isoTypeCode = normalized.substring(normalized.length - 2);
+      final mappedFromIso = _mapIsoTypeCodeToContainerTypeCode(isoTypeCode);
+      if (mappedFromIso != null) {
+        return mappedFromIso;
+      }
+    }
+
+    return normalized.substring(normalized.length - 2);
+  }
+
+  String? _mapIsoTypeCodeToContainerTypeCode(String isoTypeCode) {
+    final normalized = isoTypeCode.toUpperCase();
+    if (normalized.length < 2) {
+      return null;
+    }
+
+    if (containerTypeOptions.any((t) => t.code == normalized)) {
+      return normalized;
+    }
+
+    switch (normalized[0]) {
+      case 'G':
+        return 'GP';
+      case 'R':
+        return 'RT';
+      case 'T':
+        return 'TD';
+      case 'U':
+        return 'UT';
+      case 'P':
+        return 'PF';
+      case 'H':
+        return 'HR';
+      case 'V':
+        return 'VH';
+      case 'B':
+        return 'BU';
+      case 'S':
+        return 'SN';
+      default:
+        return null;
+    }
+  }
+
   Future<void> goToCamView(FileStoreType fileStoreType) async {
+    closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       await _navigationService.navigateTo(
@@ -1291,6 +2513,7 @@ Future<void> authorizeEntry() async {
   }
 
   Future<void> captureForeignLicensePhoto() async {
+    closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       await _navigationService.navigateTo(
@@ -1351,6 +2574,7 @@ Future<void> authorizeEntry() async {
   }
 
   Future<void> openImagePicker() async {
+    closeKeyboard();
     await getStoragePermissions();
     if (gatePass.id != null && gatePass.id != 0) {
       var selectedImages = await _mediaService.pickMultiImages();
@@ -1388,7 +2612,6 @@ Future<void> authorizeEntry() async {
     return true;
   }
 
-
   Future<void> manualInputVehicle(String registrationNumber) async {
     if (!_validateRegistrationFormat(registrationNumber)) {
       return;
@@ -1397,6 +2620,12 @@ Future<void> authorizeEntry() async {
     String cleanedRegNumber = _cleanRegistrationNumber(registrationNumber);
 
     gatePass.vehicleRegNumberValidation = cleanedRegNumber;
+
+    if (isManualInput) {
+      gatePass.vehicleRegNumber = cleanedRegNumber;
+      await _processSuccessfulVehicleEntry();
+      return;
+    }
     setVehicleValidationMessage();
 
     if (!_isRegistrationMatch()) {
@@ -1406,10 +2635,10 @@ Future<void> authorizeEntry() async {
 
     await _processSuccessfulVehicleEntry();
   }
+
   bool _isRegistrationMatch() {
     return gatePass.vehicleRegNoMatch == true;
   }
-
 
   Future<void> _processSuccessfulVehicleEntry() async {
     _vehicleManualEntryUsed = true;
@@ -1417,16 +2646,10 @@ Future<void> authorizeEntry() async {
     gatePass.isManualInput = true;
     gatePass.isVehicleManualInput = true;
 
-    await promptForVehiclePhoto();
-
-    BarcodeScanType nextScanType = _determineNextScanType();
-    GlobalKey? nextSection = _determineNextSection();
-
-    setBarcodeScanType(nextScanType);
-
-    if (nextSection != null) {
-      scrollToWidget(nextSection);
+    if (_isExitMode) {
+      _vehicleScannedOnExit = true;
     }
+    await promptForVehiclePhoto();
 
     _showVehicleManualInput = false;
     setModelUpdate(gatePass);
@@ -1462,10 +2685,8 @@ Future<void> authorizeEntry() async {
       data: BasicDialogStatus.error,
       title: "License Mismatch",
       description: ValidationMessages.regNoMismatch(
-          "Vehicle registration",
-           gatePass.vehicleRegNumber,
-            enteredRegNumber),
-            mainButtonTitle: "Re-enter",
+          "Vehicle registration", gatePass.vehicleRegNumber, enteredRegNumber),
+      mainButtonTitle: "Re-enter",
       secondaryButtonTitle: "Reject Entry",
     );
 
@@ -1479,8 +2700,6 @@ Future<void> authorizeEntry() async {
     rebuildUi();
   }
 
-
-
   Future<void> manualInputTrailerOne(String registrationNumber) async {
     if (registrationNumber.contains(' ')) {
       setValidationMessage(ValidationMessages.noSpacesAllowed);
@@ -1490,6 +2709,24 @@ Future<void> authorizeEntry() async {
     registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
     gatePass.trailerRegNumberOneValidation = registrationNumber;
 
+    if (isManualInput) {
+      gatePass.trailerRegNumberOne = registrationNumber;
+      _trailerOneManualEntryUsed = true;
+      _trailerOneManualPhotoTaken = false;
+      gatePass.isTrailerOneManualInput = true;
+
+      if (_isExitMode) {
+        _trailerOneScannedOnExit = true;
+      }
+
+      await promptForTrailerOnePhoto();
+
+      _showTrailerOneManualInput = false;
+      setModelUpdate(gatePass);
+      rebuildUi();
+      return;
+    }
+
     setTrailerValidationMessage("One");
 
     if (gatePass.trailerRegNumberOneMatch == true) {
@@ -1497,6 +2734,9 @@ Future<void> authorizeEntry() async {
       _trailerOneManualPhotoTaken = false;
       gatePass.isTrailerOneManualInput = true;
 
+      if (_isExitMode) {
+        _trailerOneScannedOnExit = true;
+      }
       await promptForTrailerOnePhoto();
 
       BarcodeScanType nextScanType = BarcodeScanType.trailerOneDisc;
@@ -1557,6 +2797,25 @@ Future<void> authorizeEntry() async {
 
     registrationNumber = registrationNumber.replaceAll(' ', '').toUpperCase();
     gatePass.trailerRegNumberTwoValidation = registrationNumber;
+
+    if (isManualInput) {
+      gatePass.trailerRegNumberTwo = registrationNumber;
+      _trailerTwoManualEntryUsed = true;
+      _trailerTwoManualPhotoTaken = false;
+      gatePass.isTrailerTwoManualInput = true;
+
+      if (_isExitMode) {
+        _trailerTwoScannedOnExit = true;
+      }
+
+      await promptForTrailerTwoPhoto();
+
+      _showTrailerTwoManualInput = false;
+      setModelUpdate(gatePass);
+      rebuildUi();
+      return;
+    }
+
     setTrailerValidationMessage("Two");
 
     if (gatePass.trailerRegNumberTwoMatch == true) {
@@ -1714,110 +2973,199 @@ Future<void> authorizeEntry() async {
       _showTrailerTwoManualInput = true;
       scrollToWidget(trailerTwoInfoCardKey);
     }
-
+    if (_isExitMode) {
+      _trailerTwoScannedOnExit = true;
+    }
     setModelUpdate(gatePass);
     rebuildUi();
   }
-    /// Photo capture methods
+
   Future<void> promptForVehiclePhoto() async {
-  var result = await _dialogService.showCustomDialog(
-    variant: DialogType.infoAlert,
-    data: BasicDialogStatus.info,
-    title: "Photo Required",
-    description: ValidationMessages.photoRequiredForManualInput("vehicle"),
-    mainButtonTitle: "Take Photo",
-    secondaryButtonTitle: "Cancel",
-  );
-
-  if (result?.confirmed == true) {
-    var photoCountBefore = _fileStoreItems.length;
-
-    await _navigationService.navigateTo(
-      Routes.cameraCaptureView,
-      arguments: CameraCaptureViewArguments(
-        refId: gatePass.id!,  
-        referanceId: 0,
-        fileStoreType: FileStoreType.gateBookingImage,
-      ),
+    var result = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.info,
+      title: "Photo Required",
+      description: ValidationMessages.photoRequiredForManualInput("vehicle"),
+      mainButtonTitle: "Take Photo",
+      secondaryButtonTitle: "Cancel",
     );
 
-    await loadFileStoreImages();
+    if (result?.confirmed == true) {
+      var photoCountBefore = _fileStoreItems.length;
 
-    if (_fileStoreItems.length > photoCountBefore) {
-      _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
-      _vehicleManualPhotoTaken = true;
+      await _navigationService.navigateTo(
+        Routes.cameraCaptureView,
+        arguments: CameraCaptureViewArguments(
+          refId: gatePass.id!,
+          referanceId: 0,
+          fileStoreType: FileStoreType.gatePassVehicleImage,
+        ),
+      );
+
+      await loadFileStoreImages();
+
+      if (_fileStoreItems.length > photoCountBefore) {
+        _vehicleManualPhotoPath = _fileStoreItems.lastOrNull;
+        _vehicleManualPhotoTaken = true;
+      }
+
+      rebuildUi();
+
+      FocusManager.instance.primaryFocus?.unfocus();
+
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (isManualInput || hasTrailerOneEntryReg) {
+        setBarcodeScanType(BarcodeScanType.trailerOneDisc);
+        scrollToWidget(trailerOneInfoCardKey);
+      } else if (isManualInput || hasTrailerTwoEntryReg) {
+        setBarcodeScanType(BarcodeScanType.trailerTwoDisc);
+        scrollToWidget(trailerTwoInfoCardKey);
+      } else if (isManualInput && !_isExitMode) {
+        scrollToWidget(logisticsInfoCardKey);
+      } else if (gatePass.gatePassBookingType ==
+              GatePassBookingType.containers &&
+          isManualInput &&
+          !_isExitMode) {
+        scrollToWidget(containerInfoCardKey);
+      } else {
+        scrollToWidget(timesInfoCardKey);
+      }
     }
-
-    rebuildUi();
   }
-}
 
-Future<void> promptForTrailerOnePhoto() async {
-  var result = await _dialogService.showCustomDialog(
-    variant: DialogType.infoAlert,
-    data: BasicDialogStatus.info,
-    title: "Photo Required",
-    description: ValidationMessages.photoRequiredForManualInput("trailer one"),
-    mainButtonTitle: "Take Photo",
-    secondaryButtonTitle: "Cancel",
-  );
-
-  if (result?.confirmed == true) {
-    var photoCountBefore = _fileStoreItems.length;
-
-    await _navigationService.navigateTo(
-      Routes.cameraCaptureView,
-      arguments: CameraCaptureViewArguments(
-        refId: gatePass.id!,
-        referanceId: 0,
-        fileStoreType: FileStoreType.gateBookingImage,
-      ),
+  Future<void> promptForTrailerOnePhoto() async {
+    var result = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.info,
+      title: "Photo Required",
+      description:
+          ValidationMessages.photoRequiredForManualInput("trailer one"),
+      mainButtonTitle: "Take Photo",
+      secondaryButtonTitle: "Cancel",
     );
 
-    await loadFileStoreImages();
+    if (result?.confirmed == true) {
+      var photoCountBefore = _fileStoreItems.length;
 
-    if (_fileStoreItems.length > photoCountBefore) {
-      _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
-      _trailerOneManualPhotoTaken = true;
+      await _navigationService.navigateTo(
+        Routes.cameraCaptureView,
+        arguments: CameraCaptureViewArguments(
+          refId: gatePass.id!,
+          referanceId: 0,
+          fileStoreType: FileStoreType.gatePassTrailerOneImage,
+        ),
+      );
+
+      await loadFileStoreImages();
+
+      if (_fileStoreItems.length > photoCountBefore) {
+        _trailerOneManualPhotoPath = _fileStoreItems.lastOrNull;
+        _trailerOneManualPhotoTaken = true;
+      }
+
+      rebuildUi();
+
+      FocusManager.instance.primaryFocus?.unfocus();
+
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (isManualInput || hasTrailerTwoEntryReg) {
+        setBarcodeScanType(BarcodeScanType.trailerTwoDisc);
+        scrollToWidget(trailerTwoInfoCardKey);
+      } else if (isManualInput && !_isExitMode) {
+        scrollToWidget(logisticsInfoCardKey);
+      } else if (gatePass.gatePassBookingType ==
+              GatePassBookingType.containers &&
+          isManualInput &&
+          !_isExitMode) {
+        scrollToWidget(containerInfoCardKey);
+      } else {
+        scrollToWidget(timesInfoCardKey);
+      }
     }
-
-    rebuildUi();
   }
-}
 
-Future<void> promptForTrailerTwoPhoto() async {
-  var result = await _dialogService.showCustomDialog(
-    variant: DialogType.infoAlert,
-    data: BasicDialogStatus.info,
-    title: "Photo Required",
-    description: ValidationMessages.photoRequiredForManualInput("trailer two"),
-    mainButtonTitle: "Take Photo",
-    secondaryButtonTitle: "Cancel",
-  );
-
-  if (result?.confirmed == true) {
-    var photoCountBefore = _fileStoreItems.length;
-
-    await _navigationService.navigateTo(
-      Routes.cameraCaptureView,
-      arguments: CameraCaptureViewArguments(
-        refId: gatePass.id!,
-        referanceId: 0,
-        fileStoreType: FileStoreType.gateBookingImage,
-      ),
+  Future<void> promptForTrailerTwoPhoto() async {
+    var result = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.info,
+      title: "Photo Required",
+      description:
+          ValidationMessages.photoRequiredForManualInput("trailer two"),
+      mainButtonTitle: "Take Photo",
+      secondaryButtonTitle: "Cancel",
     );
 
-    await loadFileStoreImages();
+    if (result?.confirmed == true) {
+      var photoCountBefore = _fileStoreItems.length;
 
-    if (_fileStoreItems.length > photoCountBefore) {
-      _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
-      _trailerTwoManualPhotoTaken = true;
+      await _navigationService.navigateTo(
+        Routes.cameraCaptureView,
+        arguments: CameraCaptureViewArguments(
+          refId: gatePass.id!,
+          referanceId: 0,
+          fileStoreType: FileStoreType.gatePassTrailerTwoImage,
+        ),
+      );
+
+      await loadFileStoreImages();
+
+      if (_fileStoreItems.length > photoCountBefore) {
+        _trailerTwoManualPhotoPath = _fileStoreItems.lastOrNull;
+        _trailerTwoManualPhotoTaken = true;
+      }
+
+      rebuildUi();
+
+      FocusManager.instance.primaryFocus?.unfocus();
+
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (isManualInput && !_isExitMode) {
+        rebuildUi();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          rebuildUi();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            rebuildUi();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (logisticsInfoCardKey.currentContext != null) {
+                Scrollable.ensureVisible(
+                  logisticsInfoCardKey.currentContext!,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
+                Fluttertoast.showToast(
+                  msg: "Please select Transporter ↓",
+                  toastLength: Toast.LENGTH_LONG,
+                  gravity: ToastGravity.CENTER,
+                  backgroundColor: Colors.blue,
+                  textColor: Colors.white,
+                );
+              } else {
+                Fluttertoast.showToast(
+                  msg: "Please select Transporter",
+                  toastLength: Toast.LENGTH_LONG,
+                  gravity: ToastGravity.CENTER,
+                  backgroundColor: Colors.blue,
+                  textColor: Colors.white,
+                );
+              }
+            });
+          });
+        });
+      } else {
+        if (gatePass.gatePassBookingType == GatePassBookingType.containers &&
+            !_isExitMode) {
+          scrollToWidget(containerInfoCardKey);
+        } else {
+          scrollToWidget(timesInfoCardKey);
+        }
+      }
     }
-
-    rebuildUi();
   }
-}
-    Future<void> logIncident(String message) async {
+
+  Future<void> logIncident(String message) async {
     //try to send if fail then we log it to the que
 
     var newIncident = Incident(
@@ -1836,7 +3184,6 @@ Future<void> promptForTrailerTwoPhoto() async {
       couldSend = true;
     } catch (e) {
       couldSend = false;
-      log.e("Error checking connection: $e");
     }
 
     if (couldSend == false) {
@@ -1890,6 +3237,7 @@ Future<void> promptForTrailerTwoPhoto() async {
   }
 
   void viewAllForeignLicensePhotos() async {
+    closeKeyboard();
     if (_foreignLicensePhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1901,11 +3249,131 @@ Future<void> promptForTrailerTwoPhoto() async {
   }
 
   void setTransporter(int? transporterId) {
+    if (isManualEntryWizard && !_isExitMode) {
+      // Check driver completion
+      final bool driverComplete = (gatePass.driverIdNoValidation != null &&
+              gatePass.driverIdNoValidation!.isNotEmpty) ||
+          (gatePass.driverIdNo != null && gatePass.driverIdNo!.isNotEmpty);
+
+      if (!driverComplete) {
+        scrollToWidget(driverInfoCardKey);
+        Fluttertoast.showToast(
+          msg: "Please scan or enter driver information first",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return;
+      }
+
+      // Check vehicle completion
+      final bool vehicleComplete =
+          (gatePass.vehicleRegNumberValidation != null &&
+                  gatePass.vehicleRegNumberValidation!.isNotEmpty) ||
+              (gatePass.vehicleRegNumber != null &&
+                  gatePass.vehicleRegNumber!.isNotEmpty) ||
+              _vehicleManualEntryUsed;
+
+      if (!vehicleComplete) {
+        scrollToWidget(vehicleInfoCardKey);
+        Fluttertoast.showToast(
+          msg: "Please scan or enter vehicle registration first",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return;
+      }
+
+      // Check trailer one completion (if it exists)
+      final bool hasTrailerOne = (gatePass.trailerRegNumberOne != null &&
+              gatePass.trailerRegNumberOne!.isNotEmpty) ||
+          (gatePass.trailerRegNumberOneValidation != null &&
+              gatePass.trailerRegNumberOneValidation!.isNotEmpty) ||
+          _trailerOneManualEntryUsed;
+
+      final bool trailerOneComplete = !hasTrailerOne ||
+          (gatePass.trailerRegNumberOneValidation != null &&
+              gatePass.trailerRegNumberOneValidation!.isNotEmpty) ||
+          _trailerOneManualEntryUsed;
+
+      if (!trailerOneComplete) {
+        scrollToWidget(trailerOneInfoCardKey);
+        Fluttertoast.showToast(
+          msg: "Please scan or enter Trailer One registration first",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return;
+      }
+
+      // Check trailer two completion (if it exists)
+      final bool hasTrailerTwo = (gatePass.trailerRegNumberTwo != null &&
+              gatePass.trailerRegNumberTwo!.isNotEmpty) ||
+          (gatePass.trailerRegNumberTwoValidation != null &&
+              gatePass.trailerRegNumberTwoValidation!.isNotEmpty) ||
+          _trailerTwoManualEntryUsed;
+
+      final bool trailerTwoComplete = !hasTrailerTwo ||
+          (gatePass.trailerRegNumberTwoValidation != null &&
+              gatePass.trailerRegNumberTwoValidation!.isNotEmpty) ||
+          _trailerTwoManualEntryUsed;
+
+      if (!trailerTwoComplete) {
+        scrollToWidget(trailerTwoInfoCardKey);
+        Fluttertoast.showToast(
+          msg: "Please scan or enter Trailer Two registration first",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return;
+      }
+    }
+
+    // Now set the transporter
     gatePass.transporterId = transporterId;
 
-    if (isManualInput) {
+    if (isManualInput && !isVisitor) {
       if (transporterId != null) {
         clearValidationMessage("Transporter is required for manual entries");
+
+        // For manual entry, move the wizard past transporter
+        if (isManualEntryWizard && !_isExitMode) {
+          _manualEntryStep = isContainerCargo
+              ? ManualEntryStep.containerDetails
+              : ManualEntryStep.done;
+
+          // Show completion message and scroll to container if needed
+          if (isContainerCargo) {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              scrollToWidget(containerInfoCardKey,
+                  duration: const Duration(milliseconds: 500));
+
+              Fluttertoast.showToast(
+                msg: "Please fill in container details ↓",
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.CENTER,
+                backgroundColor: Colors.blue,
+                textColor: Colors.white,
+              );
+            });
+          } else {
+            Fluttertoast.showToast(
+              msg:
+                  "All required information complete. Ready to authorize entry.",
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.CENTER,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+            );
+          }
+        }
       } else {
         setValidationMessage("Transporter is required for manual entries");
       }
@@ -1914,7 +3382,53 @@ Future<void> promptForTrailerTwoPhoto() async {
     notifyListeners();
   }
 
+  bool _validateContainerInfoForAuthorization() {
+  if (gatePass.gatePassBookingType != GatePassBookingType.containers) {
+    return true; 
+  }
+
+  if (!isManualInput) {
+    return true; 
+  }
+
+
+  // Container number validation
+  if (gatePass.containerNumber == null || gatePass.containerNumber!.isEmpty) {
+    scrollToWidget(containerInfoCardKey);
+    Fluttertoast.showToast(
+      msg: "Container number is required",
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.CENTER,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+    );
+    return false;
+  }
+
+  // Shipping line validation
+  if (gatePass.containerShippingLine == null ||
+      gatePass.containerShippingLine!.isEmpty) {
+    scrollToWidget(containerInfoCardKey);
+    return false;
+  }
+
+  // Delivery type validation
+  if (gatePass.containerDeliveryType == null) {
+    scrollToWidget(containerInfoCardKey);
+    return false;
+  }
+
+  // Cargo type validation
+  if (gatePass.gatePassContainerType == null) {
+    scrollToWidget(containerInfoCardKey);
+    return false;
+  }
+
+  return true;
+}
+
   void viewVehiclePhoto() async {
+    closeKeyboard();
     if (_vehicleManualPhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1928,6 +3442,7 @@ Future<void> promptForTrailerTwoPhoto() async {
   }
 
   void viewTrailerOnePhoto() async {
+    closeKeyboard();
     if (_trailerOneManualPhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1941,6 +3456,7 @@ Future<void> promptForTrailerTwoPhoto() async {
   }
 
   void viewTrailerTwoPhoto() async {
+    closeKeyboard();
     if (_trailerTwoManualPhotoPath != null) {
       await _navigationService.navigateTo(
         Routes.imagesViewerListView,
@@ -1962,7 +3478,9 @@ Future<void> promptForTrailerTwoPhoto() async {
       return;
     }
 
-    _transporters = await _gatePassService.getTransporters();
+    _transporters = await _gatePassService.getTransporters(
+      branchId: getSelectedScannerBranchId(),
+    );
     _cachedTransporters = _transporters;
     _transporterCacheTime = DateTime.now();
 
@@ -1975,8 +3493,10 @@ Future<void> promptForTrailerTwoPhoto() async {
   }
 
   Future<void> loadCustomers() async {
-      _customers = await _gatePassService.getCustomers();
-      notifyListeners();
+    _customers = await _gatePassService.getCustomers(
+      branchId: getSelectedScannerBranchId(),
+    );
+    notifyListeners();
   }
 
   // Load Shipping Lines
@@ -1988,11 +3508,19 @@ Future<void> promptForTrailerTwoPhoto() async {
       notifyListeners();
       return;
     }
+
+    try {
       _shippingLines = await _gatePassService.getShippingLines();
       _cachedShippingLines = _shippingLines;
       _shippingLineCacheTime = DateTime.now();
+
+      // REMOVE THIS LINE: _shippingLines = [];
+
+      notifyListeners();
+    } catch (e) {
       _shippingLines = [];
       notifyListeners();
+    }
   }
 
   Future<void> refreshShippingLines() async {
@@ -2011,11 +3539,18 @@ Future<void> promptForTrailerTwoPhoto() async {
       return;
     }
 
-
+    try {
       _containerCustomers = await _gatePassService.getContainerCustomers();
       _cachedContainerCustomers = _containerCustomers;
       _containerCustomerCacheTime = DateTime.now();
+
+      log.i('Loaded ${_containerCustomers.length} container customers');
       notifyListeners();
+    } catch (e) {
+      log.e('Error loading container customers: $e');
+      _containerCustomers = [];
+      notifyListeners();
+    }
   }
 
   Future<void> refreshContainerCustomers() async {
@@ -2033,11 +3568,18 @@ Future<void> promptForTrailerTwoPhoto() async {
       return;
     }
 
-
+    try {
       _containerDepots = await _gatePassService.getContainerDepots();
       _cachedContainerDepots = _containerDepots;
       _containerDepotCacheTime = DateTime.now();
+
+      log.i('Loaded ${_containerDepots.length} container depots');
       notifyListeners();
+    } catch (e) {
+      log.e('Error loading container depots: $e');
+      _containerDepots = [];
+      notifyListeners();
+    }
   }
 
   Future<void> refreshContainerDepots() async {
@@ -2091,69 +3633,21 @@ Future<void> promptForTrailerTwoPhoto() async {
     }
   }
 
-  void setShippingLine(int? shippingLineId) {
-
-    if (shippingLineId != null) {
-      var shippingLine =
-          _shippingLines.firstWhereOrNull((s) => s.id == shippingLineId);
-
-      if (shippingLine != null) {
-        gatePass.containerShippingLine = shippingLine.name;
-        gatePass.containerShippingLineId = shippingLine.id;
-      }
-    } else {
-      gatePass.containerShippingLine = null;
-      gatePass.containerShippingLineId = null;
-    }
-
-    clearValidationMessage("Shipping line is required");
-    notifyListeners();
-  }
-
-  void setContainerCustomer(int? customerId) {
-    if (customerId != null) {
-      var customer =
-          _containerCustomers.firstWhereOrNull((c) => c.id == customerId);
-
-      if (customer != null) {
-        gatePass.containerCustomer = customer.name;
-        gatePass.containerCustomerId = customer.id;
-      }
-    } else {
-      gatePass.containerCustomer = null;
-      gatePass.containerCustomerId = null;
-    }
-
-    notifyListeners();
-  }
-
-  void setContainerDepot(int? depotId) {
-    if (depotId != null) {
-      var depot = _containerDepots.firstWhereOrNull((d) => d.id == depotId);
-      if (depot != null) {
-        gatePass.containerDepot = depot.name;
-        gatePass.containerDepotId = depot.id;
-      }
-    } else {
-      gatePass.containerDepot = null;
-      gatePass.containerDepotId = null;
-    }
-
-    notifyListeners();
-  }
-
   Future<void> reloadGatePassWithContainers() async {
+    setBusy(true);
+    try {
+      var reloaded =
+          await _gatePassService.getGatePassWithContainers(gatePass.id);
 
-      setBusy(true);
-
-      var reloaded = await _gatePassService.getGatePassWithContainers(gatePass.id);
-
-      if (reloaded != null) 
-      {
+      if (reloaded != null) {
         _gatePass = reloaded;
         notifyListeners();
-       }
-
+      }
+    } catch (e) {
+      log.e('Error reloading gate pass with containers: $e');
+    } finally {
+      setBusy(false);
+    }
   }
 
   void loadContainerDetailsFromArray() {
@@ -2167,6 +3661,7 @@ Future<void> promptForTrailerTwoPhoto() async {
       gatePass.containerSize = firstContainer.containerSize;
       gatePass.containerSizeId = firstContainer.containerSizeId;
       gatePass.containerType = firstContainer.containerType;
+      gatePass.containerIsoCode = firstContainer.containerIsoCode ?? firstContainer.containerType;
       gatePass.containerTypeId = firstContainer.containerTypeId;
 
       // Set IDs first
@@ -2203,8 +3698,96 @@ Future<void> promptForTrailerTwoPhoto() async {
 
       gatePass.containerDeliveryType = firstContainer.containerDeliveryType;
       gatePass.gatePassContainerType = firstContainer.gatePassContainerType;
+      containerNumberController.text = gatePass.containerNumber ?? '';
       notifyListeners();
     }
+  }
+
+  void setShippingLine(int? shippingLineId) {
+    if (shippingLineId != null) {
+      var shippingLine =
+          _shippingLines.firstWhereOrNull((s) => s.id == shippingLineId);
+
+      if (shippingLine != null) {
+        gatePass.containerShippingLine = shippingLine.name;
+        gatePass.containerShippingLineId = shippingLine.id;
+
+        clearValidationMessage("Shipping line is required");
+      }
+    } else {
+      gatePass.containerShippingLine = null;
+      gatePass.containerShippingLineId = null;
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> rejectEntry() async {
+    if (!_connectionService.hasConnection) {
+      await _dialogService.showCustomDialog(
+        variant: DialogType.infoAlert,
+        data: BasicDialogStatus.warning,
+        title: "Internet Connection Failure",
+        description:
+            'Could not authorize for entry, please check your internet connection and try again',
+        mainButtonTitle: "Ok",
+      );
+      return;
+    }
+
+    var confirm = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.warning,
+      title: "Confirm Rejection",
+      description: 'Are you sure you want to reject this Gate Pass?',
+      mainButtonTitle: "Confirm",
+      secondaryButtonTitle: "Cancel",
+    );
+
+    if (confirm != null && confirm.confirmed == false) {
+      return;
+    }
+
+    setBusy(true);
+
+    final checklistCompleted = await findChecklistTemplate(isReject: true);
+    if (!checklistCompleted) {
+      setBusy(false);
+      return;
+    }
+
+    // Here we save back to server
+    var response = await _gatePassService.rejectForEntry(gatePass);
+    if (response != null) {
+      _gatePass = response;
+      Fluttertoast.showToast(
+          msg: "Save was successful!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 14.0);
+    } else {
+      Fluttertoast.showToast(
+          msg: "Save Failed! Please try again or contact your system admin.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0);
+    }
+
+    setModelUpdate(_gatePass);
+    notifyListeners();
+
+    _navigationService.back();
+  }
+
+  void closeKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
   }
 }
 

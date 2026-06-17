@@ -101,6 +101,7 @@ class GatePassAccess {
   int? containerSizeId;
   int? containerTypeId;
   String? containerType;
+  String? containerIsoCode;
   String? containerCustomer;
   String? containerShippingLine;
   String? containerDepot;
@@ -192,6 +193,7 @@ class GatePassAccess {
     this.containerNumber,
     this.containerSize,
     this.containerType,
+    this.containerIsoCode,
     this.containerSizeId,
     this.containerTypeId,
     this.containerCustomer,
@@ -241,8 +243,42 @@ class GatePassAccess {
       driverIdNo?.trim() == driverIdNoValidation?.trim();
 
   void handleContainers() {
+    if (gatePassBookingType != GatePassBookingType.containers) {
+      containers = null;
+      return;
+    }
+
     if (containerId != null) {
       containers = containers ?? [];
+      if (containers!.isNotEmpty) {
+        final primary = containers!.first;
+        final resolvedId = containerId!.isNotEmpty ? containerId : primary.id;
+        containers![0] = GatePassAccessContainerModel(
+          id: resolvedId,
+          containerNumber: containerNumber,
+          containerSize: containerSize,
+          containerSizeId: containerSizeId,
+          containerType: containerType,
+          containerIsoCode: containerIsoCode,
+          containerTypeId: containerTypeId,
+          description: containerIsoCode ?? containerType,
+          containerCustomer: containerCustomer,
+          containerShippingLine: containerShippingLine,
+          containerDepot: containerDepot,
+          containerDeliveryType: containerDeliveryType,
+          deliveryType: containerDeliveryType?.value,
+          gatePassContainerType: gatePassContainerType,
+          gatePassAccessId: id,
+          branchId: branchId,
+          containerSetNo: primary.containerSetNo ?? 1,
+          tenantId: tenantId,
+          weight: primary.weight,
+          shippingLineId: containerShippingLineId,
+          customerId: containerCustomerId,
+          depotId: containerDepotId,
+        );
+        return;
+      }
 
       // Find existing container index
       int existingIndex =
@@ -257,7 +293,9 @@ class GatePassAccess {
             containerSize: containerSize,
             containerSizeId: containerSizeId,
             containerType: containerType,
+            containerIsoCode: containerIsoCode,
             containerTypeId: containerTypeId,
+            description: containerIsoCode ?? containerType,
             containerCustomer: containerCustomer,
             containerShippingLine: containerShippingLine,
             containerDepot: containerDepot,
@@ -282,7 +320,9 @@ class GatePassAccess {
           containerSize: containerSize,
           containerSizeId: containerSizeId,
           containerType: containerType,
+          containerIsoCode: containerIsoCode,
           containerTypeId: containerTypeId,
+          description: containerIsoCode ?? containerType,
           containerCustomer: containerCustomer,
           containerShippingLine: containerShippingLine,
           containerDepot: containerDepot,
@@ -428,6 +468,7 @@ class GatePassAccess {
         containerSize: json["containerSize"],
         containerSizeId: json["containerSizeId"],
         containerType: json["containerType"],
+        containerIsoCode: json["containerIsoCode"] ?? json["containerType"],
         containerTypeId: json["containerTypeId"],
 
         containerCustomer: json["containerCustomer"],
@@ -528,7 +569,8 @@ class GatePassAccess {
         "containerId": containerId,
         "containerNumber": containerNumber,
         "containerSize": containerSize,
-        "containerType": containerType,
+        "containerType": containerType ?? containerIsoCode,
+        "containerIsoCode": containerIsoCode,
         "containerCustomer": containerCustomer,
         "containerShippingLine": containerShippingLine,
         "containerDepot": containerDepot,
@@ -578,6 +620,7 @@ class GatePassAccess {
       vehicleVinNumber: gatePassVisitorAccess.vehicleVinNumber,
       vehicleEngineNumber: gatePassVisitorAccess.vehicleEngineNumber,
       vehicleMake: gatePassVisitorAccess.vehicleMake,
+      extensionData: gatePassVisitorAccess.extensionData,
     );
   }
 }

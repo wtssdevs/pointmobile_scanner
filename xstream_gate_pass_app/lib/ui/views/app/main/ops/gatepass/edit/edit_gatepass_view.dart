@@ -6,7 +6,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:stacked/stacked.dart';
+import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/core/enums/barcode_scan_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
 import 'package:xstream_gate_pass_app/core/enums/filestore_type.dart';
@@ -35,13 +37,14 @@ import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gatepass/edit/edit_g
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/listicons/gatepass_list_icon.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/manual_input_field_widget.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/photo_preview_widget.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_menu/widgets/nav_action_button.dart';
 
 class GatePassEditView extends StatelessWidget {
   final GatePassAccess gatePass;
   GatePassEditView({Key? key, required this.gatePass}) : super(key: key);
 
   final TextEditingController vehicleRegNumberTextController =
-TextEditingController();
+      TextEditingController();
   final FocusNode vehicleRegNumberTextFocusNode = FocusNode();
 
   final TextEditingController vehicleRegNumberValiTextController =
@@ -74,9 +77,10 @@ TextEditingController();
   final TextEditingController driverLicenseTypeTextController =
       TextEditingController();
   final FocusNode driverLicenseTypeTextFocusNode = FocusNode();
+  final FocusNode containerNumberTextFocusNode = FocusNode();
 
   final formKeyAtGate = GlobalKey<FormState>();
-    onModelSet(GatePassAccess data) {
+  onModelSet(GatePassAccess data) {
     //vehicleRegNumberTextController.text = data.vehicleRegNumber ?? "";
     //trailerNo1TextController.text = data.trailerRegNumberOne ?? "";
     //trailerNo2TextController.text = data.trailerRegNumberTwo ?? "";
@@ -98,14 +102,26 @@ TextEditingController();
     }
   }
 
-  Future<bool> validateForAuthEntry(GatePassEditViewModel model, BuildContext context) async {
+  Future<bool> validateForAuthEntry(
+      GatePassEditViewModel model, BuildContext context) async {
     //validate per status
     if (model.isManualInput) {
-      if (model.gatePass.transporterId == null) {
-        model.setValidationMessage("Transporter is required");
-      } else {
-        model.clearValidationMessage("Transporter is required");
+      if (model.isManualEntryWizard &&
+          !model.isExitMode &&
+          model.gatePass.gatePassBookingType != GatePassBookingType.visitor &&
+          !model.manualEntryScanComplete) {
+        Fluttertoast.showToast(
+            msg:
+                "Complete driver, vehicle and trailer scans (Transporter/Container Info) before authorizing entry",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM_LEFT,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 14.0);
+        return false;
       }
+    }
+    if (model.isManualInput) {
       if (model.gatePass.vehicleRegNumber == null &&
           model.gatePass.vehicleRegNumberValidation == null) {
         model.setValidationMessage("Vehicle registration is required");
@@ -124,15 +140,23 @@ TextEditingController();
         model.clearValidationMessage("Driver name is required");
       }
 
-      if (model.gatePass.driverIdNo == null &&
-          model.gatePass.driverIdNoValidation == null) {
-        model.setValidationMessage("Driver ID is required");
-      } else {
-        model.clearValidationMessage("Driver ID is required");
-        // Copy scanned data to main field if not set
+      if (model.gatePass.gatePassBookingType != GatePassBookingType.visitor) {
+        if (model.gatePass.transporterId == null) {
+          model.setValidationMessage("Transporter is required");
+        } else {
+          model.clearValidationMessage("Transporter is required");
+        }
+
         if (model.gatePass.driverIdNo == null &&
-            model.gatePass.driverIdNoValidation != null) {
-          model.gatePass.driverIdNo = model.gatePass.driverIdNoValidation;
+            model.gatePass.driverIdNoValidation == null) {
+          model.setValidationMessage("Driver ID is required");
+        } else {
+          model.clearValidationMessage("Driver ID is required");
+          // Copy scanned data to main field if not set
+          if (model.gatePass.driverIdNo == null &&
+              model.gatePass.driverIdNoValidation != null) {
+            model.gatePass.driverIdNo = model.gatePass.driverIdNoValidation;
+          }
         }
       }
 
@@ -173,7 +197,15 @@ TextEditingController();
 
       if (model.showValidation) {
         model.rebuildUi();
-Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ", toastLength: Toast.LENGTH_LONG, gravity: ToastGravity.BOTTOM_LEFT, timeInSecForIosWeb: 8, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 14.0);
+        Fluttertoast.showToast(
+            msg:
+                "Validation Failed!,Please correct all missing information. ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM_LEFT,
+            timeInSecForIosWeb: 8,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 14.0);
         return false;
       }
 
@@ -229,7 +261,33 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
       model.clearValidationMessage(
           "Photo required for manual input Trailer Two");
     }
+    // Validate Trailer One if it exists
+    if (model.gatePass.trailerRegNumberOne != null &&
+        model.gatePass.trailerRegNumberOne!.isNotEmpty) {
+      model.setTrailerValidationMessage("One");
 
+      if (model.gatePass.trailerRegNumberOneMatch == false &&
+          !model.trailerOneManualEntryUsed) {
+        model.setValidationMessage(
+            "Trailer One registration must be scanned or manually entered");
+      } else {
+        model.clearValidationMessage(
+            "Trailer One registration must be scanned or manually entered");
+      }
+    }
+    if (model.gatePass.trailerRegNumberTwo != null &&
+        model.gatePass.trailerRegNumberTwo!.isNotEmpty) {
+      model.setTrailerValidationMessage("Two");
+
+      if (model.gatePass.trailerRegNumberTwoMatch == false &&
+          !model.trailerTwoManualEntryUsed) {
+        model.setValidationMessage(
+            "Trailer Two registration must be scanned or manually entered");
+      } else {
+        model.clearValidationMessage(
+            "Trailer Two registration must be scanned or manually entered");
+      }
+    }
     model.setVehicleValidationMessage();
 
     if (model.showValidation) {
@@ -247,6 +305,72 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
     }
 
     return !model.showValidation;
+  }
+
+  Future<bool> validateForAuthExit(
+      GatePassEditViewModel model, BuildContext context) async {
+    model.clearAllValidationMessage();
+
+    if (model.gatePass.driverHasForeignID == true) {
+      if (!model.foreignLicensePhotoTaken) {
+        model.setValidationMessage(
+            "Foreign license photo verification required for exit");
+      } else {
+        model.clearValidationMessage(
+            "Foreign license photo verification required for exit");
+      }
+    } else {
+      if (!model.driverScannedOnExit) {
+        model.setValidationMessage("Please scan the driver's license");
+      } else {
+        model.clearValidationMessage("Please scan the driver's license");
+      }
+    }
+
+    // Check if vehicle was scanned on exit
+    if (!model.vehicleScannedOnExit) {
+      model.setValidationMessage("Please scan the vehicle license disc");
+    } else {
+      model.clearValidationMessage("Please scan the vehicle license disc");
+    }
+
+    // Check if trailer one needs to be scanned
+    if (model.gatePass.trailerRegNumberOne != null &&
+        model.gatePass.trailerRegNumberOne!.isNotEmpty) {
+      if (!model.trailerOneScannedOnExit) {
+        model.setValidationMessage("Please scan Trailer One license disc");
+      } else {
+        model.clearValidationMessage("Please scan Trailer One license disc");
+      }
+    }
+
+    // Check if trailer two needs to be scanned
+    if (model.gatePass.trailerRegNumberTwo != null &&
+        model.gatePass.trailerRegNumberTwo!.isNotEmpty) {
+      if (!model.trailerTwoScannedOnExit) {
+        model.setValidationMessage("Please scan Trailer Two license disc");
+      } else {
+        model.clearValidationMessage("Please scan Trailer Two license disc");
+      }
+    }
+
+    if (model.showValidation) {
+      model.rebuildUi();
+
+      Fluttertoast.showToast(
+          msg:
+              "Exit Validation Failed! ${model.validationMessages.isNotEmpty ? model.validationMessages[0] : ""} ",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM_LEFT,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 14.0);
+
+      return false;
+    }
+
+    return true;
   }
 
   Future<bool> validateForm(
@@ -404,6 +528,8 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width * 0.95;
+    final dropdownMaxHeight =
+        (MediaQuery.of(context).size.height * 0.3).clamp(180.0, 280.0).toDouble();
     return ViewModelBuilder<GatePassEditViewModel>.reactive(
       onViewModelReady: (model) =>
           SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
@@ -423,91 +549,72 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
         child: DefaultTabController(
           length: 2,
           child: Scaffold(
-            persistentFooterButtons: [
-              Visibility(
-                visible: model.gatePass.gatePassStatus.value ==
-                        GatePassStatus.atGate.value ||
-                    model.gatePass.gatePassStatus.value ==
-                        GatePassStatus.inYard.value ||
-                    model.gatePass.gatePassStatus.value ==
-                        GatePassStatus.pending.value,
-                child: model.isBusy
-                    ? const SizedBox.shrink()
-                    : ElevatedButton.icon(
-                        onPressed: () async {
-                          // call method
-                          //validate UI first
-                          //id is GUID as string ,so need to ehck for empty guid
-                          if (model.gatePass.id !=
-                                  Guid.defaultValue.toString() &&
-                              model.gatePass.id != "") {
-                            model.rejectEntry();
-                          }
-                        },
-                        icon: const FaIcon(
-                          FontAwesomeIcons.ban,
-                          color: Colors.red,
-                        ),
-                        label: const Text('Reject Entry'), // <-- Text
-                      ),
-              ),
-              Visibility(
-                visible: model.gatePass.gatePassStatus.value ==
-                        GatePassStatus.atGate.value ||
-                    model.gatePass.gatePassStatus.value ==
-                        GatePassStatus.pending
-                            .value, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
-                child: model.isBusy
-                    ? const SizedBox.shrink()
-                    : ElevatedButton.icon(
-                        onPressed: () async {
-                          // valiate first
-                          var isValid =
-                              await validateForAuthEntry(model, context);
-                          if (isValid == true) {
-                            model.authorizeEntry();
-                          } else {
-                            model.scrollController.animateTo(0,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeIn);
-                          }
-                        },
-                        icon: const FaIcon(
-                          FontAwesomeIcons.rightToBracket,
-                          color: Colors.blue,
-                        ),
-                        label: const Text("Authorize Entry"), // <-- Text
-                      ),
-              ),
-              Visibility(
-                visible: model.gatePass.gatePassStatus.value ==
-                    GatePassStatus.inYard
-                        .index, //&& model.gatePass.gatePassQuestions?.hasDeliveryDocuments == true,
-                child: model.isBusy
-                    ? const SizedBox.shrink()
-                    : ElevatedButton.icon(
-                        onPressed: () async {
-                          // valiate first
-                          var isValid = await validateForm(model, context);
-                          if (isValid == true) {
-                            model.authorizeExit();
-                          }
-                        },
-                        icon: const FaIcon(
-                          FontAwesomeIcons.rightFromBracket,
-                          color: Colors.green,
-                        ),
-                        label: const Text("Authorize Exit"), // <-- Text
-                      ),
-              ),
-            ],
+    persistentFooterButtons: [
+  Row(
+    children: [
+      NavActionButton(
+        label: "Reject Entry",
+        icon: FontAwesomeIcons.ban,
+        color: Colors.red,
+        onTap: () async {
+          if (model.gatePass.id != Guid.defaultValue.toString() &&
+              model.gatePass.id != "") {
+            model.rejectEntry();
+          }
+        },
+        isVisible: !model.isExitMode &&
+            !model.isBusy &&
+            (model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.atGate.value ||
+                model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.pending.value),
+      ),
+      NavActionButton(
+        label: "Authorize Entry",
+        icon: FontAwesomeIcons.rightToBracket,
+        color: Colors.blue,
+        onTap: () async {
+          var isValid = await validateForAuthEntry(model, context);
+          if (isValid == true) {
+            model.authorizeEntry();
+          } else {
+            model.scrollController.animateTo(0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeIn);
+          }
+        },
+        isVisible: !model.isBusy &&
+            (model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.atGate.value ||
+                model.gatePass.gatePassStatus.value ==
+                    GatePassStatus.pending.value),
+      ),
+      NavActionButton(
+        label: "Authorize Exit",
+        icon: FontAwesomeIcons.rightFromBracket,
+        color: Colors.green,
+        onTap: () async {
+          var isValid = await validateForAuthExit(model, context);
+          if (isValid == true) {
+            model.authorizeExit();
+          } else {
+            model.scrollController.animateTo(0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeIn);
+          }
+        },
+        isVisible: !model.isBusy &&
+            model.gatePass.gatePassStatus.value == GatePassStatus.inYard.index,
+      ),
+    ],
+  ),
+],
             appBar: AppBar(
               elevation: 6,
 
               title: ListTile(
                 dense: true,
                 horizontalTitleGap: 0.0,
-
                 contentPadding: const EdgeInsets.only(
                     left: 0.0, right: 0.0, top: 0, bottom: 0),
                 title: BoxText.label(model.gatePass.transactionNo ?? "",
@@ -695,8 +802,7 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                       : const SizedBox.shrink(),
                                 ],
                               )
-                            :
-                            Column(
+                            : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
@@ -889,319 +995,6 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                     ],
                                   ),
 
-                                  if (model.isManualInput) ...[
-                                    verticalSpaceTiny,
-
-                                    Container(
-                                      width: double.infinity,
-                                      margin: const EdgeInsets.symmetric(
-                                          horizontal: 16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: model.logisticsInfoComplete
-                                              ? Colors.green
-                                              : model.shouldShowLogisticsActive
-                                                  ? Colors.blue
-                                                  : Colors.grey[300]!,
-                                          width: (model.logisticsInfoComplete ||
-                                                  model
-                                                      .shouldShowLogisticsActive)
-                                              ? 2
-                                              : 1,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.05),
-                                            blurRadius: 10,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // Header
-                                          Container(
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                              color: model.logisticsInfoComplete
-                                                  ? Colors.green.shade50
-                                                  : model.shouldShowLogisticsActive
-                                                      ? Colors.blue.shade50
-                                                      : Colors.grey.shade50,
-                                              borderRadius:
-                                                  const BorderRadius.only(
-                                                topLeft: Radius.circular(12),
-                                                topRight: Radius.circular(12),
-                                              ),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.local_shipping,
-                                                  color: model
-                                                          .logisticsInfoComplete
-                                                      ? Colors.green.shade700
-                                                      : model.shouldShowLogisticsActive
-                                                          ? Colors.blue.shade700
-                                                          : Colors.grey[600],
-                                                  size: 24,
-                                                ),
-                                                horizontalSpaceSmall,
-                                                Expanded(
-                                                  child: Text(
-                                                    'Logistics Information',
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: model
-                                                              .logisticsInfoComplete
-                                                          ? Colors
-                                                              .green.shade700
-                                                          : model
-                                                                  .shouldShowLogisticsActive
-                                                              ? Colors
-                                                                  .blue.shade700
-                                                              : Colors
-                                                                  .grey[700],
-                                                    ),
-                                                  ),
-                                                ),
-                                                if (model.logisticsInfoComplete)
-                                                  Icon(Icons.check_circle,
-                                                      color: Colors.green,
-                                                      size: 24)
-                                                else if (model
-                                                    .shouldShowLogisticsActive)
-                                                  Icon(Icons.arrow_forward,
-                                                      color: Colors.blue,
-                                                      size: 24),
-                                              ],
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                // Transporter Dropdown
-                                                Text(
-                                                  'Transporter *',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(
-                                                        color:
-                                                            Colors.grey[300]!),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                  child: model
-                                                          .transporters.isEmpty
-                                                      ? Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  12),
-                                                          child: Row(
-                                                            children: [
-                                                              SizedBox(
-                                                                width: 16,
-                                                                height: 16,
-                                                                child: CircularProgressIndicator(
-                                                                    strokeWidth:
-                                                                        2),
-                                                              ),
-                                                              horizontalSpaceSmall,
-                                                              Text(
-                                                                  'Loading transporters...'),
-                                                            ],
-                                                          ),
-                                                        )
-                                                      : DropdownButtonFormField<
-                                                          int>(
-                                                          value: model.gatePass
-                                                              .transporterId,
-                                                          decoration:
-                                                              InputDecoration(
-                                                            contentPadding:
-                                                                EdgeInsets
-                                                                    .symmetric(
-                                                                        horizontal:
-                                                                            12,
-                                                                        vertical:
-                                                                            8),
-                                                            border: InputBorder
-                                                                .none,
-                                                            hintText:
-                                                                'Select Transporter',
-                                                            hintStyle: TextStyle(
-                                                                color: Colors
-                                                                    .grey[400]),
-                                                          ),
-                                                          dropdownColor:
-                                                              Colors.white,
-                                                          isExpanded: true,
-                                                          items: model
-                                                              .transporters
-                                                              .map(
-                                                                  (transporter) {
-                                                            return DropdownMenuItem<
-                                                                int>(
-                                                              value: transporter
-                                                                  .id,
-                                                              child: Text(
-                                                                transporter
-                                                                        .name ??
-                                                                    '',
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        14),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            );
-                                                          }).toList(),
-                                                          onChanged: (value) {
-                                                            model
-                                                                .setTransporter(
-                                                                    value);
-                                                          },
-                                                          icon: Icon(
-                                                              Icons
-                                                                  .arrow_drop_down,
-                                                              color: Colors
-                                                                  .grey[600]),
-                                                        ),
-                                                ),
-
-                                                // Customer Dropdown (Optional)
-                                                verticalSpaceSmall,
-                                                Text(
-                                                  'Customer',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                verticalSpaceTiny,
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    border: Border.all(
-                                                        color:
-                                                            Colors.grey[300]!),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                  child: model.customers.isEmpty
-                                                      ? Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  12),
-                                                          child: Row(
-                                                            children: [
-                                                              SizedBox(
-                                                                width: 16,
-                                                                height: 16,
-                                                                child: CircularProgressIndicator(
-                                                                    strokeWidth:
-                                                                        2),
-                                                              ),
-                                                              horizontalSpaceSmall,
-                                                              Text(
-                                                                  'Loading customers...'),
-                                                            ],
-                                                          ),
-                                                        )
-                                                      : DropdownButtonFormField<
-                                                          int>(
-                                                          value: model.gatePass
-                                                              .customerId,
-                                                          decoration:
-                                                              InputDecoration(
-                                                            contentPadding:
-                                                                EdgeInsets
-                                                                    .symmetric(
-                                                                        horizontal:
-                                                                            12,
-                                                                        vertical:
-                                                                            8),
-                                                            border: InputBorder
-                                                                .none,
-                                                            hintText:
-                                                                'Select Customer (Optional)',
-                                                            hintStyle: TextStyle(
-                                                                color: Colors
-                                                                    .grey[400]),
-                                                          ),
-                                                          dropdownColor:
-                                                              Colors.white,
-                                                          isExpanded: true,
-                                                          items: model.customers
-                                                              .map((customer) {
-                                                            return DropdownMenuItem<
-                                                                int>(
-                                                              value:
-                                                                  customer.id,
-                                                              child: Text(
-                                                                customer.name ??
-                                                                    '',
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        14),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            );
-                                                          }).toList(),
-                                                          onChanged: (value) {
-                                                            if (value != null) {
-                                                              var customer = model
-                                                                  .customers
-                                                                  .firstWhereOrNull(
-                                                                      (c) =>
-                                                                          c.id ==
-                                                                          value);
-                                                              if (customer !=
-                                                                  null) {
-                                                                model.setCustomer(
-                                                                    customer);
-                                                              }
-                                                            }
-                                                          },
-                                                          icon: Icon(
-                                                              Icons
-                                                                  .arrow_drop_down,
-                                                              color: Colors
-                                                                  .grey[600]),
-                                                        ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-
                                   verticalSpaceSmall,
                                   BuildInfoCard(
                                     key: model.vehicleInfoCardKey,
@@ -1260,12 +1053,18 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                               model.gatePass.vehicleVinNumber ??
                                                   'Not Scanned'),
 
-                                      // MANUAL INPUT
-
+                                      // MANUAL INPUT (ENTRY MODE ONLY)
                                       if (model
                                               .hasVehicleManualInputPermission &&
-                                          model.gatePass.vehicleRegNumber !=
-                                              null)
+                                          ((model.isExitMode &&
+                                                  model.gatePass
+                                                          .vehicleRegNoMatch ==
+                                                      false) ||
+                                              (!model.isExitMode &&
+                                                  (model.gatePass
+                                                              .vehicleRegNumber !=
+                                                          null ||
+                                                      model.isManualInput))))
                                         ManualInputFieldWidget(
                                           controller:
                                               vehicleRegNumberTextController,
@@ -1284,62 +1083,96 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                         ),
                                     ],
                                   ),
+                                  // TRAILER ONE
                                   BuildInfoCard(
-                                    isVisible:
-                                        model.gatePass.trailerRegNumberOne != null ||
-                                          model.isManualInput,
+                                    isVisible: model.isManualInput ||
+                                        model.hasTrailerOneEntryReg,
                                     key: model.trailerOneInfoCardKey,
                                     width: width,
-                                    title: "Trailer One Disc",
+                                    title: model.isExitMode
+                                        ? "Trailer One (Entry Record)"
+                                        : "Trailer One Disc",
                                     isSelected: model.barcodeScanType ==
                                         BarcodeScanType.trailerOneDisc,
                                     onTap: () {
                                       model.setBarcodeScanType(
                                           BarcodeScanType.trailerOneDisc);
                                     },
-                                    hasInfo: model
-                                                .gatePass.trailerRegNumberOne !=
-                                            null &&
+                                    hasInfo: model.hasTrailerOneEntryReg &&
                                         model.gatePass.trailerRegNumberOneMatch,
                                     icon: FontAwesomeIcons.trailer,
                                     color: Colors.green,
                                     infoList: [
-                                      BuildInfoItem(
-                                        label: 'Registration',
-                                        value: model
-                                                .gatePass.trailerRegNumberOne ??
-                                            'Not Scanned',
-                                        validationStatus: model.gatePass
-                                                        .trailerRegNumberOneValidation !=
+                                      // ENTRY vs EXIT display
+                                      if (model.isExitMode) ...[
+                                        // What was recorded on entry
+                                        BuildInfoItem(
+                                          label: 'Entry registration',
+                                          value: model.trailerOneEntryReg ??
+                                              'Not available',
+                                        ),
+                                        // What you scanned now on exit
+                                        BuildInfoItem(
+                                          label: 'Scanned exit registration',
+                                          value: model.gatePass
+                                                  .trailerRegNumberOneValidation ??
+                                              'Not Scanned',
+                                          validationStatus: model.gatePass
+                                                          .trailerRegNumberOneValidation !=
+                                                      null &&
+                                                  model.gatePass
+                                                          .trailerRegNumberOneMatch ==
+                                                      false
+                                              ? ValidationStatus.failed
+                                              : null,
+                                          validationMessage:
+                                              'Registration number mismatch',
+                                        ),
+                                      ] else ...[
+                                        // ENTRY mode behaviour
+                                        BuildInfoItem(
+                                          label: 'Registration',
+                                          value: model.trailerOneEntryReg ??
+                                              'Not Scanned',
+                                          validationStatus: model.gatePass
+                                                          .trailerRegNumberOneValidation !=
+                                                      null &&
+                                                  model.gatePass
+                                                          .trailerRegNumberOneMatch ==
+                                                      false
+                                              ? ValidationStatus.failed
+                                              : null,
+                                          validationMessage:
+                                              'Registration number mismatch',
+                                        ),
+                                        model.gatePass.trailerRegNumberOneValidation !=
                                                     null &&
                                                 model.gatePass
                                                         .trailerRegNumberOneMatch ==
                                                     false
-                                            ? ValidationStatus.failed
-                                            : null,
-                                        validationMessage:
-                                            'Registration number mismatch',
-                                      ),
-                                      model.gatePass.trailerRegNumberOneValidation !=
-                                                  null &&
-                                              model.gatePass
-                                                      .trailerRegNumberOneMatch ==
-                                                  false
-                                          ? BuildInfoItem(
-                                              label: 'Mismatch',
-                                              value: model.gatePass
-                                                      .trailerRegNumberOneValidation ??
-                                                  'Registration number mismatch',
-                                              validationStatus:
-                                                  ValidationStatus.failed,
-                                            )
-                                          : const SizedBox.shrink(),
+                                            ? BuildInfoItem(
+                                                label: 'Mismatch',
+                                                value: model.gatePass
+                                                        .trailerRegNumberOneValidation ??
+                                                    'Registration number mismatch',
+                                                validationStatus:
+                                                    ValidationStatus.failed,
+                                              )
+                                            : const SizedBox.shrink(),
+                                      ],
 
-                                      // MANUAL INPUT
+                                      // MANUAL INPUT (same logic you had)
                                       if (model
                                               .hasTrailerManualInputPermission &&
-                                          model.gatePass.trailerRegNumberOne !=
-                                              null|| model.isManualInput)
+                                          ((model.isExitMode &&
+                                                  model.gatePass
+                                                          .trailerRegNumberOneMatch ==
+                                                      false) ||
+                                              (!model.isExitMode &&
+                                                  (model.gatePass
+                                                              .trailerRegNumberOne !=
+                                                          null ||
+                                                      model.isManualInput))))
                                         ManualInputFieldWidget(
                                           controller: trailerNo1TextController,
                                           isManualEntryUsed:
@@ -1360,62 +1193,94 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                   ),
 
                                   verticalSpaceSmall,
+
+// TRAILER TWO
                                   BuildInfoCard(
-                                    isVisible:
-                                    model.gatePass.trailerRegNumberTwo != null ||
-                                          model.isManualInput,
+                                    isVisible: model.isManualInput ||
+                                        model.hasTrailerTwoEntryReg,
                                     key: model.trailerTwoInfoCardKey,
                                     width: width,
-                                    title: "Trailer Two Disc",
+                                    title: model.isExitMode
+                                        ? "Trailer Two (Entry Record)"
+                                        : "Trailer Two Disc",
                                     isSelected: model.barcodeScanType ==
                                         BarcodeScanType.trailerTwoDisc,
                                     onTap: () {
                                       model.setBarcodeScanType(
                                           BarcodeScanType.trailerTwoDisc);
                                     },
-                                    hasInfo: model
-                                                .gatePass.trailerRegNumberTwo !=
-                                            null &&
+                                    hasInfo: model.hasTrailerTwoEntryReg &&
                                         model.gatePass.trailerRegNumberTwoMatch,
                                     icon: FontAwesomeIcons.trailer,
                                     color: Colors.green,
                                     infoList: [
-                                      BuildInfoItem(
-                                        label: 'Registration',
-                                        value: model
-                                                .gatePass.trailerRegNumberTwo ??
-                                            'Not Scanned',
-                                        validationStatus: model.gatePass
-                                                        .trailerRegNumberTwoValidation !=
+                                      // ENTRY vs EXIT display
+                                      if (model.isExitMode) ...[
+                                        BuildInfoItem(
+                                          label: 'Entry registration',
+                                          value: model.trailerTwoEntryReg ??
+                                              'Not available',
+                                        ),
+                                        BuildInfoItem(
+                                          label: 'Scanned exit registration',
+                                          value: model.gatePass
+                                                  .trailerRegNumberTwoValidation ??
+                                              'Not Scanned',
+                                          validationStatus: model.gatePass
+                                                          .trailerRegNumberTwoValidation !=
+                                                      null &&
+                                                  model.gatePass
+                                                          .trailerRegNumberTwoMatch ==
+                                                      false
+                                              ? ValidationStatus.failed
+                                              : null,
+                                          validationMessage:
+                                              'Registration number mismatch',
+                                        ),
+                                      ] else ...[
+                                        BuildInfoItem(
+                                          label: 'Registration',
+                                          value: model.trailerTwoEntryReg ??
+                                              'Not Scanned',
+                                          validationStatus: model.gatePass
+                                                          .trailerRegNumberTwoValidation !=
+                                                      null &&
+                                                  model.gatePass
+                                                          .trailerRegNumberTwoMatch ==
+                                                      false
+                                              ? ValidationStatus.failed
+                                              : null,
+                                          validationMessage:
+                                              'Registration number mismatch',
+                                        ),
+                                        model.gatePass.trailerRegNumberTwoValidation !=
                                                     null &&
                                                 model.gatePass
                                                         .trailerRegNumberTwoMatch ==
                                                     false
-                                            ? ValidationStatus.failed
-                                            : null,
-                                        validationMessage:
-                                            'Registration number mismatch',
-                                      ),
-                                      model.gatePass.trailerRegNumberTwoValidation !=
-                                                  null &&
-                                              model.gatePass
-                                                      .trailerRegNumberTwoMatch ==
-                                                  false
-                                          ? BuildInfoItem(
-                                              label: 'Mismatch',
-                                              value: model.gatePass
-                                                      .trailerRegNumberTwoValidation ??
-                                                  'Registration number mismatch',
-                                              validationStatus:
-                                                  ValidationStatus.failed,
-                                            )
-                                          : const SizedBox.shrink(),
+                                            ? BuildInfoItem(
+                                                label: 'Mismatch',
+                                                value: model.gatePass
+                                                        .trailerRegNumberTwoValidation ??
+                                                    'Registration number mismatch',
+                                                validationStatus:
+                                                    ValidationStatus.failed,
+                                              )
+                                            : const SizedBox.shrink(),
+                                      ],
 
-                                      // MANUAL INPUT
+                                      // MANUAL INPUT (same logic you had)
                                       if (model
                                               .hasTrailerManualInputPermission &&
-                                          model.gatePass.trailerRegNumberTwo !=
-                                              null|| model.isManualInput)
+                                          ((model.isExitMode &&
+                                                  model.gatePass
+                                                          .trailerRegNumberTwoMatch ==
+                                                      false) ||
+                                              (!model.isExitMode &&
+                                                  (model.gatePass
+                                                              .trailerRegNumberTwo !=
+                                                          null ||
+                                                      model.isManualInput))))
                                         ManualInputFieldWidget(
                                           controller: trailerNo2TextController,
                                           isManualEntryUsed:
@@ -1435,711 +1300,289 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                     ],
                                   ),
 
-                                  verticalSpaceSmall,
+                                  if (model.isManualInput) ...[
+                                    verticalSpaceTiny,
+                                    BuildInfoCard(
+                                      key: model.logisticsInfoCardKey,
+                                      width: width,
+                                      title: "Logistics Information",
+                                      isSelected: model.logisticsInfoComplete,
+                                      hasInfo: model.logisticsInfoComplete,
+                                      icon: Icons.local_shipping,
+                                      color: model.logisticsInfoComplete
+                                          ? Colors.green
+                                          : model.shouldShowLogisticsActive
+                                              ? Colors.blue
+                                              : Colors.grey,
+                                      infoList: [
+                                        // Transporter Dropdown
+                                        Container(
+                                          margin:
+                                              const EdgeInsets.only(bottom: 12),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Transporter *',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                              verticalSpaceTiny,
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  border: Border.all(
+                                                      color: Colors.grey[300]!),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: model
+                                                        .transporters.isEmpty
+                                                    ? Padding(
+                                                        padding:
+                                                            EdgeInsets.all(12),
+                                                        child: Row(
+                                                          children: [
+                                                            SizedBox(
+                                                              width: 16,
+                                                              height: 16,
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                      strokeWidth:
+                                                                          2),
+                                                            ),
+                                                            horizontalSpaceSmall,
+                                                            Text(
+                                                                'Loading transporters...'),
+                                                          ],
+                                                        ),
+                                                      )
+                                                    : SearchableDropdownFormField<
+                                                        int>(
+                                                        initialValue: model.gatePass
+                                                            .transporterId,
+                                                        dialogOffset: 1,
+                                                        dropDownMaxHeight:
+                                                            dropdownMaxHeight,
+                                                        hintText: const Text(
+                                                            'Select Transporter'),
+                                                        items: model
+                                                            .transporters
+                                                            .map((transporter) {
+                                                          return SearchableDropdownMenuItem<
+                                                              int>(
+                                                            value:
+                                                                transporter.id,
+                                                            label: transporter
+                                                                    .name ??
+                                                                '',
+                                                            child: Text(
+                                                                transporter
+                                                                        .name ??
+                                                                    '',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        14),
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis),
+                                                          );
+                                                        }).toList(),
+                                                        onChanged: (value) {
+                                                          model.setTransporter(
+                                                              value);
+                                                          if (value != null &&
+                                                              model
+                                                                      .gatePass
+                                                                      .gatePassBookingType ==
+                                                                  GatePassBookingType
+                                                                      .containers &&
+                                                              model
+                                                                  .isManualInput &&
+                                                              !model
+                                                                  .isExitMode) {
+                                                            WidgetsBinding.instance
+                                                                .addPostFrameCallback(
+                                                                    (_) async {
+                                                              FocusManager
+                                                                  .instance
+                                                                  .primaryFocus
+                                                                  ?.unfocus();
+                                                              await Future.delayed(
+                                                                  const Duration(
+                                                                      milliseconds:
+                                                                          80));
+                                                              if (containerNumberTextFocusNode
+                                                                  .canRequestFocus) {
+                                                                FocusScope.of(
+                                                                        context)
+                                                                    .requestFocus(
+                                                                        containerNumberTextFocusNode);
+                                                              }
+                                                            });
+                                                          }
+                                                        },
+                                                      ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                        // Customer Dropdown
+                                        Container(
+                                          margin:
+                                              const EdgeInsets.only(bottom: 12),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Customer',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                              verticalSpaceTiny,
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  border: Border.all(
+                                                      color: Colors.grey[300]!),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: model.customers.isEmpty
+                                                    ? Padding(
+                                                        padding:
+                                                            EdgeInsets.all(12),
+                                                        child: Row(
+                                                          children: [
+                                                            SizedBox(
+                                                              width: 16,
+                                                              height: 16,
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                      strokeWidth:
+                                                                          2),
+                                                            ),
+                                                            horizontalSpaceSmall,
+                                                            Text(
+                                                                'Loading customers...'),
+                                                          ],
+                                                        ),
+                                                      )
+                                                    : SearchableDropdownFormField<
+                                                        int>(
+                                                        initialValue: model.gatePass
+                                                            .customerId,
+                                                        dialogOffset: 1,
+                                                        dropDownMaxHeight:
+                                                            dropdownMaxHeight,
+                                                        hintText: const Text(
+                                                            'Select Customer (Optional)'),
+                                                        items: model.customers
+                                                            .map((customer) {
+                                                          return SearchableDropdownMenuItem<
+                                                              int>(
+                                                            value: customer.id,
+                                                            label: customer
+                                                                    .name ??
+                                                                '',
+                                                            child: Text(
+                                                              customer.name ??
+                                                                  '',
+                                                              style: TextStyle(
+                                                                  fontSize: 14),
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                        onChanged: (value) {
+                                                          if (value != null) {
+                                                            var customer = model
+                                                                .customers
+                                                                .firstWhereOrNull(
+                                                                    (c) =>
+                                                                        c.id ==
+                                                                        value);
+                                                            if (customer !=
+                                                                null) {
+                                                              model.setCustomer(
+                                                                  customer);
+                                                            }
+                                                          }
+                                                        },
+                                                      ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                   if (model.gatePass.gatePassBookingType ==
                                       GatePassBookingType.containers) ...[
                                     verticalSpaceSmall,
 
                                     // Container Details Card for Manual Entries
-                                    if (model.isManualInput) ...[
-                                      Container(
-                                        width: double.infinity,
-
-                                        key: model.containerInfoCardKey,
-                                        margin: const EdgeInsets.symmetric(
-                                            horizontal: 16),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          border: Border.all(
-                                            // Green if completed, Blue if active/next, Grey if not ready
-                                            color: model.containerInfoComplete
-                                                ? Colors.green
-                                                : model.shouldShowContainerActive
-                                                    ? Colors.blue
-                                                    : Colors.grey[300]!,
-                                            width: (model
-                                                        .containerInfoComplete ||
-                                                    model
-                                                        .shouldShowContainerActive)
-                                                ? 2
-                                                : 1,
+                                    if (model.isManualInput &&
+                                        !model.isExitMode) ...[
+                                      for (var i = 0; i < model.manualContainerCardCount; i++)
+                                        Padding(
+                                          padding: const EdgeInsets.only(bottom: 12),
+                                          child: _buildManualContainerCard(
+                                            context: context,
+                                            model: model,
+                                            width: width,
+                                            index: i,
+                                            cardKey: i == 0 ? model.containerInfoCardKey : null,
+                                            containerNumberFocusNode:
+                                                i == 0 ? containerNumberTextFocusNode : null,
                                           ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black
-                                                  .withOpacity(0.05),
-                                              blurRadius: 10,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
                                         ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        child: Wrap(
+                                          spacing: 8,
+                                          runSpacing: 8,
                                           children: [
-                                            // Header
-                                            Container(
-                                              padding: const EdgeInsets.all(16),
-                                              decoration: BoxDecoration(
-                                                color: model
-                                                        .containerInfoComplete
-                                                    ? Colors.green.shade50
-                                                    : model.shouldShowContainerActive
-                                                        ? Colors.blue.shade50
-                                                        : Colors.grey.shade50,
-                                                borderRadius:
-                                                    const BorderRadius.only(
-                                                  topLeft: Radius.circular(12),
-                                                  topRight: Radius.circular(12),
-                                                ),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.inventory_2,
-                                                    color: model
-                                                            .containerInfoComplete
-                                                        ? Colors.green.shade700
-                                                        : model
-                                                                .shouldShowContainerActive
-                                                            ? Colors
-                                                                .blue.shade700
-                                                            : Colors.grey[600],
-                                                    size: 24,
-                                                  ),
-                                                  horizontalSpaceSmall,
-                                                  Expanded(
-                                                    child: Text(
-                                                      'Container Information',
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: model
-                                                                .containerInfoComplete
-                                                            ? Colors
-                                                                .green.shade700
-                                                            : model
-                                                                    .shouldShowContainerActive
-                                                                ? Colors.blue
-                                                                    .shade700
-                                                                : Colors
-                                                                    .grey[700],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  if (model
-                                                      .containerInfoComplete)
-                                                    Icon(Icons.check_circle,
-                                                        color: Colors.green,
-                                                        size: 24)
-                                                  else if (model
-                                                      .shouldShowContainerActive)
-                                                    Icon(Icons.arrow_forward,
-                                                        color: Colors.blue,
-                                                        size: 24),
-                                                ],
-                                              ),
+                                            OutlinedButton.icon(
+                                              onPressed: model.canAddManualContainerCard
+                                                  ? model.addManualContainerCard
+                                                  : null,
+                                              icon: const Icon(Icons.add),
+                                              label: const Text('Add Container'),
                                             ),
-
-                                            Padding(
-                                              padding: const EdgeInsets.all(16),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Container Number *',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                  verticalSpaceTiny,
-                                                  TextField(
-                                                    controller:
-                                                        TextEditingController(
-                                                      text: model.gatePass
-                                                              .containerNumber ??
-                                                          '',
-                                                    ),
-                                                    decoration: InputDecoration(
-                                                      hintText:
-                                                          'Enter Container Number or Scan',
-                                                      border:
-                                                          OutlineInputBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8),
-                                                      ),
-                                                      contentPadding:
-                                                          EdgeInsets.symmetric(
-                                                              horizontal: 12,
-                                                              vertical: 12),
-                                                      suffixIcon: IconButton(
-                                                        icon: Icon(
-                                                            Icons.camera_alt,
-                                                            color: Colors.blue),
-                                                        onPressed: () => model
-                                                            .goToCamCaptureContainerNoText(),
-                                                        tooltip:
-                                                            'Scan Container',
-                                                      ),
-                                                    ),
-                                                    textCapitalization:
-                                                        TextCapitalization
-                                                            .characters,
-                                                    onChanged: (value) {
-                                                      model.gatePass
-                                                              .containerNumber =
-                                                          value.toUpperCase();
-                                                      model.notifyListeners();
-                                                    },
-                                                  ),
-
-                                                  if (model.gatePass
-                                                          .containerSize !=
-                                                      null) ...[
-                                                    verticalSpaceTiny,
-                                                    BuildInfoItem(
-                                                      label: 'Container Size',
-                                                      value: model.gatePass
-                                                              .containerSize ??
-                                                          '',
-                                                    ),
-                                                  ],
-
-                                                  if (model.gatePass
-                                                          .containerType !=
-                                                      null) ...[
-                                                    verticalSpaceTiny,
-                                                    BuildInfoItem(
-                                                      label: 'Container Type',
-                                                      value: model.gatePass
-                                                              .containerType ??
-                                                          '',
-                                                    ),
-                                                  ],
-
-                                                  verticalSpaceSmall,
-                                                  Text(
-                                                    'Delivery Type *',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                  verticalSpaceTiny,
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child:
-                                                            _buildRadioOption(
-                                                          context: context,
-                                                          title: 'Receive',
-                                                          icon: Icons
-                                                              .arrow_downward,
-                                                          value: DeliveryType
-                                                              .receive,
-                                                          groupValue: model
-                                                              .gatePass
-                                                              .containerDeliveryType,
-                                                          onChanged: (value) {
-                                                            model.gatePass
-                                                                    .containerDeliveryType =
-                                                                value;
-                                                            model
-                                                                .notifyListeners();
-                                                          },
-                                                        ),
-                                                      ),
-                                                      horizontalSpaceSmall,
-                                                      Expanded(
-                                                        child:
-                                                            _buildRadioOption(
-                                                          context: context,
-                                                          title: 'Dispatch',
-                                                          icon: Icons
-                                                              .arrow_upward,
-                                                          value: DeliveryType
-                                                              .dispatch,
-                                                          groupValue: model
-                                                              .gatePass
-                                                              .containerDeliveryType,
-                                                          onChanged: (value) {
-                                                            model.gatePass
-                                                                    .containerDeliveryType =
-                                                                value;
-                                                            model
-                                                                .notifyListeners();
-                                                          },
-                                                        ),
-                                                      ),
-                                                      horizontalSpaceSmall,
-                                                      Expanded(
-                                                        child:
-                                                            _buildRadioOption(
-                                                          context: context,
-                                                          title: 'Other',
-                                                          icon:
-                                                              Icons.more_horiz,
-                                                          value: DeliveryType
-                                                              .other,
-                                                          groupValue: model
-                                                              .gatePass
-                                                              .containerDeliveryType,
-                                                          onChanged: (value) {
-                                                            model.gatePass
-                                                                    .containerDeliveryType =
-                                                                value;
-                                                            model
-                                                                .notifyListeners();
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-
-                                                  verticalSpaceSmall,
-                                                  Text(
-                                                    'Cargo Type *',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                  verticalSpaceTiny,
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child:
-                                                            _buildRadioOption(
-                                                          context: context,
-                                                          title: 'Empty',
-                                                          icon: Icons.inbox,
-                                                          value:
-                                                              GatePassContainerType
-                                                                  .empty,
-                                                          groupValue: model
-                                                              .gatePass
-                                                              .gatePassContainerType,
-                                                          onChanged: (value) {
-                                                            model.gatePass
-                                                                    .gatePassContainerType =
-                                                                value;
-                                                            model
-                                                                .notifyListeners();
-                                                          },
-                                                        ),
-                                                      ),
-                                                      horizontalSpaceSmall,
-                                                      Expanded(
-                                                        child:
-                                                            _buildRadioOption(
-                                                          context: context,
-                                                          title: 'Unpack Full',
-                                                          icon: Icons.inventory,
-                                                          value:
-                                                              GatePassContainerType
-                                                                  .unpackFull,
-                                                          groupValue: model
-                                                              .gatePass
-                                                              .gatePassContainerType,
-                                                          onChanged: (value) {
-                                                            model.gatePass
-                                                                    .gatePassContainerType =
-                                                                value;
-                                                            model
-                                                                .notifyListeners();
-                                                          },
-                                                        ),
-                                                      ),
-                                                      horizontalSpaceSmall,
-                                                      Expanded(
-                                                        child:
-                                                            _buildRadioOption(
-                                                          context: context,
-                                                          title: 'Store Full',
-                                                          icon: Icons.warehouse,
-                                                          value:
-                                                              GatePassContainerType
-                                                                  .storeFull,
-                                                          groupValue: model
-                                                              .gatePass
-                                                              .gatePassContainerType,
-                                                          onChanged: (value) {
-                                                            model.gatePass
-                                                                    .gatePassContainerType =
-                                                                value;
-                                                            model
-                                                                .notifyListeners();
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-
-                                                  verticalSpaceSmall,
-                                                  Text(
-                                                    'Shipping Line *',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                  verticalSpaceTiny,
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      border: Border.all(
-                                                          color: Colors
-                                                              .grey[300]!),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                    child: model.shippingLines
-                                                            .isEmpty
-                                                        ? Padding(
-                                                            padding:
-                                                                EdgeInsets.all(
-                                                                    12),
-                                                            child: Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 16,
-                                                                  height: 16,
-                                                                  child: CircularProgressIndicator(
-                                                                      strokeWidth:
-                                                                          2),
-                                                                ),
-                                                                horizontalSpaceSmall,
-                                                                Text(
-                                                                    'Loading shipping lines...'),
-                                                              ],
-                                                            ),
-                                                          )
-                                                        : DropdownButtonFormField<
-                                                            int>(
-                                                            value: model
-                                                                    .shippingLines
-                                                                    .where((s) =>
-                                                                        s.name ==
-                                                                        model
-                                                                            .gatePass
-                                                                            .containerShippingLine)
-                                                                    .isNotEmpty
-                                                                ? model
-                                                                    .shippingLines
-                                                                    .firstWhere((s) =>
-                                                                        s.name ==
-                                                                        model
-                                                                            .gatePass
-                                                                            .containerShippingLine)
-                                                                    .id
-                                                                : null,
-                                                            decoration:
-                                                                InputDecoration(
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      horizontal:
-                                                                          12,
-                                                                      vertical:
-                                                                          8),
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              hintText:
-                                                                  'Select Shipping Line',
-                                                              hintStyle: TextStyle(
-                                                                  color: Colors
-                                                                          .grey[
-                                                                      400]),
-                                                            ),
-                                                            dropdownColor:
-                                                                Colors.white,
-                                                            isExpanded: true,
-                                                            items: model
-                                                                .shippingLines
-                                                                .map(
-                                                                    (shippingLine) {
-                                                              return DropdownMenuItem<
-                                                                  int>(
-                                                                value:
-                                                                    shippingLine
-                                                                        .id,
-                                                                child: Text(
-                                                                  shippingLine
-                                                                          .name ??
-                                                                      '',
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          14),
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                ),
-                                                              );
-                                                            }).toList(),
-                                                            onChanged: (value) {
-                                                              model
-                                                                  .setShippingLine(
-                                                                      value);
-                                                            },
-                                                            icon: Icon(
-                                                                Icons
-                                                                    .arrow_drop_down,
-                                                                color: Colors
-                                                                    .grey[600]),
-                                                          ),
-                                                  ),
-
-                                                  verticalSpaceSmall,
-                                                  Text(
-                                                    'Container Customer',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                  verticalSpaceTiny,
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      border: Border.all(
-                                                          color: Colors
-                                                              .grey[300]!),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                    child: model
-                                                            .containerCustomers
-                                                            .isEmpty
-                                                        ? Padding(
-                                                            padding:
-                                                                EdgeInsets.all(
-                                                                    12),
-                                                            child: Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 16,
-                                                                  height: 16,
-                                                                  child: CircularProgressIndicator(
-                                                                      strokeWidth:
-                                                                          2),
-                                                                ),
-                                                                horizontalSpaceSmall,
-                                                                Text(
-                                                                    'Loading container customers...'),
-                                                              ],
-                                                            ),
-                                                          )
-                                                        : DropdownButtonFormField<
-                                                            int>(
-                                                            value: model
-                                                                    .containerCustomers
-                                                                    .where((c) =>
-                                                                        c.name ==
-                                                                        model
-                                                                            .gatePass
-                                                                            .containerCustomer)
-                                                                    .isNotEmpty
-                                                                ? model
-                                                                    .containerCustomers
-                                                                    .firstWhere((c) =>
-                                                                        c.name ==
-                                                                        model
-                                                                            .gatePass
-                                                                            .containerCustomer)
-                                                                    .id
-                                                                : null,
-                                                            decoration:
-                                                                InputDecoration(
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      horizontal:
-                                                                          12,
-                                                                      vertical:
-                                                                          8),
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              hintText:
-                                                                  'Select Container Customer (Optional)',
-                                                              hintStyle: TextStyle(
-                                                                  color: Colors
-                                                                          .grey[
-                                                                      400]),
-                                                            ),
-                                                            dropdownColor:
-                                                                Colors.white,
-                                                            isExpanded: true,
-                                                            items: model
-                                                                .containerCustomers
-                                                                .map(
-                                                                    (customer) {
-                                                              return DropdownMenuItem<
-                                                                  int>(
-                                                                value:
-                                                                    customer.id,
-                                                                child: Text(
-                                                                  customer.name ??
-                                                                      '',
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          14),
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                ),
-                                                              );
-                                                            }).toList(),
-                                                            onChanged: (value) {
-                                                              model
-                                                                  .setContainerCustomer(
-                                                                      value);
-                                                            },
-                                                            icon: Icon(
-                                                                Icons
-                                                                    .arrow_drop_down,
-                                                                color: Colors
-                                                                    .grey[600]),
-                                                          ),
-                                                  ),
-                                                  verticalSpaceSmall,
-                                                  Text(
-                                                    'Container Depot',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                  verticalSpaceTiny,
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      border: Border.all(
-                                                          color: Colors
-                                                              .grey[300]!),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                    child: model.containerDepots
-                                                            .isEmpty
-                                                        ? Padding(
-                                                            padding:
-                                                                EdgeInsets.all(
-                                                                    12),
-                                                            child: Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 16,
-                                                                  height: 16,
-                                                                  child: CircularProgressIndicator(
-                                                                      strokeWidth:
-                                                                          2),
-                                                                ),
-                                                                horizontalSpaceSmall,
-                                                                Text(
-                                                                    'Loading container depots...'),
-                                                              ],
-                                                            ),
-                                                          )
-                                                        : DropdownButtonFormField<
-                                                            int>(
-                                                            value: model
-                                                                    .containerDepots
-                                                                    .where((d) =>
-                                                                        d.name ==
-                                                                        model
-                                                                            .gatePass
-                                                                            .containerDepot)
-                                                                    .isNotEmpty
-                                                                ? model
-                                                                    .containerDepots
-                                                                    .firstWhere((d) =>
-                                                                        d.name ==
-                                                                        model
-                                                                            .gatePass
-                                                                            .containerDepot)
-                                                                    .id
-                                                                : null,
-                                                            decoration:
-                                                                InputDecoration(
-                                                              contentPadding:
-                                                                  EdgeInsets.symmetric(
-                                                                      horizontal:
-                                                                          12,
-                                                                      vertical:
-                                                                          8),
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              hintText:
-                                                                  'Select Container Depot (Optional)',
-                                                              hintStyle: TextStyle(
-                                                                  color: Colors
-                                                                          .grey[
-                                                                      400]),
-                                                            ),
-                                                            dropdownColor:
-                                                                Colors.white,
-                                                            isExpanded: true,
-                                                            items: model
-                                                                .containerDepots
-                                                                .map((depot) {
-                                                              return DropdownMenuItem<
-                                                                  int>(
-                                                                value: depot.id,
-                                                                child: Text(
-                                                                  depot.name ??
-                                                                      '',
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          14),
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                ),
-                                                              );
-                                                            }).toList(),
-                                                            onChanged: (value) {
-                                                              model
-                                                                  .setContainerDepot(
-                                                                      value);
-                                                            },
-                                                            icon: Icon(
-                                                                Icons
-                                                                    .arrow_drop_down,
-                                                                color: Colors
-                                                                    .grey[600]),
-                                                          ),
-                                                  ),
-                                                ],
-                                              ),
+                                            OutlinedButton.icon(
+                                              onPressed: model.manualContainerCardCount > 1
+                                                  ? model.removeManualContainerCard
+                                                  : null,
+                                              icon: const Icon(Icons.remove),
+                                              label: const Text('Remove Container'),
                                             ),
                                           ],
                                         ),
                                       ),
+                                      verticalSpaceTiny,
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        child: Text(
+                                        'Manual container cards enabled: ${model.manualContainerCardCount}/3',
+                                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                                        ),
+                                      ),
                                       verticalSpaceSmall,
-                                    ]
-                                    else ...[
+                                    ] else ...[
+                                      // Pre-booking container info (read-only)
                                       BuildInfoCard(
                                         key: model.containerInfoCardKey,
                                         width: width,
@@ -2166,7 +1609,8 @@ Fluttertoast.showToast(msg: "Validation Failed!,Please correct all missing infor
                                           BuildInfoItem(
                                               label: 'Type',
                                               value: model
-                                                      .gatePass.containerType ??
+                                                      .selectedContainerTypeCode ??
+                                                  model.gatePass.containerType ??
                                                   ''),
                                         ],
                                       ),
@@ -2871,6 +2315,199 @@ class BuildErrorsView extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildManualContainerCard({
+  required BuildContext context,
+  required GatePassEditViewModel model,
+  required double width,
+  required int index,
+  Key? cardKey,
+  FocusNode? containerNumberFocusNode,
+}) {
+  final dropdownMaxHeight =
+      (MediaQuery.of(context).size.height * 0.3).clamp(180.0, 280.0).toDouble();
+  final container = model.getManualContainer(index);
+  return BuildInfoCard(
+    key: cardKey,
+    width: width,
+    title: 'Container ${index + 1} Information',
+    isSelected: (container.containerNumber ?? '').isNotEmpty,
+    hasInfo: (container.containerNumber ?? '').isNotEmpty,
+    icon: Icons.inventory_2,
+    color: index == 0
+        ? (model.containerInfoComplete
+            ? Colors.green
+            : model.shouldShowContainerActive
+                ? Colors.blue
+                : Colors.grey)
+        : Colors.blueGrey,
+    infoList: [
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Container Number *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          TextFormField(
+            key: ValueKey(
+                'manual_container_number_${index}_${container.containerNumber ?? ''}'),
+            initialValue: container.containerNumber ?? '',
+            focusNode: containerNumberFocusNode,
+            decoration: InputDecoration(border: const OutlineInputBorder(), suffixIcon: IconButton(icon: const Icon(Icons.camera_alt, color: Colors.blue), onPressed: () => model.goToCamCaptureContainerNoText(index), tooltip: 'Scan Container')),
+            textCapitalization: TextCapitalization.characters,
+            onChanged: (val) => model.setManualContainerNumber(index, val),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Detected ISO Code', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(color: Colors.grey[100], border: Border.all(color: Colors.grey[300]!), borderRadius: BorderRadius.circular(8)),
+            child: Text(container.containerIsoCode ?? '', style: const TextStyle(fontSize: 14)),
+          )
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Container Size *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<String>(
+              key: ValueKey(
+                  'container_size_${index}_${model.manualContainerSizeDropdownValue(index)}_${model.containerSizeOptions.length}'),
+              initialValue: model.manualContainerSizeDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.containerSizeOptions.map((o) => SearchableDropdownMenuItem<String>(value: o.label, label: o.label, child: Text(o.label, overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerSize(index, v),
+            ),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Container Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<String>(
+              key: ValueKey(
+                  'container_type_${index}_${model.manualContainerTypeDropdownValue(index)}_${model.containerTypeOptions.length}'),
+              initialValue: model.manualContainerTypeDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.containerTypeOptions.map((o) => SearchableDropdownMenuItem<String>(value: o.code, label: o.code, child: Text(o.code ?? o.label, overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerType(index, v),
+            ),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(top: 12, bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Delivery Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Receive', icon: Icons.arrow_downward, value: DeliveryType.receive, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Dispatch', icon: Icons.arrow_upward, value: DeliveryType.dispatch, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Other', icon: Icons.more_horiz, value: DeliveryType.other, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
+          ]),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Cargo Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Empty', icon: Icons.inbox, value: GatePassContainerType.empty, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Unpack Full', icon: Icons.inventory, value: GatePassContainerType.unpackFull, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Store Full', icon: Icons.warehouse, value: GatePassContainerType.storeFull, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
+          ]),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Shipping Line *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<int>(
+              key: ValueKey(
+                  'container_shipping_line_${index}_${model.manualContainerShippingLineDropdownValue(index)}_${model.shippingLines.length}'),
+              initialValue: model.manualContainerShippingLineDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.shippingLines.map((x) => SearchableDropdownMenuItem<int>(value: x.id, label: x.name ?? '', child: Text(x.name ?? '', overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerShippingLine(index, v),
+            ),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Customer', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<int>(
+              key: ValueKey(
+                  'container_customer_${index}_${model.manualContainerCustomerDropdownValue(index)}_${model.containerCustomers.length}'),
+              initialValue: model.manualContainerCustomerDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.containerCustomers.map((x) => SearchableDropdownMenuItem<int>(value: x.id, label: x.name ?? '', child: Text(x.name ?? '', overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerCustomer(index, v),
+            ),
+          ),
+        ]),
+      ),
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Depot', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: SearchableDropdownFormField<int>(
+              key: ValueKey(
+                  'container_depot_${index}_${model.manualContainerDepotDropdownValue(index)}_${model.containerDepots.length}'),
+              initialValue: model.manualContainerDepotDropdownValue(index),
+              dialogOffset: 1,
+              dropDownMaxHeight: dropdownMaxHeight,
+              items: model.containerDepots.map((x) => SearchableDropdownMenuItem<int>(value: x.id, label: x.name ?? '', child: Text(x.name ?? '', overflow: TextOverflow.ellipsis))).toList(),
+              onChanged: (v) => model.setManualContainerDepot(index, v),
+            ),
+          ),
+        ]),
+      ),
+    ],
+  );
 }
 
 Widget _buildRadioOption<T>({
