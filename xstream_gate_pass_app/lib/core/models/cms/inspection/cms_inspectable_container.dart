@@ -51,7 +51,8 @@ class CmsInspectableContainer {
       statusDisplayName: cmsParseString(json['statusDisplayName']),
       conditionTypeId: cmsParseInt(json['conditionTypeId']),
       conditionTypeName: cmsParseString(json['conditionTypeName']),
-      conditionTypeDisplayName: cmsParseString(json['conditionTypeDisplayName']),
+      conditionTypeDisplayName:
+          cmsParseString(json['conditionTypeDisplayName']),
       depotId: cmsParseInt(json['depotId']),
       depotName: cmsParseString(json['depotName']),
       shippingLineId: cmsParseInt(json['shippingLineId']),
@@ -65,18 +66,26 @@ class CmsInspectableContainer {
       canStartInspection: cmsParseBool(json['canStartInspection']) ?? false,
       canResumeInspection: cmsParseBool(json['canResumeInspection']) ?? false,
       resumeInspectionId: cmsParseInt(json['resumeInspectionId']),
-      resumeInspectionTypeName: cmsParseString(json['resumeInspectionTypeName']),
+      resumeInspectionTypeName:
+          cmsParseString(json['resumeInspectionTypeName']),
       lastInspectionId: cmsParseInt(json['lastInspectionId']),
-      lastInspectionType: CmsInspectionType.fromValue(json['lastInspectionType']),
+      lastInspectionType:
+          CmsInspectionType.fromValue(json['lastInspectionType']),
       lastInspectionTypeName: cmsParseString(json['lastInspectionTypeName']),
       lastInspectionCompleted: cmsParseBool(json['lastInspectionCompleted']),
-      lastInspectionState: CmsInspectionState.fromValue(json['lastInspectionState']),
+      lastInspectionState:
+          CmsInspectionState.fromValue(json['lastInspectionState']),
       lastInspectionDateTime: cmsParseDateTime(json['lastInspectionDateTime']),
-      lastInspectionEndDateTime: cmsParseDateTime(json['lastInspectionEndDateTime']),
-      lastInspectionInspectedBy: cmsParseString(json['lastInspectionInspectedBy']),
-      lastInspectionConditionTypeName: cmsParseString(json['lastInspectionConditionTypeName']),
-      lastInspectionTransactionNo: cmsParseString(json['lastInspectionTransactionNo']),
-      lastInspectionIsCurrentVisit: cmsParseBool(json['lastInspectionIsCurrentVisit']) ?? false,
+      lastInspectionEndDateTime:
+          cmsParseDateTime(json['lastInspectionEndDateTime']),
+      lastInspectionInspectedBy:
+          cmsParseString(json['lastInspectionInspectedBy']),
+      lastInspectionConditionTypeName:
+          cmsParseString(json['lastInspectionConditionTypeName']),
+      lastInspectionTransactionNo:
+          cmsParseString(json['lastInspectionTransactionNo']),
+      lastInspectionIsCurrentVisit:
+          cmsParseBool(json['lastInspectionIsCurrentVisit']) ?? false,
     );
   }
 
@@ -117,7 +126,8 @@ class CmsInspectableContainer {
 
   int? get inspectionId => resumeInspectionId;
 
-  CmsInspectionType? get inspectionType => CmsInspectionType.fromName(resumeInspectionTypeName);
+  CmsInspectionType? get inspectionType =>
+      CmsInspectionType.fromName(resumeInspectionTypeName);
 
   String? get inspectionTypeName => resumeInspectionTypeName;
 
@@ -158,7 +168,8 @@ class CmsInspectableContainer {
   String get lastInspectionSummary {
     final parts = <String>[];
 
-    final typeLabel = lastInspectionType?.label ?? lastInspectionTypeName?.trim();
+    final typeLabel =
+        lastInspectionType?.label ?? lastInspectionTypeName?.trim();
     if (typeLabel != null && typeLabel.isNotEmpty) {
       parts.add(typeLabel);
     }
@@ -177,12 +188,20 @@ class CmsInspectableContainer {
   }
 
   String? get _lastInspectionStatusLabel {
+    if (lastInspectionState == CmsInspectionState.cancelled) {
+      return 'Cancelled';
+    }
+
+    if (lastInspectionCompleted == true) {
+      return 'Completed';
+    }
+
     if (lastInspectionState != null) {
       return lastInspectionState!.label;
     }
 
     if (lastInspectionCompleted != null) {
-      return lastInspectionCompleted! ? 'Completed' : 'In progress';
+      return 'In progress';
     }
 
     return null;

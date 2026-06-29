@@ -33,7 +33,8 @@ class CmsInspectionHistoryRow {
       id: cmsParseInt(json['id']) ?? 0,
       parentId: cmsParseInt(json['parentId']),
       transactionNo: cmsParseString(json['transactionNo']),
-      inspectionType: CmsInspectionType.fromValue(json['inspectionType']) ?? CmsInspectionType.fromName(json['inspectionTypeName']),
+      inspectionType: CmsInspectionType.fromValue(json['inspectionType']) ??
+          CmsInspectionType.fromName(json['inspectionTypeName']),
       inspectionTypeName: cmsParseString(json['inspectionTypeName']),
       inspectionCompleted: cmsParseBool(json['inspectionCompleted']) ?? false,
       state: CmsInspectionState.fromValue(json['state']),
@@ -45,7 +46,8 @@ class CmsInspectionHistoryRow {
       conditionTypeName: cmsParseString(json['conditionTypeName']),
       depotArrivalDateTime: cmsParseDateTime(json['depotArrivalDateTime']),
       isCurrentVisit: cmsParseBool(json['isCurrentVisit']) ?? false,
-      isPlaceholderStructural: cmsParseBool(json['isPlaceholderStructural']) ?? false,
+      isPlaceholderStructural:
+          cmsParseBool(json['isPlaceholderStructural']) ?? false,
       creationTime: cmsParseDateTime(json['creationTime']),
       repairStartDate: cmsParseDateTime(json['repairStartDate']),
       repairCompletedDate: cmsParseDateTime(json['repairCompletedDate']),
@@ -73,7 +75,10 @@ class CmsInspectionHistoryRow {
   final DateTime? repairCompletedDate;
 
   /// True when the row is an open inspection that can be resumed/edited.
-  bool get isOpen => !inspectionCompleted && state != CmsInspectionState.cancelled && !isPlaceholderStructural;
+  bool get isOpen =>
+      !inspectionCompleted &&
+      state != CmsInspectionState.cancelled &&
+      !isPlaceholderStructural;
 
   String get typeLabel {
     final trimmed = inspectionTypeName?.trim();
@@ -85,11 +90,19 @@ class CmsInspectionHistoryRow {
   }
 
   String get statusLabel {
+    if (state == CmsInspectionState.cancelled) {
+      return 'Cancelled';
+    }
+
+    if (inspectionCompleted) {
+      return 'Completed';
+    }
+
     if (state != null) {
       return state!.label;
     }
 
-    return inspectionCompleted ? 'Completed' : 'In progress';
+    return 'In progress';
   }
 
   String get dateLine {

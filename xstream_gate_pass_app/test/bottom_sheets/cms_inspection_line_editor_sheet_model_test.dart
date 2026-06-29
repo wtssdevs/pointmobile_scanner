@@ -3,6 +3,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/account/cms_current_login_information.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_edit.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_panel_definition.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_item_code.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/inspection_location.dart';
@@ -77,6 +78,58 @@ void main() {
 
       await model.selectPartNumber(null);
       expect(model.line.partNumber, isNull);
+
+      model.dispose();
+    });
+
+    test('blanks costing controllers when the line has no costs', () async {
+      final model = CmsInspectionLineEditorSheetModel();
+
+      await model.initialise(shippingLineId: 55);
+
+      // A brand-new line defaults cost/labour to 0 -> the fields must start
+      // empty so the cursor lands on a blank input (issue #804). Prefilling
+      // "0.0" was what caused typing "150" to read back as "0.0150".
+      expect(model.costController.text, '');
+      expect(model.labourQtyController.text, '');
+      expect(model.labourRateController.text, '');
+
+      model.dispose();
+    });
+
+    test('prefills costing controllers with clean numeric strings', () async {
+      final model = CmsInspectionLineEditorSheetModel();
+
+      await model.initialise(
+        shippingLineId: 55,
+        line: CmsInspectionLineEdit(
+          qty: 1,
+          cost: 150.0,
+          labourQty: 0,
+          labourRate: 12.5,
+        ),
+      );
+
+      // Integer-valued amount -> no trailing ".0"; fractional -> kept as-is.
+      expect(model.costController.text, '150');
+      expect(model.labourRateController.text, '12.5');
+      // Zero stays blank even on an existing line.
+      expect(model.labourQtyController.text, '');
+
+      model.dispose();
+    });
+
+    test('parses a typed cost without the leading-zero corruption', () async {
+      final model = CmsInspectionLineEditorSheetModel();
+
+      await model.initialise(shippingLineId: 55);
+
+      // Simulate the inspector typing "150" into the now-blank cost field.
+      model.costController.text = '150';
+      model.buildResult();
+
+      // The bug produced 0.0150; the field must read back as a clean 150.
+      expect(model.line.cost, 150.0);
 
       model.dispose();
     });
