@@ -244,10 +244,22 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
 
   void _bindControllers() {
     qtyController.text = (_line.qty ?? 1).toString();
-    costController.text = (_line.cost ?? 0).toString();
-    labourQtyController.text = (_line.labourQty ?? 0).toString();
-    labourRateController.text = (_line.labourRate ?? 0).toString();
+    costController.text = _money(_line.cost);
+    labourQtyController.text = _money(_line.labourQty);
+    labourRateController.text = _money(_line.labourRate);
     descriptionController.text = _line.descriptionOne ?? '';
+  }
+
+  /// Costing fields start blank when null or zero so the cursor lands on an
+  /// empty field; otherwise a clean numeric string with no trailing ".0" (an
+  /// integer-valued amount renders as e.g. "150", a fractional one as "12.5").
+  /// Prefilling "0.0" was the cause of issue #804: typing "150" produced
+  /// "0.0150", which read back as a fraction.
+  String _money(double? value) {
+    if (value == null || value == 0) {
+      return '';
+    }
+    return value % 1 == 0 ? value.toStringAsFixed(0) : value.toString();
   }
 
   CmsSyncContext _contextFromSession(CmsCurrentLoginInformation? session) {

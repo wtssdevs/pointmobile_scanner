@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:searchable_paginated_dropdown/searchable_paginated_dropdown.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -230,6 +231,7 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                           controller: model.descriptionController,
                           minLines: 2,
                           maxLines: 4,
+                          scrollPadding: const EdgeInsets.only(bottom: 140),
                           decoration: const InputDecoration(
                             labelText: 'Inspector note',
                             border: OutlineInputBorder(),
@@ -258,6 +260,10 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                           decimal: true),
+                                  inputFormatters: _currencyFormatters,
+                                  scrollPadding:
+                                      const EdgeInsets.only(bottom: 140),
+                                  onTap: () => _selectAll(model.costController),
                                   decoration: const InputDecoration(
                                     labelText: 'Cost',
                                     border: OutlineInputBorder(),
@@ -271,6 +277,11 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                           decimal: true),
+                                  inputFormatters: _currencyFormatters,
+                                  scrollPadding:
+                                      const EdgeInsets.only(bottom: 140),
+                                  onTap: () =>
+                                      _selectAll(model.labourQtyController),
                                   decoration: const InputDecoration(
                                     labelText: 'Labour qty',
                                     border: OutlineInputBorder(),
@@ -284,6 +295,9 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                             controller: model.labourRateController,
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
+                            inputFormatters: _currencyFormatters,
+                            scrollPadding: const EdgeInsets.only(bottom: 140),
+                            onTap: () => _selectAll(model.labourRateController),
                             decoration: const InputDecoration(
                               labelText: 'Labour rate',
                               border: OutlineInputBorder(),
@@ -319,6 +333,21 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Currency inputs accept digits and at most two decimal places. This stops
+/// the editor from accepting junk and keeps the parsed value sane (issue #804).
+final List<TextInputFormatter> _currencyFormatters = [
+  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+];
+
+/// Selects the whole field on focus so re-editing a prefilled cost replaces it
+/// instead of appending — the inspector taps in and types a fresh number.
+void _selectAll(TextEditingController controller) {
+  controller.selection = TextSelection(
+    baseOffset: 0,
+    extentOffset: controller.text.length,
+  );
 }
 
 class _ActionBar extends StatelessWidget {
