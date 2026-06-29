@@ -7,6 +7,7 @@
 import 'package:stacked_services/stacked_services.dart';
 
 import 'app.locator.dart';
+import '../ui/bottom_sheets/cms_condition_picker/cms_condition_picker_sheet.dart';
 import '../ui/bottom_sheets/cms_inspection_line_editor/cms_inspection_line_editor_sheet.dart';
 import '../ui/bottom_sheets/cms_inspection_start/cms_inspection_start_sheet.dart';
 import '../ui/bottom_sheets/cms_survey_type_picker/cms_survey_type_picker_sheet.dart';
@@ -23,6 +24,7 @@ enum BottomSheetType {
   cmsInspectionLineEditor,
   cmsInspectionStart,
   cmsSurveyTypePicker,
+  cmsConditionPicker,
 }
 
 void setupBottomSheetUi() {
@@ -43,6 +45,8 @@ void setupBottomSheetUi() {
         CmsInspectionStartSheet(request: request, completer: completer),
     BottomSheetType.cmsSurveyTypePicker: (context, request, completer) =>
         CmsSurveyTypePickerSheet(request: request, completer: completer),
+    BottomSheetType.cmsConditionPicker: (context, request, completer) =>
+        CmsConditionPickerSheet(request: request, completer: completer),
   };
 
   bottomsheetService.setCustomSheetBuilders(builders);

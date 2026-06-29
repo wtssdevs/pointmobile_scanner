@@ -367,6 +367,34 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     rebuildUi();
   }
 
+  Future<void> changeCondition() async {
+    if (!canEditCondition) {
+      return;
+    }
+
+    if (!hasConditionChoices) {
+      _errorMessage =
+          'Condition types are not synced on this device yet. Run CMS sync and try again.';
+      rebuildUi();
+      return;
+    }
+
+    final response = await _bottomSheetService
+        .showCustomSheet<CmsConditionType?, Map<String, dynamic>>(
+      variant: BottomSheetType.cmsConditionPicker,
+      isScrollControlled: true,
+      data: {
+        'conditions': _conditionTypes,
+        'selectedConditionId': _inspection?.conditionTypeId,
+      },
+    );
+
+    final selected = response?.data;
+    if (response?.confirmed == true && selected != null) {
+      applyCondition(selected);
+    }
+  }
+
   Future<void> _loadConditionTypes() async {
     try {
       final session = _cmsSessionService.getCached();

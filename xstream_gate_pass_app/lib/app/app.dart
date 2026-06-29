@@ -56,6 +56,7 @@ import 'package:xstream_gate_pass_app/ui/bottom_sheets/gate_access_pre_booking/g
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_inspection_line_editor/cms_inspection_line_editor_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_inspection_start/cms_inspection_start_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_survey_type_picker/cms_survey_type_picker_sheet.dart';
+import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_condition_picker/cms_condition_picker_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops/gate_access_yard_ops_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_containerno_reader/cam_containerno_reader_view.dart';
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
@@ -168,6 +169,7 @@ import 'package:xstream_gate_pass_app/ui/views/cms/surveys/list/cms_surveys_list
     StackedBottomsheet(classType: CmsInspectionLineEditorSheet),
     StackedBottomsheet(classType: CmsInspectionStartSheet),
     StackedBottomsheet(classType: CmsSurveyTypePickerSheet),
+    StackedBottomsheet(classType: CmsConditionPickerSheet),
 // @stacked-bottom-sheet
   ],
   dialogs: [

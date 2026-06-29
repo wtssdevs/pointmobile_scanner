@@ -669,6 +669,47 @@ void main() {
       verifyNever(navigationService.back(result: anyNamed('result')));
     });
 
+    test('changeCondition applies the condition chosen in the picker', () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildInspection());
+      when(bottomSheetService
+              .showCustomSheet<CmsConditionType?, Map<String, dynamic>>(
+        enableDrag: anyNamed('enableDrag'),
+        enterBottomSheetDuration: anyNamed('enterBottomSheetDuration'),
+        exitBottomSheetDuration: anyNamed('exitBottomSheetDuration'),
+        ignoreSafeArea: anyNamed('ignoreSafeArea'),
+        isScrollControlled: anyNamed('isScrollControlled'),
+        barrierDismissible: anyNamed('barrierDismissible'),
+        additionalButtonTitle: anyNamed('additionalButtonTitle'),
+        variant: anyNamed('variant'),
+        title: anyNamed('title'),
+        hasImage: anyNamed('hasImage'),
+        imageUrl: anyNamed('imageUrl'),
+        showIconInMainButton: anyNamed('showIconInMainButton'),
+        mainButtonTitle: anyNamed('mainButtonTitle'),
+        showIconInSecondaryButton: anyNamed('showIconInSecondaryButton'),
+        secondaryButtonTitle: anyNamed('secondaryButtonTitle'),
+        showIconInAdditionalButton: anyNamed('showIconInAdditionalButton'),
+        takesInput: anyNamed('takesInput'),
+        barrierColor: anyNamed('barrierColor'),
+        barrierLabel: anyNamed('barrierLabel'),
+        customData: anyNamed('customData'),
+        data: anyNamed('data'),
+        description: anyNamed('description'),
+      )).thenAnswer((_) async => SheetResponse<CmsConditionType?>(
+            confirmed: true,
+            data: const CmsConditionType(id: 1, code: 'AV', name: 'Available'),
+          ));
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.changeCondition();
+
+      expect(model.inspection?.conditionTypeId, 1);
+      expect(model.conditionLabel, 'Available');
+    });
+
     test('cancelInspection surfaces a friendly error and stays on the screen',
         () async {
       final edit = _buildInspection();
