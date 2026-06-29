@@ -54,13 +54,21 @@ class CmsApiManager {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onError: (DioException error, ErrorInterceptorHandler handler) async {
-          if (error.response?.statusCode == HttpStatus.forbidden || error.response?.statusCode == HttpStatus.unauthorized) {
-            log.i('CMS AuthInterceptor - Error 401');
-            final accessToken = await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
+          final statusCode = error.response?.statusCode;
+
+          // 401 (token expiry) -> refresh + retry once. A 403 is a permission
+          // decision, not an expiry, so it must fail fast (no refresh/retry loop).
+          if (shouldRefreshAndRetryOnAuthError(statusCode)) {
+            log.i('CMS AuthInterceptor - Error 401 - refreshing token');
+            final accessToken =
+                await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
 
             if (accessToken == null || accessToken.accessToken == null) {
               log.i('CMS AuthInterceptor - No Local AccessToken');
               _accessTokenRepo.logOutCurrentUser();
+              // No usable token -> logging out and routing to login owns the UX,
+              // so skip the error dialog here; just propagate so the caller stops
+              // its spinner.
               return handler.reject(error);
             }
 
@@ -70,7 +78,8 @@ class CmsApiManager {
               data: data is FormData ? data.clone() : data,
             );
 
-            newOptions.headers["authorization"] = "Bearer ${accessToken.accessToken}";
+            newOptions.headers["authorization"] =
+                "Bearer ${accessToken.accessToken}";
             if (accessToken.tenantId != null) {
               newOptions.headers["Abp-TenantId"] = accessToken.tenantId;
             }
@@ -80,10 +89,20 @@ class CmsApiManager {
 
               return handler.resolve(response);
             } on DioException catch (e) {
+              // 401 retry after refresh still failed. Surface via the global
+              // handler (which dismisses EasyLoading first) and propagate so the
+              // caller's inline banner can also show.
               handelError(e);
               return handler.next(e);
             }
           }
+
+          // All non-retryable errors (403 permission decisions, failed-refresh
+          // 401s, and non-auth errors) surface via the global handler, which now
+          // dismisses any in-flight EasyLoading overlay first so the dialog's OK
+          // button is tappable (the #804 freeze). 403 never enters the retry
+          // branch above, so it fails fast. Errors still propagate to callers
+          // (e.g. background sync) so nothing is silently swallowed.
           handelError(error);
           return handler.next(error);
         },
@@ -91,7 +110,9 @@ class CmsApiManager {
           RequestOptions options,
           RequestInterceptorHandler handler,
         ) async {
-          final requiresAuth = options.extra[AppConst.requiresAuthExtraKey] != false && options.headers['requires-token'] != 'false';
+          final requiresAuth =
+              options.extra[AppConst.requiresAuthExtraKey] != false &&
+                  options.headers['requires-token'] != 'false';
 
           options.headers.remove('requires-token');
           options.headers.remove('requiresToken');
@@ -101,10 +122,13 @@ class CmsApiManager {
             return handler.next(options);
           }
 
-          var token = await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
+          var token =
+              await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
 
           var authHeader = options.headers["authorization"];
-          if (authHeader == null && token != null && token.accessToken != null) {
+          if (authHeader == null &&
+              token != null &&
+              token.accessToken != null) {
             options.headers["authorization"] = "Bearer ${token.accessToken}";
             if (token.tenantId != null) {
               options.headers["Abp-TenantId"] = token.tenantId;
@@ -118,7 +142,19 @@ class CmsApiManager {
     log.d('Initialized');
   }
 
+  /// Whether an auth failure should trigger a token refresh + single retry.
+  ///
+  /// Only a 401 (token expiry) is retryable. A 403 is a permission decision and
+  /// must fail fast — retrying it would loop and re-fail without ever recovering.
+  /// Pure + static so it can be unit-tested without Dio/EasyLoading.
+  static bool shouldRefreshAndRetryOnAuthError(int? statusCode) {
+    return statusCode == HttpStatus.unauthorized;
+  }
+
   handelError(DioException dioError) {
+    // Dismiss any in-flight EasyLoading overlay first; otherwise it stays mounted
+    // on top of the dialog below and swallows taps on the OK button (freeze).
+    EasyLoading.dismiss();
     AbpErrorHandler.handle(
       dioError: dioError,
       dialogService: _dialogService,
@@ -162,7 +198,9 @@ class CmsApiManager {
     _configureHttpClientAdapter(dioRetryClient, baseUrl);
 
     return dioRetryClient.request<dynamic>(requestOptions.path,
-        data: requestOptions.data, queryParameters: requestOptions.queryParameters, options: options);
+        data: requestOptions.data,
+        queryParameters: requestOptions.queryParameters,
+        options: options);
   }
 
   Future<dynamic> get(String uri,
