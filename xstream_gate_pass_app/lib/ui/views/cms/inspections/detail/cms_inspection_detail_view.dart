@@ -135,13 +135,45 @@ class CmsInspectionDetailView extends StatelessWidget {
                                           'Not set',
                                 ),
                                 _LabeledValue(
-                                    label: 'Condition',
-                                    value: model.inspection?.conditionLabel ??
-                                        'Not set'),
-                                _LabeledValue(
                                     label: 'Shipping line',
                                     value: model.inspection?.shippingLineName ??
                                         'Not set'),
+                              ],
+                            ),
+                          ),
+                          _SectionCard(
+                            title: 'Container condition',
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  model.conditionLabel,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: OutlinedButton.icon(
+                                    onPressed: model.canEditCondition
+                                        ? model.changeCondition
+                                        : null,
+                                    icon: const Icon(Icons.edit_outlined),
+                                    label: const Text('Change condition'),
+                                  ),
+                                ),
+                                if (!model.hasConditionChoices)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      'Sync CMS master files to change the condition.',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600]),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -215,6 +247,31 @@ class CmsInspectionDetailView extends StatelessWidget {
                               ),
                             ],
                           ),
+                          if (!model.hasLineItems) ...[
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton.icon(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.green.shade700,
+                                ),
+                                onPressed: model.canCompleteAsAv
+                                    ? model.completeAsAv
+                                    : null,
+                                icon: const Icon(Icons.verified_outlined),
+                                label: const Text('Complete as AV'),
+                              ),
+                            ),
+                            if (!model.isAvConditionAvailable)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'AV condition is not synced on this device.',
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.grey[600]),
+                                ),
+                              ),
+                          ],
                           if (model.canCancel) ...[
                             const SizedBox(height: 8),
                             Align(
