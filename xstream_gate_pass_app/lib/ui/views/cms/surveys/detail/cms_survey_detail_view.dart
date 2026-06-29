@@ -113,6 +113,8 @@ class CmsSurveyDetailView extends StatelessWidget {
           body: model.isBusy && model.survey == null
               ? const Center(child: CircularProgressIndicator())
               : ListView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
                   children: [
                     _HeaderCard(model: model),

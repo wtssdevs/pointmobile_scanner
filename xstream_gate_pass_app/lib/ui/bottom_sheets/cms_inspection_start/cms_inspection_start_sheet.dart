@@ -40,6 +40,8 @@ class CmsInspectionStartSheet extends StatelessWidget {
               ),
             ),
             child: SingleChildScrollView(
+              keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -69,6 +69,8 @@ class CmsContainerInspectionsListView extends StatelessWidget {
                     backgroundColor: kcPrimaryColor,
                     onRefresh: () => Future.sync(model.refreshList),
                     child: PagedListView.separated(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
                       pagingController: model.pagingController,
                       builderDelegate:
                           PagedChildBuilderDelegate<CmsInspectableContainer>(

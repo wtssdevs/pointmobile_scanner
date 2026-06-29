@@ -54,14 +54,19 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
         initialPinY: initialPinY,
         initialLocationMatchTerms: initialLocationMatchTerms,
       ),
-      builder: (context, model, child) => Padding(
-        // Lift the whole sheet above the keyboard; shrinking the incoming
-        // constraints also shrinks the FractionallySizedBox so the pinned
-        // footer stays visible above the keyboard.
+      builder: (context, model, child) => AnimatedPadding(
+        // Lift the whole sheet above the keyboard. While the keyboard is open
+        // the sheet also expands to the full remaining height (heightFactor
+        // 1.0 instead of 0.92): the centred 0.92 box otherwise squashes the
+        // scrollable body, scrolling the focused field out of view so you
+        // can't see what you're typing.
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
         padding:
             EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
         child: FractionallySizedBox(
-          heightFactor: 0.92,
+          heightFactor:
+              MediaQuery.viewInsetsOf(context).bottom > 0 ? 1.0 : 0.92,
           child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -114,6 +119,8 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                 // ---- scrollable body ----
                 Expanded(
                   child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

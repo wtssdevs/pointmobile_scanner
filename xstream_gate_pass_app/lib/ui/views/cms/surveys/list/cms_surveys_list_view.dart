@@ -90,6 +90,8 @@ class CmsSurveysListView extends StatelessWidget {
                 ),
               Expanded(
                 child: PagedListView<int, CmsMobileSurveyListDto>.separated(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                   pagingController: model.pagingController,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -321,6 +323,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(32, 96, 32, 32),
       children: [
         Icon(Icons.assignment_outlined, size: 56, color: Colors.grey[400]),

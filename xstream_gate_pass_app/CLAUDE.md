@@ -109,6 +109,8 @@ Four `.env_*` files are bundled as assets: `.env_dev`, `.env_local_proxy_dev`, `
 - `CustomScrollView` + `SliverAppBar` for content-heavy screens.
 - Validation errors come from the ViewModel's `Map<String, String>` — never local widget state.
 - For large searchable lookups, use `searchable_paginated_dropdown` or `DropdownSearch` with server-side paging.
+- **Keyboard dismiss on scroll (design requirement):** every scrollable that hosts or sits beneath a text input — `SingleChildScrollView`, `ListView`, `PagedListView`, `CustomScrollView` — MUST set `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag` so dragging the content closes the keyboard. This is mandatory across all CMS input views and bottom sheets.
+- **Bottom sheets with text inputs:** lift above the keyboard with `Padding`/`AnimatedPadding` using `MediaQuery.viewInsetsOf(context).bottom`. When using a `FractionallySizedBox` for height, expand to the full remaining height while the keyboard is open (`heightFactor: viewInsets.bottom > 0 ? 1.0 : 0.92`) — a centred fractional box otherwise squashes the scroll body and hides the focused field. Keep the body scrollable and give focused fields a bottom `scrollPadding` clearing any pinned footer.
 
 ## Stacked CLI Scaffold
 
