@@ -24,7 +24,7 @@ void main() {
       expect(model.visibleConditions.map((c) => c.id), [2]);
 
       model.search('AV');
-      expect(model.visibleConditions.map((c) => c.id), containsAll([1, 2]));
+      expect(model.visibleConditions.map((c) => c.id), unorderedEquals([1, 2]));
 
       model.search('   ');
       expect(model.visibleConditions, hasLength(3));

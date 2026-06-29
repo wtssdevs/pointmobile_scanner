@@ -63,7 +63,11 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   bool get hasUnsavedChanges => hasInspection && _snapshot() != _cleanSnapshot;
   bool get hasLineItems => (_inspection?.items.isNotEmpty ?? false);
   bool get isCancelled => _inspection?.state == CmsInspectionState.cancelled;
-  bool get canEdit => hasInspection && !isBusy && !isCancelled;
+  bool get canEdit =>
+      hasInspection &&
+      !isBusy &&
+      !isCancelled &&
+      _inspection?.inspectionCompleted != true;
 
   String get conditionLabel => _inspection?.conditionLabel ?? 'Not set';
   bool get hasConditionChoices => _conditionTypes.isNotEmpty;

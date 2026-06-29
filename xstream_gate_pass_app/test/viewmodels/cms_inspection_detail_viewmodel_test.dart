@@ -738,6 +738,169 @@ void main() {
       expect(model.isBusy, isFalse);
       verifyNever(navigationService.back(result: anyNamed('result')));
     });
+
+    // C1 guard test
+    test('a completed inspection is read-only (canEdit/condition/AV all false)',
+        () async {
+      final edit = _buildInspection()..inspectionCompleted = true;
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.canEdit, isFalse);
+      expect(model.canEditCondition, isFalse);
+      expect(model.canCompleteAsAv, isFalse);
+    });
+
+    // T-A
+    test('completeAsAv sets an error and does not save when AV is not synced',
+        () async {
+      _stubConditionLookup(masterFilesRepository, const [
+        CmsConditionType(id: 10, code: 'UC', name: 'Under Control'),
+      ]);
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildEmptyInspection());
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.completeAsAv();
+
+      expect(model.errorMessage, contains('AV condition is not synced'));
+      verifyNever(cmsMobileInspectionsService.saveInspection(any));
+    });
+
+    // T-B
+    test('completeAsAv is blocked (error, no save) when line items exist',
+        () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildInspection()); // has 1 line
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.completeAsAv();
+
+      expect(model.errorMessage, contains('no line items'));
+      verifyNever(cmsMobileInspectionsService.saveInspection(any));
+    });
+
+    // T-C
+    test(
+        'completeAsAv is blocked (error, no save) when start metadata is missing',
+        () async {
+      final edit = CmsInspectionEdit(
+        id: 88,
+        containerId: 501,
+        containerNo: 'MSCU1234567',
+        transactionNo: 'EMP-002',
+        containerSize: '40',
+        containterType: 'HC',
+        containerIsoType: '45G1',
+        conditionTypeId: 10,
+        conditionName: 'UC',
+        conditionDisplayName: 'Under Control',
+        inspectionType: null,
+        inspectionTypeName: null,
+        inspectionDateTime: DateTime(2026, 5, 18, 8, 0),
+        items: [],
+      );
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.completeAsAv();
+
+      expect(model.errorMessage, isNotNull);
+      verifyNever(cmsMobileInspectionsService.saveInspection(any));
+    });
+
+    // T-D
+    test(
+        'changeCondition leaves the condition unchanged when the picker is dismissed',
+        () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildInspection()); // conditionTypeId 10
+      when(bottomSheetService
+              .showCustomSheet<CmsConditionType?, Map<String, dynamic>>(
+        enableDrag: anyNamed('enableDrag'),
+        enterBottomSheetDuration: anyNamed('enterBottomSheetDuration'),
+        exitBottomSheetDuration: anyNamed('exitBottomSheetDuration'),
+        ignoreSafeArea: anyNamed('ignoreSafeArea'),
+        isScrollControlled: anyNamed('isScrollControlled'),
+        barrierDismissible: anyNamed('barrierDismissible'),
+        additionalButtonTitle: anyNamed('additionalButtonTitle'),
+        variant: anyNamed('variant'),
+        title: anyNamed('title'),
+        hasImage: anyNamed('hasImage'),
+        imageUrl: anyNamed('imageUrl'),
+        showIconInMainButton: anyNamed('showIconInMainButton'),
+        mainButtonTitle: anyNamed('mainButtonTitle'),
+        showIconInSecondaryButton: anyNamed('showIconInSecondaryButton'),
+        secondaryButtonTitle: anyNamed('secondaryButtonTitle'),
+        showIconInAdditionalButton: anyNamed('showIconInAdditionalButton'),
+        takesInput: anyNamed('takesInput'),
+        barrierColor: anyNamed('barrierColor'),
+        barrierLabel: anyNamed('barrierLabel'),
+        customData: anyNamed('customData'),
+        data: anyNamed('data'),
+        description: anyNamed('description'),
+      )).thenAnswer(
+              (_) async => SheetResponse<CmsConditionType?>(confirmed: false));
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.changeCondition();
+
+      expect(model.inspection?.conditionTypeId, 10);
+      expect(model.hasUnsavedChanges, isFalse);
+    });
+
+    // T-E
+    test(
+        'changeCondition shows a hint and never opens the picker when not synced',
+        () async {
+      _stubConditionLookup(masterFilesRepository, const []); // empty lookup
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildInspection());
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.changeCondition();
+
+      expect(model.errorMessage, contains('not synced'));
+      verifyNever(bottomSheetService
+          .showCustomSheet<CmsConditionType?, Map<String, dynamic>>(
+        enableDrag: anyNamed('enableDrag'),
+        enterBottomSheetDuration: anyNamed('enterBottomSheetDuration'),
+        exitBottomSheetDuration: anyNamed('exitBottomSheetDuration'),
+        ignoreSafeArea: anyNamed('ignoreSafeArea'),
+        isScrollControlled: anyNamed('isScrollControlled'),
+        barrierDismissible: anyNamed('barrierDismissible'),
+        additionalButtonTitle: anyNamed('additionalButtonTitle'),
+        variant: anyNamed('variant'),
+        title: anyNamed('title'),
+        hasImage: anyNamed('hasImage'),
+        imageUrl: anyNamed('imageUrl'),
+        showIconInMainButton: anyNamed('showIconInMainButton'),
+        mainButtonTitle: anyNamed('mainButtonTitle'),
+        showIconInSecondaryButton: anyNamed('showIconInSecondaryButton'),
+        secondaryButtonTitle: anyNamed('secondaryButtonTitle'),
+        showIconInAdditionalButton: anyNamed('showIconInAdditionalButton'),
+        takesInput: anyNamed('takesInput'),
+        barrierColor: anyNamed('barrierColor'),
+        barrierLabel: anyNamed('barrierLabel'),
+        customData: anyNamed('customData'),
+        data: anyNamed('data'),
+        description: anyNamed('description'),
+      ));
+    });
   });
 }
 
@@ -774,6 +937,7 @@ CmsInspectionEdit _buildInspection() {
     conditionTypeId: 10,
     conditionName: 'UC',
     conditionDisplayName: 'Under Control',
+    inspectionType: CmsInspectionType.structural,
     inspectionTypeName: 'Structural',
     inspectionDateTime: DateTime(2026, 5, 18, 8, 0),
     items: [
