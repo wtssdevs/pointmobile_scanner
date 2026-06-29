@@ -11,6 +11,8 @@ import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_panel_definition.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_condition_type.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/detail/cms_inspection_detail_viewmodel.dart';
 
@@ -20,6 +22,7 @@ import '../helpers/test_helpers.mocks.dart';
 void main() {
   group('CmsInspectionDetailViewModel -', () {
     late MockCmsMobileInspectionsService cmsMobileInspectionsService;
+    late MockCmsMasterFilesRepository masterFilesRepository;
     late MockNavigationService navigationService;
     late MockBottomSheetService bottomSheetService;
     late MockCmsInspectionLinePhotoQueueService linePhotoQueueService;
@@ -37,6 +40,9 @@ void main() {
           as MockCmsInspectionLinePhotoQueueService;
       workerQueManager = locator<WorkerQueManager>() as MockWorkerQueManager;
       dialogService = locator<DialogService>() as MockDialogService;
+      masterFilesRepository = locator<CmsMasterFilesRepository>()
+          as MockCmsMasterFilesRepository;
+      _stubConditionLookup(masterFilesRepository, _conditionLookup());
       when(linePhotoQueueService.getForLine(any)).thenAnswer((_) async => []);
       when(linePhotoQueueService.getForInspection(any))
           .thenAnswer((_) async => []);
@@ -539,6 +545,53 @@ void main() {
       verifyNever(navigationService.back(result: anyNamed('result')));
     });
 
+    test('loads condition types and resolves the AV condition by code',
+        () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildInspection());
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.hasConditionChoices, isTrue);
+      expect(model.isAvConditionAvailable, isTrue);
+      expect(model.avCondition?.id, 1);
+    });
+
+    test('isAvConditionAvailable is false when no AV code is synced', () async {
+      _stubConditionLookup(masterFilesRepository, const [
+        CmsConditionType(id: 10, code: 'UC', name: 'Under Control'),
+      ]);
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildInspection());
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.isAvConditionAvailable, isFalse);
+      expect(model.avCondition, isNull);
+    });
+
+    test('applyCondition updates the three fields and dirties the screen',
+        () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildInspection());
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+      expect(model.hasUnsavedChanges, isFalse);
+
+      model.applyCondition(
+        const CmsConditionType(id: 1, code: 'AV', name: 'Available'),
+      );
+
+      expect(model.inspection?.conditionTypeId, 1);
+      expect(model.inspection?.conditionName, 'Available');
+      expect(model.inspection?.conditionDisplayName, 'Available');
+      expect(model.conditionLabel, 'Available');
+      expect(model.hasUnsavedChanges, isTrue);
+    });
+
     test('cancelInspection surfaces a friendly error and stays on the screen',
         () async {
       final edit = _buildInspection();
@@ -660,6 +713,25 @@ void _stubLineEditorResponse(
 
     return response;
   });
+}
+
+List<CmsConditionType> _conditionLookup() => const [
+      CmsConditionType(id: 1, code: 'AV', name: 'Available'),
+      CmsConditionType(id: 10, code: 'UC', name: 'Under Control'),
+      CmsConditionType(id: 2, code: 'AV WASH', name: 'Available after wash'),
+    ];
+
+void _stubConditionLookup(
+  MockCmsMasterFilesRepository repository,
+  List<CmsConditionType> conditions,
+) {
+  when(repository.getAll<CmsConditionType>(
+    any,
+    any,
+    activeOnly: anyNamed('activeOnly'),
+    shippingLineId: anyNamed('shippingLineId'),
+    filterByShippingLine: anyNamed('filterByShippingLine'),
+  )).thenAnswer((_) async => conditions);
 }
 
 void _stubCompletionConfirm(

@@ -11,6 +11,7 @@ import 'package:xstream_gate_pass_app/core/services/services/account/cms_access_
 import 'package:xstream_gate_pass_app/core/services/services/account/cms_authentication_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_media_upload_queue_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_sync_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_file_store_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
@@ -48,6 +49,7 @@ import 'test_helpers.mocks.dart';
   MockSpec<CmsAuthenticationService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsSessionService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsMasterFilesSyncService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<CmsMasterFilesRepository>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsMediaUploadQueueService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsInspectionLinePhotoQueueService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<CmsMobileFileStoreService>(onMissingStub: OnMissingStub.returnDefault),
@@ -77,6 +79,7 @@ void registerServices() {
   getAndRegisterCmsAccessTokenRepo();
   getAndRegisterCmsAuthenticationService();
   getAndRegisterCmsSessionService();
+  getAndRegisterCmsMasterFilesRepository();
   getAndRegisterCmsMasterFilesSyncService();
   getAndRegisterCmsMediaUploadQueueService();
   getAndRegisterCmsInspectionLinePhotoQueueService();
@@ -228,6 +231,13 @@ MockCmsSessionService getAndRegisterCmsSessionService() {
   _removeRegistrationIfExists<CmsSessionService>();
   final service = MockCmsSessionService();
   locator.registerSingleton<CmsSessionService>(service);
+  return service;
+}
+
+MockCmsMasterFilesRepository getAndRegisterCmsMasterFilesRepository() {
+  _removeRegistrationIfExists<CmsMasterFilesRepository>();
+  final service = MockCmsMasterFilesRepository();
+  locator.registerSingleton<CmsMasterFilesRepository>(service);
   return service;
 }
 

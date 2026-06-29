@@ -17,10 +17,14 @@ import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_edit.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_photo.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_panel_definition.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_condition_type.dart';
 import 'package:xstream_gate_pass_app/core/services/api/cms_error_translator.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_sync_models.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/guid_generator.dart';
 
 class CmsInspectionDetailViewModel extends BaseViewModel {
@@ -33,10 +37,14 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   final BottomSheetService _bottomSheetService = locator<BottomSheetService>();
   final DialogService _dialogService = locator<DialogService>();
   final NavigationService _navigationService = locator<NavigationService>();
+  final CmsMasterFilesRepository _masterFilesRepository =
+      locator<CmsMasterFilesRepository>();
+  final CmsSessionService _cmsSessionService = locator<CmsSessionService>();
 
   final TextEditingController commentsController = TextEditingController();
 
   CmsInspectionEdit? _inspection;
+  List<CmsConditionType> _conditionTypes = const <CmsConditionType>[];
   String? _errorMessage;
   bool _hasLoaded = false;
   bool _shouldRefreshOnExit = false;
@@ -56,6 +64,27 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   bool get hasLineItems => (_inspection?.items.isNotEmpty ?? false);
   bool get isCancelled => _inspection?.state == CmsInspectionState.cancelled;
   bool get canEdit => hasInspection && !isBusy && !isCancelled;
+
+  String get conditionLabel => _inspection?.conditionLabel ?? 'Not set';
+  bool get hasConditionChoices => _conditionTypes.isNotEmpty;
+  bool get canEditCondition => canEdit && startMetadataWarning == null;
+
+  CmsConditionType? get avCondition {
+    for (final condition in _conditionTypes) {
+      if ((condition.code ?? '').trim().toUpperCase() == 'AV') {
+        return condition;
+      }
+    }
+    return null;
+  }
+
+  bool get isAvConditionAvailable => avCondition != null;
+
+  bool get canCompleteAsAv =>
+      canEdit &&
+      !hasLineItems &&
+      startMetadataWarning == null &&
+      isAvConditionAvailable;
   bool get canCancel =>
       hasInspection &&
       !isBusy &&
@@ -285,6 +314,7 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       final loaded =
           await _mobileInspectionsService.getInspectionForEdit(inspectionId);
       _applyInspection(loaded, markClean: true);
+      await _loadConditionTypes();
       await _refreshLinePhotos();
     } catch (error) {
       log.e('Failed to load CMS inspection detail', error);
@@ -322,6 +352,37 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     }
 
     _inspection!.comments = value;
+  }
+
+  void applyCondition(CmsConditionType condition) {
+    if (_inspection == null) {
+      return;
+    }
+
+    _inspection!
+      ..conditionTypeId = condition.id
+      ..conditionName = condition.name
+      ..conditionDisplayName = condition.displayName;
+    _errorMessage = null;
+    rebuildUi();
+  }
+
+  Future<void> _loadConditionTypes() async {
+    try {
+      final session = _cmsSessionService.getCached();
+      final context = CmsSyncContext(
+        tenantId: session?.tenant?.id ?? 0,
+        userId: session?.user?.id ?? 0,
+      );
+      _conditionTypes = await _masterFilesRepository.getAll(
+        CmsMasterFileStores.conditionTypes,
+        context,
+        activeOnly: true,
+      );
+    } catch (error) {
+      log.e('Failed to load CMS condition types', error);
+      _conditionTypes = const <CmsConditionType>[];
+    }
   }
 
   Future<void> addLine() async {
