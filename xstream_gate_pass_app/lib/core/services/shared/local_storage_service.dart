@@ -52,8 +52,13 @@ class LocalStorageService {
     }
   }
 
-  void setTenantId(int value) {
-    _saveToDisk(AppConst.tenantId, value);
+  void setTenantId(int value) => setTenantIdForPortal(AuthPortal.xac, value);
+
+  void setTenantIdForPortal(AuthPortal portal, int value) {
+    _saveToDisk(_tenantIdKey(portal), value);
+    if (portal == AuthPortal.xac) {
+      _saveToDisk(AppConst.tenantId, value);
+    }
   }
 
   int getScannerBranchId() {
