@@ -599,6 +599,50 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       return;
     }
 
+    await _performCompletion();
+  }
+
+  /// One-tap completion for a clean (zero-line) inspection: sets the container
+  /// condition to AV and completes. Shown only when there are no line items.
+  Future<void> completeAsAv() async {
+    if (_inspection == null) {
+      return;
+    }
+
+    if (!hasRequiredStartMetadata) {
+      _errorMessage = startMetadataWarning;
+      rebuildUi();
+      return;
+    }
+
+    if (hasLineItems) {
+      _errorMessage =
+          'Complete as AV is only available when no line items have been recorded.';
+      rebuildUi();
+      return;
+    }
+
+    final av = avCondition;
+    if (av == null) {
+      _errorMessage =
+          'The AV condition is not synced on this device. Run CMS sync and try again.';
+      rebuildUi();
+      return;
+    }
+
+    final confirmed = await _confirmCompleteAsAv();
+    if (!confirmed) {
+      return;
+    }
+
+    applyCondition(av);
+    await _performCompletion();
+  }
+
+  /// Shared completion core: persists the inspection with [inspectionCompleted]
+  /// set, remaps photos, enqueues upload, and returns to the list. Reused by
+  /// [completeInspection] and [completeAsAv] so there is a single save path.
+  Future<void> _performCompletion() async {
     setBusy(true);
     _errorMessage = null;
 
@@ -1110,6 +1154,20 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       description:
           'Completing locks this inspection and sends it for quoting. This cannot be undone from the app.',
       mainButtonTitle: 'Complete',
+      secondaryButtonTitle: 'Keep editing',
+    );
+
+    return response?.confirmed == true;
+  }
+
+  Future<bool> _confirmCompleteAsAv() async {
+    final response = await _dialogService.showCustomDialog(
+      variant: DialogType.infoAlert,
+      data: BasicDialogStatus.warning,
+      title: 'Complete as Available (AV)?',
+      description:
+          'This inspection has no recorded line items. Completing will set the container condition to AV (Available) and lock the inspection. This cannot be undone from the app.',
+      mainButtonTitle: 'Complete as AV',
       secondaryButtonTitle: 'Keep editing',
     );
 

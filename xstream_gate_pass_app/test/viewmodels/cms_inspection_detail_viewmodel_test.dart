@@ -12,6 +12,7 @@ import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_condition_type.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_type.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/detail/cms_inspection_detail_viewmodel.dart';
@@ -592,6 +593,82 @@ void main() {
       expect(model.hasUnsavedChanges, isTrue);
     });
 
+    test('canCompleteAsAv is true only for an empty, editable, AV-synced inspection',
+        () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildEmptyInspection());
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.hasLineItems, isFalse);
+      expect(model.canCompleteAsAv, isTrue);
+    });
+
+    test('canCompleteAsAv is false when line items exist', () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildInspection()); // has 1 line
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.hasLineItems, isTrue);
+      expect(model.canCompleteAsAv, isFalse);
+    });
+
+    test('canCompleteAsAv is false when AV is not synced', () async {
+      _stubConditionLookup(masterFilesRepository, const [
+        CmsConditionType(id: 10, code: 'UC', name: 'Under Control'),
+      ]);
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildEmptyInspection());
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.canCompleteAsAv, isFalse);
+    });
+
+    test('completeAsAv sets AV, saves a completed edit, and navigates back',
+        () async {
+      final edit = _buildEmptyInspection();
+      final completed = edit.clone()..inspectionCompleted = true;
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+      when(cmsMobileInspectionsService.saveInspection(any))
+          .thenAnswer((_) async => completed);
+      _stubCompletionConfirm(dialogService, confirmed: true);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.completeAsAv();
+
+      final payload =
+          verify(cmsMobileInspectionsService.saveInspection(captureAny))
+              .captured
+              .single as CmsInspectionEdit;
+      expect(payload.inspectionCompleted, isTrue);
+      expect(payload.conditionTypeId, 1); // AV id from lookup
+      expect(payload.conditionName, 'Available');
+      verify(navigationService.back(result: true)).called(1);
+    });
+
+    test('completeAsAv does nothing when the confirm dialog is declined',
+        () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildEmptyInspection());
+      _stubCompletionConfirm(dialogService, confirmed: false);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.completeAsAv();
+
+      verifyNever(cmsMobileInspectionsService.saveInspection(any));
+      verifyNever(navigationService.back(result: anyNamed('result')));
+    });
+
     test('cancelInspection surfaces a friendly error and stays on the screen',
         () async {
       final edit = _buildInspection();
@@ -621,6 +698,26 @@ void main() {
       verifyNever(navigationService.back(result: anyNamed('result')));
     });
   });
+}
+
+CmsInspectionEdit _buildEmptyInspection() {
+  return CmsInspectionEdit(
+    id: 88,
+    containerId: 501,
+    containerNo: 'MSCU1234567',
+    transactionNo: 'EMP-001',
+    shippingLineName: 'MSK',
+    containerSize: '40',
+    containterType: 'HC',
+    containerIsoType: '45G1',
+    conditionTypeId: 10,
+    conditionName: 'UC',
+    conditionDisplayName: 'Under Control',
+    inspectionType: CmsInspectionType.structural,
+    inspectionTypeName: 'Structural',
+    inspectionDateTime: DateTime(2026, 5, 18, 8, 0),
+    items: [],
+  );
 }
 
 CmsInspectionEdit _buildInspection() {
