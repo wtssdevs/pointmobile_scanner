@@ -9,6 +9,7 @@ class CmsConditionPickerSheetModel extends BaseViewModel {
   void initialise(List<CmsConditionType> conditions, int? selectedConditionId) {
     _allConditions = conditions;
     _selectedConditionId = selectedConditionId;
+    rebuildUi();
   }
 
   int? get selectedConditionId => _selectedConditionId;

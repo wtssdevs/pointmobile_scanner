@@ -230,21 +230,23 @@ class CmsInspectionDetailView extends StatelessWidget {
                                   label: const Text('Save draft'),
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: FilledButton.icon(
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: kcPrimaryColor,
+                              if (model.showStandardComplete) ...[
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: FilledButton.icon(
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: kcPrimaryColor,
+                                    ),
+                                    onPressed: !model.canEdit ||
+                                            model.hasUnclassifiedLines ||
+                                            model.startMetadataWarning != null
+                                        ? null
+                                        : model.completeInspection,
+                                    icon: const Icon(Icons.task_alt),
+                                    label: const Text('Complete'),
                                   ),
-                                  onPressed: !model.canEdit ||
-                                          model.hasUnclassifiedLines ||
-                                          model.startMetadataWarning != null
-                                      ? null
-                                      : model.completeInspection,
-                                  icon: const Icon(Icons.task_alt),
-                                  label: const Text('Complete'),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                           if (!model.hasLineItems) ...[

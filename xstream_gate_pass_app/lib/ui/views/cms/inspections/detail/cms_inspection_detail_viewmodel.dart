@@ -47,6 +47,7 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   List<CmsConditionType> _conditionTypes = const <CmsConditionType>[];
   String? _errorMessage;
   bool _hasLoaded = false;
+  bool _isCompleting = false;
   bool _shouldRefreshOnExit = false;
   bool _isHandlingBackNavigation = false;
   String _cleanSnapshot = '';
@@ -89,6 +90,13 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       !hasLineItems &&
       startMetadataWarning == null &&
       isAvConditionAvailable;
+
+  /// Whether the standard "Complete" button is shown. Hidden on a clean
+  /// (zero-line) inspection when AV is available, so the inspector uses
+  /// "Complete as AV" instead of completing with the start condition. Kept as a
+  /// fallback when AV is not synced, so a zero-line inspection is never
+  /// un-completable.
+  bool get showStandardComplete => hasLineItems || !isAvConditionAvailable;
   bool get canCancel =>
       hasInspection &&
       !isBusy &&
@@ -610,7 +618,7 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
   }
 
   Future<void> completeInspection() async {
-    if (_inspection == null) {
+    if (_inspection == null || _isCompleting) {
       return;
     }
 
@@ -626,18 +634,22 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       return;
     }
 
-    final confirmed = await _confirmCompletion();
-    if (!confirmed) {
-      return;
+    _isCompleting = true;
+    try {
+      final confirmed = await _confirmCompletion();
+      if (!confirmed) {
+        return;
+      }
+      await _performCompletion();
+    } finally {
+      _isCompleting = false;
     }
-
-    await _performCompletion();
   }
 
   /// One-tap completion for a clean (zero-line) inspection: sets the container
   /// condition to AV and completes. Shown only when there are no line items.
   Future<void> completeAsAv() async {
-    if (_inspection == null) {
+    if (_inspection == null || _isCompleting) {
       return;
     }
 
@@ -662,19 +674,37 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       return;
     }
 
-    final confirmed = await _confirmCompleteAsAv();
-    if (!confirmed) {
-      return;
+    _isCompleting = true;
+    try {
+      final confirmed = await _confirmCompleteAsAv();
+      if (!confirmed) {
+        return;
+      }
+      final priorTypeId = _inspection!.conditionTypeId;
+      final priorName = _inspection!.conditionName;
+      final priorDisplay = _inspection!.conditionDisplayName;
+      applyCondition(av);
+      final completed = await _performCompletion();
+      if (!completed) {
+        // Save failed; revert optimistic AV so screen doesn't show an
+        // unsaved condition that was never persisted.
+        _inspection!
+          ..conditionTypeId = priorTypeId
+          ..conditionName = priorName
+          ..conditionDisplayName = priorDisplay;
+        rebuildUi();
+      }
+    } finally {
+      _isCompleting = false;
     }
-
-    applyCondition(av);
-    await _performCompletion();
   }
 
   /// Shared completion core: persists the inspection with [inspectionCompleted]
   /// set, remaps photos, enqueues upload, and returns to the list. Reused by
   /// [completeInspection] and [completeAsAv] so there is a single save path.
-  Future<void> _performCompletion() async {
+  /// Returns `true` on success (after navigating back), `false` when the save
+  /// fails so callers can roll back optimistic state changes.
+  Future<bool> _performCompletion() async {
     setBusy(true);
     _errorMessage = null;
 
@@ -700,12 +730,13 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
       _applyInspection(mergedCompleted, markClean: true);
       await _refreshLinePhotos();
       _navigationService.back(result: true);
+      return true;
     } catch (error) {
       log.e('Failed to complete CMS inspection', error);
       _errorMessage = CmsErrorTranslator.messageFrom(error);
       setBusy(false);
       rebuildUi();
-      return;
+      return false;
     }
   }
 

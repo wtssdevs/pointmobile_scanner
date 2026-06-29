@@ -901,6 +901,57 @@ void main() {
         description: anyNamed('description'),
       ));
     });
+
+    // P1c — showStandardComplete
+    test('showStandardComplete is true when line items exist', () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildInspection());
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+      expect(model.showStandardComplete, isTrue);
+    });
+
+    test('showStandardComplete is false when zero lines and AV is synced',
+        () async {
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildEmptyInspection());
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+      expect(model.showStandardComplete, isFalse);
+    });
+
+    test(
+        'showStandardComplete is true (fallback) when zero lines but AV not synced',
+        () async {
+      _stubConditionLookup(masterFilesRepository, const [
+        CmsConditionType(id: 10, code: 'UC', name: 'Under Control'),
+      ]);
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => _buildEmptyInspection());
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+      expect(model.showStandardComplete, isTrue);
+    });
+
+    // N3 — rollback on save failure
+    test('completeAsAv reverts AV condition when save fails', () async {
+      final edit = _buildEmptyInspection(); // conditionTypeId: 10, name: 'UC'
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+      when(cmsMobileInspectionsService.saveInspection(any))
+          .thenThrow(Exception('network error'));
+      _stubCompletionConfirm(dialogService, confirmed: true);
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      await model.completeAsAv();
+
+      // AV was applied optimistically (id 1), save threw → must revert to UC (id 10)
+      expect(model.inspection?.conditionTypeId, 10);
+      expect(model.inspection?.conditionName, 'UC');
+      verifyNever(navigationService.back(result: anyNamed('result')));
+    });
   });
 }
 
