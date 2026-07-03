@@ -54,19 +54,20 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
         initialPinY: initialPinY,
         initialLocationMatchTerms: initialLocationMatchTerms,
       ),
-      builder: (context, model, child) => AnimatedPadding(
-        // Lift the whole sheet above the keyboard. While the keyboard is open
-        // the sheet also expands to the full remaining height (heightFactor
-        // 1.0 instead of 0.92): the centred 0.92 box otherwise squashes the
-        // scrollable body, scrolling the focused field out of view so you
-        // can't see what you're typing.
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
+      builder: (context, model, child) => Padding(
+        // Lift the whole sheet above the keyboard, then cap its height and let
+        // the body flex. A fixed-fraction box (FractionallySizedBox) fights the
+        // keyboard: as the viewport shrinks it squashes the scroll body to ~0,
+        // collapsing Cancel/Save up under the header and scrolling the focused
+        // field out of view. A max-height cap + Column(mainAxisSize.min) +
+        // Flexible body keeps the header/footer pinned and lets the focused
+        // field scroll into the shrinking viewport instead.
         padding:
             EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-        child: FractionallySizedBox(
-          heightFactor:
-              MediaQuery.viewInsetsOf(context).bottom > 0 ? 1.0 : 0.92,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+          ),
           child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -77,6 +78,7 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
             ),
             clipBehavior: Clip.antiAlias,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // ---- pinned header: drag handle, title, close ----
                 Padding(
@@ -117,7 +119,7 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 // ---- scrollable body ----
-                Expanded(
+                Flexible(
                   child: SingleChildScrollView(
                     keyboardDismissBehavior:
                         ScrollViewKeyboardDismissBehavior.onDrag,

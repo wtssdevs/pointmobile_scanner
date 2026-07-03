@@ -325,6 +325,7 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
 
       final loaded =
           await _mobileInspectionsService.getInspectionForEdit(inspectionId);
+      _stampInspectedByIfBlank(loaded);
       _applyInspection(loaded, markClean: true);
       await _loadConditionTypes();
       await _refreshLinePhotos();
@@ -405,6 +406,42 @@ class CmsInspectionDetailViewModel extends BaseViewModel {
     if (response?.confirmed == true && selected != null) {
       applyCondition(selected);
     }
+  }
+
+  /// Stamps the signed-in CMS user as the inspector when the record has none,
+  /// so "Inspected By" persists on save and flows to the quotation (which reads
+  /// it live from the inspection). Only fills when blank — never overwrites a
+  /// name already captured (e.g. a web-entered inspector). Called before the
+  /// clean snapshot so it does not surface as an unsaved change on open.
+  void _stampInspectedByIfBlank(CmsInspectionEdit inspection) {
+    final existing = inspection.inspectedBy?.trim();
+    if (existing != null && existing.isNotEmpty) {
+      return;
+    }
+
+    final name = _currentUserDisplayName();
+    if (name != null) {
+      inspection.inspectedBy = name;
+    }
+  }
+
+  String? _currentUserDisplayName() {
+    final user = _cmsSessionService.getCached()?.user;
+    if (user == null) {
+      return null;
+    }
+
+    final fullName = user.fullName?.trim();
+    if (fullName != null && fullName.isNotEmpty) {
+      return fullName;
+    }
+
+    final joined = [user.name, user.surname]
+        .whereType<String>()
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .join(' ');
+    return joined.isEmpty ? null : joined;
   }
 
   Future<void> _loadConditionTypes() async {

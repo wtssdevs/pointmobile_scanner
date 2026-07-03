@@ -15,6 +15,8 @@ import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_condition_t
 import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_type.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_repository.dart';
 import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart';
+import 'package:xstream_gate_pass_app/core/models/cms/account/cms_current_login_information.dart';
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/cms/inspections/detail/cms_inspection_detail_viewmodel.dart';
 
 import '../helpers/test_helpers.dart';
@@ -29,6 +31,7 @@ void main() {
     late MockCmsInspectionLinePhotoQueueService linePhotoQueueService;
     late MockWorkerQueManager workerQueManager;
     late MockDialogService dialogService;
+    late MockCmsSessionService cmsSessionService;
 
     setUp(() {
       registerServices();
@@ -43,6 +46,8 @@ void main() {
       dialogService = locator<DialogService>() as MockDialogService;
       masterFilesRepository = locator<CmsMasterFilesRepository>()
           as MockCmsMasterFilesRepository;
+      cmsSessionService =
+          locator<CmsSessionService>() as MockCmsSessionService;
       _stubConditionLookup(masterFilesRepository, _conditionLookup());
       when(linePhotoQueueService.getForLine(any)).thenAnswer((_) async => []);
       when(linePhotoQueueService.getForInspection(any))
@@ -73,6 +78,53 @@ void main() {
         containsAll(['Size:40', 'Type:HC', 'ISO:45G1']),
       );
       verify(cmsMobileInspectionsService.getInspectionForEdit(88)).called(1);
+    });
+
+    test('stamps the signed-in CMS user as inspectedBy when the record is blank',
+        () async {
+      final edit = _buildInspection()..inspectedBy = null;
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+      when(cmsSessionService.getCached()).thenReturn(
+        CmsCurrentLoginInformation(user: CmsUserLoginInfo(fullName: 'John Smith')),
+      );
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.inspection?.inspectedBy, 'John Smith');
+      // Baked into the clean snapshot -> not a spurious unsaved change.
+      expect(model.hasUnsavedChanges, isFalse);
+    });
+
+    test('falls back to name + surname when the session has no full name',
+        () async {
+      final edit = _buildInspection()..inspectedBy = '   ';
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+      when(cmsSessionService.getCached()).thenReturn(
+        CmsCurrentLoginInformation(
+            user: CmsUserLoginInfo(name: 'Jane', surname: 'Doe')),
+      );
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.inspection?.inspectedBy, 'Jane Doe');
+    });
+
+    test('does not overwrite an inspectedBy already on the record', () async {
+      final edit = _buildInspection()..inspectedBy = 'Web User';
+      when(cmsMobileInspectionsService.getInspectionForEdit(88))
+          .thenAnswer((_) async => edit);
+      when(cmsSessionService.getCached()).thenReturn(
+        CmsCurrentLoginInformation(user: CmsUserLoginInfo(fullName: 'John Smith')),
+      );
+
+      final model = CmsInspectionDetailViewModel();
+      await model.runStartupLogic(inspectionId: 88);
+
+      expect(model.inspection?.inspectedBy, 'Web User');
     });
 
     test('defaults active inspection timing to now when the server omits it',
