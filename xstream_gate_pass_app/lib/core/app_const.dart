@@ -42,6 +42,7 @@ class AppConst {
   static const String Base_hostname = 'Base_hostname';
   static const String CMS_API_Base_Url = 'CMS_API_Base_Url_Key';
   static const String CMS_Base_hostname = 'CMS_Base_hostname';
+  static const String AppPortalModeKey = 'APP_PORTAL_MODE';
 
   static const String DB_BackgroundJobInfo = "BackgroundJobInfo";
   static const String DB_FileStore = "FileStore";

@@ -36,53 +36,34 @@ class DualLoginView extends StatelessWidget {
                 children: [
                   const LoginHeader(),
                   const SizedBox(height: 20),
-                  PortalLoginTabs(
-                    selectedPortal: model.selectedPortal,
-                    onPortalSelected: (portal) {
-                      FocusScope.of(context).unfocus();
-                      model.selectPortal(portal);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  PortalPageIndicator(selectedIndex: model.selectedIndex),
-                  SizedBox(
-                    height: pageHeight,
-                    child: PageView(
-                      controller: model.pageController,
-                      physics: const ClampingScrollPhysics(),
-                      onPageChanged: (index) {
+                  // Restricted builds (APP_PORTAL_MODE=cms|xac) expose a single
+                  // portal: hide the tab switcher / pager and show one card.
+                  if (model.showPortalSelector) ...[
+                    PortalLoginTabs(
+                      selectedPortal: model.selectedPortal,
+                      onPortalSelected: (portal) {
                         FocusScope.of(context).unfocus();
-                        model.onPageChanged(index);
+                        model.selectPortal(portal);
                       },
-                      children: [
-                        PortalLoginCard(
-                          portal: AuthPortal.xac,
-                          tenantCodeController: model.xacTenantCodeController,
-                          usernameController: model.xacUsernameController,
-                          passwordController: model.xacPasswordController,
-                          tenantFocusNode: model.xacTenantFocusNode,
-                          usernameFocusNode: model.xacUsernameFocusNode,
-                          passwordFocusNode: model.xacPasswordFocusNode,
-                          validationFor: model.validationFor,
-                          isBusy: model.isBusyForPortal(AuthPortal.xac),
-                          onSubmit: () => model.signIn(AuthPortal.xac),
-                          onTermsPressed: model.navigateToTermsView,
-                        ),
-                        PortalLoginCard(
-                          portal: AuthPortal.cms,
-                          tenantCodeController: model.cmsTenantCodeController,
-                          usernameController: model.cmsUsernameController,
-                          passwordController: model.cmsPasswordController,
-                          tenantFocusNode: model.cmsTenantFocusNode,
-                          usernameFocusNode: model.cmsUsernameFocusNode,
-                          passwordFocusNode: model.cmsPasswordFocusNode,
-                          validationFor: model.validationFor,
-                          isBusy: model.isBusyForPortal(AuthPortal.cms),
-                          onSubmit: () => model.signIn(AuthPortal.cms),
-                        ),
-                      ],
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    PortalPageIndicator(selectedIndex: model.selectedIndex),
+                    SizedBox(
+                      height: pageHeight,
+                      child: PageView(
+                        controller: model.pageController,
+                        physics: const ClampingScrollPhysics(),
+                        onPageChanged: (index) {
+                          FocusScope.of(context).unfocus();
+                          model.onPageChanged(index);
+                        },
+                        children: model.availablePortals
+                            .map((portal) => _buildPortalCard(portal, model))
+                            .toList(growable: false),
+                      ),
+                    ),
+                  ] else
+                    _buildPortalCard(model.availablePortals.first, model),
                   const SizedBox(height: 12),
                   Container(
                     height: 4,
@@ -98,6 +79,31 @@ class DualLoginView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// Builds the login card for a portal, wiring the portal-specific controllers
+  /// and focus nodes. Terms link is XAC-only.
+  Widget _buildPortalCard(AuthPortal portal, DualLoginViewModel model) {
+    final isXac = portal == AuthPortal.xac;
+    return PortalLoginCard(
+      portal: portal,
+      tenantCodeController:
+          isXac ? model.xacTenantCodeController : model.cmsTenantCodeController,
+      usernameController:
+          isXac ? model.xacUsernameController : model.cmsUsernameController,
+      passwordController:
+          isXac ? model.xacPasswordController : model.cmsPasswordController,
+      tenantFocusNode:
+          isXac ? model.xacTenantFocusNode : model.cmsTenantFocusNode,
+      usernameFocusNode:
+          isXac ? model.xacUsernameFocusNode : model.cmsUsernameFocusNode,
+      passwordFocusNode:
+          isXac ? model.xacPasswordFocusNode : model.cmsPasswordFocusNode,
+      validationFor: model.validationFor,
+      isBusy: model.isBusyForPortal(portal),
+      onSubmit: () => model.signIn(portal),
+      onTermsPressed: isXac ? model.navigateToTermsView : null,
     );
   }
 }

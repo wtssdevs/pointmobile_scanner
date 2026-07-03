@@ -8,6 +8,7 @@ import 'package:xstream_gate_pass_app/core/services/services/account/authenticat
 import 'package:xstream_gate_pass_app/core/services/services/account/cms_authentication_service.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
 
@@ -20,11 +21,12 @@ class AuthSessionCoordinator {
   final ConnectionService _connectionService = locator<ConnectionService>();
   final _localizationManager = locator<LocalizationManagerService>();
   final _workerQueManager = locator<WorkerQueManager>();
+  final EnvironmentService _environmentService = locator<EnvironmentService>();
 
   Future<void> routeAfterStartup() async {
     final portal = await resolveStartupPortal();
-    if (portal == null) {
-      await routeToLogin(AuthPortal.xac);
+    if (portal == null || !_environmentService.isPortalEnabled(portal)) {
+      await routeToLogin(_environmentService.defaultPortal);
       return;
     }
 
@@ -70,18 +72,19 @@ class AuthSessionCoordinator {
 
   Future<void> logoutAllPortals() async {
     _localStorageService.logoutAllPortals();
-    await routeToLogin(AuthPortal.xac);
+    await routeToLogin(_environmentService.defaultPortal);
   }
 
   Future<void> routeAfterPortalLogout(AuthPortal loggedOutPortal) async {
     final fallbackPortal = _otherPortal(loggedOutPortal);
-    if (await _portalHasValidOrRefreshableSession(fallbackPortal)) {
+    if (_environmentService.isPortalEnabled(fallbackPortal) &&
+        await _portalHasValidOrRefreshableSession(fallbackPortal)) {
       await _preparePortalSession(fallbackPortal);
       await routeToPortalHome(fallbackPortal);
       return;
     }
 
-    await routeToLogin(AuthPortal.xac);
+    await routeToLogin(_environmentService.defaultPortal);
   }
 
   Future<void> routeToLogin(AuthPortal initialPortal) async {

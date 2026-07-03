@@ -12,10 +12,14 @@ import 'package:xstream_gate_pass_app/core/services/services/account/cms_authent
 import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart';
+import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart';
 
 class DualLoginViewModel extends BaseViewModel {
   DualLoginViewModel({this.initialPortal = AuthPortal.xac}) {
-    _selectedIndex = initialPortal == AuthPortal.cms ? 1 : 0;
+    final portals = availablePortals;
+    final requested =
+        portals.contains(initialPortal) ? initialPortal : portals.first;
+    _selectedIndex = portals.indexOf(requested);
     pageController = PageController(initialPage: _selectedIndex);
   }
 
@@ -36,6 +40,7 @@ class DualLoginViewModel extends BaseViewModel {
   final _localizationManager = locator<LocalizationManagerService>();
   final _workerQueManager = locator<WorkerQueManager>();
   final _authSessionCoordinator = locator<AuthSessionCoordinator>();
+  final EnvironmentService _environmentService = locator<EnvironmentService>();
 
   late final PageController pageController;
 
@@ -60,8 +65,24 @@ class DualLoginViewModel extends BaseViewModel {
 
   int _selectedIndex = 0;
   int get selectedIndex => _selectedIndex;
-  AuthPortal get selectedPortal =>
-      _selectedIndex == 0 ? AuthPortal.xac : AuthPortal.cms;
+
+  /// Portals this build exposes (from APP_PORTAL_MODE), in display order.
+  /// Falls back to both if the env somehow yields none.
+  List<AuthPortal> get availablePortals {
+    final portals = _environmentService.enabledPortals;
+    return portals.isEmpty
+        ? const [AuthPortal.xac, AuthPortal.cms]
+        : portals;
+  }
+
+  /// Whether to show the portal tab switcher — only when more than one portal
+  /// is enabled. A restricted (CMS-only / XAC-only) build shows a single card.
+  bool get showPortalSelector => availablePortals.length > 1;
+
+  AuthPortal get selectedPortal {
+    final portals = availablePortals;
+    return portals[_selectedIndex.clamp(0, portals.length - 1)];
+  }
 
   bool _xacBusy = false;
   bool _cmsBusy = false;
@@ -77,7 +98,10 @@ class DualLoginViewModel extends BaseViewModel {
 
   Future<void> selectPortal(AuthPortal portal) async {
     _unfocusAllFields();
-    final index = portal == AuthPortal.xac ? 0 : 1;
+    final index = availablePortals.indexOf(portal);
+    if (index < 0) {
+      return;
+    }
     if (pageController.hasClients) {
       await pageController.animateToPage(
         index,
