@@ -30,15 +30,13 @@ class CmsConditionPickerSheet extends StatelessWidget {
       viewModelBuilder: () => CmsConditionPickerSheetModel(),
       onViewModelReady: (model) =>
           model.initialise(conditions, selectedConditionId),
-      builder: (context, model, child) => AnimatedPadding(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-        child: FractionallySizedBox(
-          heightFactor:
-              MediaQuery.viewInsetsOf(context).bottom > 0 ? 1.0 : 0.85,
-          child: Container(
+      // NOTE: no viewInsets padding here — Stacked's GetX Get.bottomSheet
+      // already insets the sheet by the keyboard height, so adding it again
+      // double-counts and leaves a keyboard-height gap. Expand to full height
+      // while the keyboard is open so the search field + list stay reachable.
+      builder: (context, model, child) => FractionallySizedBox(
+        heightFactor: MediaQuery.viewInsetsOf(context).bottom > 0 ? 1.0 : 0.85,
+        child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
@@ -127,7 +125,6 @@ class CmsConditionPickerSheet extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }

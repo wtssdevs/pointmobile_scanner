@@ -54,21 +54,23 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
         initialPinY: initialPinY,
         initialLocationMatchTerms: initialLocationMatchTerms,
       ),
-      builder: (context, model, child) => Padding(
-        // Lift the whole sheet above the keyboard, then cap its height and let
-        // the body flex. A fixed-fraction box (FractionallySizedBox) fights the
-        // keyboard: as the viewport shrinks it squashes the scroll body to ~0,
-        // collapsing Cancel/Save up under the header and scrolling the focused
-        // field out of view. A max-height cap + Column(mainAxisSize.min) +
-        // Flexible body keeps the header/footer pinned and lets the focused
-        // field scroll into the shrinking viewport instead.
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * 0.92,
-          ),
-          child: Container(
+      builder: (context, model, child) =>
+          // NOTE: do NOT add Padding(bottom: viewInsets.bottom) here. Stacked
+          // routes this through GetX's Get.bottomSheet, which already insets the
+          // sheet by the keyboard height (get/.../bottomsheet.dart applies
+          // `EdgeInsets.only(bottom: viewInsets.bottom)`). Adding it again
+          // double-counts, leaving a keyboard-height dimmed gap below the sheet
+          // and shoving the focused field up toward the keyboard.
+          //
+          // Cap the height and let the body flex: a max-height cap +
+          // Column(mainAxisSize.min) + Flexible body keeps the header/footer
+          // pinned and scrolls the focused field into the (GetX-shrunk)
+          // viewport instead of squashing the scroll body.
+          ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+        ),
+        child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
@@ -339,7 +341,6 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }

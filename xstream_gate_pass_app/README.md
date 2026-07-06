@@ -75,6 +75,12 @@ fvm flutter run
 # Run against QA
 fvm flutter run --dart-define=ENV_FILE=.env_qa
 
+# Run against PROD
+fvm flutter run 
+
+
+fvm flutter run -d emulator-5554 --dart-define=ENV_FILE=.env_prod_cms
+
 # CMS Play Store App Bundle (CMS-only login)
 fvm flutter build appbundle --release --dart-define=ENV_FILE=.env_prod_cms
 ```
