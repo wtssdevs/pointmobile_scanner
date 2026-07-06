@@ -56,10 +56,12 @@ Future main() async {
     isDebuggable: true,
   );
 
-  //var envFileToLoad = ".env_dev";
-  //var envFileToLoad = ".env_local_proxy_dev";
-  var envFileToLoad = ".env_qa";
-  //var envFileToLoad = ".env_prod";
+  // Env file is chosen at build time via --dart-define, so release builds never
+  // require editing this file. Defaults to .env_dev for local runs.
+  //   Local dev (default): fvm flutter run
+  //   CMS Play release:     fvm flutter build appbundle --release --dart-define=ENV_FILE=.env_prod_cms
+  // Options: .env_dev | .env_local_proxy_dev | .env_qa | .env_prod | .env_prod_cms
+  const envFileToLoad = String.fromEnvironment('ENV_FILE', defaultValue: '.env_dev');
   await initialise(envFileToLoad);
   await setupLocator();
   setupExtraLocator();
