@@ -76,6 +76,11 @@ class CmsInspectionLineEditorSheetModel extends BaseViewModel {
     final session = _cmsSessionService.getCached();
     final context = _contextFromSession(session);
 
+    // Lookups keep activeOnly (the default): only active Items/Actions/etc.
+    // are offered. Global (null shipping-line) rows still pull through via the
+    // shipping-line filter (shippingLineId == selected || null), but only when
+    // active — inactive master-file rows are intentionally hidden and must be
+    // activated in the CMS admin to appear here.
     locationDataSource = CmsLookupDataSource<InspectionLocation>(
       repository: _cmsMasterFilesRepository,
       store: CmsMasterFileStores.locations,

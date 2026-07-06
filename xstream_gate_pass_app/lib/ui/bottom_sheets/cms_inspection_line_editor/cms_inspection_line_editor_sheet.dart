@@ -274,7 +274,7 @@ class CmsInspectionLineEditorSheet extends StatelessWidget {
                                       const EdgeInsets.only(bottom: 140),
                                   onTap: () => _selectAll(model.costController),
                                   decoration: const InputDecoration(
-                                    labelText: 'Cost',
+                                    labelText: 'Material Cost',
                                     border: OutlineInputBorder(),
                                   ),
                                 ),
@@ -493,7 +493,7 @@ class _QtyStepper extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Qty',
+            'Material Qty',
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
