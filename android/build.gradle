@@ -23,7 +23,9 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 34
+    // AGP 8 requires the namespace here (previously the manifest `package` attr).
+    namespace 'com.plugin.flutter.pointmobile_scanner'
+    compileSdkVersion 35
 
     defaultConfig {
         minSdkVersion 21

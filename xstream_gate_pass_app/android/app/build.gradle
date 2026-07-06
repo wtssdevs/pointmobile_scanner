@@ -25,9 +25,10 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.wtss.xstream_gate_pass_app"
-    compileSdk = flutter.compileSdkVersion
+    // Explicitly target API 35 (Android 15) for Google Play compliance.
+    // Flutter 3.22.2 defaults to 34; overridden here rather than upgrading Flutter.
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
-    buildToolsVersion "33.0.0" // Or the latest version you have
     //Force AndroidX AppCompat Version:
     configurations.all {
             resolutionStrategy {
@@ -49,7 +50,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
     }
@@ -72,6 +73,11 @@ android {
             // android/key.properties. Falls back to debug signing only when that
             // file is absent (e.g. a local `flutter run --release` without keys).
             signingConfig = keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
+            // Keep R8 off (matches the previously-shipped build). The bundled ML Kit
+            // text-recognition plugin references optional language packs that aren't
+            // included, which breaks R8 full-mode. Enable later only with keep rules.
+            minifyEnabled false
+            shrinkResources false
         }
     }
 }
