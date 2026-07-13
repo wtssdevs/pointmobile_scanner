@@ -1232,12 +1232,27 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   // Process driver's license data
   Future<void> processDriversLicenseData(
       RsaDriversLicense driversLicense) async {
+    gatePass.driverIdNoValidation = driversLicense.idNumber;
+    if (gatePass.driverIdNo == null || gatePass.driverIdNo!.isEmpty) {
+      gatePass.driverIdNo = driversLicense.idNumber;
+    } else if (gatePass.driverIdNoMatch == false) {
+      final msg = ValidationMessages.getDriverIdMismatchMessage(
+          gatePass.driverIdNo, gatePass.driverIdNoValidation);
+      setValidationMessage(msg);
+      logIncident(msg);
+      await _dialogService.showCustomDialog(
+        variant: DialogType.infoAlert,
+        data: BasicDialogStatus.warning,
+        title: "Driver ID Mismatch",
+        description:
+            "The scanned driver ID does not match the booked driver ID.\n\nBooked ID: ${gatePass.driverIdNo}\nScanned ID: ${gatePass.driverIdNoValidation}",
+        mainButtonTitle: "Ok",
+      );
+      return;
+    }
+
     gatePass.driverName =
         '${driversLicense.firstNames} ${driversLicense.surname}';
-    gatePass.driverIdNoValidation = driversLicense.idNumber;
-    if (isManualInput) {
-      gatePass.driverIdNo = driversLicense.idNumber;
-    }
     setDriverValidationMessage();
 
     gatePass.driverLicenceNo = driversLicense.licenseNumber;
@@ -1262,6 +1277,29 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 // Process vehicle license data
   Future<void> processVehicleLicenseData(
       LicenseDiskData vehicleLicenseData) async {
+    if (!_isExitMode) {
+      gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
+      if (gatePass.vehicleRegNumber == null ||
+          gatePass.vehicleRegNumber!.isEmpty) {
+        gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
+      } else if (!_sameReg(
+          gatePass.vehicleRegNumber, vehicleLicenseData.licensePlateNo)) {
+        final msg = ValidationMessages.regNoMismatch("Vehicle registration",
+            gatePass.vehicleRegNumber, gatePass.vehicleRegNumberValidation);
+        setValidationMessage(msg);
+        logIncident(msg);
+        await _dialogService.showCustomDialog(
+          variant: DialogType.infoAlert,
+          data: BasicDialogStatus.warning,
+          title: "Vehicle Registration Mismatch",
+          description:
+              "The scanned vehicle registration does not match the booked registration.\n\nBooked Registration: ${gatePass.vehicleRegNumber}\nScanned Registration: ${gatePass.vehicleRegNumberValidation}",
+          mainButtonTitle: "Ok",
+        );
+        return;
+      }
+    }
+
     gatePass.vehicleEngineNumber = vehicleLicenseData.engineNumber;
     gatePass.vehicleMake = vehicleLicenseData.make;
     gatePass.vehicleVinNumber = vehicleLicenseData.vin;
@@ -1309,12 +1347,6 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
       rebuildUi();
       return;
     }
-    gatePass.vehicleRegNumberValidation = vehicleLicenseData.licensePlateNo;
-
-    if (isManualInput) {
-      gatePass.vehicleRegNumber = vehicleLicenseData.licensePlateNo;
-    }
-
     setVehicleValidationMessage();
 
 
@@ -1708,6 +1740,38 @@ Future<void> authorizeEntry() async {
     return;
   }
   setBusy(true);
+
+  if (gatePass.driverIdNo != null &&
+      gatePass.driverIdNo!.isNotEmpty &&
+      gatePass.driverIdNoValidation != null &&
+      gatePass.driverIdNoMatch == false) {
+    Fluttertoast.showToast(
+      msg:
+          "Driver ID mismatch. Scan the correct driver's licence before authorizing entry.",
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.CENTER,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+    );
+    setBusy(false);
+    return;
+  }
+
+  if (gatePass.vehicleRegNumber != null &&
+      gatePass.vehicleRegNumber!.isNotEmpty &&
+      gatePass.vehicleRegNumberValidation != null &&
+      gatePass.vehicleRegNoMatch == false) {
+    Fluttertoast.showToast(
+      msg:
+          "Vehicle registration mismatch. Scan the correct vehicle licence disc before authorizing entry.",
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.CENTER,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+    );
+    setBusy(false);
+    return;
+  }
 
   // For manual entries
   if (isManualInput) {

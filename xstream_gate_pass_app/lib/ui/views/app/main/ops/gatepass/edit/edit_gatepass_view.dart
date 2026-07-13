@@ -195,6 +195,13 @@ class GatePassEditView extends StatelessWidget {
         model.clearValidationMessage("Driver ID Number is required");
       }
 
+      if (model.gatePass.driverIdNo != null &&
+          model.gatePass.driverIdNo!.isNotEmpty &&
+          model.gatePass.driverIdNoValidation != null &&
+          model.gatePass.driverIdNoMatch == false) {
+        model.setDriverValidationMessage();
+      }
+
       if (model.showValidation) {
         model.rebuildUi();
         Fluttertoast.showToast(
