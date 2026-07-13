@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart' as DioClient;
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 import 'package:xstream_gate_pass_app/core/app_const.dart';
+import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart';
 import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
 import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart';
 import 'package:xstream_gate_pass_app/core/models/account/ForgotPassword.dart';
@@ -17,7 +19,6 @@ import 'package:xstream_gate_pass_app/core/models/account/UserCredential.dart';
 import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart';
 import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart';
-import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart';
 
 @LazySingleton()
@@ -29,7 +30,6 @@ class AuthenticationService {
   final DialogService _dialogService = locator<DialogService>();
   final LocalStorageService _localStorageService =
       locator<LocalStorageService>();
-  final _workerQueManager = locator<WorkerQueManager>();
   final AccessTokenRepo _accessTokenRepo = locator<AccessTokenRepo>();
 
   Future<TenantAvailableModel?> isTenantAvailable(
@@ -37,8 +37,14 @@ class AuthenticationService {
     var dataModel = {'tenancyName': tenantCode};
 //need to convert queryParameters to json
     var queryJson = jsonEncode(dataModel);
-    var authResponse = await _apiManager.post(AppConst.isTenantAvailable,
-        data: queryJson, showLoader: true);
+    var authResponse = await _apiManager.post(
+      AppConst.isTenantAvailable,
+      data: queryJson,
+      showLoader: true,
+      options: DioClient.Options(
+        extra: {AppConst.requiresAuthExtraKey: false},
+      ),
+    );
 
     var apiResponse = ApiResponse.fromJson(authResponse);
 
@@ -48,7 +54,8 @@ class AuthenticationService {
     if (tenantAvailableModel.state == TenantAvailabilityState.available &&
         tenantAvailableModel.tenantId != null) {
       //update local storage with tenant id
-      _localStorageService.setTenantId(tenantAvailableModel.tenantId!);
+        _localStorageService.setTenantIdForPortal(
+          AuthPortal.xac, tenantAvailableModel.tenantId!);
       return tenantAvailableModel;
     } else {
       //show message tenant not found
@@ -68,8 +75,14 @@ class AuthenticationService {
   Future<AuthenticateResultModel?> login({
     required UserCredential userCredential,
   }) async {
-    var authResponse = await _apiManager.post(AppConst.authentication,
-        data: userCredential.toJson(), showLoader: true);
+    var authResponse = await _apiManager.post(
+      AppConst.authentication,
+      data: userCredential.toJson(),
+      showLoader: true,
+      options: DioClient.Options(
+        extra: {AppConst.requiresAuthExtraKey: false},
+      ),
+    );
     var apiResponse = ApiResponse.fromJson(authResponse);
 
     var authenticateResultModel =
@@ -99,8 +112,10 @@ class AuthenticationService {
           password: userCredential.password,
           tenantId: userCredential.tenantId);
 
-      _localStorageService.setAuthToken(authenticateResultModel);
-      _localStorageService.saveIsLoggedIn(true);
+        _localStorageService.setAuthTokenForPortal(
+          AuthPortal.xac, authenticateResultModel);
+        _localStorageService.saveIsLoggedInForPortal(AuthPortal.xac, true);
+        _localStorageService.setLastSessionPortal(AuthPortal.xac);
       _localStorageService.clearForgotPassword();
 
       //remove await here to allow background...run and move on to screen...
@@ -118,9 +133,12 @@ class AuthenticationService {
     required RegisterUser registerUser,
   }) async {
     try {
-      var authResult = await _apiManager?.post(
+      var authResult = await _apiManager.post(
           "/api/services/app/account/register",
-          data: registerUser.toJson());
+          data: registerUser.toJson(),
+          options: DioClient.Options(
+            extra: {AppConst.requiresAuthExtraKey: false},
+          ));
       var apiResponse = ApiResponse.fromJson(authResult);
       return apiResponse.success;
     } catch (e) {
@@ -138,6 +156,9 @@ class AuthenticationService {
       var authResult = await _apiManager.post(
         "/api/services/app/Account/ForgotPassword",
         data: forgotPassword.toJson(),
+        options: DioClient.Options(
+          extra: {AppConst.requiresAuthExtraKey: false},
+        ),
       );
       var apiResponse = ApiResponse.fromJson(authResult);
 
@@ -159,6 +180,9 @@ class AuthenticationService {
       var authResult = await _apiManager.post(
         "/api/services/app/Account/ResetForgotPassword",
         data: resetForgotPassword.toJson(),
+        options: DioClient.Options(
+          extra: {AppConst.requiresAuthExtraKey: false},
+        ),
       );
       var apiResponse = ApiResponse.fromJson(authResult);
       _localStorageService.clearForgotPassword();
@@ -169,15 +193,16 @@ class AuthenticationService {
   }
 
   void logOutCurrentUser() {
-    _localStorageService.logout();
-    _localStorageService.saveIsLoggedIn(false);
+    _localStorageService.logoutPortal(AuthPortal.xac);
+    _localStorageService.saveIsLoggedInForPortal(AuthPortal.xac, false);
   }
 
   Future<bool> refreshToken() async {
-    var token = _localStorageService.getAuthToken;
+    var token = _localStorageService.getAuthTokenForPortal(AuthPortal.xac);
     if (token != null) {
       if (token.autTokenIsEmpty()) {
         _accessTokenRepo.logOutCurrentUser();
+        return false;
       }
 
       var userCredential = UserCredential(
@@ -188,20 +213,16 @@ class AuthenticationService {
         tenantId: token.tenantId,
       );
 
-      var authResult = await _apiManager.post(AppConst.authentication,
-          data: userCredential.toJson(), showLoader: false);
+      var authResult = await _apiManager.post(
+        AppConst.authentication,
+        data: userCredential.toJson(),
+        showLoader: false,
+        options: DioClient.Options(
+          extra: {AppConst.requiresAuthExtraKey: false},
+        ),
+      );
 
       var apiResponse = ApiResponse.fromJson(authResult);
-
-      if (apiResponse == null) {
-        var authenticateResultModel =
-            AuthenticateResultModel.fromJson(authResult);
-        if (authenticateResultModel != null) {
-          await _accessTokenRepo.processAuthenticateResult(
-              authenticateResultModel, userCredential);
-          return true;
-        }
-      }
 
       if (apiResponse.success != null && apiResponse.success == true) {
         var authenticateResultModel =
@@ -221,20 +242,22 @@ class AuthenticationService {
       [bool forceUpdate = false]) async {
     try {
       if (forceUpdate == false) {
-        var localprofile = _localStorageService.getUserLoginInfo;
+        var localprofile =
+          _localStorageService.getUserLoginInfoForPortal(AuthPortal.xac);
         if (localprofile != null) {
           return localprofile;
         }
       }
 
-      var authResult = await _apiManager.get(
-          "/api/services/app/Session/GetCurrentLoginInformations",
+        var authResult = await _apiManager.get(
+          AppConst.getCurrentLoginInformations,
           showLoader: false);
       //var apiResponse = ApiResponse.fromJson(authResult);
       if (authResult != null) {
         var userLoginInfo =
             CurrentLoginInformation.fromJson(authResult['result']);
-        _localStorageService.setUserLoginInfo(userLoginInfo);
+        _localStorageService.setUserLoginInfoForPortal(
+          AuthPortal.xac, userLoginInfo);
         return userLoginInfo;
       }
       return null;
@@ -245,9 +268,11 @@ class AuthenticationService {
   }
 
   void setUserInfo() {
-    var localprofile = _localStorageService.getUserLoginInfo;
+    var localprofile =
+        _localStorageService.getUserLoginInfoForPortal(AuthPortal.xac);
     if (localprofile != null) {
-      _localStorageService.setUserLoginInfo(localprofile);
+      _localStorageService.setUserLoginInfoForPortal(
+          AuthPortal.xac, localprofile);
     }
   }
 

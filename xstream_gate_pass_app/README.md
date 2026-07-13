@@ -13,6 +13,9 @@ cd platform-tools
 
 adb reverse tcp:44311 tcp:44311
 
+--CMS
+adb reverse tcp:6636 tcp:6636
+
 Run the adb devices command to list all the connected devices
 Example output:
 List of devices attached
@@ -43,26 +46,88 @@ ngrok http --host-header=localhost https://localhost:44311
 ## This creates all the json files and DB schemeaflutte
 flutter pub run build_runner build --delete-conflicting-outputs
 
-#STEPS TP FOLLOW FOR APP Build/Uploading to app store
-# clean before build to clear all cahce
-#1
-flutter clean
-#2
-flutter pub get
-#3
-flutter pub run build_runner build --delete-conflicting-outputs
-#4
-#Chekc .env file for correct Server API Connection
+## Build environments (`--dart-define=ENV_FILE`)
 
-#5 Build APK/Bundle
-flutter build appbundle
+The environment file is selected **at build time** — no code edits per build. The
+loader lives in `lib/main.dart` and defaults to `.env_dev`:
 
-#Google APKS drive testing
-flutter build apk --debug
-flutter build apk --release
+```dart
+const envFileToLoad = String.fromEnvironment('ENV_FILE', defaultValue: '.env_dev');
+```
 
-#Google Play Store uploading
-flutter build appbundle
+| Env file | `APP_PORTAL_MODE` | Portal(s) shown | Use for |
+|---|---|---|---|
+| `.env_dev` (default) | dual | XAC + CMS | Local development |
+| `.env_local_proxy_dev` | dual | XAC + CMS | Local dev via proxy |
+| `.env_qa` | dual | XAC + CMS | QA testing |
+| `.env_prod` | dual | XAC + CMS | Full prod (both portals) |
+| `.env_prod_cms` | **cms** | **CMS only** | **Google Play Store release** |
+
+All env files are bundled as assets (registered in `pubspec.yaml`). To add a new one,
+create the file and add it under `flutter: assets:`.
+
+### Run / build with a specific environment
+
+```sh
+# Local run (uses .env_dev by default)
+fvm flutter run
+
+# Run against QA
+fvm flutter run --dart-define=ENV_FILE=.env_qa
+
+# CMS Play Store App Bundle (CMS-only login)
+fvm flutter build appbundle --release --dart-define=ENV_FILE=.env_prod_cms
+```
+
+> The XAC build for Point Mobile scanners is a separate concern (dual/xac env); only
+> the **CMS** build (`.env_prod_cms`, `APP_PORTAL_MODE=cms`) is published to Google Play.
+
+## Release signing
+
+Release builds are signed with an **upload keystore**, configured via
+`android/key.properties` (already wired in `android/app/build.gradle`):
+
+```properties
+storePassword=********
+keyPassword=********
+keyAlias=upload
+storeFile=C:/keys/xstream-upload.jks
+```
+
+- `key.properties`, `*.jks`, and `*.keystore` are **git-ignored** — never commit them.
+- Keep the keystore + `key.properties` backed up offline. Losing the upload key blocks
+  future updates (unless enrolled in Play App Signing — recommended).
+- If `key.properties` is absent, the release build falls back to debug signing so
+  `flutter run --release` still works locally.
+
+## Full clean build → Play Store (CMS)
+
+```sh
+# 1. Clean caches
+fvm flutter clean
+# 2. Restore packages
+fvm flutter pub get
+# 3. Regenerate Stacked / JSON / DB code
+fvm flutter pub run build_runner build --delete-conflicting-outputs
+# 4a. App Bundle — upload this to the Google Play Console
+fvm flutter build appbundle --release --dart-define=ENV_FILE=.env_prod_cms
+#    -> build/app/outputs/bundle/release/app-release.aab
+
+# 4b. APK — sideload / direct install / drive testing (universal, all ABIs)
+fvm flutter build apk --release --dart-define=ENV_FILE=.env_prod_cms
+#    -> build/app/outputs/flutter-apk/app-release.apk
+
+# 4b (optional). Smaller per-architecture APKs
+fvm flutter build apk --release --split-per-abi --dart-define=ENV_FILE=.env_prod_cms
+#    -> build/app/outputs/flutter-apk/app-arm64-v8a-release.apk  (+ armeabi-v7a, x86_64)
+```
+
+> Play requires the **App Bundle (.aab)** from 4a. The **APK** from 4b is only for
+> sideloading outside the store. Both are signed with the release upload key and both
+> load the CMS-only environment via `--dart-define=ENV_FILE=.env_prod_cms`.
+
+Remember to bump `version:` in `pubspec.yaml` (the `+N` build number must increase on
+every Play upload) before step 4.
 
 #
 Run ./gradlew app:dependencies to see which:

@@ -3,30 +3,148 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i7;
-import 'dart:ui' as _i8;
+import 'dart:async' as _i18;
+import 'dart:io' as _i61;
+import 'dart:ui' as _i24;
 
-import 'package:flutter/material.dart' as _i6;
+import 'package:cron/cron.dart' as _i20;
+import 'package:dio/dio.dart' as _i7;
+import 'package:flutter/material.dart' as _i23;
+import 'package:internet_connection_checker/internet_connection_checker.dart'
+    as _i19;
 import 'package:logger/src/logger.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i5;
-import 'package:stacked_services/stacked_services.dart' as _i4;
-import 'package:xstream_gate_pass_app/core/models/basefiles/containers/container_iso_types_model.dart'
-    as _i11;
-import 'package:xstream_gate_pass_app/core/models/localization/localization_value.dart'
-    as _i10;
-import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_model.dart'
-    as _i15;
-import 'package:xstream_gate_pass_app/core/models/ops/incidents/incident_model.dart'
-    as _i13;
-import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart'
-    as _i16;
-import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart'
-    as _i14;
-import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart'
-    as _i12;
-import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart'
+import 'package:mockito/src/dummies.dart' as _i22;
+import 'package:stacked_services/stacked_services.dart' as _i21;
+import 'package:xstream_gate_pass_app/core/enums/app_portal_mode.dart' as _i39;
+import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart' as _i35;
+import 'package:xstream_gate_pass_app/core/enums/cms_inspection_state.dart'
+    as _i67;
+import 'package:xstream_gate_pass_app/core/enums/cms_survey_type.dart' as _i60;
+import 'package:xstream_gate_pass_app/core/models/account/AuthenticateResultModel.dart'
     as _i9;
+import 'package:xstream_gate_pass_app/core/models/account/ForgotPassword.dart'
+    as _i37;
+import 'package:xstream_gate_pass_app/core/models/account/GetCurrentLoginInformation.dart'
+    as _i36;
+import 'package:xstream_gate_pass_app/core/models/account/RegisterUser.dart'
+    as _i46;
+import 'package:xstream_gate_pass_app/core/models/account/ResetForgotPassword.dart'
+    as _i47;
+import 'package:xstream_gate_pass_app/core/models/account/TenantAvailableModel.dart'
+    as _i45;
+import 'package:xstream_gate_pass_app/core/models/account/UserCredential.dart'
+    as _i43;
+import 'package:xstream_gate_pass_app/core/models/background_job_que/background_job_Info.dart'
+    as _i76;
+import 'package:xstream_gate_pass_app/core/models/basefiles/containers/container_iso_types_model.dart'
+    as _i27;
+import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart'
+    as _i41;
+import 'package:xstream_gate_pass_app/core/models/cms/account/cms_current_login_information.dart'
+    as _i52;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_container_inspection_bundle.dart'
+    as _i14;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspectable_container.dart'
+    as _i63;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_edit.dart'
+    as _i16;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_filter.dart'
+    as _i64;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_history_row.dart'
+    as _i65;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_edit.dart'
+    as _i57;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_line_photo.dart'
+    as _i12;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_inspection_lookup_base.dart'
+    as _i54;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_repair_date_input.dart'
+    as _i68;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_start_inspection_input.dart'
+    as _i66;
+import 'package:xstream_gate_pass_app/core/models/cms/inspection/cms_start_inspection_result.dart'
+    as _i15;
+import 'package:xstream_gate_pass_app/core/models/cms/media/cms_media_upload_item.dart'
+    as _i11;
+import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_edit_dto.dart'
+    as _i17;
+import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_email_dto.dart'
+    as _i72;
+import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_list_dto.dart'
+    as _i70;
+import 'package:xstream_gate_pass_app/core/models/cms/survey/cms_mobile_survey_list_input.dart'
+    as _i71;
+import 'package:xstream_gate_pass_app/core/models/device/device_config.dart'
+    as _i5;
+import 'package:xstream_gate_pass_app/core/models/localization/localization_value.dart'
+    as _i26;
+import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_find_template_model.dart'
+    as _i4;
+import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_model.dart'
+    as _i31;
+import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_resolve_type_output.dart'
+    as _i34;
+import 'package:xstream_gate_pass_app/core/models/ops/checklists/check_list_response_model.dart'
+    as _i33;
+import 'package:xstream_gate_pass_app/core/models/ops/incidents/incident_model.dart'
+    as _i29;
+import 'package:xstream_gate_pass_app/core/models/shared/api_response.dart'
+    as _i8;
+import 'package:xstream_gate_pass_app/core/models/shared/filter_params_model.dart'
+    as _i32;
+import 'package:xstream_gate_pass_app/core/models/shared/list_page.dart'
+    as _i13;
+import 'package:xstream_gate_pass_app/core/services/api/api_manager.dart'
+    as _i40;
+import 'package:xstream_gate_pass_app/core/services/api/cms_api_manager.dart'
+    as _i48;
+import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart'
+    as _i42;
+import 'package:xstream_gate_pass_app/core/services/services/account/auth_session_coordinator.dart'
+    as _i73;
+import 'package:xstream_gate_pass_app/core/services/services/account/authentication_service.dart'
+    as _i44;
+import 'package:xstream_gate_pass_app/core/services/services/account/cms_access_token_repo.dart'
+    as _i49;
+import 'package:xstream_gate_pass_app/core/services/services/account/cms_authentication_service.dart'
+    as _i50;
+import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart'
+    as _i77;
+import 'package:xstream_gate_pass_app/core/services/services/background/workqueue_manager.dart'
+    as _i75;
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_inspection_line_photo_queue_service.dart'
+    as _i58;
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_repository.dart'
+    as _i55;
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_master_files_sync_service.dart'
+    as _i53;
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_media_upload_queue_service.dart'
+    as _i56;
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_file_store_service.dart'
+    as _i59;
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_inspections_service.dart'
+    as _i62;
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_mobile_survey_service.dart'
+    as _i69;
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_session_service.dart'
+    as _i51;
+import 'package:xstream_gate_pass_app/core/services/services/cms/cms_sync_models.dart'
+    as _i10;
+import 'package:xstream_gate_pass_app/core/services/services/filestore/filestore_isolate_initializer.dart'
+    as _i78;
+import 'package:xstream_gate_pass_app/core/services/services/ops/checklists/check_list_service_service.dart'
+    as _i30;
+import 'package:xstream_gate_pass_app/core/services/services/ops/Incidents/incident_manager_service.dart'
+    as _i28;
+import 'package:xstream_gate_pass_app/core/services/shared/connection_service.dart'
+    as _i74;
+import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart'
+    as _i38;
+import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service.dart'
+    as _i6;
+import 'package:xstream_gate_pass_app/core/services/shared/localization/localization_manager_service.dart'
+    as _i25;
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart' as _i3;
 
 // ignore_for_file: type=lint
@@ -63,18 +181,210 @@ class _FakeContainerValidator_1 extends _i1.SmartFake
         );
 }
 
+class _FakeCheckListFindTemplateModel_2 extends _i1.SmartFake
+    implements _i4.CheckListFindTemplateModel {
+  _FakeCheckListFindTemplateModel_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeDeviceConfig_3 extends _i1.SmartFake implements _i5.DeviceConfig {
+  _FakeDeviceConfig_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeLocalStorageService_4 extends _i1.SmartFake
+    implements _i6.LocalStorageService {
+  _FakeLocalStorageService_4(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeResponse_5<T> extends _i1.SmartFake implements _i7.Response<T> {
+  _FakeResponse_5(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeBaseResponse_6 extends _i1.SmartFake implements _i8.BaseResponse {
+  _FakeBaseResponse_6(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeAuthenticateResultModel_7 extends _i1.SmartFake
+    implements _i9.AuthenticateResultModel {
+  _FakeAuthenticateResultModel_7(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCmsSyncResult_8 extends _i1.SmartFake implements _i10.CmsSyncResult {
+  _FakeCmsSyncResult_8(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCmsMediaUploadItem_9 extends _i1.SmartFake
+    implements _i11.CmsMediaUploadItem {
+  _FakeCmsMediaUploadItem_9(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCmsInspectionLinePhoto_10 extends _i1.SmartFake
+    implements _i12.CmsInspectionLinePhoto {
+  _FakeCmsInspectionLinePhoto_10(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakePagedList_11<T> extends _i1.SmartFake implements _i13.PagedList<T> {
+  _FakePagedList_11(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCmsContainerInspectionBundle_12 extends _i1.SmartFake
+    implements _i14.CmsContainerInspectionBundle {
+  _FakeCmsContainerInspectionBundle_12(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCmsStartInspectionResult_13 extends _i1.SmartFake
+    implements _i15.CmsStartInspectionResult {
+  _FakeCmsStartInspectionResult_13(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCmsInspectionEdit_14 extends _i1.SmartFake
+    implements _i16.CmsInspectionEdit {
+  _FakeCmsInspectionEdit_14(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCmsMobileSurveyEditDto_15 extends _i1.SmartFake
+    implements _i17.CmsMobileSurveyEditDto {
+  _FakeCmsMobileSurveyEditDto_15(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeStreamController_16<T> extends _i1.SmartFake
+    implements _i18.StreamController<T> {
+  _FakeStreamController_16(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeInternetConnectionChecker_17 extends _i1.SmartFake
+    implements _i19.InternetConnectionChecker {
+  _FakeInternetConnectionChecker_17(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCron_18 extends _i1.SmartFake implements _i20.Cron {
+  _FakeCron_18(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeScheduledTask_19 extends _i1.SmartFake
+    implements _i20.ScheduledTask {
+  _FakeScheduledTask_19(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [NavigationService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
+class MockNavigationService extends _i1.Mock implements _i21.NavigationService {
   @override
   String get previousRoute => (super.noSuchMethod(
         Invocation.getter(#previousRoute),
-        returnValue: _i5.dummyValue<String>(
+        returnValue: _i22.dummyValue<String>(
           this,
           Invocation.getter(#previousRoute),
         ),
-        returnValueForMissingStub: _i5.dummyValue<String>(
+        returnValueForMissingStub: _i22.dummyValue<String>(
           this,
           Invocation.getter(#previousRoute),
         ),
@@ -83,25 +393,25 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
   @override
   String get currentRoute => (super.noSuchMethod(
         Invocation.getter(#currentRoute),
-        returnValue: _i5.dummyValue<String>(
+        returnValue: _i22.dummyValue<String>(
           this,
           Invocation.getter(#currentRoute),
         ),
-        returnValueForMissingStub: _i5.dummyValue<String>(
+        returnValueForMissingStub: _i22.dummyValue<String>(
           this,
           Invocation.getter(#currentRoute),
         ),
       ) as String);
 
   @override
-  _i6.GlobalKey<_i6.NavigatorState>? nestedNavigationKey(int? index) =>
+  _i23.GlobalKey<_i23.NavigatorState>? nestedNavigationKey(int? index) =>
       (super.noSuchMethod(
         Invocation.method(
           #nestedNavigationKey,
           [index],
         ),
         returnValueForMissingStub: null,
-      ) as _i6.GlobalKey<_i6.NavigatorState>?);
+      ) as _i23.GlobalKey<_i23.NavigatorState>?);
 
   @override
   void config({
@@ -110,7 +420,7 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
     bool? defaultOpaqueRoute,
     Duration? defaultDurationTransition,
     bool? defaultGlobalState,
-    _i4.Transition? defaultTransitionStyle,
+    _i21.Transition? defaultTransitionStyle,
     String? defaultTransition,
   }) =>
       super.noSuchMethod(
@@ -131,18 +441,18 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
       );
 
   @override
-  _i7.Future<T?>? navigateWithTransition<T>(
-    _i6.Widget? page, {
+  _i18.Future<T?>? navigateWithTransition<T>(
+    _i23.Widget? page, {
     bool? opaque,
     String? transition = r'',
     Duration? duration,
     bool? popGesture,
     int? id,
-    _i6.Curve? curve,
+    _i23.Curve? curve,
     bool? fullscreenDialog = false,
     bool? preventDuplicates = true,
-    _i4.Transition? transitionClass,
-    _i4.Transition? transitionStyle,
+    _i21.Transition? transitionClass,
+    _i21.Transition? transitionStyle,
     String? routeName,
   }) =>
       (super.noSuchMethod(
@@ -164,21 +474,21 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 
   @override
-  _i7.Future<T?>? replaceWithTransition<T>(
-    _i6.Widget? page, {
+  _i18.Future<T?>? replaceWithTransition<T>(
+    _i23.Widget? page, {
     bool? opaque,
     String? transition = r'',
     Duration? duration,
     bool? popGesture,
     int? id,
-    _i6.Curve? curve,
+    _i23.Curve? curve,
     bool? fullscreenDialog = false,
     bool? preventDuplicates = true,
-    _i4.Transition? transitionClass,
-    _i4.Transition? transitionStyle,
+    _i21.Transition? transitionClass,
+    _i21.Transition? transitionStyle,
     String? routeName,
   }) =>
       (super.noSuchMethod(
@@ -200,7 +510,7 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 
   @override
   bool back<T>({
@@ -222,7 +532,7 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
 
   @override
   void popUntil(
-    _i6.RoutePredicate? predicate, {
+    _i23.RoutePredicate? predicate, {
     int? id,
   }) =>
       super.noSuchMethod(
@@ -244,13 +554,13 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
       );
 
   @override
-  _i7.Future<T?>? navigateTo<T>(
+  _i18.Future<T?>? navigateTo<T>(
     String? routeName, {
     dynamic arguments,
     int? id,
     bool? preventDuplicates = true,
     Map<String, String>? parameters,
-    _i6.RouteTransitionsBuilder? transition,
+    _i23.RouteTransitionsBuilder? transition,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -265,21 +575,21 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 
   @override
-  _i7.Future<T?>? navigateToView<T>(
-    _i6.Widget? view, {
+  _i18.Future<T?>? navigateToView<T>(
+    _i23.Widget? view, {
     dynamic arguments,
     int? id,
     bool? opaque,
-    _i6.Curve? curve,
+    _i23.Curve? curve,
     Duration? duration,
     bool? fullscreenDialog = false,
     bool? popGesture,
     bool? preventDuplicates = true,
-    _i4.Transition? transition,
-    _i4.Transition? transitionStyle,
+    _i21.Transition? transition,
+    _i21.Transition? transitionStyle,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -299,16 +609,16 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 
   @override
-  _i7.Future<T?>? replaceWith<T>(
+  _i18.Future<T?>? replaceWith<T>(
     String? routeName, {
     dynamic arguments,
     int? id,
     bool? preventDuplicates = true,
     Map<String, String>? parameters,
-    _i6.RouteTransitionsBuilder? transition,
+    _i23.RouteTransitionsBuilder? transition,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -323,10 +633,10 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 
   @override
-  _i7.Future<T?>? clearStackAndShow<T>(
+  _i18.Future<T?>? clearStackAndShow<T>(
     String? routeName, {
     dynamic arguments,
     int? id,
@@ -343,11 +653,11 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 
   @override
-  _i7.Future<T?>? clearStackAndShowView<T>(
-    _i6.Widget? view, {
+  _i18.Future<T?>? clearStackAndShowView<T>(
+    _i23.Widget? view, {
     dynamic arguments,
     int? id,
   }) =>
@@ -361,10 +671,10 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 
   @override
-  _i7.Future<T?>? clearTillFirstAndShow<T>(
+  _i18.Future<T?>? clearTillFirstAndShow<T>(
     String? routeName, {
     dynamic arguments,
     int? id,
@@ -383,11 +693,11 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 
   @override
-  _i7.Future<T?>? clearTillFirstAndShowView<T>(
-    _i6.Widget? view, {
+  _i18.Future<T?>? clearTillFirstAndShowView<T>(
+    _i23.Widget? view, {
     dynamic arguments,
     int? id,
   }) =>
@@ -401,12 +711,12 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 
   @override
-  _i7.Future<T?>? pushNamedAndRemoveUntil<T>(
+  _i18.Future<T?>? pushNamedAndRemoveUntil<T>(
     String? routeName, {
-    _i6.RoutePredicate? predicate,
+    _i23.RoutePredicate? predicate,
     dynamic arguments,
     int? id,
   }) =>
@@ -421,16 +731,16 @@ class MockNavigationService extends _i1.Mock implements _i4.NavigationService {
           },
         ),
         returnValueForMissingStub: null,
-      ) as _i7.Future<T?>?);
+      ) as _i18.Future<T?>?);
 }
 
 /// A class which mocks [BottomSheetService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockBottomSheetService extends _i1.Mock
-    implements _i4.BottomSheetService {
+    implements _i21.BottomSheetService {
   @override
-  void setCustomSheetBuilders(Map<dynamic, _i4.SheetBuilder>? builders) =>
+  void setCustomSheetBuilders(Map<dynamic, _i21.SheetBuilder>? builders) =>
       super.noSuchMethod(
         Invocation.method(
           #setCustomSheetBuilders,
@@ -440,7 +750,7 @@ class MockBottomSheetService extends _i1.Mock
       );
 
   @override
-  _i7.Future<_i4.SheetResponse<dynamic>?> showBottomSheet({
+  _i18.Future<_i21.SheetResponse<dynamic>?> showBottomSheet({
     required String? title,
     String? description,
     String? confirmButtonTitle = r'Ok',
@@ -473,13 +783,13 @@ class MockBottomSheetService extends _i1.Mock
             #elevation: elevation,
           },
         ),
-        returnValue: _i7.Future<_i4.SheetResponse<dynamic>?>.value(),
+        returnValue: _i18.Future<_i21.SheetResponse<dynamic>?>.value(),
         returnValueForMissingStub:
-            _i7.Future<_i4.SheetResponse<dynamic>?>.value(),
-      ) as _i7.Future<_i4.SheetResponse<dynamic>?>);
+            _i18.Future<_i21.SheetResponse<dynamic>?>.value(),
+      ) as _i18.Future<_i21.SheetResponse<dynamic>?>);
 
   @override
-  _i7.Future<_i4.SheetResponse<T>?> showCustomSheet<T, R>({
+  _i18.Future<_i21.SheetResponse<T>?> showCustomSheet<T, R>({
     dynamic variant,
     String? title,
     String? description,
@@ -492,7 +802,7 @@ class MockBottomSheetService extends _i1.Mock
     bool? showIconInAdditionalButton = false,
     String? additionalButtonTitle,
     bool? takesInput = false,
-    _i8.Color? barrierColor = const _i8.Color(2315255808),
+    _i24.Color? barrierColor = const _i24.Color(2315255808),
     double? elevation = 1.0,
     bool? barrierDismissible = true,
     bool? isScrollControlled = false,
@@ -536,12 +846,12 @@ class MockBottomSheetService extends _i1.Mock
             #useRootNavigator: useRootNavigator,
           },
         ),
-        returnValue: _i7.Future<_i4.SheetResponse<T>?>.value(),
-        returnValueForMissingStub: _i7.Future<_i4.SheetResponse<T>?>.value(),
-      ) as _i7.Future<_i4.SheetResponse<T>?>);
+        returnValue: _i18.Future<_i21.SheetResponse<T>?>.value(),
+        returnValueForMissingStub: _i18.Future<_i21.SheetResponse<T>?>.value(),
+      ) as _i18.Future<_i21.SheetResponse<T>?>);
 
   @override
-  void completeSheet(_i4.SheetResponse<dynamic>? response) =>
+  void completeSheet(_i21.SheetResponse<dynamic>? response) =>
       super.noSuchMethod(
         Invocation.method(
           #completeSheet,
@@ -554,10 +864,10 @@ class MockBottomSheetService extends _i1.Mock
 /// A class which mocks [DialogService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDialogService extends _i1.Mock implements _i4.DialogService {
+class MockDialogService extends _i1.Mock implements _i21.DialogService {
   @override
   void registerCustomDialogBuilders(
-          Map<dynamic, _i4.DialogBuilder>? builders) =>
+          Map<dynamic, _i21.DialogBuilder>? builders) =>
       super.noSuchMethod(
         Invocation.method(
           #registerCustomDialogBuilders,
@@ -569,10 +879,10 @@ class MockDialogService extends _i1.Mock implements _i4.DialogService {
   @override
   void registerCustomDialogBuilder({
     required dynamic variant,
-    required _i6.Widget Function(
-      _i6.BuildContext,
-      _i4.DialogRequest<dynamic>,
-      dynamic Function(_i4.DialogResponse<dynamic>),
+    required _i23.Widget Function(
+      _i23.BuildContext,
+      _i21.DialogRequest<dynamic>,
+      dynamic Function(_i21.DialogResponse<dynamic>),
     )? builder,
   }) =>
       super.noSuchMethod(
@@ -588,17 +898,17 @@ class MockDialogService extends _i1.Mock implements _i4.DialogService {
       );
 
   @override
-  _i7.Future<_i4.DialogResponse<dynamic>?> showDialog({
+  _i18.Future<_i21.DialogResponse<dynamic>?> showDialog({
     String? title,
     String? description,
     String? cancelTitle,
-    _i8.Color? cancelTitleColor,
+    _i24.Color? cancelTitleColor,
     String? buttonTitle = r'Ok',
-    _i8.Color? buttonTitleColor,
+    _i24.Color? buttonTitleColor,
     bool? barrierDismissible = false,
-    _i6.RouteSettings? routeSettings,
-    _i6.GlobalKey<_i6.NavigatorState>? navigatorKey,
-    _i4.DialogPlatform? dialogPlatform,
+    _i23.RouteSettings? routeSettings,
+    _i23.GlobalKey<_i23.NavigatorState>? navigatorKey,
+    _i21.DialogPlatform? dialogPlatform,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -617,13 +927,13 @@ class MockDialogService extends _i1.Mock implements _i4.DialogService {
             #dialogPlatform: dialogPlatform,
           },
         ),
-        returnValue: _i7.Future<_i4.DialogResponse<dynamic>?>.value(),
+        returnValue: _i18.Future<_i21.DialogResponse<dynamic>?>.value(),
         returnValueForMissingStub:
-            _i7.Future<_i4.DialogResponse<dynamic>?>.value(),
-      ) as _i7.Future<_i4.DialogResponse<dynamic>?>);
+            _i18.Future<_i21.DialogResponse<dynamic>?>.value(),
+      ) as _i18.Future<_i21.DialogResponse<dynamic>?>);
 
   @override
-  _i7.Future<_i4.DialogResponse<T>?> showCustomDialog<T, R>({
+  _i18.Future<_i21.DialogResponse<T>?> showCustomDialog<T, R>({
     dynamic variant,
     String? title,
     String? description,
@@ -636,13 +946,13 @@ class MockDialogService extends _i1.Mock implements _i4.DialogService {
     bool? showIconInAdditionalButton = false,
     String? additionalButtonTitle,
     bool? takesInput = false,
-    _i8.Color? barrierColor = const _i8.Color(2315255808),
+    _i24.Color? barrierColor = const _i24.Color(2315255808),
     bool? barrierDismissible = false,
     String? barrierLabel = r'',
     bool? useSafeArea = true,
-    _i6.RouteSettings? routeSettings,
-    _i6.GlobalKey<_i6.NavigatorState>? navigatorKey,
-    _i6.RouteTransitionsBuilder? transitionBuilder,
+    _i23.RouteSettings? routeSettings,
+    _i23.GlobalKey<_i23.NavigatorState>? navigatorKey,
+    _i23.RouteTransitionsBuilder? transitionBuilder,
     dynamic customData,
     R? data,
   }) =>
@@ -674,21 +984,21 @@ class MockDialogService extends _i1.Mock implements _i4.DialogService {
             #data: data,
           },
         ),
-        returnValue: _i7.Future<_i4.DialogResponse<T>?>.value(),
-        returnValueForMissingStub: _i7.Future<_i4.DialogResponse<T>?>.value(),
-      ) as _i7.Future<_i4.DialogResponse<T>?>);
+        returnValue: _i18.Future<_i21.DialogResponse<T>?>.value(),
+        returnValueForMissingStub: _i18.Future<_i21.DialogResponse<T>?>.value(),
+      ) as _i18.Future<_i21.DialogResponse<T>?>);
 
   @override
-  _i7.Future<_i4.DialogResponse<dynamic>?> showConfirmationDialog({
+  _i18.Future<_i21.DialogResponse<dynamic>?> showConfirmationDialog({
     String? title,
     String? description,
     String? cancelTitle = r'Cancel',
-    _i8.Color? cancelTitleColor,
+    _i24.Color? cancelTitleColor,
     String? confirmationTitle = r'Ok',
-    _i8.Color? confirmationTitleColor,
+    _i24.Color? confirmationTitleColor,
     bool? barrierDismissible = false,
-    _i6.RouteSettings? routeSettings,
-    _i4.DialogPlatform? dialogPlatform,
+    _i23.RouteSettings? routeSettings,
+    _i21.DialogPlatform? dialogPlatform,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -706,13 +1016,13 @@ class MockDialogService extends _i1.Mock implements _i4.DialogService {
             #dialogPlatform: dialogPlatform,
           },
         ),
-        returnValue: _i7.Future<_i4.DialogResponse<dynamic>?>.value(),
+        returnValue: _i18.Future<_i21.DialogResponse<dynamic>?>.value(),
         returnValueForMissingStub:
-            _i7.Future<_i4.DialogResponse<dynamic>?>.value(),
-      ) as _i7.Future<_i4.DialogResponse<dynamic>?>);
+            _i18.Future<_i21.DialogResponse<dynamic>?>.value(),
+      ) as _i18.Future<_i21.DialogResponse<dynamic>?>);
 
   @override
-  void completeDialog(_i4.DialogResponse<dynamic>? response) =>
+  void completeDialog(_i21.DialogResponse<dynamic>? response) =>
       super.noSuchMethod(
         Invocation.method(
           #completeDialog,
@@ -726,7 +1036,7 @@ class MockDialogService extends _i1.Mock implements _i4.DialogService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockLocalizationManagerService extends _i1.Mock
-    implements _i9.LocalizationManagerService {
+    implements _i25.LocalizationManagerService {
   @override
   _i2.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -750,11 +1060,11 @@ class MockLocalizationManagerService extends _i1.Mock
       );
 
   @override
-  List<_i10.LocalizationValue> get localizationValues => (super.noSuchMethod(
+  List<_i26.LocalizationValue> get localizationValues => (super.noSuchMethod(
         Invocation.getter(#localizationValues),
-        returnValue: <_i10.LocalizationValue>[],
-        returnValueForMissingStub: <_i10.LocalizationValue>[],
-      ) as List<_i10.LocalizationValue>);
+        returnValue: <_i26.LocalizationValue>[],
+        returnValueForMissingStub: <_i26.LocalizationValue>[],
+      ) as List<_i26.LocalizationValue>);
 
   @override
   void setTableRef() => super.noSuchMethod(
@@ -766,108 +1076,108 @@ class MockLocalizationManagerService extends _i1.Mock
       );
 
   @override
-  _i7.Future<void> insert(_i10.LocalizationValue? entity) =>
+  _i18.Future<void> insert(_i26.LocalizationValue? entity) =>
       (super.noSuchMethod(
         Invocation.method(
           #insert,
           [entity],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 
   @override
-  _i7.Future<void> update(_i10.LocalizationValue? entity) =>
+  _i18.Future<void> update(_i26.LocalizationValue? entity) =>
       (super.noSuchMethod(
         Invocation.method(
           #update,
           [entity],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 
   @override
-  _i7.Future<void> upsertMany(List<_i10.LocalizationValue>? entities) =>
+  _i18.Future<void> upsertMany(List<_i26.LocalizationValue>? entities) =>
       (super.noSuchMethod(
         Invocation.method(
           #upsertMany,
           [entities],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 
   @override
-  _i7.Future<_i10.LocalizationValue?> findByKey(String? key) =>
+  _i18.Future<_i26.LocalizationValue?> findByKey(String? key) =>
       (super.noSuchMethod(
         Invocation.method(
           #findByKey,
           [key],
         ),
-        returnValue: _i7.Future<_i10.LocalizationValue?>.value(),
-        returnValueForMissingStub: _i7.Future<_i10.LocalizationValue?>.value(),
-      ) as _i7.Future<_i10.LocalizationValue?>);
+        returnValue: _i18.Future<_i26.LocalizationValue?>.value(),
+        returnValueForMissingStub: _i18.Future<_i26.LocalizationValue?>.value(),
+      ) as _i18.Future<_i26.LocalizationValue?>);
 
   @override
-  _i7.Future<void> delete(_i10.LocalizationValue? entity) =>
+  _i18.Future<void> delete(_i26.LocalizationValue? entity) =>
       (super.noSuchMethod(
         Invocation.method(
           #delete,
           [entity],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 
   @override
-  _i7.Future<void> deleteMany(List<_i10.LocalizationValue>? entities) =>
+  _i18.Future<void> deleteMany(List<_i26.LocalizationValue>? entities) =>
       (super.noSuchMethod(
         Invocation.method(
           #deleteMany,
           [entities],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 
   @override
-  _i7.Future<void> clearTableTripstop() => (super.noSuchMethod(
+  _i18.Future<void> clearTableTripstop() => (super.noSuchMethod(
         Invocation.method(
           #clearTableTripstop,
           [],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 
   @override
-  _i7.Future<List<_i10.LocalizationValue>> getAllLocal(String? searchArg) =>
+  _i18.Future<List<_i26.LocalizationValue>> getAllLocal(String? searchArg) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllLocal,
           [searchArg],
         ),
-        returnValue: _i7.Future<List<_i10.LocalizationValue>>.value(
-            <_i10.LocalizationValue>[]),
+        returnValue: _i18.Future<List<_i26.LocalizationValue>>.value(
+            <_i26.LocalizationValue>[]),
         returnValueForMissingStub:
-            _i7.Future<List<_i10.LocalizationValue>>.value(
-                <_i10.LocalizationValue>[]),
-      ) as _i7.Future<List<_i10.LocalizationValue>>);
+            _i18.Future<List<_i26.LocalizationValue>>.value(
+                <_i26.LocalizationValue>[]),
+      ) as _i18.Future<List<_i26.LocalizationValue>>);
 
   @override
-  _i7.Future<List<_i10.LocalizationValue>> getLocalizeValues() =>
+  _i18.Future<List<_i26.LocalizationValue>> getLocalizeValues() =>
       (super.noSuchMethod(
         Invocation.method(
           #getLocalizeValues,
           [],
         ),
-        returnValue: _i7.Future<List<_i10.LocalizationValue>>.value(
-            <_i10.LocalizationValue>[]),
+        returnValue: _i18.Future<List<_i26.LocalizationValue>>.value(
+            <_i26.LocalizationValue>[]),
         returnValueForMissingStub:
-            _i7.Future<List<_i10.LocalizationValue>>.value(
-                <_i10.LocalizationValue>[]),
-      ) as _i7.Future<List<_i10.LocalizationValue>>);
+            _i18.Future<List<_i26.LocalizationValue>>.value(
+                <_i26.LocalizationValue>[]),
+      ) as _i18.Future<List<_i26.LocalizationValue>>);
 
   @override
   bool hasPermission(String? key) => (super.noSuchMethod(
@@ -885,14 +1195,14 @@ class MockLocalizationManagerService extends _i1.Mock
           #localize,
           [key],
         ),
-        returnValue: _i5.dummyValue<String>(
+        returnValue: _i22.dummyValue<String>(
           this,
           Invocation.method(
             #localize,
             [key],
           ),
         ),
-        returnValueForMissingStub: _i5.dummyValue<String>(
+        returnValueForMissingStub: _i22.dummyValue<String>(
           this,
           Invocation.method(
             #localize,
@@ -907,14 +1217,14 @@ class MockLocalizationManagerService extends _i1.Mock
 /// See the documentation for Mockito's code generation for more information.
 class MockIsoTypeService extends _i1.Mock implements _i3.IsoTypeService {
   @override
-  Map<String, _i11.IsoType> get isoTypesMap => (super.noSuchMethod(
+  Map<String, _i27.IsoType> get isoTypesMap => (super.noSuchMethod(
         Invocation.getter(#isoTypesMap),
-        returnValue: <String, _i11.IsoType>{},
-        returnValueForMissingStub: <String, _i11.IsoType>{},
-      ) as Map<String, _i11.IsoType>);
+        returnValue: <String, _i27.IsoType>{},
+        returnValueForMissingStub: <String, _i27.IsoType>{},
+      ) as Map<String, _i27.IsoType>);
 
   @override
-  set isoTypesMap(Map<String, _i11.IsoType>? _isoTypesMap) =>
+  set isoTypesMap(Map<String, _i27.IsoType>? _isoTypesMap) =>
       super.noSuchMethod(
         Invocation.setter(
           #isoTypesMap,
@@ -946,28 +1256,28 @@ class MockIsoTypeService extends _i1.Mock implements _i3.IsoTypeService {
       );
 
   @override
-  List<_i11.IsoType> get isoTypes => (super.noSuchMethod(
+  List<_i27.IsoType> get isoTypes => (super.noSuchMethod(
         Invocation.getter(#isoTypes),
-        returnValue: <_i11.IsoType>[],
-        returnValueForMissingStub: <_i11.IsoType>[],
-      ) as List<_i11.IsoType>);
+        returnValue: <_i27.IsoType>[],
+        returnValueForMissingStub: <_i27.IsoType>[],
+      ) as List<_i27.IsoType>);
 
   @override
-  List<_i11.IsoType> get getAllIsoTypes => (super.noSuchMethod(
+  List<_i27.IsoType> get getAllIsoTypes => (super.noSuchMethod(
         Invocation.getter(#getAllIsoTypes),
-        returnValue: <_i11.IsoType>[],
-        returnValueForMissingStub: <_i11.IsoType>[],
-      ) as List<_i11.IsoType>);
+        returnValue: <_i27.IsoType>[],
+        returnValueForMissingStub: <_i27.IsoType>[],
+      ) as List<_i27.IsoType>);
 
   @override
-  _i7.Future<void> initialize() => (super.noSuchMethod(
+  _i18.Future<void> initialize() => (super.noSuchMethod(
         Invocation.method(
           #initialize,
           [],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 
   @override
   int iso6346CheckDigit(String? csc) => (super.noSuchMethod(
@@ -980,23 +1290,23 @@ class MockIsoTypeService extends _i1.Mock implements _i3.IsoTypeService {
       ) as int);
 
   @override
-  _i7.Future<void> loadIsoTypes() => (super.noSuchMethod(
+  _i18.Future<void> loadIsoTypes() => (super.noSuchMethod(
         Invocation.method(
           #loadIsoTypes,
           [],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 
   @override
-  _i11.IsoType? findByCode(String? code) => (super.noSuchMethod(
+  _i27.IsoType? findByCode(String? code) => (super.noSuchMethod(
         Invocation.method(
           #findByCode,
           [code],
         ),
         returnValueForMissingStub: null,
-      ) as _i11.IsoType?);
+      ) as _i27.IsoType?);
 
   @override
   String? getDescriptionForCode(String? code) => (super.noSuchMethod(
@@ -1008,24 +1318,24 @@ class MockIsoTypeService extends _i1.Mock implements _i3.IsoTypeService {
       ) as String?);
 
   @override
-  List<_i11.IsoType> findBySize(String? size) => (super.noSuchMethod(
+  List<_i27.IsoType> findBySize(String? size) => (super.noSuchMethod(
         Invocation.method(
           #findBySize,
           [size],
         ),
-        returnValue: <_i11.IsoType>[],
-        returnValueForMissingStub: <_i11.IsoType>[],
-      ) as List<_i11.IsoType>);
+        returnValue: <_i27.IsoType>[],
+        returnValueForMissingStub: <_i27.IsoType>[],
+      ) as List<_i27.IsoType>);
 
   @override
-  List<_i11.IsoType> findByType(String? type) => (super.noSuchMethod(
+  List<_i27.IsoType> findByType(String? type) => (super.noSuchMethod(
         Invocation.method(
           #findByType,
           [type],
         ),
-        returnValue: <_i11.IsoType>[],
-        returnValueForMissingStub: <_i11.IsoType>[],
-      ) as List<_i11.IsoType>);
+        returnValue: <_i27.IsoType>[],
+        returnValueForMissingStub: <_i27.IsoType>[],
+      ) as List<_i27.IsoType>);
 
   @override
   Set<String> getAllCodes() => (super.noSuchMethod(
@@ -1042,7 +1352,7 @@ class MockIsoTypeService extends _i1.Mock implements _i3.IsoTypeService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockIncidentManagerService extends _i1.Mock
-    implements _i12.IncidentManagerService {
+    implements _i28.IncidentManagerService {
   @override
   _i2.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -1057,22 +1367,62 @@ class MockIncidentManagerService extends _i1.Mock
       ) as _i2.Logger);
 
   @override
-  _i7.Future<_i13.Incident?> createIncident(dynamic entity) =>
+  _i18.Future<_i29.Incident?> createIncident(dynamic entity) =>
       (super.noSuchMethod(
         Invocation.method(
           #createIncident,
           [entity],
         ),
-        returnValue: _i7.Future<_i13.Incident?>.value(),
-        returnValueForMissingStub: _i7.Future<_i13.Incident?>.value(),
-      ) as _i7.Future<_i13.Incident?>);
+        returnValue: _i18.Future<_i29.Incident?>.value(),
+        returnValueForMissingStub: _i18.Future<_i29.Incident?>.value(),
+      ) as _i18.Future<_i29.Incident?>);
+
+  @override
+  _i18.Future<void> logManualInput(
+    String? gatePassId,
+    String? fieldType,
+    String? value,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #logManualInput,
+          [
+            gatePassId,
+            fieldType,
+            value,
+          ],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> logTrailerOverride(
+    String? gatePassId,
+    String? trailerType,
+    String? expectedValue,
+    String? enteredValue,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #logTrailerOverride,
+          [
+            gatePassId,
+            trailerType,
+            expectedValue,
+            enteredValue,
+          ],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 }
 
 /// A class which mocks [CheckListServiceService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockCheckListServiceService extends _i1.Mock
-    implements _i14.CheckListServiceService {
+    implements _i30.CheckListServiceService {
   @override
   _i2.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -1087,14 +1437,3858 @@ class MockCheckListServiceService extends _i1.Mock
       ) as _i2.Logger);
 
   @override
-  _i7.Future<_i15.CheckList?> getEmptyChecklistForGatePass(
-          _i16.FilterParams? entity) =>
+  _i18.Future<_i31.CheckList?> getEmptyChecklistForGatePass(
+          _i32.FilterParams? entity) =>
       (super.noSuchMethod(
         Invocation.method(
           #getEmptyChecklistForGatePass,
           [entity],
         ),
-        returnValue: _i7.Future<_i15.CheckList?>.value(),
-        returnValueForMissingStub: _i7.Future<_i15.CheckList?>.value(),
-      ) as _i7.Future<_i15.CheckList?>);
+        returnValue: _i18.Future<_i31.CheckList?>.value(),
+        returnValueForMissingStub: _i18.Future<_i31.CheckList?>.value(),
+      ) as _i18.Future<_i31.CheckList?>);
+
+  @override
+  _i18.Future<_i31.CheckList?> submitResponses(
+          _i33.CheckListResponseModel? entity) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #submitResponses,
+          [entity],
+        ),
+        returnValue: _i18.Future<_i31.CheckList?>.value(),
+        returnValueForMissingStub: _i18.Future<_i31.CheckList?>.value(),
+      ) as _i18.Future<_i31.CheckList?>);
+
+  @override
+  _i18.Future<_i4.CheckListFindTemplateModel> findChecklistTemplate(
+          _i32.FilterParams? entity) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findChecklistTemplate,
+          [entity],
+        ),
+        returnValue: _i18.Future<_i4.CheckListFindTemplateModel>.value(
+            _FakeCheckListFindTemplateModel_2(
+          this,
+          Invocation.method(
+            #findChecklistTemplate,
+            [entity],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i4.CheckListFindTemplateModel>.value(
+                _FakeCheckListFindTemplateModel_2(
+          this,
+          Invocation.method(
+            #findChecklistTemplate,
+            [entity],
+          ),
+        )),
+      ) as _i18.Future<_i4.CheckListFindTemplateModel>);
+
+  @override
+  _i18.Future<_i34.CheckListResolveTypeOutput?> resolveChecklistType(
+          String? status) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #resolveChecklistType,
+          [status],
+        ),
+        returnValue: _i18.Future<_i34.CheckListResolveTypeOutput?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i34.CheckListResolveTypeOutput?>.value(),
+      ) as _i18.Future<_i34.CheckListResolveTypeOutput?>);
+}
+
+/// A class which mocks [LocalStorageService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockLocalStorageService extends _i1.Mock
+    implements _i6.LocalStorageService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i5.DeviceConfig get getDeviceConfig => (super.noSuchMethod(
+        Invocation.getter(#getDeviceConfig),
+        returnValue: _FakeDeviceConfig_3(
+          this,
+          Invocation.getter(#getDeviceConfig),
+        ),
+        returnValueForMissingStub: _FakeDeviceConfig_3(
+          this,
+          Invocation.getter(#getDeviceConfig),
+        ),
+      ) as _i5.DeviceConfig);
+
+  @override
+  bool get isLoggedIn => (super.noSuchMethod(
+        Invocation.getter(#isLoggedIn),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  bool get hasDisclosedBackgroundPermission => (super.noSuchMethod(
+        Invocation.getter(#hasDisclosedBackgroundPermission),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  _i18.Future<_i6.LocalStorageService> init() => (super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [],
+        ),
+        returnValue: _i18.Future<_i6.LocalStorageService>.value(
+            _FakeLocalStorageService_4(
+          this,
+          Invocation.method(
+            #init,
+            [],
+          ),
+        )),
+        returnValueForMissingStub: _i18.Future<_i6.LocalStorageService>.value(
+            _FakeLocalStorageService_4(
+          this,
+          Invocation.method(
+            #init,
+            [],
+          ),
+        )),
+      ) as _i18.Future<_i6.LocalStorageService>);
+
+  @override
+  void setDeviceConfig(_i5.DeviceConfig? deviceConfig) => super.noSuchMethod(
+        Invocation.method(
+          #setDeviceConfig,
+          [deviceConfig],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void clearTenantId() => super.noSuchMethod(
+        Invocation.method(
+          #clearTenantId,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void clearTenantIdForPortal(_i35.AuthPortal? portal) => super.noSuchMethod(
+        Invocation.method(
+          #clearTenantIdForPortal,
+          [portal],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void setTenantId(int? value) => super.noSuchMethod(
+        Invocation.method(
+          #setTenantId,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void setTenantIdForPortal(
+    _i35.AuthPortal? portal,
+    int? value,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setTenantIdForPortal,
+          [
+            portal,
+            value,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  int getScannerBranchId() => (super.noSuchMethod(
+        Invocation.method(
+          #getScannerBranchId,
+          [],
+        ),
+        returnValue: 0,
+        returnValueForMissingStub: 0,
+      ) as int);
+
+  @override
+  void setScannerBranchId(int? value) => super.noSuchMethod(
+        Invocation.method(
+          #setScannerBranchId,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  int? getTenantIdForPortal(_i35.AuthPortal? portal) => (super.noSuchMethod(
+        Invocation.method(
+          #getTenantIdForPortal,
+          [portal],
+        ),
+        returnValueForMissingStub: null,
+      ) as int?);
+
+  @override
+  _i9.AuthenticateResultModel? getAuthTokenForPortal(_i35.AuthPortal? portal) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAuthTokenForPortal,
+          [portal],
+        ),
+        returnValueForMissingStub: null,
+      ) as _i9.AuthenticateResultModel?);
+
+  @override
+  void setAuthToken(_i9.AuthenticateResultModel? authToken) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setAuthToken,
+          [authToken],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void setAuthTokenForPortal(
+    _i35.AuthPortal? portal,
+    _i9.AuthenticateResultModel? authToken,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setAuthTokenForPortal,
+          [
+            portal,
+            authToken,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void clearAuthToken() => super.noSuchMethod(
+        Invocation.method(
+          #clearAuthToken,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void clearAuthTokenForPortal(_i35.AuthPortal? portal) => super.noSuchMethod(
+        Invocation.method(
+          #clearAuthTokenForPortal,
+          [portal],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void logout() => super.noSuchMethod(
+        Invocation.method(
+          #logout,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void logoutPortal(_i35.AuthPortal? portal) => super.noSuchMethod(
+        Invocation.method(
+          #logoutPortal,
+          [portal],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void logoutAllPortals() => super.noSuchMethod(
+        Invocation.method(
+          #logoutAllPortals,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void clearForgotPassword() => super.noSuchMethod(
+        Invocation.method(
+          #clearForgotPassword,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i36.CurrentLoginInformation? getUserLoginInfoForPortal(
+          _i35.AuthPortal? portal) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getUserLoginInfoForPortal,
+          [portal],
+        ),
+        returnValueForMissingStub: null,
+      ) as _i36.CurrentLoginInformation?);
+
+  @override
+  void setUserLoginInfo(_i36.CurrentLoginInformation? userLoginInfo) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setUserLoginInfo,
+          [userLoginInfo],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void setUserLoginInfoForPortal(
+    _i35.AuthPortal? portal,
+    _i36.CurrentLoginInformation? userLoginInfo,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setUserLoginInfoForPortal,
+          [
+            portal,
+            userLoginInfo,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool isLoggedInForPortal(_i35.AuthPortal? portal) => (super.noSuchMethod(
+        Invocation.method(
+          #isLoggedInForPortal,
+          [portal],
+        ),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  void saveIsLoggedIn(bool? value) => super.noSuchMethod(
+        Invocation.method(
+          #saveIsLoggedIn,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void saveIsLoggedInForPortal(
+    _i35.AuthPortal? portal,
+    bool? value,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #saveIsLoggedInForPortal,
+          [
+            portal,
+            value,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void setLastSessionPortal(_i35.AuthPortal? portal) => super.noSuchMethod(
+        Invocation.method(
+          #setLastSessionPortal,
+          [portal],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  String getTenantCodeForPortal(_i35.AuthPortal? portal) => (super.noSuchMethod(
+        Invocation.method(
+          #getTenantCodeForPortal,
+          [portal],
+        ),
+        returnValue: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getTenantCodeForPortal,
+            [portal],
+          ),
+        ),
+        returnValueForMissingStub: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getTenantCodeForPortal,
+            [portal],
+          ),
+        ),
+      ) as String);
+
+  @override
+  void setTenantCodeForPortal(
+    _i35.AuthPortal? portal,
+    String? value,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setTenantCodeForPortal,
+          [
+            portal,
+            value,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void setCmsDefaultInspectionDepotId(int? value) => super.noSuchMethod(
+        Invocation.method(
+          #setCmsDefaultInspectionDepotId,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void clearCmsDefaultInspectionDepotId() => super.noSuchMethod(
+        Invocation.method(
+          #clearCmsDefaultInspectionDepotId,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void saveHasDisclosedBackgroundPermission(bool? value) => super.noSuchMethod(
+        Invocation.method(
+          #saveHasDisclosedBackgroundPermission,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  String getStringByKey(String? key) => (super.noSuchMethod(
+        Invocation.method(
+          #getStringByKey,
+          [key],
+        ),
+        returnValue: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getStringByKey,
+            [key],
+          ),
+        ),
+        returnValueForMissingStub: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getStringByKey,
+            [key],
+          ),
+        ),
+      ) as String);
+
+  @override
+  void setStringByKey(
+    String? key,
+    String? value,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setStringByKey,
+          [
+            key,
+            value,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  List<String> getRecentSearches() => (super.noSuchMethod(
+        Invocation.method(
+          #getRecentSearches,
+          [],
+        ),
+        returnValue: <String>[],
+        returnValueForMissingStub: <String>[],
+      ) as List<String>);
+
+  @override
+  void clearRecentSearches() => super.noSuchMethod(
+        Invocation.method(
+          #clearRecentSearches,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void saveToRecentSearches(String? searchText) => super.noSuchMethod(
+        Invocation.method(
+          #saveToRecentSearches,
+          [searchText],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  int? getNavTabIndex(String? key) => (super.noSuchMethod(
+        Invocation.method(
+          #getNavTabIndex,
+          [key],
+        ),
+        returnValueForMissingStub: null,
+      ) as int?);
+
+  @override
+  void setNavTabIndex(
+    String? key,
+    int? value,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setNavTabIndex,
+          [
+            key,
+            value,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void clearNavTabIndex(String? key) => super.noSuchMethod(
+        Invocation.method(
+          #clearNavTabIndex,
+          [key],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void setForgotPassword(_i37.ForgotPassword? forgotPasswordReponse) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setForgotPassword,
+          [forgotPasswordReponse],
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
+/// A class which mocks [EnvironmentService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockEnvironmentService extends _i1.Mock
+    implements _i38.EnvironmentService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  String get baseUrl => (super.noSuchMethod(
+        Invocation.getter(#baseUrl),
+        returnValue: _i22.dummyValue<String>(
+          this,
+          Invocation.getter(#baseUrl),
+        ),
+        returnValueForMissingStub: _i22.dummyValue<String>(
+          this,
+          Invocation.getter(#baseUrl),
+        ),
+      ) as String);
+
+  @override
+  set baseUrl(String? _baseUrl) => super.noSuchMethod(
+        Invocation.setter(
+          #baseUrl,
+          _baseUrl,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i39.AppPortalMode get portalMode => (super.noSuchMethod(
+        Invocation.getter(#portalMode),
+        returnValue: _i39.AppPortalMode.dual,
+        returnValueForMissingStub: _i39.AppPortalMode.dual,
+      ) as _i39.AppPortalMode);
+
+  @override
+  List<_i35.AuthPortal> get enabledPortals => (super.noSuchMethod(
+        Invocation.getter(#enabledPortals),
+        returnValue: <_i35.AuthPortal>[],
+        returnValueForMissingStub: <_i35.AuthPortal>[],
+      ) as List<_i35.AuthPortal>);
+
+  @override
+  _i35.AuthPortal get defaultPortal => (super.noSuchMethod(
+        Invocation.getter(#defaultPortal),
+        returnValue: _i35.AuthPortal.xac,
+        returnValueForMissingStub: _i35.AuthPortal.xac,
+      ) as _i35.AuthPortal);
+
+  @override
+  _i18.Future<void> init() => (super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  void setBasics() => super.noSuchMethod(
+        Invocation.method(
+          #setBasics,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  String getBaseUrl(_i35.AuthPortal? portal) => (super.noSuchMethod(
+        Invocation.method(
+          #getBaseUrl,
+          [portal],
+        ),
+        returnValue: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getBaseUrl,
+            [portal],
+          ),
+        ),
+        returnValueForMissingStub: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getBaseUrl,
+            [portal],
+          ),
+        ),
+      ) as String);
+
+  @override
+  String getHostName(_i35.AuthPortal? portal) => (super.noSuchMethod(
+        Invocation.method(
+          #getHostName,
+          [portal],
+        ),
+        returnValue: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getHostName,
+            [portal],
+          ),
+        ),
+        returnValueForMissingStub: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getHostName,
+            [portal],
+          ),
+        ),
+      ) as String);
+
+  @override
+  bool isPortalEnabled(_i35.AuthPortal? portal) => (super.noSuchMethod(
+        Invocation.method(
+          #isPortalEnabled,
+          [portal],
+        ),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  String getValue(
+    String? key, {
+    bool? verbose = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getValue,
+          [key],
+          {#verbose: verbose},
+        ),
+        returnValue: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getValue,
+            [key],
+            {#verbose: verbose},
+          ),
+        ),
+        returnValueForMissingStub: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getValue,
+            [key],
+            {#verbose: verbose},
+          ),
+        ),
+      ) as String);
+}
+
+/// A class which mocks [ApiManager].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockApiManager extends _i1.Mock implements _i40.ApiManager {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<void> init() => (super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  dynamic handelError(_i7.DioException? dioError) => super.noSuchMethod(
+        Invocation.method(
+          #handelError,
+          [dioError],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.Future<_i7.Response<dynamic>> retryInternal(
+          _i7.RequestOptions? requestOptions) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #retryInternal,
+          [requestOptions],
+        ),
+        returnValue:
+            _i18.Future<_i7.Response<dynamic>>.value(_FakeResponse_5<dynamic>(
+          this,
+          Invocation.method(
+            #retryInternal,
+            [requestOptions],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i7.Response<dynamic>>.value(_FakeResponse_5<dynamic>(
+          this,
+          Invocation.method(
+            #retryInternal,
+            [requestOptions],
+          ),
+        )),
+      ) as _i18.Future<_i7.Response<dynamic>>);
+
+  @override
+  _i18.Future<dynamic> get(
+    String? uri, {
+    Map<String, dynamic>? queryParameters,
+    _i7.Options? options,
+    _i7.CancelToken? cancelToken,
+    _i7.ProgressCallback? onReceiveProgress,
+    bool? showLoader = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #get,
+          [uri],
+          {
+            #queryParameters: queryParameters,
+            #options: options,
+            #cancelToken: cancelToken,
+            #onReceiveProgress: onReceiveProgress,
+            #showLoader: showLoader,
+          },
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+
+  @override
+  _i18.Future<dynamic> uploadLoadImages(_i41.FileStore? fileStore) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadLoadImages,
+          [fileStore],
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+
+  @override
+  _i18.Future<dynamic> postWithFile({
+    required String? uri,
+    required String? filePath,
+    required String? fileName,
+    required Map<String, dynamic>? modelData,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #postWithFile,
+          [],
+          {
+            #uri: uri,
+            #filePath: filePath,
+            #fileName: fileName,
+            #modelData: modelData,
+          },
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+
+  @override
+  _i18.Future<dynamic> post(
+    String? uri, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    _i7.Options? options,
+    _i7.CancelToken? cancelToken,
+    _i7.ProgressCallback? onSendProgress,
+    _i7.ProgressCallback? onReceiveProgress,
+    bool? showLoader = true,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #post,
+          [uri],
+          {
+            #data: data,
+            #queryParameters: queryParameters,
+            #options: options,
+            #cancelToken: cancelToken,
+            #onSendProgress: onSendProgress,
+            #onReceiveProgress: onReceiveProgress,
+            #showLoader: showLoader,
+          },
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+
+  @override
+  _i18.Future<dynamic> put(
+    String? uri, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    _i7.Options? options,
+    _i7.CancelToken? cancelToken,
+    _i7.ProgressCallback? onSendProgress,
+    _i7.ProgressCallback? onReceiveProgress,
+    bool? showLoader = true,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #put,
+          [uri],
+          {
+            #data: data,
+            #queryParameters: queryParameters,
+            #options: options,
+            #cancelToken: cancelToken,
+            #onSendProgress: onSendProgress,
+            #onReceiveProgress: onReceiveProgress,
+            #showLoader: showLoader,
+          },
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+
+  @override
+  _i18.Future<_i7.Response<dynamic>> request(
+    String? uri, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    _i7.Options? options,
+    _i7.CancelToken? cancelToken,
+    _i7.ProgressCallback? onSendProgress,
+    _i7.ProgressCallback? onReceiveProgress,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #request,
+          [uri],
+          {
+            #data: data,
+            #queryParameters: queryParameters,
+            #options: options,
+            #cancelToken: cancelToken,
+            #onSendProgress: onSendProgress,
+            #onReceiveProgress: onReceiveProgress,
+          },
+        ),
+        returnValue:
+            _i18.Future<_i7.Response<dynamic>>.value(_FakeResponse_5<dynamic>(
+          this,
+          Invocation.method(
+            #request,
+            [uri],
+            {
+              #data: data,
+              #queryParameters: queryParameters,
+              #options: options,
+              #cancelToken: cancelToken,
+              #onSendProgress: onSendProgress,
+              #onReceiveProgress: onReceiveProgress,
+            },
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i7.Response<dynamic>>.value(_FakeResponse_5<dynamic>(
+          this,
+          Invocation.method(
+            #request,
+            [uri],
+            {
+              #data: data,
+              #queryParameters: queryParameters,
+              #options: options,
+              #cancelToken: cancelToken,
+              #onSendProgress: onSendProgress,
+              #onReceiveProgress: onReceiveProgress,
+            },
+          ),
+        )),
+      ) as _i18.Future<_i7.Response<dynamic>>);
+}
+
+/// A class which mocks [AccessTokenRepo].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockAccessTokenRepo extends _i1.Mock implements _i42.AccessTokenRepo {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<void> init() => (super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<_i9.AuthenticateResultModel?>
+      getAccessTokenFromStorageOrRefresh() => (super.noSuchMethod(
+            Invocation.method(
+              #getAccessTokenFromStorageOrRefresh,
+              [],
+            ),
+            returnValue: _i18.Future<_i9.AuthenticateResultModel?>.value(),
+            returnValueForMissingStub:
+                _i18.Future<_i9.AuthenticateResultModel?>.value(),
+          ) as _i18.Future<_i9.AuthenticateResultModel?>);
+
+  @override
+  void logOutCurrentUser() => super.noSuchMethod(
+        Invocation.method(
+          #logOutCurrentUser,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.Future<_i9.AuthenticateResultModel?> processAuthenticateResult(
+    _i9.AuthenticateResultModel? authenticateResultModel,
+    _i43.UserCredential? userCredential,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #processAuthenticateResult,
+          [
+            authenticateResultModel,
+            userCredential,
+          ],
+        ),
+        returnValue: _i18.Future<_i9.AuthenticateResultModel?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i9.AuthenticateResultModel?>.value(),
+      ) as _i18.Future<_i9.AuthenticateResultModel?>);
+}
+
+/// A class which mocks [AuthenticationService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockAuthenticationService extends _i1.Mock
+    implements _i44.AuthenticationService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<_i45.TenantAvailableModel?> isTenantAvailable(
+          {required String? tenantCode}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #isTenantAvailable,
+          [],
+          {#tenantCode: tenantCode},
+        ),
+        returnValue: _i18.Future<_i45.TenantAvailableModel?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i45.TenantAvailableModel?>.value(),
+      ) as _i18.Future<_i45.TenantAvailableModel?>);
+
+  @override
+  _i18.Future<_i9.AuthenticateResultModel?> login(
+          {required _i43.UserCredential? userCredential}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #login,
+          [],
+          {#userCredential: userCredential},
+        ),
+        returnValue: _i18.Future<_i9.AuthenticateResultModel?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i9.AuthenticateResultModel?>.value(),
+      ) as _i18.Future<_i9.AuthenticateResultModel?>);
+
+  @override
+  _i18.Future<dynamic> processAuthenticateResult(
+    _i9.AuthenticateResultModel? authenticateResultModel,
+    _i43.UserCredential? userCredential,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #processAuthenticateResult,
+          [
+            authenticateResultModel,
+            userCredential,
+          ],
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+
+  @override
+  _i18.Future<bool?> register({required _i46.RegisterUser? registerUser}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #register,
+          [],
+          {#registerUser: registerUser},
+        ),
+        returnValue: _i18.Future<bool?>.value(),
+        returnValueForMissingStub: _i18.Future<bool?>.value(),
+      ) as _i18.Future<bool?>);
+
+  @override
+  _i18.Future<_i37.ForgotPassword?> forgotPassword(
+          {required String? userNameOrEmailAddress}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #forgotPassword,
+          [],
+          {#userNameOrEmailAddress: userNameOrEmailAddress},
+        ),
+        returnValue: _i18.Future<_i37.ForgotPassword?>.value(),
+        returnValueForMissingStub: _i18.Future<_i37.ForgotPassword?>.value(),
+      ) as _i18.Future<_i37.ForgotPassword?>);
+
+  @override
+  _i18.Future<bool?> resetForgotPassword(
+          {required _i47.ResetForgotPassword? resetForgotPassword}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #resetForgotPassword,
+          [],
+          {#resetForgotPassword: resetForgotPassword},
+        ),
+        returnValue: _i18.Future<bool?>.value(),
+        returnValueForMissingStub: _i18.Future<bool?>.value(),
+      ) as _i18.Future<bool?>);
+
+  @override
+  void logOutCurrentUser() => super.noSuchMethod(
+        Invocation.method(
+          #logOutCurrentUser,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.Future<bool> refreshToken() => (super.noSuchMethod(
+        Invocation.method(
+          #refreshToken,
+          [],
+        ),
+        returnValue: _i18.Future<bool>.value(false),
+        returnValueForMissingStub: _i18.Future<bool>.value(false),
+      ) as _i18.Future<bool>);
+
+  @override
+  _i18.Future<_i36.CurrentLoginInformation?> getUserLoginInfo(
+          [bool? forceUpdate = false]) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getUserLoginInfo,
+          [forceUpdate],
+        ),
+        returnValue: _i18.Future<_i36.CurrentLoginInformation?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i36.CurrentLoginInformation?>.value(),
+      ) as _i18.Future<_i36.CurrentLoginInformation?>);
+
+  @override
+  void setUserInfo() => super.noSuchMethod(
+        Invocation.method(
+          #setUserInfo,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i8.BaseResponse isPasswordCompliant(
+    String? password,
+    String? username, [
+    int? minLength = 6,
+  ]) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #isPasswordCompliant,
+          [
+            password,
+            username,
+            minLength,
+          ],
+        ),
+        returnValue: _FakeBaseResponse_6(
+          this,
+          Invocation.method(
+            #isPasswordCompliant,
+            [
+              password,
+              username,
+              minLength,
+            ],
+          ),
+        ),
+        returnValueForMissingStub: _FakeBaseResponse_6(
+          this,
+          Invocation.method(
+            #isPasswordCompliant,
+            [
+              password,
+              username,
+              minLength,
+            ],
+          ),
+        ),
+      ) as _i8.BaseResponse);
+}
+
+/// A class which mocks [CmsApiManager].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsApiManager extends _i1.Mock implements _i48.CmsApiManager {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<void> init() => (super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  dynamic handelError(_i7.DioException? dioError) => super.noSuchMethod(
+        Invocation.method(
+          #handelError,
+          [dioError],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.Future<_i7.Response<dynamic>> retryInternal(
+          _i7.RequestOptions? requestOptions) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #retryInternal,
+          [requestOptions],
+        ),
+        returnValue:
+            _i18.Future<_i7.Response<dynamic>>.value(_FakeResponse_5<dynamic>(
+          this,
+          Invocation.method(
+            #retryInternal,
+            [requestOptions],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i7.Response<dynamic>>.value(_FakeResponse_5<dynamic>(
+          this,
+          Invocation.method(
+            #retryInternal,
+            [requestOptions],
+          ),
+        )),
+      ) as _i18.Future<_i7.Response<dynamic>>);
+
+  @override
+  _i18.Future<dynamic> get(
+    String? uri, {
+    Map<String, dynamic>? queryParameters,
+    _i7.Options? options,
+    _i7.CancelToken? cancelToken,
+    _i7.ProgressCallback? onReceiveProgress,
+    bool? showLoader = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #get,
+          [uri],
+          {
+            #queryParameters: queryParameters,
+            #options: options,
+            #cancelToken: cancelToken,
+            #onReceiveProgress: onReceiveProgress,
+            #showLoader: showLoader,
+          },
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+
+  @override
+  _i18.Future<List<int>> getBytes(
+    String? uri, {
+    Map<String, dynamic>? queryParameters,
+    _i7.Options? options,
+    _i7.CancelToken? cancelToken,
+    _i7.ProgressCallback? onReceiveProgress,
+    bool? showLoader = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getBytes,
+          [uri],
+          {
+            #queryParameters: queryParameters,
+            #options: options,
+            #cancelToken: cancelToken,
+            #onReceiveProgress: onReceiveProgress,
+            #showLoader: showLoader,
+          },
+        ),
+        returnValue: _i18.Future<List<int>>.value(<int>[]),
+        returnValueForMissingStub: _i18.Future<List<int>>.value(<int>[]),
+      ) as _i18.Future<List<int>>);
+
+  @override
+  _i18.Future<dynamic> post(
+    String? uri, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    _i7.Options? options,
+    _i7.CancelToken? cancelToken,
+    _i7.ProgressCallback? onSendProgress,
+    _i7.ProgressCallback? onReceiveProgress,
+    bool? showLoader = true,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #post,
+          [uri],
+          {
+            #data: data,
+            #queryParameters: queryParameters,
+            #options: options,
+            #cancelToken: cancelToken,
+            #onSendProgress: onSendProgress,
+            #onReceiveProgress: onReceiveProgress,
+            #showLoader: showLoader,
+          },
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+
+  @override
+  _i18.Future<dynamic> delete(
+    String? uri, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    _i7.Options? options,
+    _i7.CancelToken? cancelToken,
+    bool? showLoader = true,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #delete,
+          [uri],
+          {
+            #data: data,
+            #queryParameters: queryParameters,
+            #options: options,
+            #cancelToken: cancelToken,
+            #showLoader: showLoader,
+          },
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+}
+
+/// A class which mocks [CmsAccessTokenRepo].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsAccessTokenRepo extends _i1.Mock
+    implements _i49.CmsAccessTokenRepo {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<void> init() => (super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<_i9.AuthenticateResultModel?>
+      getAccessTokenFromStorageOrRefresh() => (super.noSuchMethod(
+            Invocation.method(
+              #getAccessTokenFromStorageOrRefresh,
+              [],
+            ),
+            returnValue: _i18.Future<_i9.AuthenticateResultModel?>.value(),
+            returnValueForMissingStub:
+                _i18.Future<_i9.AuthenticateResultModel?>.value(),
+          ) as _i18.Future<_i9.AuthenticateResultModel?>);
+
+  @override
+  void logOutCurrentUser() => super.noSuchMethod(
+        Invocation.method(
+          #logOutCurrentUser,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.Future<_i9.AuthenticateResultModel?> processAuthenticateResult(
+    _i9.AuthenticateResultModel? authenticateResultModel,
+    _i43.UserCredential? userCredential,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #processAuthenticateResult,
+          [
+            authenticateResultModel,
+            userCredential,
+          ],
+        ),
+        returnValue: _i18.Future<_i9.AuthenticateResultModel?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i9.AuthenticateResultModel?>.value(),
+      ) as _i18.Future<_i9.AuthenticateResultModel?>);
+
+  @override
+  _i9.AuthenticateResultModel buildAuthenticateResultModel(
+    dynamic result,
+    _i43.UserCredential? userCredential,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #buildAuthenticateResultModel,
+          [
+            result,
+            userCredential,
+          ],
+        ),
+        returnValue: _FakeAuthenticateResultModel_7(
+          this,
+          Invocation.method(
+            #buildAuthenticateResultModel,
+            [
+              result,
+              userCredential,
+            ],
+          ),
+        ),
+        returnValueForMissingStub: _FakeAuthenticateResultModel_7(
+          this,
+          Invocation.method(
+            #buildAuthenticateResultModel,
+            [
+              result,
+              userCredential,
+            ],
+          ),
+        ),
+      ) as _i9.AuthenticateResultModel);
+}
+
+/// A class which mocks [CmsAuthenticationService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsAuthenticationService extends _i1.Mock
+    implements _i50.CmsAuthenticationService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<_i9.AuthenticateResultModel?> login(
+          {required _i43.UserCredential? userCredential}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #login,
+          [],
+          {#userCredential: userCredential},
+        ),
+        returnValue: _i18.Future<_i9.AuthenticateResultModel?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i9.AuthenticateResultModel?>.value(),
+      ) as _i18.Future<_i9.AuthenticateResultModel?>);
+
+  @override
+  _i18.Future<dynamic> processAuthenticateResult(
+    _i9.AuthenticateResultModel? authenticateResultModel,
+    _i43.UserCredential? userCredential,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #processAuthenticateResult,
+          [
+            authenticateResultModel,
+            userCredential,
+          ],
+        ),
+        returnValue: _i18.Future<dynamic>.value(),
+        returnValueForMissingStub: _i18.Future<dynamic>.value(),
+      ) as _i18.Future<dynamic>);
+
+  @override
+  void logOutCurrentUser() => super.noSuchMethod(
+        Invocation.method(
+          #logOutCurrentUser,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.Future<bool> refreshToken() => (super.noSuchMethod(
+        Invocation.method(
+          #refreshToken,
+          [],
+        ),
+        returnValue: _i18.Future<bool>.value(false),
+        returnValueForMissingStub: _i18.Future<bool>.value(false),
+      ) as _i18.Future<bool>);
+
+  @override
+  _i18.Future<_i36.CurrentLoginInformation?> getUserLoginInfo(
+          [bool? forceUpdate = false]) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getUserLoginInfo,
+          [forceUpdate],
+        ),
+        returnValue: _i18.Future<_i36.CurrentLoginInformation?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i36.CurrentLoginInformation?>.value(),
+      ) as _i18.Future<_i36.CurrentLoginInformation?>);
+}
+
+/// A class which mocks [CmsSessionService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsSessionService extends _i1.Mock implements _i51.CmsSessionService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<_i52.CmsCurrentLoginInformation?> refreshFromServer(
+          {bool? showLoader = false}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #refreshFromServer,
+          [],
+          {#showLoader: showLoader},
+        ),
+        returnValue: _i18.Future<_i52.CmsCurrentLoginInformation?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i52.CmsCurrentLoginInformation?>.value(),
+      ) as _i18.Future<_i52.CmsCurrentLoginInformation?>);
+
+  @override
+  void clear() => super.noSuchMethod(
+        Invocation.method(
+          #clear,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
+/// A class which mocks [CmsMasterFilesSyncService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsMasterFilesSyncService extends _i1.Mock
+    implements _i53.CmsMasterFilesSyncService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Stream<_i10.CmsSyncProgress> get progressStream => (super.noSuchMethod(
+        Invocation.getter(#progressStream),
+        returnValue: _i18.Stream<_i10.CmsSyncProgress>.empty(),
+        returnValueForMissingStub: _i18.Stream<_i10.CmsSyncProgress>.empty(),
+      ) as _i18.Stream<_i10.CmsSyncProgress>);
+
+  @override
+  _i18.Future<bool> shouldRunInitialSync() => (super.noSuchMethod(
+        Invocation.method(
+          #shouldRunInitialSync,
+          [],
+        ),
+        returnValue: _i18.Future<bool>.value(false),
+        returnValueForMissingStub: _i18.Future<bool>.value(false),
+      ) as _i18.Future<bool>);
+
+  @override
+  _i18.Future<Map<String, _i10.CmsStoreSyncMeta>> getSyncSummary() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSyncSummary,
+          [],
+        ),
+        returnValue: _i18.Future<Map<String, _i10.CmsStoreSyncMeta>>.value(
+            <String, _i10.CmsStoreSyncMeta>{}),
+        returnValueForMissingStub:
+            _i18.Future<Map<String, _i10.CmsStoreSyncMeta>>.value(
+                <String, _i10.CmsStoreSyncMeta>{}),
+      ) as _i18.Future<Map<String, _i10.CmsStoreSyncMeta>>);
+
+  @override
+  _i18.Future<_i10.CmsSyncResult> syncAll({
+    bool? force = false,
+    String? reason = r'manual',
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #syncAll,
+          [],
+          {
+            #force: force,
+            #reason: reason,
+          },
+        ),
+        returnValue: _i18.Future<_i10.CmsSyncResult>.value(_FakeCmsSyncResult_8(
+          this,
+          Invocation.method(
+            #syncAll,
+            [],
+            {
+              #force: force,
+              #reason: reason,
+            },
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i10.CmsSyncResult>.value(_FakeCmsSyncResult_8(
+          this,
+          Invocation.method(
+            #syncAll,
+            [],
+            {
+              #force: force,
+              #reason: reason,
+            },
+          ),
+        )),
+      ) as _i18.Future<_i10.CmsSyncResult>);
+
+  @override
+  _i18.Future<_i10.CmsSyncResult>
+      syncStore<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store, {
+    bool? force = false,
+    String? reason = r'manual',
+  }) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #syncStore,
+              [store],
+              {
+                #force: force,
+                #reason: reason,
+              },
+            ),
+            returnValue:
+                _i18.Future<_i10.CmsSyncResult>.value(_FakeCmsSyncResult_8(
+              this,
+              Invocation.method(
+                #syncStore,
+                [store],
+                {
+                  #force: force,
+                  #reason: reason,
+                },
+              ),
+            )),
+            returnValueForMissingStub:
+                _i18.Future<_i10.CmsSyncResult>.value(_FakeCmsSyncResult_8(
+              this,
+              Invocation.method(
+                #syncStore,
+                [store],
+                {
+                  #force: force,
+                  #reason: reason,
+                },
+              ),
+            )),
+          ) as _i18.Future<_i10.CmsSyncResult>);
+}
+
+/// A class which mocks [CmsMasterFilesRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsMasterFilesRepository extends _i1.Mock
+    implements _i55.CmsMasterFilesRepository {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<void> upsertMany<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    List<T>? entities,
+    _i10.CmsSyncContext? context,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #upsertMany,
+          [
+            store,
+            entities,
+            context,
+          ],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<List<T>> getAll<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context, {
+    bool? activeOnly = true,
+    int? shippingLineId,
+    bool? filterByShippingLine = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAll,
+          [
+            store,
+            context,
+          ],
+          {
+            #activeOnly: activeOnly,
+            #shippingLineId: shippingLineId,
+            #filterByShippingLine: filterByShippingLine,
+          },
+        ),
+        returnValue: _i18.Future<List<T>>.value(<T>[]),
+        returnValueForMissingStub: _i18.Future<List<T>>.value(<T>[]),
+      ) as _i18.Future<List<T>>);
+
+  @override
+  _i18.Future<T?> getById<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context,
+    int? id,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getById,
+          [
+            store,
+            context,
+            id,
+          ],
+        ),
+        returnValue: _i18.Future<T?>.value(),
+        returnValueForMissingStub: _i18.Future<T?>.value(),
+      ) as _i18.Future<T?>);
+
+  @override
+  _i18.Future<List<T>> search<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context, {
+    String? searchTerm = r'',
+    int? skip = 0,
+    int? take = 20,
+    bool? activeOnly = true,
+    int? shippingLineId,
+    bool? filterByShippingLine = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #search,
+          [
+            store,
+            context,
+          ],
+          {
+            #searchTerm: searchTerm,
+            #skip: skip,
+            #take: take,
+            #activeOnly: activeOnly,
+            #shippingLineId: shippingLineId,
+            #filterByShippingLine: filterByShippingLine,
+          },
+        ),
+        returnValue: _i18.Future<List<T>>.value(<T>[]),
+        returnValueForMissingStub: _i18.Future<List<T>>.value(<T>[]),
+      ) as _i18.Future<List<T>>);
+
+  @override
+  _i18.Future<Set<int>> getIds<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getIds,
+          [
+            store,
+            context,
+          ],
+        ),
+        returnValue: _i18.Future<Set<int>>.value(<int>{}),
+        returnValueForMissingStub: _i18.Future<Set<int>>.value(<int>{}),
+      ) as _i18.Future<Set<int>>);
+
+  @override
+  _i18.Future<void> deleteByIds<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context,
+    Set<int>? ids,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteByIds,
+          [
+            store,
+            context,
+            ids,
+          ],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<int> count<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context, {
+    bool? activeOnly = false,
+    int? shippingLineId,
+    bool? filterByShippingLine = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #count,
+          [
+            store,
+            context,
+          ],
+          {
+            #activeOnly: activeOnly,
+            #shippingLineId: shippingLineId,
+            #filterByShippingLine: filterByShippingLine,
+          },
+        ),
+        returnValue: _i18.Future<int>.value(0),
+        returnValueForMissingStub: _i18.Future<int>.value(0),
+      ) as _i18.Future<int>);
+
+  @override
+  _i18.Future<void> clearStore<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #clearStore,
+          [
+            store,
+            context,
+          ],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<_i10.CmsStoreSyncMeta?>
+      getMeta<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context,
+  ) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #getMeta,
+              [
+                store,
+                context,
+              ],
+            ),
+            returnValue: _i18.Future<_i10.CmsStoreSyncMeta?>.value(),
+            returnValueForMissingStub:
+                _i18.Future<_i10.CmsStoreSyncMeta?>.value(),
+          ) as _i18.Future<_i10.CmsStoreSyncMeta?>);
+
+  @override
+  _i18.Future<void> markAttemptStarted<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #markAttemptStarted,
+          [
+            store,
+            context,
+          ],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> markSuccess<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context, {
+    required int? itemCount,
+    required int? serverTotalCount,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #markSuccess,
+          [
+            store,
+            context,
+          ],
+          {
+            #itemCount: itemCount,
+            #serverTotalCount: serverTotalCount,
+          },
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> markFailure<T extends _i54.CmsInspectionLookupBase>(
+    _i10.CmsMasterFileStore<T>? store,
+    _i10.CmsSyncContext? context, {
+    required String? error,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #markFailure,
+          [
+            store,
+            context,
+          ],
+          {#error: error},
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+}
+
+/// A class which mocks [CmsMediaUploadQueueService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsMediaUploadQueueService extends _i1.Mock
+    implements _i56.CmsMediaUploadQueueService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<_i11.CmsMediaUploadItem?> captureInspectionLinePhoto({
+    required int? inspectionId,
+    required _i57.CmsInspectionLineEdit? line,
+    bool? fromGallery = false,
+    String? sourcePath,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #captureInspectionLinePhoto,
+          [],
+          {
+            #inspectionId: inspectionId,
+            #line: line,
+            #fromGallery: fromGallery,
+            #sourcePath: sourcePath,
+          },
+        ),
+        returnValue: _i18.Future<_i11.CmsMediaUploadItem?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i11.CmsMediaUploadItem?>.value(),
+      ) as _i18.Future<_i11.CmsMediaUploadItem?>);
+
+  @override
+  _i18.Future<_i11.CmsMediaUploadItem?> captureSurveyPhoto({
+    required _i17.CmsMobileSurveyEditDto? survey,
+    bool? fromGallery = false,
+    String? sourcePath,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #captureSurveyPhoto,
+          [],
+          {
+            #survey: survey,
+            #fromGallery: fromGallery,
+            #sourcePath: sourcePath,
+          },
+        ),
+        returnValue: _i18.Future<_i11.CmsMediaUploadItem?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i11.CmsMediaUploadItem?>.value(),
+      ) as _i18.Future<_i11.CmsMediaUploadItem?>);
+
+  @override
+  _i18.Future<_i11.CmsMediaUploadItem?> captureSurveyDocument({
+    required _i17.CmsMobileSurveyEditDto? survey,
+    required String? sourcePath,
+    String? fileName,
+    String? mimeType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #captureSurveyDocument,
+          [],
+          {
+            #survey: survey,
+            #sourcePath: sourcePath,
+            #fileName: fileName,
+            #mimeType: mimeType,
+          },
+        ),
+        returnValue: _i18.Future<_i11.CmsMediaUploadItem?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i11.CmsMediaUploadItem?>.value(),
+      ) as _i18.Future<_i11.CmsMediaUploadItem?>);
+
+  @override
+  _i18.Future<void> upsert(_i11.CmsMediaUploadItem? item) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #upsert,
+          [item],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<List<_i11.CmsMediaUploadItem>> getAll() => (super.noSuchMethod(
+        Invocation.method(
+          #getAll,
+          [],
+        ),
+        returnValue: _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+            <_i11.CmsMediaUploadItem>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+                <_i11.CmsMediaUploadItem>[]),
+      ) as _i18.Future<List<_i11.CmsMediaUploadItem>>);
+
+  @override
+  _i18.Future<List<_i11.CmsMediaUploadItem>> getForInspectionLine(
+          _i57.CmsInspectionLineEdit? line) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getForInspectionLine,
+          [line],
+        ),
+        returnValue: _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+            <_i11.CmsMediaUploadItem>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+                <_i11.CmsMediaUploadItem>[]),
+      ) as _i18.Future<List<_i11.CmsMediaUploadItem>>);
+
+  @override
+  _i18.Future<List<_i11.CmsMediaUploadItem>> getForInspection(
+          int? inspectionId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getForInspection,
+          [inspectionId],
+        ),
+        returnValue: _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+            <_i11.CmsMediaUploadItem>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+                <_i11.CmsMediaUploadItem>[]),
+      ) as _i18.Future<List<_i11.CmsMediaUploadItem>>);
+
+  @override
+  _i18.Future<List<_i11.CmsMediaUploadItem>> getForSurvey(
+    _i17.CmsMobileSurveyEditDto? survey, {
+    int? uploadType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getForSurvey,
+          [survey],
+          {#uploadType: uploadType},
+        ),
+        returnValue: _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+            <_i11.CmsMediaUploadItem>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+                <_i11.CmsMediaUploadItem>[]),
+      ) as _i18.Future<List<_i11.CmsMediaUploadItem>>);
+
+  @override
+  _i18.Stream<List<_i11.CmsMediaUploadItem>> watch({
+    required _i11.CmsMediaUploadOwnerType? ownerType,
+    required int? rootId,
+    int? uploadType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #watch,
+          [],
+          {
+            #ownerType: ownerType,
+            #rootId: rootId,
+            #uploadType: uploadType,
+          },
+        ),
+        returnValue: _i18.Stream<List<_i11.CmsMediaUploadItem>>.empty(),
+        returnValueForMissingStub:
+            _i18.Stream<List<_i11.CmsMediaUploadItem>>.empty(),
+      ) as _i18.Stream<List<_i11.CmsMediaUploadItem>>);
+
+  @override
+  _i18.Future<int> pendingCount({
+    _i11.CmsMediaUploadOwnerType? ownerType,
+    int? rootId,
+    int? uploadType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #pendingCount,
+          [],
+          {
+            #ownerType: ownerType,
+            #rootId: rootId,
+            #uploadType: uploadType,
+          },
+        ),
+        returnValue: _i18.Future<int>.value(0),
+        returnValueForMissingStub: _i18.Future<int>.value(0),
+      ) as _i18.Future<int>);
+
+  @override
+  _i18.Stream<int> watchGlobalPendingCount() => (super.noSuchMethod(
+        Invocation.method(
+          #watchGlobalPendingCount,
+          [],
+        ),
+        returnValue: _i18.Stream<int>.empty(),
+        returnValueForMissingStub: _i18.Stream<int>.empty(),
+      ) as _i18.Stream<int>);
+
+  @override
+  _i18.Future<void> retry(String? clientUploadId) => (super.noSuchMethod(
+        Invocation.method(
+          #retry,
+          [clientUploadId],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> remove(String? clientUploadId) => (super.noSuchMethod(
+        Invocation.method(
+          #remove,
+          [clientUploadId],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> remapSavedInspectionLines(
+          _i16.CmsInspectionEdit? inspection) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #remapSavedInspectionLines,
+          [inspection],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<int> uploadPendingForInspection(int? inspectionId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadPendingForInspection,
+          [inspectionId],
+        ),
+        returnValue: _i18.Future<int>.value(0),
+        returnValueForMissingStub: _i18.Future<int>.value(0),
+      ) as _i18.Future<int>);
+
+  @override
+  _i18.Future<int> uploadPendingForSurvey(int? surveyId) => (super.noSuchMethod(
+        Invocation.method(
+          #uploadPendingForSurvey,
+          [surveyId],
+        ),
+        returnValue: _i18.Future<int>.value(0),
+        returnValueForMissingStub: _i18.Future<int>.value(0),
+      ) as _i18.Future<int>);
+
+  @override
+  _i18.Future<int> uploadPending({
+    _i11.CmsMediaUploadOwnerType? ownerType,
+    int? rootId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadPending,
+          [],
+          {
+            #ownerType: ownerType,
+            #rootId: rootId,
+          },
+        ),
+        returnValue: _i18.Future<int>.value(0),
+        returnValueForMissingStub: _i18.Future<int>.value(0),
+      ) as _i18.Future<int>);
+
+  @override
+  _i18.Future<_i11.CmsMediaUploadItem> uploadItem(
+          _i11.CmsMediaUploadItem? photo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadItem,
+          [photo],
+        ),
+        returnValue: _i18.Future<_i11.CmsMediaUploadItem>.value(
+            _FakeCmsMediaUploadItem_9(
+          this,
+          Invocation.method(
+            #uploadItem,
+            [photo],
+          ),
+        )),
+        returnValueForMissingStub: _i18.Future<_i11.CmsMediaUploadItem>.value(
+            _FakeCmsMediaUploadItem_9(
+          this,
+          Invocation.method(
+            #uploadItem,
+            [photo],
+          ),
+        )),
+      ) as _i18.Future<_i11.CmsMediaUploadItem>);
+
+  @override
+  _i18.Future<void> deleteItem(_i11.CmsMediaUploadItem? photo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteItem,
+          [photo],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> removeLocalOnly(String? clientUploadId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #removeLocalOnly,
+          [clientUploadId],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  int? surveyUploadReferenceId(_i17.CmsMobileSurveyEditDto? survey) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #surveyUploadReferenceId,
+          [survey],
+        ),
+        returnValueForMissingStub: null,
+      ) as int?);
+}
+
+/// A class which mocks [CmsInspectionLinePhotoQueueService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsInspectionLinePhotoQueueService extends _i1.Mock
+    implements _i58.CmsInspectionLinePhotoQueueService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<_i12.CmsInspectionLinePhoto?> capturePhotoForLine({
+    required int? inspectionId,
+    required _i57.CmsInspectionLineEdit? line,
+    bool? fromGallery = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #capturePhotoForLine,
+          [],
+          {
+            #inspectionId: inspectionId,
+            #line: line,
+            #fromGallery: fromGallery,
+          },
+        ),
+        returnValue: _i18.Future<_i12.CmsInspectionLinePhoto?>.value(),
+        returnValueForMissingStub:
+            _i18.Future<_i12.CmsInspectionLinePhoto?>.value(),
+      ) as _i18.Future<_i12.CmsInspectionLinePhoto?>);
+
+  @override
+  _i18.Future<void> upsert(_i12.CmsInspectionLinePhoto? photo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #upsert,
+          [photo],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<List<_i12.CmsInspectionLinePhoto>> getForLine(
+          _i57.CmsInspectionLineEdit? line) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getForLine,
+          [line],
+        ),
+        returnValue: _i18.Future<List<_i12.CmsInspectionLinePhoto>>.value(
+            <_i12.CmsInspectionLinePhoto>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i12.CmsInspectionLinePhoto>>.value(
+                <_i12.CmsInspectionLinePhoto>[]),
+      ) as _i18.Future<List<_i12.CmsInspectionLinePhoto>>);
+
+  @override
+  _i18.Future<List<_i12.CmsInspectionLinePhoto>> getForInspection(
+          int? inspectionId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getForInspection,
+          [inspectionId],
+        ),
+        returnValue: _i18.Future<List<_i12.CmsInspectionLinePhoto>>.value(
+            <_i12.CmsInspectionLinePhoto>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i12.CmsInspectionLinePhoto>>.value(
+                <_i12.CmsInspectionLinePhoto>[]),
+      ) as _i18.Future<List<_i12.CmsInspectionLinePhoto>>);
+
+  @override
+  _i18.Future<List<_i12.CmsInspectionLinePhoto>> getAll() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAll,
+          [],
+        ),
+        returnValue: _i18.Future<List<_i12.CmsInspectionLinePhoto>>.value(
+            <_i12.CmsInspectionLinePhoto>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i12.CmsInspectionLinePhoto>>.value(
+                <_i12.CmsInspectionLinePhoto>[]),
+      ) as _i18.Future<List<_i12.CmsInspectionLinePhoto>>);
+
+  @override
+  _i18.Future<void> remapSavedLines(_i16.CmsInspectionEdit? inspection) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #remapSavedLines,
+          [inspection],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<int> uploadPendingForInspection(int? inspectionId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadPendingForInspection,
+          [inspectionId],
+        ),
+        returnValue: _i18.Future<int>.value(0),
+        returnValueForMissingStub: _i18.Future<int>.value(0),
+      ) as _i18.Future<int>);
+
+  @override
+  _i18.Future<_i12.CmsInspectionLinePhoto> uploadPhoto(
+          _i12.CmsInspectionLinePhoto? photo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadPhoto,
+          [photo],
+        ),
+        returnValue: _i18.Future<_i12.CmsInspectionLinePhoto>.value(
+            _FakeCmsInspectionLinePhoto_10(
+          this,
+          Invocation.method(
+            #uploadPhoto,
+            [photo],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i12.CmsInspectionLinePhoto>.value(
+                _FakeCmsInspectionLinePhoto_10(
+          this,
+          Invocation.method(
+            #uploadPhoto,
+            [photo],
+          ),
+        )),
+      ) as _i18.Future<_i12.CmsInspectionLinePhoto>);
+
+  @override
+  _i18.Future<void> deletePhoto(_i12.CmsInspectionLinePhoto? photo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deletePhoto,
+          [photo],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> removeLocalOnly(String? clientUploadId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #removeLocalOnly,
+          [clientUploadId],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+}
+
+/// A class which mocks [CmsMobileFileStoreService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsMobileFileStoreService extends _i1.Mock
+    implements _i59.CmsMobileFileStoreService {
+  @override
+  _i18.Future<_i12.CmsInspectionLinePhoto> uploadInspectionLinePhoto({
+    required int? inspectionId,
+    required int? inspectionLineId,
+    required String? filePath,
+    required String? documentFileName,
+    required String? contentType,
+    required String? clientUploadId,
+    DateTime? capturedAtUtc,
+    _i7.ProgressCallback? onSendProgress,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadInspectionLinePhoto,
+          [],
+          {
+            #inspectionId: inspectionId,
+            #inspectionLineId: inspectionLineId,
+            #filePath: filePath,
+            #documentFileName: documentFileName,
+            #contentType: contentType,
+            #clientUploadId: clientUploadId,
+            #capturedAtUtc: capturedAtUtc,
+            #onSendProgress: onSendProgress,
+          },
+        ),
+        returnValue: _i18.Future<_i12.CmsInspectionLinePhoto>.value(
+            _FakeCmsInspectionLinePhoto_10(
+          this,
+          Invocation.method(
+            #uploadInspectionLinePhoto,
+            [],
+            {
+              #inspectionId: inspectionId,
+              #inspectionLineId: inspectionLineId,
+              #filePath: filePath,
+              #documentFileName: documentFileName,
+              #contentType: contentType,
+              #clientUploadId: clientUploadId,
+              #capturedAtUtc: capturedAtUtc,
+              #onSendProgress: onSendProgress,
+            },
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i12.CmsInspectionLinePhoto>.value(
+                _FakeCmsInspectionLinePhoto_10(
+          this,
+          Invocation.method(
+            #uploadInspectionLinePhoto,
+            [],
+            {
+              #inspectionId: inspectionId,
+              #inspectionLineId: inspectionLineId,
+              #filePath: filePath,
+              #documentFileName: documentFileName,
+              #contentType: contentType,
+              #clientUploadId: clientUploadId,
+              #capturedAtUtc: capturedAtUtc,
+              #onSendProgress: onSendProgress,
+            },
+          ),
+        )),
+      ) as _i18.Future<_i12.CmsInspectionLinePhoto>);
+
+  @override
+  _i18.Future<List<_i12.CmsInspectionLinePhoto>> listInspectionLinePhotos(
+          int? inspectionLineId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #listInspectionLinePhotos,
+          [inspectionLineId],
+        ),
+        returnValue: _i18.Future<List<_i12.CmsInspectionLinePhoto>>.value(
+            <_i12.CmsInspectionLinePhoto>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i12.CmsInspectionLinePhoto>>.value(
+                <_i12.CmsInspectionLinePhoto>[]),
+      ) as _i18.Future<List<_i12.CmsInspectionLinePhoto>>);
+
+  @override
+  _i18.Future<void> deleteInspectionLinePhoto(int? documentId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteInspectionLinePhoto,
+          [documentId],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<_i11.CmsMediaUploadItem> uploadSurveyPhoto({
+    required int? surveyId,
+    required int? referenceId,
+    required _i60.CmsSurveyType? surveyType,
+    required String? filePath,
+    required String? documentFileName,
+    required String? contentType,
+    required String? clientUploadId,
+    _i7.ProgressCallback? onSendProgress,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadSurveyPhoto,
+          [],
+          {
+            #surveyId: surveyId,
+            #referenceId: referenceId,
+            #surveyType: surveyType,
+            #filePath: filePath,
+            #documentFileName: documentFileName,
+            #contentType: contentType,
+            #clientUploadId: clientUploadId,
+            #onSendProgress: onSendProgress,
+          },
+        ),
+        returnValue: _i18.Future<_i11.CmsMediaUploadItem>.value(
+            _FakeCmsMediaUploadItem_9(
+          this,
+          Invocation.method(
+            #uploadSurveyPhoto,
+            [],
+            {
+              #surveyId: surveyId,
+              #referenceId: referenceId,
+              #surveyType: surveyType,
+              #filePath: filePath,
+              #documentFileName: documentFileName,
+              #contentType: contentType,
+              #clientUploadId: clientUploadId,
+              #onSendProgress: onSendProgress,
+            },
+          ),
+        )),
+        returnValueForMissingStub: _i18.Future<_i11.CmsMediaUploadItem>.value(
+            _FakeCmsMediaUploadItem_9(
+          this,
+          Invocation.method(
+            #uploadSurveyPhoto,
+            [],
+            {
+              #surveyId: surveyId,
+              #referenceId: referenceId,
+              #surveyType: surveyType,
+              #filePath: filePath,
+              #documentFileName: documentFileName,
+              #contentType: contentType,
+              #clientUploadId: clientUploadId,
+              #onSendProgress: onSendProgress,
+            },
+          ),
+        )),
+      ) as _i18.Future<_i11.CmsMediaUploadItem>);
+
+  @override
+  _i18.Future<_i11.CmsMediaUploadItem> uploadSurveyDocument({
+    required int? surveyId,
+    required int? referenceId,
+    required _i60.CmsSurveyType? surveyType,
+    required String? filePath,
+    required String? documentFileName,
+    required String? contentType,
+    required String? clientUploadId,
+    _i7.ProgressCallback? onSendProgress,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadSurveyDocument,
+          [],
+          {
+            #surveyId: surveyId,
+            #referenceId: referenceId,
+            #surveyType: surveyType,
+            #filePath: filePath,
+            #documentFileName: documentFileName,
+            #contentType: contentType,
+            #clientUploadId: clientUploadId,
+            #onSendProgress: onSendProgress,
+          },
+        ),
+        returnValue: _i18.Future<_i11.CmsMediaUploadItem>.value(
+            _FakeCmsMediaUploadItem_9(
+          this,
+          Invocation.method(
+            #uploadSurveyDocument,
+            [],
+            {
+              #surveyId: surveyId,
+              #referenceId: referenceId,
+              #surveyType: surveyType,
+              #filePath: filePath,
+              #documentFileName: documentFileName,
+              #contentType: contentType,
+              #clientUploadId: clientUploadId,
+              #onSendProgress: onSendProgress,
+            },
+          ),
+        )),
+        returnValueForMissingStub: _i18.Future<_i11.CmsMediaUploadItem>.value(
+            _FakeCmsMediaUploadItem_9(
+          this,
+          Invocation.method(
+            #uploadSurveyDocument,
+            [],
+            {
+              #surveyId: surveyId,
+              #referenceId: referenceId,
+              #surveyType: surveyType,
+              #filePath: filePath,
+              #documentFileName: documentFileName,
+              #contentType: contentType,
+              #clientUploadId: clientUploadId,
+              #onSendProgress: onSendProgress,
+            },
+          ),
+        )),
+      ) as _i18.Future<_i11.CmsMediaUploadItem>);
+
+  @override
+  _i18.Future<_i11.CmsMediaUploadItem> uploadSurveyMedia({
+    required int? surveyId,
+    required int? referenceId,
+    required _i60.CmsSurveyType? surveyType,
+    required int? uploadType,
+    required String? filePath,
+    required String? documentFileName,
+    required String? contentType,
+    required String? clientUploadId,
+    _i7.ProgressCallback? onSendProgress,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadSurveyMedia,
+          [],
+          {
+            #surveyId: surveyId,
+            #referenceId: referenceId,
+            #surveyType: surveyType,
+            #uploadType: uploadType,
+            #filePath: filePath,
+            #documentFileName: documentFileName,
+            #contentType: contentType,
+            #clientUploadId: clientUploadId,
+            #onSendProgress: onSendProgress,
+          },
+        ),
+        returnValue: _i18.Future<_i11.CmsMediaUploadItem>.value(
+            _FakeCmsMediaUploadItem_9(
+          this,
+          Invocation.method(
+            #uploadSurveyMedia,
+            [],
+            {
+              #surveyId: surveyId,
+              #referenceId: referenceId,
+              #surveyType: surveyType,
+              #uploadType: uploadType,
+              #filePath: filePath,
+              #documentFileName: documentFileName,
+              #contentType: contentType,
+              #clientUploadId: clientUploadId,
+              #onSendProgress: onSendProgress,
+            },
+          ),
+        )),
+        returnValueForMissingStub: _i18.Future<_i11.CmsMediaUploadItem>.value(
+            _FakeCmsMediaUploadItem_9(
+          this,
+          Invocation.method(
+            #uploadSurveyMedia,
+            [],
+            {
+              #surveyId: surveyId,
+              #referenceId: referenceId,
+              #surveyType: surveyType,
+              #uploadType: uploadType,
+              #filePath: filePath,
+              #documentFileName: documentFileName,
+              #contentType: contentType,
+              #clientUploadId: clientUploadId,
+              #onSendProgress: onSendProgress,
+            },
+          ),
+        )),
+      ) as _i18.Future<_i11.CmsMediaUploadItem>);
+
+  @override
+  _i18.Future<List<_i11.CmsMediaUploadItem>> listSurveyMedia({
+    required int? surveyId,
+    required int? referenceId,
+    required _i60.CmsSurveyType? surveyType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #listSurveyMedia,
+          [],
+          {
+            #surveyId: surveyId,
+            #referenceId: referenceId,
+            #surveyType: surveyType,
+          },
+        ),
+        returnValue: _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+            <_i11.CmsMediaUploadItem>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+                <_i11.CmsMediaUploadItem>[]),
+      ) as _i18.Future<List<_i11.CmsMediaUploadItem>>);
+
+  @override
+  _i18.Future<List<_i11.CmsMediaUploadItem>> listSurveyPhotos({
+    required int? surveyId,
+    required int? referenceId,
+    required _i60.CmsSurveyType? surveyType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #listSurveyPhotos,
+          [],
+          {
+            #surveyId: surveyId,
+            #referenceId: referenceId,
+            #surveyType: surveyType,
+          },
+        ),
+        returnValue: _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+            <_i11.CmsMediaUploadItem>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+                <_i11.CmsMediaUploadItem>[]),
+      ) as _i18.Future<List<_i11.CmsMediaUploadItem>>);
+
+  @override
+  _i18.Future<List<_i11.CmsMediaUploadItem>> listSurveyAttachments({
+    required int? surveyId,
+    required int? referenceId,
+    required _i60.CmsSurveyType? surveyType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #listSurveyAttachments,
+          [],
+          {
+            #surveyId: surveyId,
+            #referenceId: referenceId,
+            #surveyType: surveyType,
+          },
+        ),
+        returnValue: _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+            <_i11.CmsMediaUploadItem>[]),
+        returnValueForMissingStub:
+            _i18.Future<List<_i11.CmsMediaUploadItem>>.value(
+                <_i11.CmsMediaUploadItem>[]),
+      ) as _i18.Future<List<_i11.CmsMediaUploadItem>>);
+
+  @override
+  _i18.Future<void> deleteSurveyPhoto(int? documentId) => (super.noSuchMethod(
+        Invocation.method(
+          #deleteSurveyPhoto,
+          [documentId],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> deleteSurveyDocument(int? documentId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteSurveyDocument,
+          [documentId],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<String> downloadDocument({
+    required int? documentId,
+    required String? fileName,
+    _i61.Directory? targetDirectory,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #downloadDocument,
+          [],
+          {
+            #documentId: documentId,
+            #fileName: fileName,
+            #targetDirectory: targetDirectory,
+          },
+        ),
+        returnValue: _i18.Future<String>.value(_i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #downloadDocument,
+            [],
+            {
+              #documentId: documentId,
+              #fileName: fileName,
+              #targetDirectory: targetDirectory,
+            },
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<String>.value(_i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #downloadDocument,
+            [],
+            {
+              #documentId: documentId,
+              #fileName: fileName,
+              #targetDirectory: targetDirectory,
+            },
+          ),
+        )),
+      ) as _i18.Future<String>);
+}
+
+/// A class which mocks [CmsMobileInspectionsService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsMobileInspectionsService extends _i1.Mock
+    implements _i62.CmsMobileInspectionsService {
+  @override
+  _i18.Future<_i13.PagedList<_i63.CmsInspectableContainer>>
+      getInspectableContainers(_i64.CmsInspectionFilter? filter) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #getInspectableContainers,
+              [filter],
+            ),
+            returnValue:
+                _i18.Future<_i13.PagedList<_i63.CmsInspectableContainer>>.value(
+                    _FakePagedList_11<_i63.CmsInspectableContainer>(
+              this,
+              Invocation.method(
+                #getInspectableContainers,
+                [filter],
+              ),
+            )),
+            returnValueForMissingStub:
+                _i18.Future<_i13.PagedList<_i63.CmsInspectableContainer>>.value(
+                    _FakePagedList_11<_i63.CmsInspectableContainer>(
+              this,
+              Invocation.method(
+                #getInspectableContainers,
+                [filter],
+              ),
+            )),
+          ) as _i18.Future<_i13.PagedList<_i63.CmsInspectableContainer>>);
+
+  @override
+  _i18.Future<_i14.CmsContainerInspectionBundle> getContainerInspections(
+          int? containerId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getContainerInspections,
+          [containerId],
+        ),
+        returnValue: _i18.Future<_i14.CmsContainerInspectionBundle>.value(
+            _FakeCmsContainerInspectionBundle_12(
+          this,
+          Invocation.method(
+            #getContainerInspections,
+            [containerId],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i14.CmsContainerInspectionBundle>.value(
+                _FakeCmsContainerInspectionBundle_12(
+          this,
+          Invocation.method(
+            #getContainerInspections,
+            [containerId],
+          ),
+        )),
+      ) as _i18.Future<_i14.CmsContainerInspectionBundle>);
+
+  @override
+  _i18.Future<_i13.PagedList<_i65.CmsInspectionHistoryRow>>
+      getContainerInspectionHistory({
+    required int? containerId,
+    required int? pageNumber,
+    int? pageSize = 20,
+  }) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #getContainerInspectionHistory,
+              [],
+              {
+                #containerId: containerId,
+                #pageNumber: pageNumber,
+                #pageSize: pageSize,
+              },
+            ),
+            returnValue:
+                _i18.Future<_i13.PagedList<_i65.CmsInspectionHistoryRow>>.value(
+                    _FakePagedList_11<_i65.CmsInspectionHistoryRow>(
+              this,
+              Invocation.method(
+                #getContainerInspectionHistory,
+                [],
+                {
+                  #containerId: containerId,
+                  #pageNumber: pageNumber,
+                  #pageSize: pageSize,
+                },
+              ),
+            )),
+            returnValueForMissingStub:
+                _i18.Future<_i13.PagedList<_i65.CmsInspectionHistoryRow>>.value(
+                    _FakePagedList_11<_i65.CmsInspectionHistoryRow>(
+              this,
+              Invocation.method(
+                #getContainerInspectionHistory,
+                [],
+                {
+                  #containerId: containerId,
+                  #pageNumber: pageNumber,
+                  #pageSize: pageSize,
+                },
+              ),
+            )),
+          ) as _i18.Future<_i13.PagedList<_i65.CmsInspectionHistoryRow>>);
+
+  @override
+  _i18.Future<_i15.CmsStartInspectionResult> startInspection(
+          _i66.CmsStartInspectionInput? input) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #startInspection,
+          [input],
+        ),
+        returnValue: _i18.Future<_i15.CmsStartInspectionResult>.value(
+            _FakeCmsStartInspectionResult_13(
+          this,
+          Invocation.method(
+            #startInspection,
+            [input],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i15.CmsStartInspectionResult>.value(
+                _FakeCmsStartInspectionResult_13(
+          this,
+          Invocation.method(
+            #startInspection,
+            [input],
+          ),
+        )),
+      ) as _i18.Future<_i15.CmsStartInspectionResult>);
+
+  @override
+  _i18.Future<_i67.CmsInspectionState> cancelInspection(int? inspectionId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #cancelInspection,
+          [inspectionId],
+        ),
+        returnValue: _i18.Future<_i67.CmsInspectionState>.value(
+            _i67.CmsInspectionState.pending),
+        returnValueForMissingStub: _i18.Future<_i67.CmsInspectionState>.value(
+            _i67.CmsInspectionState.pending),
+      ) as _i18.Future<_i67.CmsInspectionState>);
+
+  @override
+  _i18.Future<_i16.CmsInspectionEdit> getInspectionForEdit(int? inspectionId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getInspectionForEdit,
+          [inspectionId],
+        ),
+        returnValue:
+            _i18.Future<_i16.CmsInspectionEdit>.value(_FakeCmsInspectionEdit_14(
+          this,
+          Invocation.method(
+            #getInspectionForEdit,
+            [inspectionId],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i16.CmsInspectionEdit>.value(_FakeCmsInspectionEdit_14(
+          this,
+          Invocation.method(
+            #getInspectionForEdit,
+            [inspectionId],
+          ),
+        )),
+      ) as _i18.Future<_i16.CmsInspectionEdit>);
+
+  @override
+  _i18.Future<_i16.CmsInspectionEdit> saveInspection(
+          _i16.CmsInspectionEdit? input) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveInspection,
+          [input],
+        ),
+        returnValue:
+            _i18.Future<_i16.CmsInspectionEdit>.value(_FakeCmsInspectionEdit_14(
+          this,
+          Invocation.method(
+            #saveInspection,
+            [input],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i16.CmsInspectionEdit>.value(_FakeCmsInspectionEdit_14(
+          this,
+          Invocation.method(
+            #saveInspection,
+            [input],
+          ),
+        )),
+      ) as _i18.Future<_i16.CmsInspectionEdit>);
+
+  @override
+  _i18.Future<_i16.CmsInspectionEdit> setRepairDatesNow(
+          _i68.CmsRepairDateInput? input) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setRepairDatesNow,
+          [input],
+        ),
+        returnValue:
+            _i18.Future<_i16.CmsInspectionEdit>.value(_FakeCmsInspectionEdit_14(
+          this,
+          Invocation.method(
+            #setRepairDatesNow,
+            [input],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i16.CmsInspectionEdit>.value(_FakeCmsInspectionEdit_14(
+          this,
+          Invocation.method(
+            #setRepairDatesNow,
+            [input],
+          ),
+        )),
+      ) as _i18.Future<_i16.CmsInspectionEdit>);
+}
+
+/// A class which mocks [CmsMobileSurveyService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCmsMobileSurveyService extends _i1.Mock
+    implements _i69.CmsMobileSurveyService {
+  @override
+  _i18.Future<_i13.PagedList<_i70.CmsMobileSurveyListDto>> getList(
+          _i71.CmsMobileSurveyListInput? input) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getList,
+          [input],
+        ),
+        returnValue:
+            _i18.Future<_i13.PagedList<_i70.CmsMobileSurveyListDto>>.value(
+                _FakePagedList_11<_i70.CmsMobileSurveyListDto>(
+          this,
+          Invocation.method(
+            #getList,
+            [input],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i13.PagedList<_i70.CmsMobileSurveyListDto>>.value(
+                _FakePagedList_11<_i70.CmsMobileSurveyListDto>(
+          this,
+          Invocation.method(
+            #getList,
+            [input],
+          ),
+        )),
+      ) as _i18.Future<_i13.PagedList<_i70.CmsMobileSurveyListDto>>);
+
+  @override
+  _i18.Future<_i17.CmsMobileSurveyEditDto> getById(int? surveyId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getById,
+          [surveyId],
+        ),
+        returnValue: _i18.Future<_i17.CmsMobileSurveyEditDto>.value(
+            _FakeCmsMobileSurveyEditDto_15(
+          this,
+          Invocation.method(
+            #getById,
+            [surveyId],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i17.CmsMobileSurveyEditDto>.value(
+                _FakeCmsMobileSurveyEditDto_15(
+          this,
+          Invocation.method(
+            #getById,
+            [surveyId],
+          ),
+        )),
+      ) as _i18.Future<_i17.CmsMobileSurveyEditDto>);
+
+  @override
+  _i18.Future<_i17.CmsMobileSurveyEditDto> addUpdate(
+          _i17.CmsMobileSurveyEditDto? input) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addUpdate,
+          [input],
+        ),
+        returnValue: _i18.Future<_i17.CmsMobileSurveyEditDto>.value(
+            _FakeCmsMobileSurveyEditDto_15(
+          this,
+          Invocation.method(
+            #addUpdate,
+            [input],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i17.CmsMobileSurveyEditDto>.value(
+                _FakeCmsMobileSurveyEditDto_15(
+          this,
+          Invocation.method(
+            #addUpdate,
+            [input],
+          ),
+        )),
+      ) as _i18.Future<_i17.CmsMobileSurveyEditDto>);
+
+  @override
+  _i18.Future<List<String>> getEmailAddresses(int? surveyId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getEmailAddresses,
+          [surveyId],
+        ),
+        returnValue: _i18.Future<List<String>>.value(<String>[]),
+        returnValueForMissingStub: _i18.Future<List<String>>.value(<String>[]),
+      ) as _i18.Future<List<String>>);
+
+  @override
+  _i18.Future<void> sendEmail(_i72.CmsMobileSurveyEmailDto? input) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #sendEmail,
+          [input],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<String> downloadReport({
+    required int? surveyId,
+    required _i60.CmsSurveyType? surveyType,
+    required int? referenceId,
+    _i61.Directory? targetDirectory,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #downloadReport,
+          [],
+          {
+            #surveyId: surveyId,
+            #surveyType: surveyType,
+            #referenceId: referenceId,
+            #targetDirectory: targetDirectory,
+          },
+        ),
+        returnValue: _i18.Future<String>.value(_i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #downloadReport,
+            [],
+            {
+              #surveyId: surveyId,
+              #surveyType: surveyType,
+              #referenceId: referenceId,
+              #targetDirectory: targetDirectory,
+            },
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<String>.value(_i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #downloadReport,
+            [],
+            {
+              #surveyId: surveyId,
+              #surveyType: surveyType,
+              #referenceId: referenceId,
+              #targetDirectory: targetDirectory,
+            },
+          ),
+        )),
+      ) as _i18.Future<String>);
+}
+
+/// A class which mocks [AuthSessionCoordinator].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockAuthSessionCoordinator extends _i1.Mock
+    implements _i73.AuthSessionCoordinator {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i18.Future<void> routeAfterStartup() => (super.noSuchMethod(
+        Invocation.method(
+          #routeAfterStartup,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<_i35.AuthPortal?> resolveStartupPortal() => (super.noSuchMethod(
+        Invocation.method(
+          #resolveStartupPortal,
+          [],
+        ),
+        returnValue: _i18.Future<_i35.AuthPortal?>.value(),
+        returnValueForMissingStub: _i18.Future<_i35.AuthPortal?>.value(),
+      ) as _i18.Future<_i35.AuthPortal?>);
+
+  @override
+  _i18.Future<void> switchToPortal(_i35.AuthPortal? targetPortal) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #switchToPortal,
+          [targetPortal],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> logoutPortal(_i35.AuthPortal? portal) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #logoutPortal,
+          [portal],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> logoutAllPortals() => (super.noSuchMethod(
+        Invocation.method(
+          #logoutAllPortals,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> routeAfterPortalLogout(_i35.AuthPortal? loggedOutPortal) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #routeAfterPortalLogout,
+          [loggedOutPortal],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> routeToLogin(_i35.AuthPortal? initialPortal) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #routeToLogin,
+          [initialPortal],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> routeToPortalHome(_i35.AuthPortal? portal) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #routeToPortalHome,
+          [portal],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+}
+
+/// A class which mocks [ConnectionService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockConnectionService extends _i1.Mock implements _i74.ConnectionService {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  int get latency => (super.noSuchMethod(
+        Invocation.getter(#latency),
+        returnValue: 0,
+        returnValueForMissingStub: 0,
+      ) as int);
+
+  @override
+  set latency(int? _latency) => super.noSuchMethod(
+        Invocation.setter(
+          #latency,
+          _latency,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.StreamController<dynamic> get connectionChangeController =>
+      (super.noSuchMethod(
+        Invocation.getter(#connectionChangeController),
+        returnValue: _FakeStreamController_16<dynamic>(
+          this,
+          Invocation.getter(#connectionChangeController),
+        ),
+        returnValueForMissingStub: _FakeStreamController_16<dynamic>(
+          this,
+          Invocation.getter(#connectionChangeController),
+        ),
+      ) as _i18.StreamController<dynamic>);
+
+  @override
+  set connectionChangeController(
+          _i18.StreamController<dynamic>? _connectionChangeController) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #connectionChangeController,
+          _connectionChangeController,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool get hasConnection => (super.noSuchMethod(
+        Invocation.getter(#hasConnection),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  String get showConnectionStatus => (super.noSuchMethod(
+        Invocation.getter(#showConnectionStatus),
+        returnValue: _i22.dummyValue<String>(
+          this,
+          Invocation.getter(#showConnectionStatus),
+        ),
+        returnValueForMissingStub: _i22.dummyValue<String>(
+          this,
+          Invocation.getter(#showConnectionStatus),
+        ),
+      ) as String);
+
+  @override
+  String get showConnectivityResultDisplayName => (super.noSuchMethod(
+        Invocation.getter(#showConnectivityResultDisplayName),
+        returnValue: _i22.dummyValue<String>(
+          this,
+          Invocation.getter(#showConnectivityResultDisplayName),
+        ),
+        returnValueForMissingStub: _i22.dummyValue<String>(
+          this,
+          Invocation.getter(#showConnectivityResultDisplayName),
+        ),
+      ) as String);
+
+  @override
+  _i18.Stream<dynamic> get connectionChange => (super.noSuchMethod(
+        Invocation.getter(#connectionChange),
+        returnValue: _i18.Stream<dynamic>.empty(),
+        returnValueForMissingStub: _i18.Stream<dynamic>.empty(),
+      ) as _i18.Stream<dynamic>);
+
+  @override
+  String getConnectivityResultDisplayName() => (super.noSuchMethod(
+        Invocation.method(
+          #getConnectivityResultDisplayName,
+          [],
+        ),
+        returnValue: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getConnectivityResultDisplayName,
+            [],
+          ),
+        ),
+        returnValueForMissingStub: _i22.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getConnectivityResultDisplayName,
+            [],
+          ),
+        ),
+      ) as String);
+
+  @override
+  _i18.Future<void> pingGetLatency() => (super.noSuchMethod(
+        Invocation.method(
+          #pingGetLatency,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<_i19.InternetConnectionChecker> init() => (super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [],
+        ),
+        returnValue: _i18.Future<_i19.InternetConnectionChecker>.value(
+            _FakeInternetConnectionChecker_17(
+          this,
+          Invocation.method(
+            #init,
+            [],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i18.Future<_i19.InternetConnectionChecker>.value(
+                _FakeInternetConnectionChecker_17(
+          this,
+          Invocation.method(
+            #init,
+            [],
+          ),
+        )),
+      ) as _i18.Future<_i19.InternetConnectionChecker>);
+
+  @override
+  _i18.Future<void> initialize() => (super.noSuchMethod(
+        Invocation.method(
+          #initialize,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<bool> hasInternetInternetConnection() => (super.noSuchMethod(
+        Invocation.method(
+          #hasInternetInternetConnection,
+          [],
+        ),
+        returnValue: _i18.Future<bool>.value(false),
+        returnValueForMissingStub: _i18.Future<bool>.value(false),
+      ) as _i18.Future<bool>);
+}
+
+/// A class which mocks [WorkerQueManager].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockWorkerQueManager extends _i1.Mock implements _i75.WorkerQueManager {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  bool get isExecuting => (super.noSuchMethod(
+        Invocation.getter(#isExecuting),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  set isExecuting(bool? _isExecuting) => super.noSuchMethod(
+        Invocation.setter(
+          #isExecuting,
+          _isExecuting,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  int get maxConcurrentTasks => (super.noSuchMethod(
+        Invocation.getter(#maxConcurrentTasks),
+        returnValue: 0,
+        returnValueForMissingStub: 0,
+      ) as int);
+
+  @override
+  int get runningTasks => (super.noSuchMethod(
+        Invocation.getter(#runningTasks),
+        returnValue: 0,
+        returnValueForMissingStub: 0,
+      ) as int);
+
+  @override
+  set runningTasks(int? _runningTasks) => super.noSuchMethod(
+        Invocation.setter(
+          #runningTasks,
+          _runningTasks,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.Stream<dynamic> get onSyncTaskChange => (super.noSuchMethod(
+        Invocation.getter(#onSyncTaskChange),
+        returnValue: _i18.Stream<dynamic>.empty(),
+        returnValueForMissingStub: _i18.Stream<dynamic>.empty(),
+      ) as _i18.Stream<dynamic>);
+
+  @override
+  void initialize() => super.noSuchMethod(
+        Invocation.method(
+          #initialize,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.Future<void> enqueSingle(
+    _i76.BackgroundJobInfo? value, [
+    bool? startNow = true,
+  ]) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #enqueSingle,
+          [
+            value,
+            startNow,
+          ],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> enqueForStartUp() => (super.noSuchMethod(
+        Invocation.method(
+          #enqueForStartUp,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> enqueMany(List<_i76.BackgroundJobInfo>? iterable) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #enqueMany,
+          [iterable],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> startExecution({bool? forceRun = false}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #startExecution,
+          [],
+          {#forceRun: forceRun},
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> delayStartQue({int? delayInSec = 10}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #delayStartQue,
+          [],
+          {#delayInSec: delayInSec},
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> updateJobValues(_i76.BackgroundJobInfo? jobInfo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateJobValues,
+          [jobInfo],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+
+  @override
+  _i18.Future<void> tryProcessJob(_i76.BackgroundJobInfo? jobInfo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #tryProcessJob,
+          [jobInfo],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+}
+
+/// A class which mocks [SyncManager].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockSyncManager extends _i1.Mock implements _i77.SyncManager {
+  @override
+  _i2.Logger get log => (super.noSuchMethod(
+        Invocation.getter(#log),
+        returnValue: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+        returnValueForMissingStub: _FakeLogger_0(
+          this,
+          Invocation.getter(#log),
+        ),
+      ) as _i2.Logger);
+
+  @override
+  _i20.Cron get cron => (super.noSuchMethod(
+        Invocation.getter(#cron),
+        returnValue: _FakeCron_18(
+          this,
+          Invocation.getter(#cron),
+        ),
+        returnValueForMissingStub: _FakeCron_18(
+          this,
+          Invocation.getter(#cron),
+        ),
+      ) as _i20.Cron);
+
+  @override
+  _i20.ScheduledTask get st => (super.noSuchMethod(
+        Invocation.getter(#st),
+        returnValue: _FakeScheduledTask_19(
+          this,
+          Invocation.getter(#st),
+        ),
+        returnValueForMissingStub: _FakeScheduledTask_19(
+          this,
+          Invocation.getter(#st),
+        ),
+      ) as _i20.ScheduledTask);
+
+  @override
+  set st(_i20.ScheduledTask? _st) => super.noSuchMethod(
+        Invocation.setter(
+          #st,
+          _st,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool get serviceStopped => (super.noSuchMethod(
+        Invocation.getter(#serviceStopped),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  void start() => super.noSuchMethod(
+        Invocation.method(
+          #start,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void stop() => super.noSuchMethod(
+        Invocation.method(
+          #stop,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i18.Future<void> startBackgroundJob() => (super.noSuchMethod(
+        Invocation.method(
+          #startBackgroundJob,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+}
+
+/// A class which mocks [FileStoreIsolateInitializer].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockFileStoreIsolateInitializer extends _i1.Mock
+    implements _i78.FileStoreIsolateInitializer {
+  @override
+  _i18.Future<void> initializeFileStoreIsolate({bool? useIsolate = true}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #initializeFileStoreIsolate,
+          [],
+          {#useIsolate: useIsolate},
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
 }

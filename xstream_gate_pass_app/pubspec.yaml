@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.1+10
+version: 1.0.1+17
 
 environment:
      sdk: '>=3.0.3 <4.0.0'
@@ -34,7 +34,7 @@ dependencies:
      # Use with the CupertinoIcons class for iOS style icons.
      flutter_markdown: ^0.7.2
      font_awesome_flutter: ^10.8.0
-     flutter_native_splash: ^2.4.2
+     flutter_native_splash: ^2.4.1
      # Stacked State Management
      stacked: ^3.4.0
      stacked_services: ^1.1.0
@@ -58,11 +58,13 @@ dependencies:
      extended_image: ^9.0.7
      image_editor: ^1.5.1
      camerawesome: ^2.1.0
+     flutter_svg: ^2.0.10+1
      #camera: ^0.10.0+4
      video_player: ^2.4.8
      flutter_speed_dial: ^7.0.0
 
      path_provider: ^2.1.5
+     path: ^1.9.0
      #Netwrok Internet Cheker
      lottie: ^3.1.2
      dart_ping: ^9.0.1
@@ -77,14 +79,14 @@ dependencies:
      qr_flutter: ^4.1.0
      flutter_easyloading: ^3.0.5
      email_validator: ^3.0.0
-     dart_helper_utils: ^3.2.0
+     dart_helper_utils: ^2.0.0
      animations: ^2.0.11
      permission_handler: ^11.3.1
      # Data store BD
-     shared_preferences: ^2.5.2
+     shared_preferences: ^2.2.3
      #Theme
-     flex_color_scheme: ^8.0.1
-     sembast: ^3.7.5+2
+     flex_color_scheme: ^7.3.1
+     sembast: ^3.7.2
      # data models
      #freezed_annotation: ^0.14.3
      flutter_logs: ^2.2.1
@@ -114,6 +116,7 @@ dependencies:
           # The example app is bundled with the plugin so we use a path dependency on
           # the parent directory to use the current plugin's version.
           path: ../
+     file_picker: ^8.3.2
 
 dev_dependencies:
      flutter_test:
@@ -156,6 +159,7 @@ flutter:
           - ./.env_local_proxy_dev
           - ./.env_qa
           - ./.env_prod
+          - ./.env_prod_cms
           - assets/
           - assets/wtssgrplogo.png
           - assets/images/

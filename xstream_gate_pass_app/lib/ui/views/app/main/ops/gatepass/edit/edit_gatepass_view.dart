@@ -550,7 +550,7 @@ class GatePassEditView extends StatelessWidget {
         model.onDispose();
       },
       builder: (context, model, child) => PopScope(
-        onPopInvokedWithResult: (r, d) async {
+        onPopInvoked: (didPop) async {
           model.routePop();
         },
         child: DefaultTabController(

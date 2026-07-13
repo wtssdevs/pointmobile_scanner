@@ -13,11 +13,24 @@ import 'package:stacked_shared/stacked_shared.dart';
 import 'package:xstream_gate_pass_app/core/services/services/background/sync_manager_service.dart';
 
 import '../core/services/api/api_manager.dart';
+import '../core/services/api/cms_api_manager.dart';
 import '../core/services/database/sembast_store.dart';
 import '../core/services/services/account/access_token_repo.dart';
+import '../core/services/services/account/auth_session_coordinator.dart';
 import '../core/services/services/account/authentication_service.dart';
+import '../core/services/services/account/cms_access_token_repo.dart';
+import '../core/services/services/account/cms_authentication_service.dart';
 import '../core/services/services/background/background_job_info_repository.dart';
 import '../core/services/services/background/workqueue_manager.dart';
+import '../core/services/services/cms/cms_inspection_line_photo_queue_service.dart';
+import '../core/services/services/cms/cms_master_files_repository.dart';
+import '../core/services/services/cms/cms_master_files_sync_service.dart';
+import '../core/services/services/cms/cms_media_upload_queue_service.dart';
+import '../core/services/services/cms/cms_mobile_file_store_service.dart';
+import '../core/services/services/cms/cms_mobile_inspections_service.dart';
+import '../core/services/services/cms/cms_mobile_survey_service.dart';
+import '../core/services/services/cms/cms_session_repository.dart';
+import '../core/services/services/cms/cms_session_service.dart';
 import '../core/services/services/filestore/filestore_isolate_initializer.dart';
 import '../core/services/services/filestore/filestore_manager.dart';
 import '../core/services/services/filestore/filestore_repository.dart';
@@ -63,6 +76,10 @@ Future<void> setupLocator({
   await accessTokenRepo.init();
   locator.registerSingleton(accessTokenRepo);
 
+  final cmsAccessTokenRepo = CmsAccessTokenRepo();
+  await cmsAccessTokenRepo.init();
+  locator.registerSingleton(cmsAccessTokenRepo);
+
   final appDatabase = AppDatabase();
   await appDatabase.init();
   locator.registerSingleton(appDatabase);
@@ -72,7 +89,22 @@ Future<void> setupLocator({
   await apiManager.init();
   locator.registerSingleton(apiManager);
 
+  final cmsApiManager = CmsApiManager();
+  await cmsApiManager.init();
+  locator.registerSingleton(cmsApiManager);
+
   locator.registerLazySingleton(() => AuthenticationService());
+  locator.registerLazySingleton(() => CmsAuthenticationService());
+  locator.registerLazySingleton(() => CmsSessionRepository());
+  locator.registerLazySingleton(() => CmsSessionService());
+  locator.registerLazySingleton(() => CmsMasterFilesRepository());
+  locator.registerLazySingleton(() => CmsMasterFilesSyncService());
+  locator.registerLazySingleton(() => CmsMediaUploadQueueService());
+  locator.registerLazySingleton(() => CmsInspectionLinePhotoQueueService());
+  locator.registerLazySingleton(() => CmsMobileFileStoreService());
+  locator.registerLazySingleton(() => CmsMobileInspectionsService());
+  locator.registerLazySingleton(() => CmsMobileSurveyService());
+  locator.registerLazySingleton(() => AuthSessionCoordinator());
   locator.registerLazySingleton(() => ScanningService());
   locator.registerLazySingleton(() => GatePassService());
   locator.registerLazySingleton(() => MasterFilesService());

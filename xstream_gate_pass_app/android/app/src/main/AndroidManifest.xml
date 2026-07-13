@@ -3,13 +3,19 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Legacy storage: only required on Android 9 (API 28) and below for writing,
+         and Android 12L (API 32) and below for reading media. Android 13+ uses
+         scoped storage / the system photo picker, so gal (save), image_picker,
+         and file_picker need no runtime storage permission there. Capping these
+         keeps the old flows working without triggering Play's broad-storage /
+         media-location sensitive-permission review. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     <uses-feature android:name="android.hardware.camera" />
 
-    <application android:requestLegacyExternalStorage="true" android:label="Xstream Gatepass"
+    <application android:requestLegacyExternalStorage="true" android:enableOnBackInvokedCallback="true" android:label="Xstream Gatepass"
         android:name="${applicationName}" android:icon="@mipmap/ic_launcher">
         <activity android:name=".MainActivity" android:exported="true"
             android:launchMode="singleTop" android:theme="@style/LaunchTheme"

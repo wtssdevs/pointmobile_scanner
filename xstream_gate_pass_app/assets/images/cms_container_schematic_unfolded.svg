@@ -1,0 +1,123 @@
+<svg width="380" height="252" viewBox="0 0 380 252" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <title>Container inspection schematic</title>
+    <desc>Unfolded net of a general-purpose shipping container with tappable roof, front, left side,
+        rear doors, floor, and right side panels.</desc>
+    <rect width="380" height="252" rx="18" fill="#FFFFFF" />
+
+    <!-- Roof -->
+    <g id="panel_RFT">
+        <rect x="92" y="10" width="196" height="40" rx="4" fill="#F8FAFC" stroke="#CBD5E1"
+            stroke-width="0.8" />
+        <line x1="100" y1="14" x2="100" y2="46" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="280" y1="14" x2="280" y2="46" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="100" y1="18" x2="280" y2="18" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="100" y1="42" x2="280" y2="42" stroke="#CBD5E1" stroke-width="0.7" />
+        <text x="98" y="17" fill="#64748B" font-family="Arial, sans-serif" font-size="9"
+            font-weight="700">T</text>
+        <text x="190" y="31" fill="#334155" font-family="Arial, sans-serif" font-size="13"
+            font-weight="700" text-anchor="middle">ROOF</text>
+    </g>
+
+    <!-- Front -->
+    <g id="panel_FNT">
+        <rect x="35" y="50" width="57" height="75" rx="4" fill="#F8FAFC" stroke="#CBD5E1"
+            stroke-width="0.8" />
+        <line x1="39" y1="58" x2="88" y2="58" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="39" y1="117" x2="88" y2="117" stroke="#CBD5E1" stroke-width="0.7" />
+        <rect x="43" y="79" width="34" height="12" rx="2" stroke="#94A3B8" stroke-width="0.7" />
+        <text x="40" y="58" fill="#64748B" font-family="Arial, sans-serif" font-size="9"
+            font-weight="700">F</text>
+        <text x="63.5" y="70" fill="#334155" font-family="Arial, sans-serif" font-size="10"
+            font-weight="700" text-anchor="middle">FRONT</text>
+        <text x="63.5" y="108" fill="#64748B" font-family="Arial, sans-serif" font-size="10"
+            text-anchor="middle">FPE</text>
+    </g>
+
+    <!-- Left side -->
+    <g id="panel_LSD">
+        <rect x="92" y="50" width="196" height="75" rx="4" fill="#F8FAFC" stroke="#CBD5E1"
+            stroke-width="0.8" />
+        <line x1="100" y1="54" x2="100" y2="121" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="145" y1="54" x2="145" y2="121" stroke="#E2E8F0" stroke-width="0.7" />
+        <line x1="190" y1="54" x2="190" y2="121" stroke="#E2E8F0" stroke-width="0.7" />
+        <line x1="235" y1="54" x2="235" y2="121" stroke="#E2E8F0" stroke-width="0.7" />
+        <line x1="280" y1="54" x2="280" y2="121" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="100" y1="58" x2="280" y2="58" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="100" y1="117" x2="280" y2="117" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="100" y1="88" x2="280" y2="88" stroke="#94A3B8" stroke-width="0.7"
+            stroke-dasharray="4 3" />
+        <text x="104" y="58" fill="#64748B" font-family="Arial, sans-serif" font-size="9"
+            font-weight="700">L</text>
+        <text x="190" y="78" fill="#334155" font-family="Arial, sans-serif" font-size="13"
+            font-weight="700" text-anchor="middle">LEFT SIDE</text>
+        <text x="190" y="103" fill="#64748B" font-family="Arial, sans-serif" font-size="10"
+            text-anchor="middle">door side (DS)</text>
+    </g>
+
+    <!-- Rear doors -->
+    <g id="panel_DOR">
+        <rect x="288" y="50" width="57" height="75" rx="4" fill="#F8FAFC" stroke="#CBD5E1"
+            stroke-width="0.8" />
+        <line x1="292" y1="58" x2="341" y2="58" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="292" y1="117" x2="341" y2="117" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="316" y1="58" x2="316" y2="117" stroke="#94A3B8" stroke-width="0.8" />
+        <line x1="309" y1="62" x2="309" y2="113" stroke="#94A3B8" stroke-width="0.7" />
+        <line x1="323" y1="62" x2="323" y2="113" stroke="#94A3B8" stroke-width="0.7" />
+        <line x1="292" y1="72" x2="300" y2="72" stroke="#94A3B8" stroke-width="0.9" />
+        <line x1="292" y1="88" x2="300" y2="88" stroke="#94A3B8" stroke-width="0.9" />
+        <line x1="292" y1="104" x2="300" y2="104" stroke="#94A3B8" stroke-width="0.9" />
+        <line x1="332" y1="72" x2="340" y2="72" stroke="#94A3B8" stroke-width="0.9" />
+        <line x1="332" y1="88" x2="340" y2="88" stroke="#94A3B8" stroke-width="0.9" />
+        <line x1="332" y1="104" x2="340" y2="104" stroke="#94A3B8" stroke-width="0.9" />
+        <text x="295" y="58" fill="#64748B" font-family="Arial, sans-serif" font-size="9"
+            font-weight="700">D</text>
+        <text x="316.5" y="72" fill="#334155" font-family="Arial, sans-serif" font-size="10"
+            font-weight="700" text-anchor="middle">REAR</text>
+        <text x="316.5" y="108" fill="#64748B" font-family="Arial, sans-serif" font-size="10"
+            text-anchor="middle">DDE</text>
+    </g>
+
+    <!-- Floor -->
+    <g id="panel_FLR">
+        <rect x="92" y="125" width="196" height="38" rx="4" fill="#F8FAFC" stroke="#CBD5E1"
+            stroke-width="0.8" />
+        <line x1="100" y1="130" x2="100" y2="158" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="125" y1="130" x2="125" y2="158" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="150" y1="130" x2="150" y2="158" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="175" y1="130" x2="175" y2="158" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="205" y1="130" x2="205" y2="158" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="230" y1="130" x2="230" y2="158" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="255" y1="130" x2="255" y2="158" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="280" y1="130" x2="280" y2="158" stroke="#CBD5E1" stroke-width="0.7" />
+        <text x="99" y="136" fill="#64748B" font-family="Arial, sans-serif" font-size="9"
+            font-weight="700">B</text>
+        <text x="190" y="145" fill="#334155" font-family="Arial, sans-serif" font-size="13"
+            font-weight="700" text-anchor="middle">FLOOR</text>
+        <text x="190" y="157" fill="#64748B" font-family="Arial, sans-serif" font-size="9"
+            text-anchor="middle">hardwood T-1 · CB</text>
+    </g>
+
+    <!-- Right side -->
+    <g id="panel_RSD">
+        <rect x="92" y="163" width="196" height="75" rx="4" fill="#F8FAFC" stroke="#CBD5E1"
+            stroke-width="0.8" />
+        <line x1="100" y1="167" x2="100" y2="234" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="145" y1="167" x2="145" y2="234" stroke="#E2E8F0" stroke-width="0.7" />
+        <line x1="190" y1="167" x2="190" y2="234" stroke="#E2E8F0" stroke-width="0.7" />
+        <line x1="235" y1="167" x2="235" y2="234" stroke="#E2E8F0" stroke-width="0.7" />
+        <line x1="280" y1="167" x2="280" y2="234" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="100" y1="171" x2="280" y2="171" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="100" y1="230" x2="280" y2="230" stroke="#CBD5E1" stroke-width="0.7" />
+        <line x1="100" y1="200" x2="280" y2="200" stroke="#94A3B8" stroke-width="0.7"
+            stroke-dasharray="4 3" />
+        <text x="104" y="171" fill="#64748B" font-family="Arial, sans-serif" font-size="9"
+            font-weight="700">R</text>
+        <text x="190" y="193" fill="#334155" font-family="Arial, sans-serif" font-size="13"
+            font-weight="700" text-anchor="middle">RIGHT SIDE</text>
+        <text x="190" y="218" fill="#64748B" font-family="Arial, sans-serif" font-size="10"
+            text-anchor="middle">curb side (CS)</text>
+    </g>
+
+    <text x="190" y="248" fill="#94A3B8" font-family="Arial, sans-serif" font-size="9"
+        text-anchor="middle">unfolded net view</text>
+</svg>

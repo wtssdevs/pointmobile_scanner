@@ -44,3 +44,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# FVM Version Cache
+.fvm/
+
+# Android signing — never commit keystore or credentials
+/android/key.properties
+**/key.properties
+*.jks
+*.keystore

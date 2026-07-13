@@ -7,19 +7,17 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
 import 'package:xstream_gate_pass_app/app/app.locator.dart';
 import 'package:xstream_gate_pass_app/app/app.logger.dart';
 
 import 'package:xstream_gate_pass_app/core/app_const.dart';
-import 'package:xstream_gate_pass_app/core/enums/basic_dialog_status.dart';
-import 'package:xstream_gate_pass_app/core/enums/dialog_type.dart';
+import 'package:xstream_gate_pass_app/core/enums/auth_portal.dart';
 
 import 'package:xstream_gate_pass_app/core/models/basefiles/filestore/filestore.dart';
+import 'package:xstream_gate_pass_app/core/services/api/abp_error_handler.dart';
 import 'package:xstream_gate_pass_app/core/services/services/account/access_token_repo.dart';
 import 'package:xstream_gate_pass_app/core/services/shared/environment_service.dart';
 
-import 'package:xstream_gate_pass_app/core/utils/dio_error_util.dart';
 import 'package:dio/dio.dart' as DioClient;
 import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
@@ -37,7 +35,7 @@ class ApiManager {
   Future<void> init() async {
     // Or create `Dio` with a `BaseOptions` instance.
     final options = BaseOptions(
-      baseUrl: _environmentService.getValue(AppConst.API_Base_Url),
+      baseUrl: _environmentService.getBaseUrl(AuthPortal.xac),
       connectTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
       receiveTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
     );
@@ -108,7 +106,11 @@ class ApiManager {
               data: data is FormData ? data.clone() : data,
             );
 
-            newOptions.headers["authorization"] = "Bearer $accessToken";
+            newOptions.headers["authorization"] =
+                "Bearer ${accessToken.accessToken}";
+            if (accessToken.tenantId != null) {
+              newOptions.headers["Abp-TenantId"] = accessToken.tenantId;
+            }
 
             try {
               // Retry the request with the new token
@@ -117,8 +119,7 @@ class ApiManager {
 
               return handler.resolve(response);
             } on DioException catch (e) {
-              //DioErrorUtil.handleError(e);
-              handelError(error);
+              handelError(e);
               return handler.next(e);
             }
           }
@@ -131,52 +132,27 @@ class ApiManager {
           RequestOptions options,
           RequestInterceptorHandler handler,
         ) async {
-          // //Getting cached Access Token, or getting it from storage and caching it
+          final requiresAuth =
+              options.extra[AppConst.requiresAuthExtraKey] != false &&
+                  options.headers['requires-token'] != 'false';
 
-          //TODO add ignor type to request to skip it
-          var pathLowerCase = options.path.toLowerCase();
+          options.headers.remove('requires-token');
+          options.headers.remove('requiresToken');
+          options.headers["Accept"] = "application/json";
 
-          if (pathLowerCase == "/api/TokenAuth/Authenticate".toLowerCase() || pathLowerCase == "/api/services/app/Account/IsTenantAvailable".toLowerCase()) {
-            return handler.next(options);
-          }
-          if (pathLowerCase == AppConst.authentication.toLowerCase()) {
-            return handler.next(options);
-          }
-          if (pathLowerCase == "/api/services/app/Account/register".toLowerCase()) {
-            return handler.next(options);
-          }
-          if (pathLowerCase == "/api/services/app/Account/ForgotPassword".toLowerCase()) {
-            return handler.next(options);
-          }
-          if (pathLowerCase == "/api/services/app/Account/ResetForgotPassword".toLowerCase()) {
+          if (!requiresAuth) {
             return handler.next(options);
           }
 
           var token = await _accessTokenRepo.getAccessTokenFromStorageOrRefresh();
-          // if (pathLowerCase == "/AbpUserConfiguration/GetAll/".toLowerCase()) {
-          //   if (token != null && token.accessToken != null) {
-          //     options.headers["Abp-TenantId"] = token.tenantId;
-          //   }
-          //   return handler.next(options);
-          // }
 
           var authHeader = options.headers["authorization"];
           if (authHeader == null && token != null && token.accessToken != null) {
             options.headers["authorization"] = "Bearer ${token.accessToken}";
-            options.headers["Abp-TenantId"] = token.tenantId;
+            if (token.tenantId != null) {
+              options.headers["Abp-TenantId"] = token.tenantId;
+            }
           }
-          options.headers["Accept"] = "application/json";
-
-          if (options.headers['requires-token'] == 'false') {
-            // if the request doesn't need token, then just continue to the next
-            // interceptor
-            options.headers.remove('requiresToken'); //remove the auxiliary header
-            return handler.next(options);
-          }
-          if (token != null) {
-            options.headers.addAll({'authorization': 'Bearer ${token.accessToken}'});
-          }
-
           return handler.next(options);
         },
       ),
@@ -186,126 +162,11 @@ class ApiManager {
   }
 
   handelError(DioException dioError) {
-    if (dioError.error is SocketException) {
-      return;
-      //TODO handel state check and route to error page
-    }
-
-    // if (dioError.requestOptions.disableRetry == false) {
-    //   return;
-    //   //silent failure
-    // }
-
-    if (dioError.response == null || dioError.response?.statusCode == null) {
-      _dialogService.showCustomDialog(
-        variant: DialogType.infoAlert,
-        data: BasicDialogStatus.warning,
-        title: "Error",
-        description: "Internal error,Please try again later",
-        mainButtonTitle: "OK",
-      );
-    }
-
-    var listOrfCodesToAllow = [HttpStatus.internalServerError, HttpStatus.badRequest, HttpStatus.forbidden, HttpStatus.notFound];
-
-    //check if it is a general HTTP error or if it is a custom Server API error
-    //if it is a custom Server API error, then we need to show the error message
-    if ((listOrfCodesToAllow.contains(dioError.response!.statusCode)) && dioError.response?.data != null) {
-      //if it is a custom Server API error, then we need to show the error message
-
-      //check if the error can be parsed as a Server API error
-      try {
-        var errorResponse = DioErrorUtil.handleAbpError(dioError);
-        if (errorResponse.success != null && errorResponse.error != null) {
-          //VALIDATION ERRORS
-
-          if (errorResponse.error != null && errorResponse.error?.details != null) {
-            if (dioError.requestOptions.path.isNotEmpty && dioError.requestOptions.path == "/api/Account/ExternalAuth" && errorResponse.error?.details == "Invalid user name or password") {
-              _accessTokenRepo.logOutCurrentUser();
-            }
-          }
-
-          if (errorResponse.error!.validationErrors != null && errorResponse.error!.message!.isNotEmpty) {
-            var title = errorResponse.error!.message!; // + " " + errorResponse.error?.details! ?? "";
-            var description = errorResponse.error!.details;
-
-            if (description == null || description.isEmpty) {
-              description = errorResponse.error!.validationErrors!.join(",\n");
-            }
-            _dialogService.showCustomDialog(
-              variant: DialogType.infoAlert,
-              data: BasicDialogStatus.warning,
-              mainButtonTitle: "Ok",
-              title: title,
-              description: description,
-            );
-
-            return;
-          }
-
-          if (errorResponse.error!.validationErrors == null && errorResponse.error!.message != null) {
-            var title = "Error";
-            var desc = "";
-            if (errorResponse.error!.details != null) {
-              desc = errorResponse.error!.details!;
-            } else {
-              desc = errorResponse.error!.message!;
-            }
-
-            if (errorResponse.error!.message != null) {
-              title = errorResponse.error!.message!;
-            }
-
-            _dialogService.showCustomDialog(
-              variant: DialogType.infoAlert,
-              data: BasicDialogStatus.warning,
-              mainButtonTitle: "Ok",
-              title: title,
-              description: desc,
-            );
-
-            return;
-          }
-
-          if (errorResponse.error!.validationErrors!.isNotEmpty || errorResponse.error!.message!.isNotEmpty) {
-            _dialogService.showCustomDialog(
-              variant: DialogType.infoAlert,
-              data: BasicDialogStatus.warning,
-              mainButtonTitle: "Ok",
-              title: errorResponse.error!.message,
-              description: errorResponse.error!.details,
-            );
-            return;
-          }
-        }
-      } catch (e) {
-        log.e(e);
-      }
-
-      if (dioError.response!.statusCode == 400 || dioError.response!.statusCode == 401 || dioError.response!.statusCode == 403 || dioError.response!.statusCode == 404 || dioError.response!.statusCode == 405 || dioError.response!.statusCode == 500) {
-        var errorResponseToShow = DioErrorUtil.handleError(dioError);
-        if (errorResponseToShow.isNotEmpty) {
-          _dialogService.showCustomDialog(
-            variant: DialogType.infoAlert,
-            mainButtonTitle: "Ok",
-            data: BasicDialogStatus.warning,
-            title: "Error",
-            description: errorResponseToShow,
-          );
-          return;
-        }
-      }
-    }
-    //else we need to show the general error message
-
-    var err = DioErrorUtil.handleError(dioError);
-
-    _dialogService.showCustomDialog(
-      variant: DialogType.infoAlert,
-      data: BasicDialogStatus.warning,
-      title: "Error",
-      description: err,
-      mainButtonTitle: "Ok",
+    AbpErrorHandler.handle(
+      dioError: dioError,
+      dialogService: _dialogService,
+      logError: log.e,
+      onExternalAuthInvalid: _accessTokenRepo.logOutCurrentUser,
     );
   }
 
@@ -316,7 +177,7 @@ class ApiManager {
     );
 
     final baseOptions = BaseOptions(
-      baseUrl: _environmentService.getValue(AppConst.API_Base_Url),
+      baseUrl: _environmentService.getBaseUrl(AuthPortal.xac),
       connectTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
       receiveTimeout: const Duration(seconds: kDebugMode ? 800 : 60),
       method: requestOptions.method,

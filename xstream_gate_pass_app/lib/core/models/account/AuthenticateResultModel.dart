@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:xstream_gate_pass_app/core/utils/helper.dart';
-
 class AuthenticateResultModel {
   String? accessToken;
   String? encryptedAccessToken;
@@ -18,6 +16,7 @@ class AuthenticateResultModel {
       this.encryptedAccessToken,
       this.password,
       this.userNameOrEmailAddress,
+      this.tenancyName,
       this.expireInSeconds,
       this.expiryDate,
       this.userId,
@@ -79,10 +78,10 @@ class AuthenticateResultModel {
       required String userNameOrEmailAddress,
       required String password,
       int? tenantId}) {
-    tenancyName = tenancyName;
-    userNameOrEmailAddress = userNameOrEmailAddress;
-    password = password;
-    tenantId = tenantId;
+    this.tenancyName = tenancyName;
+    this.userNameOrEmailAddress = userNameOrEmailAddress;
+    this.password = password;
+    this.tenantId = tenantId;
 
     //encodeUserNameOrEmailAddress(userNameOrEmailAddress);
     //encodePassword(password);
