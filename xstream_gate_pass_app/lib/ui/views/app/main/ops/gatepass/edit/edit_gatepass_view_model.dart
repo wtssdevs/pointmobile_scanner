@@ -173,6 +173,9 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   bool get isVisitor =>
       gatePass.gatePassBookingType == GatePassBookingType.visitor;
+
+  bool get hasForeignDriverId => gatePass.driverHasForeignID == true;
+
   bool get hasPreBooking => !isManualInput;
 
   bool get isManualEntryWizard => isManualInput && !_isExitMode;
@@ -723,7 +726,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
     notifyListeners();
 
-    if (gatePass.driverHasForeignID == true) {
+    if (hasForeignDriverId) {
       setBarcodeScanType(BarcodeScanType.vehicleDisc);
     } else {
       setBarcodeScanType(BarcodeScanType.driversCard);
@@ -733,7 +736,7 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
     if (gatePass.gatePassStatus == GatePassStatus.inYard) {
       _isExitMode = true;
-      if (gatePass.driverHasForeignID == true) {
+      if (hasForeignDriverId) {
         setBarcodeScanType(BarcodeScanType.vehicleDisc);
       } else {
         setBarcodeScanType(BarcodeScanType.driversCard);

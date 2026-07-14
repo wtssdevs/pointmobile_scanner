@@ -25,6 +25,7 @@ class GatePassVisitorAccess {
   String? transactionNo;
   String? driverName;
   String? driverIdNo;
+  bool driverHasForeignID;
   String? driverLicenceNo;
   String? driversLicenceCodes;
   DateTime? professionalDrivingPermitExpiryDate;
@@ -63,6 +64,7 @@ class GatePassVisitorAccess {
     this.transactionNo,
     this.driverName,
     this.driverIdNo,
+    this.driverHasForeignID = false,
     this.driverLicenceNo,
     this.driversLicenceCodes,
     this.professionalDrivingPermitExpiryDate,
@@ -81,7 +83,8 @@ class GatePassVisitorAccess {
   });
 
   bool get hasDriverInfo =>
-      driverName?.isNotEmpty == true && driverLicenceNo?.isNotEmpty == true;
+      driverHasForeignID ||
+      (driverName?.isNotEmpty == true && driverLicenceNo?.isNotEmpty == true);
   bool get hasVehicleInfo =>
       vehicleRegNumber?.isNotEmpty == true &&
       vehicleRegisterNumber?.isNotEmpty == true;
@@ -116,6 +119,7 @@ class GatePassVisitorAccess {
       transactionNo: json['transactionNo'],
       driverName: json['driverName'] ?? '',
       driverIdNo: json['driverIdNo'],
+      driverHasForeignID: json['driverHasForeignID'] ?? false,
       serviceType: json['serviceType'],
       driverLicenceNo: json['driverLicenceNo'],
       driversLicenceCodes: json['driversLicenceCodes'],
@@ -164,6 +168,7 @@ class GatePassVisitorAccess {
       'transactionNo': transactionNo,
       'driverName': driverName,
       'driverIdNo': driverIdNo,
+      'driverHasForeignID': driverHasForeignID,
       'driverLicenceNo': driverLicenceNo,
       'driversLicenceCodes': driversLicenceCodes,
       'professionalDrivingPermitExpiryDate':

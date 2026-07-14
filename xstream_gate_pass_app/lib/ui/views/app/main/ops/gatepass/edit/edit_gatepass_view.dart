@@ -238,14 +238,14 @@ class GatePassEditView extends StatelessWidget {
     }
 
     // Foreign license photo validation
-    if (model.gatePass.driverHasForeignID == true &&
+    if (model.hasForeignDriverId &&
         !model.foreignLicensePhotoTaken) {
       model.setValidationMessage("Foreign license photo is required");
     } else {
       model.clearValidationMessage("Foreign license photo is required");
     }
 
-    if (model.gatePass.driverHasForeignID == false) {
+    if (model.hasForeignDriverId) {
       model.setDriverValidationMessage();
     }
 
@@ -318,7 +318,7 @@ class GatePassEditView extends StatelessWidget {
       GatePassEditViewModel model, BuildContext context) async {
     model.clearAllValidationMessage();
 
-    if (model.gatePass.driverHasForeignID == true) {
+    if (model.hasForeignDriverId) {
       if (!model.foreignLicensePhotoTaken) {
         model.setValidationMessage(
             "Foreign license photo verification required for exit");
@@ -427,7 +427,7 @@ class GatePassEditView extends StatelessWidget {
     }
 
 //split between foreign license and normal drivers lisence
-    if (model.gatePass.driverHasForeignID == true &&
+    if (model.hasForeignDriverId &&
         !model.foreignLicensePhotoTaken) {
       model.setValidationMessage("Foreign license photo is required");
     } else {
@@ -717,7 +717,31 @@ class GatePassEditView extends StatelessWidget {
                                     ),
                                   ],
                                   verticalSpaceSmall,
+                                   ForeignLicensePhotoCard(
+                                    isVisible: model.hasForeignDriverId,
+                                    width: width,
+                                    isPhotoTaken:
+                                        model.foreignLicensePhotoTaken,
+                                    fileStore: model.foreignLicensePhotoPath,
+                                    onTap: () {
+                                      model.captureForeignLicensePhoto();
+                                    },
+                                    onViewAllImages: () {
+                                      model.viewAllForeignLicensePhotos();
+                                    },
+                                    infoList: [
+                                      BuildInfoItem(
+                                          label: 'Driver Name',
+                                          value: model.gatePass.driverName ??
+                                              'Missing Information'),
+                                      BuildInfoItem(
+                                          label: 'ID Number',
+                                          value: model.gatePass.driverIdNo ??
+                                              'Missing Information'),
+                                    ],
+                                  ),
                                   BuildInfoCard(
+                                    isVisible: !model.hasForeignDriverId,
                                     width: width,
                                     title: "Visitor Drivers Lisence Card",
                                     isSelected: model.barcodeScanType ==
@@ -900,9 +924,7 @@ class GatePassEditView extends StatelessWidget {
                                   //*********Drivers TEMP Lisence Card******** */
                                   //new widget for driver  foreign lisence ID
                                   ForeignLicensePhotoCard(
-                                    isVisible:
-                                        model.gatePass.driverHasForeignID ==
-                                            true,
+                                    isVisible: model.hasForeignDriverId,
                                     width: width,
                                     isPhotoTaken:
                                         model.foreignLicensePhotoTaken,
@@ -935,9 +957,7 @@ class GatePassEditView extends StatelessWidget {
 
                                   //*********Drivers Lisence Card******** */
                                   BuildInfoCard(
-                                    isVisible:
-                                        model.gatePass.driverHasForeignID ==
-                                            false,
+                                    isVisible: !model.hasForeignDriverId,
                                     key: model.driverInfoCardKey,
                                     width: width,
                                     title: "Drivers Lisence Card",
