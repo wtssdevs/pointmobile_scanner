@@ -140,6 +140,13 @@ class GatePassEditView extends StatelessWidget {
         model.clearValidationMessage("Driver name is required");
       }
 
+      if (model.gatePass.driverHasForeignID == true &&
+          !model.foreignLicensePhotoTaken) {
+        model.setValidationMessage("Foreign license photo is required");
+      } else {
+        model.clearValidationMessage("Foreign license photo is required");
+      }
+
       if (model.gatePass.gatePassBookingType != GatePassBookingType.visitor) {
         if (model.gatePass.transporterId == null) {
           model.setValidationMessage("Transporter is required");
@@ -178,6 +185,13 @@ class GatePassEditView extends StatelessWidget {
     }
 
     if (model.gatePass.gatePassBookingType == GatePassBookingType.visitor) {
+      if (model.gatePass.driverHasForeignID == true &&
+          !model.foreignLicensePhotoTaken) {
+        model.setValidationMessage("Foreign license photo is required");
+      } else {
+        model.clearValidationMessage("Foreign license photo is required");
+      }
+
       if (model.gatePass.vehicleRegNumber == null) {
         model.setValidationMessage("Vehicle Reg Number is required");
       } else {
@@ -378,6 +392,12 @@ class GatePassEditView extends StatelessWidget {
     //validate per status
 
     if (model.gatePass.gatePassBookingType == GatePassBookingType.visitor) {
+      if (model.gatePass.driverHasForeignID == true &&
+          !model.foreignLicensePhotoTaken) {
+        model.setValidationMessage("Foreign license photo is required");
+      } else {
+        model.clearValidationMessage("Foreign license photo is required");
+      }
       if (model.gatePass.vehicleRegNumber == null) {
         model.setValidationMessage("Vehicle Reg Number is required");
       } else {
@@ -711,6 +731,9 @@ class GatePassEditView extends StatelessWidget {
                                   ],
                                   verticalSpaceSmall,
                                   BuildInfoCard(
+                                    isVisible:
+                                        model.gatePass.driverHasForeignID ==
+                                            false,
                                     width: width,
                                     title: "Visitor Drivers Lisence Card",
                                     isSelected: model.barcodeScanType ==
@@ -736,6 +759,32 @@ class GatePassEditView extends StatelessWidget {
                                           value:
                                               model.gatePass.driverLicenceNo ??
                                                   'Not Scanned'),
+                                    ],
+                                  ),
+                                  verticalSpaceSmall,
+                                  ForeignLicensePhotoCard(
+                                    isVisible:
+                                        model.gatePass.driverHasForeignID ==
+                                            true,
+                                    width: width,
+                                    isPhotoTaken:
+                                        model.foreignLicensePhotoTaken,
+                                    fileStore: model.foreignLicensePhotoPath,
+                                    onTap: () {
+                                      model.captureForeignLicensePhoto();
+                                    },
+                                    onViewAllImages: () {
+                                      model.viewAllForeignLicensePhotos();
+                                    },
+                                    infoList: [
+                                      BuildInfoItem(
+                                          label: 'Driver Name',
+                                          value: model.gatePass.driverName ??
+                                              'Missing Information'),
+                                      BuildInfoItem(
+                                          label: 'ID Number',
+                                          value: model.gatePass.driverIdNo ??
+                                              'Missing Information'),
                                     ],
                                   ),
                                   verticalSpaceSmall,

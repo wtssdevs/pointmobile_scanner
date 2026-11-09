@@ -608,6 +608,7 @@ class GatePassAccess {
       transactionNo: gatePassVisitorAccess.transactionNo,
       driverIdNo: gatePassVisitorAccess.driverIdNo,
       driverName: gatePassVisitorAccess.driverName,
+      driverHasForeignID: gatePassVisitorAccess.driverHasForeignID,
       driverLicenceNo: gatePassVisitorAccess.driverLicenceNo,
       driversLicenceCodes: gatePassVisitorAccess.driversLicenceCodes,
       professionalDrivingPermitExpiryDate:
