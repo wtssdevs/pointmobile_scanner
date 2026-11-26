@@ -7,6 +7,7 @@ class NavActionButton extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
   final bool isVisible;
+  final bool enabled;
 
   const NavActionButton({
     Key? key,
@@ -15,6 +16,7 @@ class NavActionButton extends StatelessWidget {
     required this.color,
     required this.onTap,
     this.isVisible = true,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -23,22 +25,23 @@ class NavActionButton extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final effectiveColor = enabled ? color : Theme.of(context).disabledColor;
     return Expanded(
       child: InkWell(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             FaIcon(
               icon,
-              color: color,
+              color: effectiveColor,
               size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: color,
+                color: effectiveColor,
                 fontSize: 14,
               ),
             ),

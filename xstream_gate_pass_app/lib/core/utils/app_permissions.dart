@@ -1,4 +1,5 @@
 class AppPermissions {
+  static const String yardActivitiesScan = 'Views.Operations.YardOperations.Scan';
   AppPermissions._();
 
   static const String views = "Views.";

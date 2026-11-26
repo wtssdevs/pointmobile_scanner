@@ -1,3 +1,4 @@
+import 'package:xstream_gate_pass_app/core/models/ops/yard_operations/yard_activity_model.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:xstream_gate_pass_app/app/app.dialogs.dart';
@@ -21,6 +22,32 @@ import 'dart:convert';
 
 @LazySingleton()
 class GatePassService {
+  dynamic _yardPayload(dynamic response) => response is Map && response.containsKey('result') ? response['result'] : response;
+  Future<List<YardGatePass>> getYardActivityGatePasses(int branchId) async {
+    final response = _yardPayload(await _apiManager.get(AppConst.yardActivitiesEligible, queryParameters: {'branchId': branchId}));
+    if (response is! List) throw StateError('Invalid gate-pass response');
+    return response.map((item) => YardGatePass.fromJson(Map<String, dynamic>.from(item))).toList();
+  }
+  Future<List<YardTimelineActivity>> getYardActivityTimeline(String gatePassId) async {
+    final response = _yardPayload(await _apiManager.get(AppConst.yardActivitiesTimeline, queryParameters: {'gatePassId': gatePassId}));
+    if (response is! Map || response['activities'] is! List) throw StateError('Invalid timeline response');
+    return (response['activities'] as List).map((item) => YardTimelineActivity.fromJson(Map<String, dynamic>.from(item))).toList();
+  }
+  Future<YardScanResult> scanYardActivity(String gatePassId, String token, {String? acknowledgement}) async {
+    // A failure propagates to the viewmodel; no offline completion is created.
+    try {
+      final response = _yardPayload(await _apiManager.post(AppConst.yardActivitiesScan,
+        data: {'gatePassAccessId': gatePassId, 'token': token, 'acknowledgement': acknowledgement}, showLoader: false));
+      if (response is! Map) throw StateError('Invalid scan response');
+      return YardScanResult.fromJson(Map<String, dynamic>.from(response));
+    } on DioException catch (error) {
+      final status = error.response?.statusCode;
+      if (status == 401 || status == 403) return YardScanResult.fromJson({'outcome': 'Unauthorized'});
+      if (status == 409) return YardScanResult.fromJson({'outcome': 'ConcurrentStateChange'});
+      if (status == 400) return YardScanResult.fromJson({'outcome': 'ValidationFailure'});
+      rethrow;
+    }
+  }
   final log = getLogger('GatePassService');
   final ApiManager _apiManager = locator<ApiManager>();
   final _dialogService = locator<DialogService>();

@@ -59,6 +59,7 @@ import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_survey_type_picker/cm
 import 'package:xstream_gate_pass_app/ui/bottom_sheets/cms_condition_picker/cms_condition_picker_sheet.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops/gate_access_yard_ops_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_containerno_reader/cam_containerno_reader_view.dart';
+import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_license_plate_reader/cam_license_plate_reader_view.dart';
 import 'package:xstream_gate_pass_app/services/iso_type_service.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/ops/gate_access_yard_ops_select/gate_access_yard_ops_select_view.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/images_viewer_list/images_viewer_list_view.dart';
@@ -105,6 +106,7 @@ import 'package:xstream_gate_pass_app/ui/views/cms/surveys/list/cms_surveys_list
     MaterialRoute(page: GateAccessVisitorsListView),
     MaterialRoute(page: GateAccessYardOpsView),
     MaterialRoute(page: CamContainernoReaderView),
+    MaterialRoute(page: CamLicensePlateReader),
     MaterialRoute(page: GateAccessYardOpsSelectView),
     MaterialRoute(page: ImagesViewerListView),
     MaterialRoute(page: CheckListView),

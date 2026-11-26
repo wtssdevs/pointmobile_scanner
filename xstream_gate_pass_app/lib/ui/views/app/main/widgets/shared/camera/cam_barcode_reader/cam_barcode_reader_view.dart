@@ -1,15 +1,14 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:stacked/stacked.dart';
 import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_barcode_reader/barcode_display_widget.dart';
-import 'package:xstream_gate_pass_app/ui/views/app/main/widgets/shared/camera/cam_barcode_reader/barcode_preview_overlay.dart';
 import 'cam_barcode_reader_viewmodel.dart';
 import 'package:rxdart/rxdart.dart';
 
 class CamBarcodeReader extends StatefulWidget {
-  const CamBarcodeReader({super.key});
+  const CamBarcodeReader({super.key, this.returnResult = false});
+  final bool returnResult;
 
   @override
   State<CamBarcodeReader> createState() => _CamBarcodeReaderState();
@@ -17,9 +16,9 @@ class CamBarcodeReader extends StatefulWidget {
 
 class _CamBarcodeReaderState extends State<CamBarcodeReader>
     with TickerProviderStateMixin {
+  bool _returned = false;
   final _buffer = <String>[];
-  List<Barcode> _barcodes = [];
-  AnalysisImage? _image;
+
   final _barcodesController = BehaviorSubject<List<String>>();
   late final Stream<List<String>> _barcodesStream = _barcodesController.stream;
   final _scrollController = ScrollController();
@@ -31,6 +30,8 @@ class _CamBarcodeReaderState extends State<CamBarcodeReader>
 
   @override
   void dispose() {
+    _barcodesController.close();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -73,16 +74,23 @@ class _CamBarcodeReaderState extends State<CamBarcodeReader>
             width: 512,
           ),
           maxFramesPerSecond: 5,
-          autoStart: false,
+          autoStart: widget.returnResult,
         ),
         // 3.
         //onImageForAnalysis: (img) => model.processImageBarcode(img),
         onImageForAnalysis: (img) async {
-          var result = await model.processImageBarcode(img);
-          setState(() {
-            _image = img;
-          });
-          if (result.isNotEmpty) {
+          var result = await model.processImageBarcode(img,
+              returnRawValue: widget.returnResult);
+
+          if (widget.returnResult &&
+              result.isNotEmpty &&
+              !_returned &&
+              mounted) {
+            _returned = true;
+            model.close(result);
+            return;
+          }
+          if (result.isNotEmpty && mounted && !_returned) {
             _addBarcode(result);
           }
         },
@@ -95,6 +103,27 @@ class _CamBarcodeReaderState extends State<CamBarcodeReader>
           //   analysisImage: _image,
           //   preview: preview,
           // );
+          if (widget.returnResult) {
+            return SafeArea(
+                child: Stack(children: [
+              Positioned(
+                  top: 8,
+                  left: 8,
+                  child: IconButton.filled(
+                    tooltip: 'Back',
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => model.close(),
+                  )),
+              const Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Card(
+                    child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child:
+                            Text('Point the camera at the activity QR code.')),
+                  )),
+            ]));
+          }
           return BarcodeDisplayWidget(
             barcodesStream: _barcodesStream,
             scrollController: _scrollController,

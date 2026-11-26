@@ -1,6 +1,9 @@
 // ignore_for_file: constant_identifier_names
 
 class AppConst {
+  static const String yardActivitiesScan = '/api/services/app/YardOperations/Scan';
+  static const String yardActivitiesTimeline = '/api/services/app/YardOperations/GetTimeline';
+  static const String yardActivitiesEligible = '/api/services/app/YardOperations/GetEligibleGatePasses';
   AppConst._();
 
   //Local Database

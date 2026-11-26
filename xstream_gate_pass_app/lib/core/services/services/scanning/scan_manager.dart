@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pointmobile_scanner/pointmobile_scanner.dart';
@@ -20,6 +22,7 @@ import 'package:xstream_gate_pass_app/core/services/shared/local_storage_service
 @LazySingleton()
 class ScanningService {
   final log = getLogger('ScanningService');
+
   final DialogService _dialogService = locator<DialogService>();
   final LocalStorageService _localStorageService =
       locator<LocalStorageService>();
@@ -56,6 +59,20 @@ class ScanningService {
 
   BarcodeScanType _barcodeScanType = BarcodeScanType.loadConQrCode;
   BarcodeScanType get barcodeScanType => _barcodeScanType;
+
+  Future<String?> captureRegistrationPhotoText() async {
+    final photo = await ImagePicker().pickImage(
+        source: ImageSource.camera, maxWidth: 1600, imageQuality: 90);
+    if (photo == null) return null;
+    final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
+    try {
+      final text =
+          await recognizer.processImage(InputImage.fromFilePath(photo.path));
+      return text.text;
+    } finally {
+      await recognizer.close();
+    }
+  }
 
   void setBarcodeScanType(BarcodeScanType barcodeScanType) {
     _barcodeScanType = barcodeScanType;
@@ -255,6 +272,7 @@ class ScanningService {
     }
 
     if (textScanData.isNotEmpty && textScanData != "READ_FAIL") {
+      if (!textScanData.startsWith("yac1."))
       log.i("Scan Complete $textScanData");
       if (textScanData.isNotEmpty) {
         barcodeScanChangeController.add(textScanData.trim());
@@ -277,6 +295,7 @@ class ScanningService {
     var scanData = Uint8List.fromList(call.arguments);
     var textScanData = utf8.decode(scanData);
     if (textScanData != "READ_FAIL") {
+      if (!textScanData.startsWith("yac1."))
       log.i("Scan Complete $textScanData");
       if (textScanData.isNotEmpty) {
         //convert to license disk data
