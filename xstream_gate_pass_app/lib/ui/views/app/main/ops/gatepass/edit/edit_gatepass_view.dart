@@ -1583,7 +1583,7 @@ class GatePassEditView extends StatelessWidget {
 
                                     // Container Details Card for Manual Entries
                                     if (model.isManualInput &&
-                                        !model.isExitMode) ...[
+                                        (!model.isExitMode || model.hasDispatchContainers)) ...[
                                       for (var i = 0; i < model.manualContainerCardCount; i++)
                                         Padding(
                                           padding: const EdgeInsets.only(bottom: 12),
@@ -1598,6 +1598,7 @@ class GatePassEditView extends StatelessWidget {
                                           ),
                                         ),
 
+                                      if (!model.isExitMode)
                                       Padding(
                                         padding: const EdgeInsets.symmetric(horizontal: 12),
                                         child: Wrap(
@@ -1622,6 +1623,7 @@ class GatePassEditView extends StatelessWidget {
                                         ),
                                       ),
                                       verticalSpaceTiny,
+                                      if (!model.isExitMode)
                                       Padding(
                                         padding: const EdgeInsets.symmetric(horizontal: 12),
                                         child: Text(
@@ -2392,11 +2394,45 @@ Widget _buildManualContainerCard({
                 : Colors.grey)
         : Colors.blueGrey,
     infoList: [
+      if (!model.isExitMode) ...[
+      Container(
+        margin: const EdgeInsets.only(top: 12, bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Delivery Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          verticalSpaceTiny,
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Receive', icon: Icons.arrow_downward, value: DeliveryType.receive, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Dispatch', icon: Icons.arrow_upward, value: DeliveryType.dispatch, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Trailer Bound', icon: Icons.more_horiz, value: DeliveryType.other, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
+          ]),
+        ]),
+      ),
       Container(
         margin: const EdgeInsets.only(bottom: 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Container Number *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+          Text('Cargo Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
           verticalSpaceTiny,
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Empty', icon: Icons.inbox, value: GatePassContainerType.empty, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Unpack Full', icon: Icons.inventory, value: GatePassContainerType.unpackFull, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
+            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Store Full', icon: Icons.warehouse, value: GatePassContainerType.storeFull, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
+          ]),
+        ]),
+      ),
+      ],
+      Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(
+            model.isExitMode || container.containerDeliveryType != DeliveryType.dispatch
+                ? 'Container Number *'
+                : 'Container Number',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+          ),
+          verticalSpaceTiny,
+          if (model.isExitMode && container.containerDeliveryType != DeliveryType.dispatch)
+            Text(container.containerNumber ?? '')
+          else
           TextFormField(
             key: ValueKey(
                 'manual_container_number_${index}_${container.containerNumber ?? ''}'),
@@ -2408,6 +2444,7 @@ Widget _buildManualContainerCard({
           ),
         ]),
       ),
+      if (!model.isExitMode) ...[
       Container(
         margin: const EdgeInsets.only(bottom: 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -2463,30 +2500,6 @@ Widget _buildManualContainerCard({
               onChanged: (v) => model.setManualContainerType(index, v),
             ),
           ),
-        ]),
-      ),
-      Container(
-        margin: const EdgeInsets.only(top: 12, bottom: 12),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Delivery Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
-          verticalSpaceTiny,
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Receive', icon: Icons.arrow_downward, value: DeliveryType.receive, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
-            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Dispatch', icon: Icons.arrow_upward, value: DeliveryType.dispatch, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
-            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Other', icon: Icons.more_horiz, value: DeliveryType.other, groupValue: container.containerDeliveryType, onChanged: (v) => model.setManualContainerDeliveryType(index, v))),
-          ]),
-        ]),
-      ),
-      Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Cargo Type *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
-          verticalSpaceTiny,
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Empty', icon: Icons.inbox, value: GatePassContainerType.empty, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
-            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Unpack Full', icon: Icons.inventory, value: GatePassContainerType.unpackFull, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
-            SizedBox(width: 110, child: _buildRadioOption(context: context, title: 'Store Full', icon: Icons.warehouse, value: GatePassContainerType.storeFull, groupValue: container.gatePassContainerType, onChanged: (v) => model.setManualContainerCargoType(index, v))),
-          ]),
         ]),
       ),
       Container(
@@ -2555,6 +2568,7 @@ Widget _buildManualContainerCard({
           ),
         ]),
       ),
+      ],
     ],
   );
 }

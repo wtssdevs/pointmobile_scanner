@@ -207,6 +207,11 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     static const int _maxManualContainerCards = 3;
   int _manualContainerCardCount = 1;
   int get manualContainerCardCount => _manualContainerCardCount;
+  bool get hasDispatchContainers =>
+      gatePass.containers?.any(
+        (container) => container.containerDeliveryType == DeliveryType.dispatch,
+      ) ?? false;
+
   bool get canAddManualContainerCard =>
       _manualContainerCardCount < _maxManualContainerCards;
 
@@ -315,11 +320,11 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
   }
 
   void setManualContainerNumber(int index, String value) {
-    final normalized = value.toUpperCase();
+    final normalized = value.trim().toUpperCase();
     _ensureManualContainerSlots();
     gatePass.containers![index].containerNumber = normalized;
     _syncGatePassFromContainer(index);
-    rebuildUi();
+    if (!isExitMode) rebuildUi();
   }
 
 
@@ -437,8 +442,8 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
 
   bool get containerInfoComplete =>
       gatePass.gatePassBookingType == GatePassBookingType.containers &&
-      gatePass.containerNumber != null &&
-      gatePass.containerNumber!.isNotEmpty &&
+      (gatePass.containerDeliveryType == DeliveryType.dispatch ||
+          (gatePass.containerNumber?.trim().isNotEmpty ?? false)) &&
       gatePass.containerDeliveryType != null &&
       gatePass.gatePassContainerType != null &&
       gatePass.containerShippingLine != null;
@@ -706,10 +711,14 @@ class GatePassEditViewModel extends BaseFormViewModel with AppViewBaseHelper {
     }
 
     if (gatePass.gatePassBookingType == GatePassBookingType.containers &&
-        gatePass.containerNumber == null &&
         gatePass.containers != null &&
         gatePass.containers!.isNotEmpty) {
-      loadContainerDetailsFromArray();
+      if (gatePass.gatePassStatus == GatePassStatus.inYard) {
+        _manualContainerCardCount = gatePass.containers!.length;
+      }
+      if (gatePass.containerNumber?.trim().isNotEmpty != true) {
+        loadContainerDetailsFromArray();
+      }
     }
     _ensureManualContainerSlots();
     _syncPrimaryContainerFromGatePass();
@@ -1784,6 +1793,7 @@ Future<void> authorizeEntry() async {
         gatePass.containerId = Guid.newGuidAsString;
       }
       gatePass.handleContainers();
+      _sanitizeContainersForApi();
     }
 
     String? savedContainerId = gatePass.containerId;
@@ -1921,6 +1931,21 @@ Future<void> authorizeEntry() async {
         description:
             'Could not authorize for entry,Please check you internet connection and try again',
         mainButtonTitle: "Ok",
+      );
+      return;
+    }
+
+    if (isContainerCargo &&
+        gatePass.containers?.any((container) =>
+            container.containerDeliveryType == DeliveryType.dispatch &&
+            container.containerNumber?.trim().isNotEmpty != true) == true) {
+      scrollToWidget(containerInfoCardKey);
+      Fluttertoast.showToast(
+        msg: "Enter or scan a container number for each Dispatch container before authorizing exit",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
       );
       return;
     }
@@ -3393,7 +3418,8 @@ final normalized = containerType.toUpperCase();
 
 
   // Container number validation
-  if (gatePass.containerNumber == null || gatePass.containerNumber!.isEmpty) {
+  if (gatePass.containerDeliveryType != DeliveryType.dispatch &&
+      gatePass.containerNumber?.trim().isNotEmpty != true) {
     scrollToWidget(containerInfoCardKey);
     Fluttertoast.showToast(
       msg: "Container number is required",
@@ -3596,7 +3622,8 @@ final normalized = containerType.toUpperCase();
     bool isValid = true;
 
     // Container number validation
-    if (gatePass.containerNumber == null || gatePass.containerNumber!.isEmpty) {
+    if ((isExitMode || gatePass.containerDeliveryType != DeliveryType.dispatch) &&
+        gatePass.containerNumber?.trim().isNotEmpty != true) {
       setValidationMessage("Container number is required");
       isValid = false;
     } else {
